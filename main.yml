@@ -1,0 +1,10 @@
+---
+# tasks file for kvm-vm creation for OCP install
+- name: Check if operating system disk already exists
+  stat:
+    path: /var/lib/libvirt/images/{{ kvm_vm_os_disk_name }}.qcow2
+    get_checksum: no
+    get_md5: no
+    get_mime: no
+    get_attributes: no
+  register: os_disk_file
