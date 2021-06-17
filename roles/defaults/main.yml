@@ -5,7 +5,8 @@ kvm_vm_public_ip: []
 kvm_vm_root_pwd: []
 kvm_vm_base_img: [] #NOTE: This should be the name of a base image in /var/lib/libvirt/images on your KVM host
 kvm_vm_vcpus: "1"
-kvm_vm_ram: "16384"
+kvm_vm_ram: "8196"
+# kvm_vm_ram: "16384"
 kvm_vm_os_disk_name: "{{ kvm_vm_hostname }}"
 kvm_vm_os_disk_size: "70G"
 kvm_vm_nics: [] #NOTE: see example playbook for structure
