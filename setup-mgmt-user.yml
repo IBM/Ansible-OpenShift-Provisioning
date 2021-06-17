@@ -1,0 +1,28 @@
+---
+
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: create zcts user
+    tags: always
+    user:
+      name: zcts
+      groups: root
+
+  - name: add ssh key for zcts user
+    tags: always
+    authorized_key:
+      user: zcts
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKTf6OEBNCzusceF3/dTWK9rIACxOw009HMkH//AuE8h zcts default"
+
+  - name: add sudoers file for zcts user
+    tags: always
+    copy:
+      src: sudoers_zcts
+      dest: /etc/sudoers.d/zcts
+      owner: root
+      group: root
+      mode: 0440
+
