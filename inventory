@@ -1,8 +1,17 @@
-[bootstrap_server]
+[kvm-host]
 9.60.87.132
 
-[bastion_server]
+[bootstrap_server]
+9.60.87.133
 
-[control_nodes
+[bastion_server]
+9.60.87.139
+
+[control_nodes]
+9.60.87.138
+9.60.87.137
+9.60.87.136
 
 [worker_nodes]
+9.60.87.135
+9.60.87.134
