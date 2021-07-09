@@ -1,1 +1,8 @@
+[bootstrap_server]
 9.60.87.132
+
+[bastion_server]
+
+[control_nodes
+
+[worker_nodes]
