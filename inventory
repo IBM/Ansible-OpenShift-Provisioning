@@ -1,4 +1,4 @@
-[kvm-host]
+[kvm_host]
 9.60.87.132
 
 [bootstrap_server]
