@@ -1,0 +1,8 @@
+---
+
+- host kvm_hosts
+
+- name: list all VMs
+    command: list_vms
+  register: all_vms
+
