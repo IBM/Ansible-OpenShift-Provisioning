@@ -5,7 +5,7 @@
   tasks: 
 
   - name: update repository index
-    apt:
+    yum:
       update_cache: yes
 
   - name: Ensure pre-requisite packages are installed
@@ -28,5 +28,24 @@
       - systemctl status libvirtd.service
       - systemctl status libvirtd
 
-  - name: get details about network interface
-      
+  - name: create macvtap xml file
+    file:
+      path: "~/files/macvtap.xml"
+      state: touch
+
+  - name: Fill contents of macvtap xml file
+    copy:
+      dest: "~/files/macvtap.xml"
+      content: |
+        <network>
+          <name>macvtap-net</name>
+          <forward dev='enc1' mode='bridge'>
+          <interface dev='enc1'/>
+        </forward>
+    
+  - name: Set up macvtap bridge
+    ansible.builtin.shell:
+      - virsh net-define macvtap.xml
+      - virsh net-start --network macvtap-net
+      - virsh net-autostart --network macvtap-net
+      - virsh net-list --all
