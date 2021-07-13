@@ -1,0 +1,25 @@
+---
+
+- hosts: kvm_hosts
+  become: true
+  tasks:
+
+  - name: Ensure pre-requisite packages are installed
+      yum:
+        names: 
+          - libvirt
+          - libvirt-devel
+          - libvirt-daemon-kvm
+          - qemu-kvm
+          - virt-manager
+          - libvirt-daemon-config-network
+          - libvirt-client
+          - qemu-img 
+
+  - name: Ensure libvirtd is started
+    tasks:
+      - name: Transfer the script
+        copy: src=test.sh dest=/home/test_user mode=0777
+
+     - name: Execute the script
+       command: sh /home/test_user/test.sh
