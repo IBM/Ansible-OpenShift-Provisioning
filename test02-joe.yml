@@ -17,9 +17,7 @@
           - qemu-img 
 
   - name: Ensure libvirtd is started
-    tasks:
-      - name: Transfer the script
-        copy: src=test.sh dest=/home/test_user mode=0777
-
-     - name: Execute the script
-       command: sh /home/test_user/test.sh
+      ansible.builtin.shell:
+        - systemctl enable --now libvirtd
+        - systemctl status libvirtd.service
+        - systemctl status libvirtd
