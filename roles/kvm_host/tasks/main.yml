@@ -1,6 +1,6 @@
 ---
 
-- host: kvm_hosts
+- hosts: kvm_hosts
   become: true
   tasks: 
 
@@ -23,10 +23,7 @@
       update_cache: yes
 
   - name: Ensure libvirtd is started
-    ansible.builtin.shell:
-      - systemctl enable --now libvirtd
-      - systemctl status libvirtd.service
-      - systemctl status libvirtd
+    ansible.builtin.script: ~/files/shell_scripts/start_libvirtd.sh
 
   - name: create macvtap xml file
     file:
