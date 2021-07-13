@@ -8,3 +8,9 @@
       command: list_vms
     register: running_vms
 
+  - name: Print running vms
+    ansible.builtin.debug:
+      var: running_vms
+      verbosity: 0
+
+
