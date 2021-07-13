@@ -1,1 +1,22 @@
 ---
+
+- hosts: kvm_hosts
+  become: true
+  tasks: 
+
+  - name: Ensure pre-requisite packages are installed
+      yum:
+        - libvirt
+        - libvirt-devel
+        - libvirt-daemon-kvm
+        - qemu-kvm
+        - virt-manager
+        - libvirt-daemon-config-network
+        - libvirt-client
+        - qemu-img
+
+  - name: Ensure libvirtd is started
+      ansible.builtin.shell:
+        - systemctl enable --now libvirtd
+        - systemctl status libvirtd.service
+        - systemctl status libvirtd
