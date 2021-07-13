@@ -1,11 +1,16 @@
 ---
 
-- hosts: kvm_hosts
+- host: kvm_hosts
   become: true
   tasks: 
 
+  - name: update repository index
+    apt:
+      update_cache: yes
+
   - name: Ensure pre-requisite packages are installed
-      yum:
+    yum:
+      name:
         - libvirt
         - libvirt-devel
         - libvirt-daemon-kvm
@@ -14,9 +19,14 @@
         - libvirt-daemon-config-network
         - libvirt-client
         - qemu-img
+      state: latest
+      update_cache: yes
 
   - name: Ensure libvirtd is started
-      ansible.builtin.shell:
-        - systemctl enable --now libvirtd
-        - systemctl status libvirtd.service
-        - systemctl status libvirtd
+    ansible.builtin.shell:
+      - systemctl enable --now libvirtd
+      - systemctl status libvirtd.service
+      - systemctl status libvirtd
+
+  - name: get details about network interface
+      
