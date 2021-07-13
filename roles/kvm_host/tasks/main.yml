@@ -1,6 +1,6 @@
 ---
 
-- host: kvm_hosts
+- hosts: kvm_host
   become: true
   tasks: 
 
@@ -23,10 +23,7 @@
       update_cache: yes
 
   - name: Ensure libvirtd is started
-    ansible.builtin.shell:
-      - systemctl enable --now libvirtd
-      - systemctl status libvirtd.service
-      - systemctl status libvirtd
+    script: ~/files/shell_scripts/start_libvirtd.sh
 
   - name: create macvtap xml file
     file:
@@ -44,8 +41,4 @@
         </forward>
     
   - name: Set up macvtap bridge
-    ansible.builtin.shell:
-      - virsh net-define macvtap.xml
-      - virsh net-start --network macvtap-net
-      - virsh net-autostart --network macvtap-net
-      - virsh net-list --all
+    script: ~/files/shell_scripts/macvtap-net.sh 
