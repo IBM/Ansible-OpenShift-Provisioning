@@ -1,10 +1,6 @@
 ---
 
-<<<<<<< HEAD
 - hosts: kvm_host
-=======
-- hosts: kvm_hosts
->>>>>>> 600d4e0610d13ddb6a7d652ff4a2aef7775f61e6
   become: true
   tasks: 
 
@@ -27,11 +23,7 @@
       update_cache: yes
 
   - name: Ensure libvirtd is started
-<<<<<<< HEAD
-    script: ~/files/shell_scripts/start_libvirtd.sh
-=======
-    ansible.builtin.script: ~/files/shell_scripts/start_libvirtd.sh
->>>>>>> 600d4e0610d13ddb6a7d652ff4a2aef7775f61e6
+    script: ~/.git/Ansible-OpenShift-Provisioning/files/shell_scripts/start_libvirtd.sh
 
   - name: create macvtap xml file
     file:
