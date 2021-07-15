@@ -1,0 +1,26 @@
+apiVersion: v1
+baseDomain: ocpz.wsclab.endicott.ibm.com 
+compute: 
+- hyperthreading: Enabled 
+  name: worker
+  replicas: 0 
+  architecture : s390x
+controlPlane: 
+  hyperthreading: Enabled 
+  name: master
+  replicas: 3 
+  architecture : s390x
+metadata:
+  name: distribution
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14 
+    hostPrefix: 23 
+  networkType: OpenShiftSDN
+  serviceNetwork: 
+  - 172.30.0.0/16
+platform:
+  none: {} 
+fips: false 
+pullSecret: '<pull-secret>'
+sshKey: '<ssh-public-key>'
