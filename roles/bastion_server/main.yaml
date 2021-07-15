@@ -12,7 +12,7 @@
     script: ~/.git/Ansible-OpenShift-Provisioning/files/shell_scripts/dl_rhel_iso.sh
 
   - name: start install process
-    script: ~/.git/Ansible-OpenShift-Provisioning/files/shell_scripts/start_rhel_install.sh
+    script: ~/.git/Ansible-OpenShift-Provisioning/files/shell_scripts/start_bastion_install.sh
 
 #there has to be a way to do this through Ansible. Step 3 page 9
   - name: complete bastion install process
