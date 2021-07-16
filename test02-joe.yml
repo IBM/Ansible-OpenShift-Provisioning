@@ -16,6 +16,10 @@
           - libvirt-client
           - qemu-img 
 
+- name: update repository index
+    yum:
+      update_cache: yes
+
   - name: Ensure libvirtd is started
       ansible.builtin.shell:
         - systemctl enable --now libvirtd
