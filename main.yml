@@ -1,10 +1,44 @@
 ---
-# tasks file for kvm-vm creation for OCP install
-- name: Check if operating system disk already exists
-  stat:
-    path: /var/lib/libvirt/images/{{ kvm_vm_os_disk_name }}.qcow2
-    get_checksum: no
-    get_md5: no
-    get_mime: no
-    get_attributes: no
-  register: os_disk_file
+
+- hosts: kvm_host
+  become: true
+  tasks: 
+
+  - name: update repository index
+    yum:
+      update_cache: yes
+
+  - name: Ensure pre-requisite packages are installed
+    yum:
+      name:
+        - libvirt
+        - libvirt-devel
+        - libvirt-daemon-kvm
+        - qemu-kvm
+        - virt-manager
+        - libvirt-daemon-config-network
+        - libvirt-client
+        - qemu-img
+      state: latest
+      update_cache: yes
+
+  - name: Ensure libvirtd is started
+    script: ~/.git/Ansible-OpenShift-Provisioning/files/shell_scripts/start_libvirtd.sh
+
+  - name: create macvtap xml file
+    file:
+      path: "~/files/macvtap.xml"
+      state: touch
+
+  - name: Fill contents of macvtap xml file
+    copy:
+      dest: "~/files/macvtap.xml"
+      content: |
+        <network>
+          <name>macvtap-net</name>
+          <forward dev='enc1' mode='bridge'>
+          <interface dev='enc1'/>
+        </forward>
+    
+  - name: Set up macvtap bridge
+    script: ~/files/shell_scripts/macvtap-net.sh 
