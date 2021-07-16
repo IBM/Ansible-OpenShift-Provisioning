@@ -1,8 +1,8 @@
 ---
 
 - hosts: kvm_host
+- tasks:
 
-  tasks:
   - name: list all VMs
     community.libvirt.virt:
       command: list_vms
