@@ -1,0 +1,44 @@
+##Needs variables from host_vars for baseDomain, cluster_name, pullsecret, and ssh-public-key. 
+##I think it also needs cidr (pod's IP range) and service network IP range.
+##Ensure PATHs are correct
+---
+
+- hosts: bastion_server
+  become: true
+  tasks:
+
+  - name: create install-config.yaml
+    file:
+      path: "~/files/install-config.yaml"
+      state: touch
+
+  - name: Fill contents of install-config.yaml file
+    copy:
+      dest: "~/files/macvtap.xml"
+      content: |
+        apiVersion: v1
+        baseDomain: <domain>
+        compute:
+        - architecture: s390x
+          hyperthreading: Enabled
+          name: worker
+          replicas: 0
+        controlPlane:
+          architecture: s390x
+          hyperthreading: Enabled
+          name: master
+          replicas: 3
+        metadata:
+          name: <cluster_name>
+        networking:
+          clusterNetwork:
+          - cidr: 10.128.0.0/14
+            hostPrefix: 23
+          networkType: OpenShiftSDN
+          serviceNetwork:
+          - 172.30.0.0/16
+        platform:
+          none: {}
+        fips: false
+        pullSecret: '<pull-secret>'
+        sshKey: '<ssh-public-key>'
