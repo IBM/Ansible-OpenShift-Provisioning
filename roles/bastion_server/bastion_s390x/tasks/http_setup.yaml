@@ -1,0 +1,61 @@
+---
+
+- hosts: bastion_server
+  become: true
+  tasks:
+  
+  - name: update repository index
+      dnf:
+        update_cache: yes
+
+  - name: install httpd
+      dnf:
+        name: httpd
+  
+##this may not work, and is definitely not idempotent. If having problems, go to:
+## https://dmsimard.com/2016/03/15/changing-the-ssh-port-with-ansible/ 
+  - name: change default port to 8080
+    set_fact:
+      ansible_port: 8080
+
+  - name: create directory bin for mirrors
+    file:
+      path: /var/www/html/bin
+      state: directory
+      mode: '0755'
+
+  - name: create directory bootstrap for mirrors
+    file:
+      path: /var/www/html/bootstrap
+      state: directory
+      mode: '0755'
+
+  - name: get mirrors 1
+    get_url:
+      url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-4.7.7-s390x-live-kernel-s390x
+      dest: /var/www/html/bin/rhcos-kernel
+      mode: '0440'
+
+  - name: get mirrors 2
+    get_url:
+      url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-4.7.7-s390x-live-initramfs.s390x.img
+      dest: /var/www/html/bin/rhcos-initramfs.img
+      mode: '0440'
+ 
+##I think the destination path given from Filipe's document mistakenly left out the sub-directories, so I added them in here.
+  - name: get mirrors 3
+    get_url:
+      url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-4.7.7-s390x-live-rootfs.s390x.img
+      dest: /var/www/html/bin/rhcos-rootfs.img
+
+  - name: enable httpd
+    systemd:
+      name: httpd
+      enable: yes
+
+  - name: check httpd status
+    systemd:
+      state: started
+      name: httpd
+
+    

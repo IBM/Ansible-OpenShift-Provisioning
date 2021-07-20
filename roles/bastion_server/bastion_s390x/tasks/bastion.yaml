@@ -4,15 +4,6 @@
   become: true
   tasks:
   
-  - name: update repository index
-    yum: 
-      update_cache: yes
-
-  - name: Download RHEL ISO image to RHEL KVM
-    script: ~/.git/Ansible-OpenShift-Provisioning/files/shell_scripts/dl_rhel_iso.sh
-
-  - name: start install process
-    script: ~/.git/Ansible-OpenShift-Provisioning/files/shell_scripts/start_bastion_install.sh
 
 #there has to be a way to do this through Ansible. Step 3 page 9
   - name: complete bastion install process
@@ -32,46 +23,6 @@
 
   - name: Get installer and oc Client Tools
     script: ~/.git/Ansible-OpenShift-Provisioning/files/shell_scripts/get_ocp_installer.sh
-
-##create install-config.yaml file
-  - name: create install-config.yaml
-    file:
-      path: "~/files/install-config.yaml"
-      state: touch
-
-##Needs variables from host_vars for baseDomain, cluster_name, pullsecret, and ssh-public-key. 
-##I think it also needs cidr (pod's IP range) and service network IP range.
-
-  - name: Fill contents of install-config.yaml file
-    copy:
-      dest: "~/files/macvtap.xml"
-      content: |
-        apiVersion: v1
-        baseDomain: <domain>
-        compute:
-        - architecture: s390x
-          hyperthreading: Enabled
-          name: worker
-          replicas: 0
-        controlPlane:
-          architecture: s390x
-          hyperthreading: Enabled
-          name: master
-          replicas: 3
-        metadata:
-          name: <cluster_name>
-        networking:
-          clusterNetwork:
-          - cidr: 10.128.0.0/14
-            hostPrefix: 23
-          networkType: OpenShiftSDN
-          serviceNetwork:
-          - 172.30.0.0/16
-        platform:
-          none: {}
-        fips: false
-        pullSecret: '<pull-secret>'
-        sshKey: '<ssh-public-key>'
 
 ##need to use host_vars for <installation_directory>
   - name: Generate the ignition files 1
