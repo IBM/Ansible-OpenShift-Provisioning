@@ -10,7 +10,7 @@
       command: define
       name: macvtap-net
       autostart: true
-      xml: "{{ lookup ('template', '/home/jacob/.git/Ansible-OpenShift-Provisioning/roles/kvm_host/templates/macvtap.xml.j2') }}"
+      xml: "{{ lookup ('template', '/home/jacob/.git/Ansible-OpenShift-Provisioning/roles/kvm_host/kvm_host_s90x/templates/macvtap.xml.j2') }}"
 
   - name: Start macvtap-net
     community.libvirt.virt_net:
