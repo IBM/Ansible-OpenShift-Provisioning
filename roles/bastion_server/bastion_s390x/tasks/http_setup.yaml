@@ -11,6 +11,7 @@
   - name: install httpd
       dnf:
         name: httpd
+        state: latest
   
 ##this may not work, and is definitely not idempotent. If having problems, go to:
 ## https://dmsimard.com/2016/03/15/changing-the-ssh-port-with-ansible/ 
@@ -34,19 +35,19 @@
     get_url:
       url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-4.7.7-s390x-live-kernel-s390x
       dest: /var/www/html/bin/rhcos-kernel
-      mode: '0440'
+      mode: '0755'
 
   - name: get mirrors 2
     get_url:
       url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-4.7.7-s390x-live-initramfs.s390x.img
       dest: /var/www/html/bin/rhcos-initramfs.img
-      mode: '0440'
+      mode: '0755'
  
-##I think the destination path given from Filipe's document mistakenly left out the sub-directories, so I added them in here.
   - name: get mirrors 3
     get_url:
       url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-4.7.7-s390x-live-rootfs.s390x.img
       dest: /var/www/html/bin/rhcos-rootfs.img
+      mode: '0755'
 
   - name: enable httpd
     systemd:
