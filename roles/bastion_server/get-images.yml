@@ -1,0 +1,30 @@
+---
+
+hosts: kvm_host
+become: true
+tasks:
+
+- name: download RHCOS initramfs
+  get_url:
+    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-initramfs.s390x.img
+    dest: /var/lib/libvirt/images
+    mode: 0755
+    
+- name: download RHCOS kernel
+  get_url:
+    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-kernel-s390x
+    dest: /var/lib/libvirt/images
+    mode: 0755
+
+- name: download RHCOS rootfs
+  get_url:
+    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-rootfs.s390x.img
+    dest: /var/lib/libvirt/images
+    mode: 0755
+
+- name: download QCOW2 image
+  get_url:
+    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-qemu.s390x.qcow2.gz
+    dest: /var/lib/libvirt/images
+    mode: 0755
+
