@@ -4,20 +4,23 @@
   become: true
   tasks:
   
-  - name: update repository index
-      dnf:
-        update_cache: yes
+ ## - name: update repository index
+ ##     dnf:
+ ##       update_cache: yes
 
-  - name: install httpd
-      dnf:
-        name: httpd
-        state: latest
+ ## - name: install httpd
+ ##     dnf:
+ ##       name: httpd
+ ##       state: latest
   
 ##this may not work, and is definitely not idempotent. If having problems, go to:
 ## https://dmsimard.com/2016/03/15/changing-the-ssh-port-with-ansible/ 
-  - name: change default port to 8080
-    set_fact:
-      ansible_port: 8080
+  - name: Ensure the default Apache port is 8080
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^Listen '
+      insertafter: '^#Listen '
+      line: Listen 8080
 
   - name: create directory bin for mirrors
     file:
