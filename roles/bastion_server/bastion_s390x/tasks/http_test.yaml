@@ -1,0 +1,6 @@
+---
+
+- hosts: bastion_server
+  become: true
+  tasks:
+  
