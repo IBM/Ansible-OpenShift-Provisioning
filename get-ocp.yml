@@ -1,0 +1,48 @@
+- hosts: kvm_host
+  become: true
+  tasks:
+
+  - name: create OCP download landing directory
+    file: 
+      path: /ocpinst/
+      state: directory
+
+  - name: Unzip OCP Client
+    ansible.builtin.unarchive:
+      src: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-client-linux.tar.gz
+      dest: /ocpinst/
+      remote_src: yes
+
+  - name: Unzip OCP Installer
+    ansible.builtin.unarchive:
+      src: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-install-linux.tar.gz
+      dest: /ocpinst/
+      remote_src: yes
+
+  - name: Copy kubectl file 
+    ansible.builtin.copy:
+      src: /ocpinst/kubectl
+      dest: /usr/local/bin/kubectl
+      remote_src: yes
+      owner: root
+      group: root
+      mode: '0755'
+
+  - name: Copy oc file
+    ansible.builtin.copy:
+      src: /ocpinst/oc
+      dest: /usr/local/bin/oc
+      remote_src: yes
+      owner: root
+      group: root
+      mode: '0755'
+
+  - name: Copy openshift-install file
+    ansible.builtin.copy:
+      src: /ocpinst/openshift-install
+      dest: /usr/local/bin/openshift-install
+      remote_src: yes
+      owner: root
+      group: root
+      mode: '0755'
+      
