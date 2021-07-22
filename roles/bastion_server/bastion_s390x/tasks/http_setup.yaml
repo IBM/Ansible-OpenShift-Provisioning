@@ -13,14 +13,12 @@
  ##       name: httpd
  ##       state: latest
   
-##this may not work, and is definitely not idempotent. If having problems, go to:
-## https://dmsimard.com/2016/03/15/changing-the-ssh-port-with-ansible/ 
   - name: Ensure the default Apache port is 8080
-    lineinfile:
+    replace:
       path: /etc/httpd/conf/httpd.conf
-      regexp: '^Listen '
-      insertafter: '^#Listen '
-      line: Listen 8080
+      regexp: '^Listen 80'
+      replace: 'Listen 8080'
+      backup: yes
 
   - name: create directory bin for mirrors
     file:
