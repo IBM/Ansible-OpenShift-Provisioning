@@ -46,19 +46,19 @@
 
   - name: get mirrors 1
     get_url:
-      url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-4.7.7-s390x-live-kernel-s390x
+      url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-kernel-s390x
       dest: /var/www/html/bin/rhcos-kernel
       mode: '0755'
 
   - name: get mirrors 2
     get_url:
-      url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-4.7.7-s390x-live-initramfs.s390x.img
+      url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-initramfs.s390x.img
       dest: /var/www/html/bin/rhcos-initramfs.img
       mode: '0755'
  
   - name: get mirrors 3
     get_url:
-      url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-4.7.7-s390x-live-rootfs.s390x.img
+      url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-rootfs.s390x.img
       dest: /var/www/html/bin/rhcos-rootfs.img
       mode: '0755'
 
@@ -72,4 +72,3 @@
       state: started
       name: httpd
 
-    
