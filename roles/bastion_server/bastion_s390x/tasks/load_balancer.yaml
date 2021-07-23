@@ -1,0 +1,14 @@
+---
+
+- hosts: bastion_server
+  become: true
+  tasks:
+
+##- name: install haproxy
+##  dnf:
+##  - haproxy
+
+  - name: move haproxy config file to bastion
+    copy:
+      src: roles/bastion_server/bastion_s390x/templates/haproxy.cfg.j2
+      dest: /etc/haproxy/haproxy.cfg
