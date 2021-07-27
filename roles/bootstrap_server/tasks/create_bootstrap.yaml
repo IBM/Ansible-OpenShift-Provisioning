@@ -1,0 +1,12 @@
+---
+
+- hosts: bootstrap_server
+  become: true
+  tasks:
+  
+## to wait for bootstrap creation before continuing, use one of these:
+## https://docs.ansible.com/ansible/latest/collections/ansible/builtin/wait_for_module.html
+## https://docs.ansible.com/ansible/latest/collections/ansible/builtin/wait_for_connection_module.html
+## https://docs.ansible.com/ansible/latest/collections/ansible/builtin/pause_module.html 
+
+ 
