@@ -55,6 +55,6 @@
   - name: Create Manifests
     ansible.builtin.command: /ocpinst/openshift-install create manifests --dir=/ocpinst/
     become: yes
-      chdir: /ocpinst/
+    
 
 
