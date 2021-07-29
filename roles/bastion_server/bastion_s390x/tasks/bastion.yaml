@@ -206,5 +206,6 @@
 ##    ansible.builtin.template:
 ##      src: install-config.yaml
 ##      dest: "~/files/install-config.yaml"
+##      remote_src: yes
 
 ## also still needs the ignition files task and the prepare the KVM OCP guests tasks
