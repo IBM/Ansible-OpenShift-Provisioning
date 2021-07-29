@@ -3,6 +3,7 @@
 - hosts: bastion_server
   become: true
   tasks:
+
 # required plugin:  ansible-galaxy collection install community.general
 
 ##- name: install haproxy
@@ -11,10 +12,10 @@
 
   - name: move haproxy config file to bastion
     copy:
-      src: roles/bastion_server/bastion_s390x/templates/haproxy.cfg.j2
-      dest: /etc/haproxy/haproxy.cfg
+      src: haproxy.cfg
+      dest: /etc/haproxy/haproxy.cfg.j2
 
-  - name: Enable haproxy service
-    community.general.haproxy:
-      state: enabled
-      
+  - name: Start haproxy
+    systemd:
+      state: started
+      name: haproxy
