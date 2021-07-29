@@ -51,6 +51,7 @@
       src: install-config.yaml
       dest: /ocpinst/install-config.yaml
 
+# testing portion
   - name: Create Manifests
     ansible.builtin.command: /ocpinst/openshift-install create manifests --dir=/ocpinst/
     become: yes
