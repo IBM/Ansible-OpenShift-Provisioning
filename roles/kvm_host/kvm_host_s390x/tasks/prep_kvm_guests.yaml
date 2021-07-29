@@ -3,12 +3,14 @@
 - hosts: kvm_host
   become: true
   tasks:
+  
+  - name: create landing directory
+    file:
+      path: /var/lib/libvirt/images
+      state: directory
 
-  - name: Unzip OCP Client
+  - name: Unzip OCP dependencies
     ansible.builtin.unarchive:
       src: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-qemu.s390x.qcow2.gz
       dest: /var/lib/libvirt/images
       remote_src: yes
-
-
-

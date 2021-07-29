@@ -155,7 +155,7 @@
     file:
       path: /ocpinst/
       state: directory
-A
+
   - name: Unzip OCP Client
     ansible.builtin.unarchive:
       src: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-client-linux.tar.gz
@@ -196,6 +196,7 @@ A
       mode: '0755'
 
 ## Rough draft task here. To be completed once we start using templates. Use ansible.builtin.template to fill install_config.yaml with correct variables.
+
 ##  - name: create install-config.yaml
 ##    file:
 ##      path: "~/files/install-config.yaml"
@@ -206,4 +207,4 @@ A
 ##      src: install-config.yaml
 ##      dest: "~/files/install-config.yaml"
 
-## also still needs the ignition files task and the prepare the KVM OCP guests task
+## also still needs the ignition files task and the prepare the KVM OCP guests tasks
