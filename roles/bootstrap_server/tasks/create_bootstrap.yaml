@@ -4,13 +4,10 @@
   become: true
   tasks:
   
-  - name: create bootstrap
-    community.libvirt.virt:
-      command: create
-      dest: /var/lib/libvirt/images/bootstrap.qcow2
-      size: 120000
-      
-      
+  - name: run bootstrap build sheel script
+    command: files/shell_scripts/create_bootstrap.sh      
+  
+  - name: wait for bootstrap installation to complete    
 
 ## to wait for bootstrap creation before continuing, use one of these:
 ## https://docs.ansible.com/ansible/latest/collections/ansible/builtin/wait_for_module.html
