@@ -2,11 +2,11 @@
   become: true
   tasks:
 
-  - name: Set mastersSchedulable parameter to False
-    replace:
-      path: /ocpinst/manifests/cluster-scheduler-02-config.yml
-      regexp: ': true'
-      replace: ': false'
+#  - name: Set mastersSchedulable parameter to False
+#    replace:
+#      path: /ocpinst/manifests/cluster-scheduler-02-config.yml
+#      regexp: ': true'
+#      replace: ': false'
   
   - name: Create Ignition files
     ansible.builtin.command: /ocpinst/openshift-install create ignition-configs --dir=/ocpinst/
@@ -17,9 +17,21 @@
       path: /var/www/html/ignition
       state: directory
 
-  - name: Copy Ignition files to web server
+  - name: Copy bootstrap Ignition file to web server
     copy:
-      src: /ocpinst/*.ign
+      src: /ocpinst/bootstrap.ign
       dest: /var/www/html/ignition
       remote_src: yes
- 
+
+  - name: Copy control plane Ignition file to web server
+    copy:
+      src: /ocpinst/master.ign
+      dest: /var/www/html/ignition
+      remote_src: yes
+
+  - name: Copy worker Ignition file to web server
+    copy:
+      src: /ocpinst/worker.ign
+      dest: /var/www/html/ignition
+      remote_src: yes
+
