@@ -59,7 +59,7 @@
   - name: Set mastersSchedulable parameter to False
     replace:
       path: /ocpinst/manifests/cluster-scheduler-02-config.yml
-      regexp: '^mastersSchedulable: true'
+      regexp: '$mastersSchedulable: true'
       replace: 'mastersSchedulable: false'
       backup: yes
 
