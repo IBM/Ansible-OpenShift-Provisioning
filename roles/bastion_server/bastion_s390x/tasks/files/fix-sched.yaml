@@ -1,0 +1,11 @@
+- hosts: bastion_server
+  become: true
+  tasks:
+
+  - name: Set mastersSchedulable parameter to False
+    replace:
+      path: /ocpinst/manifests/cluster-scheduler-02-config.yml
+      after: 'mastersSchedulable:'
+      regexp: '^true'
+      replace: '# false'
+  
