@@ -12,6 +12,11 @@
     ansible.builtin.command: /ocpinst/openshift-install create ignition-configs --dir=/ocpinst/
     become: yes
 
+  - name: create Ignition directory on webserver
+    file: 
+      path: /var/www/html/ignition
+      state: directory
+
   - name: Copy Ignition files to web server
     copy:
       src: /ocpinst/*.ign
