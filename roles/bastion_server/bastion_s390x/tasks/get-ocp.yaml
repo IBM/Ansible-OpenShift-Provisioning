@@ -59,7 +59,18 @@
   - name: Set mastersSchedulable parameter to False
     replace:
       path: /ocpinst/manifests/cluster-scheduler-02-config.yml
-      regexp: '^true'
-      replace: 'false'
+      regexp: ': true'
+      replace: ': false'
+  
+  - name: Create Ignition files
+    ansible.builtin.command: /ocpinst/openshift-install create ignition-configs --dir=/ocpinst/
+    become: yes
+
+  - name: Copy Ignition files to web server
+    copy:
+      src: /ocpinst/*.ign
+      dest: /var/www/html/ignition
+      remote_src: yes
+      
   
 
