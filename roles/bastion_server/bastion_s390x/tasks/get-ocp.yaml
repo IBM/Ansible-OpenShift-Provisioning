@@ -51,10 +51,42 @@
       src: install-config.yaml
       dest: /ocpinst/install-config.yaml
 
-# testing portion
   - name: Create Manifests
     ansible.builtin.command: /ocpinst/openshift-install create manifests --dir=/ocpinst/
     become: yes
     
+  - name: Set mastersSchedulable parameter to False
+    replace:
+      path: /ocpinst/manifests/cluster-scheduler-02-config.yml
+      regexp: ': true'
+      replace: ': false'
+  
+  - name: Create Ignition files
+    ansible.builtin.command: /ocpinst/openshift-install create ignition-configs --dir=/ocpinst/
+    become: yes
 
+  - name: create Ignition directory on webserver
+    file: 
+      path: /var/www/html/ignition
+      state: directory
+
+  - name: Copy bootstrap Ignition file to web server
+    copy:
+      src: /ocpinst/bootstrap.ign
+      dest: /var/www/html/ignition
+      remote_src: yes
+
+  - name: Copy control plane Ignition file to web server
+    copy:
+      src: /ocpinst/master.ign
+      dest: /var/www/html/ignition
+      remote_src: yes
+
+  - name: Copy worker Ignition file to web server
+    copy:
+      src: /ocpinst/worker.ign
+      dest: /var/www/html/ignition
+      remote_src: yes
+
+  
 
