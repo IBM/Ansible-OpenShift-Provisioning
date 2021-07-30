@@ -61,5 +61,5 @@
       path: /ocpinst/manifests/cluster-scheduler-02-config.yml
       regexp: '^true'
       replace: 'false'
-      backup: yes
+  
 
