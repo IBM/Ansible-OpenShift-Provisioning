@@ -56,5 +56,10 @@
     ansible.builtin.command: /ocpinst/openshift-install create manifests --dir=/ocpinst/
     become: yes
     
-
+  - name: Set mastersSchedulable parameter to False
+    replace:
+      path: /ocpinst/manifests/cluster-scheduler-02-config.yml
+      regexp: '^masterSchedulable: true'
+      replace: 'masterSchedulable: false'
+      backup: yes
 
