@@ -46,7 +46,7 @@
       group: root
       mode: '0755'
 
-  - name: Copy install-config.yml to ocp install directory
+  - name: Copy install-config.yaml to ocp install directory
     copy:
       src: install-config.yaml
       dest: /ocpinst/install-config.yaml
