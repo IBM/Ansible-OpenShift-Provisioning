@@ -1,0 +1,20 @@
+---
+
+- hosts: kvm_host
+  become: true
+  tasks:
+  
+  - name: virtualize bootstrap
+    command: qemu-img create -f qcow2 -b /var/lib/libvirt/images/rhcos-qemu.s390x.qcow2 /var/lib/libvirt/images/bootstrap.qcow2 100G      
+
+  - name: boot bootstrap
+    command: virt-install --boot kernel=rhcos-kernel,initrd=rhcos-initramfs.img,kernel_args='rd.neednet=1 coreos.inst.install_dev=/dev/vda coreos.live.root>
+  
+##  - name: wait for bootstrap installation to complete    
+
+## to wait for bootstrap creation before continuing, use one of these:
+## https://docs.ansible.com/ansible/latest/collections/ansible/builtin/wait_for_module.html
+## https://docs.ansible.com/ansible/latest/collections/ansible/builtin/wait_for_connection_module.html
+## https://docs.ansible.com/ansible/latest/collections/ansible/builtin/pause_module.html 
+
+ 
