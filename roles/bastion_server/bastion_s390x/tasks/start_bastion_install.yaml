@@ -7,8 +7,8 @@
   - name: start bastion install process
     community.libvirt.virt:
       name: bastion 
-      memory: 4096 
-      vcpus: 2 
+      memory: 8172 
+      vcpus: 4 
       disk size: 30 
       cdrom: /var/lib/libvirt/images/rhel83.iso
       accelerate: yes 
