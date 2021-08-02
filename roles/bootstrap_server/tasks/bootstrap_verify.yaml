@@ -1,0 +1,16 @@
+---
+
+- hosts: bootstrap_server
+  become: true
+  tasks:
+  
+  - name: verify bootstrap creation
+    ansible.builtin.systemd:
+      state: started
+      name: bootstrap
+##not ready
+  - name: verify bootstrap install process
+    ansible.builtin.systemd:
+      state: 
+      name: bootkube.service
+      
