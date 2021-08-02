@@ -7,7 +7,7 @@ $TTL 86400
                                             86400 ;Minimum TTL
 )
 ;Name Server Information
-@ IN NS bastion-1.ocp.home.local.
+@ IN NS bastion.distribution.ocpz.wsclab.endicott.ibm.com.
 bastion     IN      A       9.60.87.139
 
 ;Reverse lookup for Name Server
