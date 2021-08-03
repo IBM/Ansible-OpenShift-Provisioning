@@ -1,0 +1,12 @@
+---
+
+- hosts: bastion_server
+  become: true
+  tasks: 
+
+  - name: create csr-name variable
+    command: oc get csr
+      register: csr-name
+  
+  - name: approve all certificate signing requests
+    command: oc adm certificate approve {{ csr-name }}
