@@ -52,7 +52,7 @@
       dest: /ocpinst/install-config.yaml
 
   - name: Create Manifests
-    ansible.builtin.command: /ocpinst/openshift-install create manifests --dir=/ocpinst/
+    command: /ocpinst/openshift-install create manifests --dir=/ocpinst/
     become: yes
     
   - name: Set mastersSchedulable parameter to False
@@ -62,7 +62,7 @@
       replace: ': false'
   
   - name: Create Ignition files
-    ansible.builtin.command: /ocpinst/openshift-install create ignition-configs --dir=/ocpinst/
+    command: /ocpinst/openshift-install create ignition-configs --dir=/ocpinst/
     become: yes
 
   - name: create Ignition directory on webserver
