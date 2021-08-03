@@ -17,5 +17,5 @@
 
   - name: Start haproxy
     systemd:
-      state: started
+      state: restarted
       name: haproxy
