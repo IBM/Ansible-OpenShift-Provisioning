@@ -4,13 +4,12 @@
   become: true
   tasks:
   
-  - name: verify bootstrap creation
-    ansible.builtin.systemd:
-      state: started
-      name: bootstrap
-##not ready
-  - name: verify bootstrap install process
-    ansible.builtin.systemd:
-      state: 
-      name: bootkube.service
-      
+  - name: connect bootstrap
+    command: virsh console bootstrap
+
+  - name: Verify bootstrap install process until complete
+    command: journalctl -u bootkube.service
+      register: result
+      until: result.stdout.find("bootkube.service complete") != -1
+      retries: 10
+      delay: 20
