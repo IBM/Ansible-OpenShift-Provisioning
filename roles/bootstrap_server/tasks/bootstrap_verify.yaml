@@ -11,5 +11,5 @@
     command: journalctl -u bootkube.service
       register: result
       until: result.stdout.find("bootkube.service complete") != -1
-      retries: 10
-      delay: 20
+      retries: 100
+      delay: 300
