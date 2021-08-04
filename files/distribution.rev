@@ -1,5 +1,5 @@
 $TTL 86400
-@ IN SOA bastion.distribution.ocpz.wsclab.endicott.ibm.com. admin.distribution.ocpz.wsclab.endicott.ibm.com. (
+@ IN SOA bastion.distribution.ocpz.wsclab.endicott.ibm.com. admin.distribution.ocpz.wsclab.endicott.ib$
                                             2020011800 ;Serial
                                             3600 ;Refresh
                                             1800 ;Retry
@@ -26,3 +26,5 @@ bastion     IN      A       9.60.87.139
 135     IN      PTR     compute-0.distribution.ocpz.wsclab.endicott.ibm.com.
 134     IN      PTR     compute-1.distribution.ocpz.wsclab.endicott.ibm.com.
 133     IN      PTR     bootstrap.distribution.ocpz.wsclab.endicott.ibm.com.
+139     IN      PTR     api-int.distribution.ocpz.wsclab.endicott.ibm.com.
+139     IN      PTR     api.distribution.ocpz.wsclab.endicott.ibm.com.
