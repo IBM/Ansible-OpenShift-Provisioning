@@ -14,38 +14,38 @@ $TTL 86400
 bastion IN A 9.60.87.139
 
 ;entry for bootstrap host.
-bootstrap IN A 9.60.87.133
+;bootstrap IN A 9.60.87.133
 bootstrap.distribution.ocpz.wsclab.endicott.ibm.com IN A 9.60.87.133
 
 ;entry of your load balancer
-haproxy IN A 9.60.87.139
+;haproxy IN A 9.60.87.139
 haproxy.distribution.ocpz.wsclab.endicott.ibm.com IN A 9.60.87.139
 
 ;entries for the master nodes
 control-0.distribution.ocpz.wsclab.endicott.ibm.com IN A 9.60.87.138
-control-0 IN A 9.60.87.138
+;control-0 IN A 9.60.87.138
 control-1.distribution.ocpz.wsclab.endicott.ibm.com IN A 9.60.87.137
-control-1 IN A 9.60.87.137
+;control-1 IN A 9.60.87.137
 control-2.distribution.ocpz.wsclab.endicott.ibm.com IN A 9.60.87.136
-control-2 IN A 9.60.87.136
+;control-2 IN A 9.60.87.136
 
 ;entry for the bastion host
 bastion IN A 9.60.87.139
 
 ;entries for the worker nodes
 compute-0.distribution.ocpz.wsclab.endicott.ibm.com IN A 9.60.87.135
-compute-0 IN A 9.60.87.135
+;compute-0 IN A 9.60.87.135
 compute-1.distribution.ocpz.wsclab.endicott.ibm.com IN A 9.60.87.134
-compute-1 IN A 9.60.87.134
+;compute-1 IN A 9.60.87.134
 
 ;The api identifies the IP of your load balancer.
 api.distribution.ocpz.wsclab.endicott.ibm.com IN A 9.60.87.139
-api IN A 9.60.87.139
-api-int.distribution.ocpz.wsclab.endicott.ibm.com IN A 9.60.87.139
-api-int IN A 9.60.87.139
+;api IN A 9.60.87.139
+api-int.distribution.ocpz.wsclab.endicott.ibm.com IN CNAME haproxy.distribution.ocpz.wsclab.endicott.ibm.com
+;api-int IN A 9.60.87.139
 
 ;The wildcard also identifies the load balancer.
-*.apps.distribution.ocpz.wsclab.endicott.ibm.com IN A 9.60.87.139
-*.apps IN A 9.60.87.139
+*.apps.distribution.ocpz.wsclab.endicott.ibm.com IN CNAME haproxy.distribution.ocpz.wsclab.endicott.ibm.com
+;*.apps IN A 9.60.87.139
 
 ;EOF
