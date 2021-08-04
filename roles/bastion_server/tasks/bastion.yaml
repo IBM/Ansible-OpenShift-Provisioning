@@ -109,6 +109,7 @@
       state: directory
       mode: '0755'
 
+##link got cut off
   - name: get mirrors 1
     get_url:
       url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-liv>
@@ -116,13 +117,14 @@
       remote_src: yes
       mode: '0755'
 
+##link got cut off
   - name: get mirrors 2
     get_url:
       url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-liv>
       dest: /var/www/html/bin
       remote_src: yes
       mode: '0755'
-
+##link got cut off
   - name: get mirrors 3
     get_url:
       url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-liv>
