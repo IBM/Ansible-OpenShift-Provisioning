@@ -20,7 +20,7 @@
     command: qemu-img create -f qcow2 -b /var/lib/libvirt/images/rhcos-qemu.s390x.qcow2 /var/lib/libvirt/images/compute-1.qcow2 100G
 
   - name: install CoreOS on control-0 node
-    command: virt-install --boot kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img,kernel_args='rd.neednet=1 coreos.inst.install_dev=/dev/vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-rootfs.img coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign ip=9.60.87.138::9.60.86.1:255.255.254.0:::none nameserver=9.60.87.139' --connect qemu:///system --name control-0 --memory 16384 --vcpus 4 --disk /var/lib/libvirt/images/control-0.qcow2 --accelerate --import --network network=macvtap-net --qemu-commandline="-drive if=none,id=ignition,format=raw,file=/var/www/html/ignition/master.ign,readonly=on -device virtio-blk,serial=ignition,drive=ignition" --noautoconsole
+    command: virt-install --boot kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img,kernel_args='rd.neednet=1 coreos.inst.install_dev=/dev/vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-rootfs.img coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign ip=9.60.87.138::9.60.86.1:255.255.254.0:::none nameserver=9.60.70.82' --connect qemu:///system --name control-0 --memory 16384 --vcpus 4 --disk /var/lib/libvirt/images/control-0.qcow2 --accelerate --import --network network=macvtap-net --qemu-commandline="-drive if=none,id=ignition,format=raw,file=/var/www/html/ignition/master.ign,readonly=on -device virtio-blk,serial=ignition,drive=ignition" --noautoconsole
     args:
       chdir: /var/lib/libvirt/images
 
@@ -29,7 +29,7 @@
       minutes: 8
 
   - name: install CoreOS on control-1 node
-    command: virt-install --boot kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img,kernel_args='rd.neednet=1 coreos.inst.install_dev=/dev/vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-rootfs.img coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign ip=9.60.87.137::9.60.86.1:255.255.254.0:::none nameserver=9.60.87.139' --connect qemu:///system --name control-1 --memory 16384 --vcpus 4 --disk /var/lib/libvirt/images/control-1.qcow2 --accelerate --import --network network=macvtap-net --qemu-commandline="-drive if=none,id=ignition,format=raw,file=/var/www/html/ignition/master.ign,readonly=on -device virtio-blk,serial=ignition,drive=ignition" --noautoconsole
+    command: virt-install --boot kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img,kernel_args='rd.neednet=1 coreos.inst.install_dev=/dev/vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-rootfs.img coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign ip=9.60.87.137::9.60.86.1:255.255.254.0:::none nameserver=9.60.70.82' --connect qemu:///system --name control-1 --memory 16384 --vcpus 4 --disk /var/lib/libvirt/images/control-1.qcow2 --accelerate --import --network network=macvtap-net --qemu-commandline="-drive if=none,id=ignition,format=raw,file=/var/www/html/ignition/master.ign,readonly=on -device virtio-blk,serial=ignition,drive=ignition" --noautoconsole
     args:
       chdir: /var/lib/libvirt/images
 
@@ -38,7 +38,7 @@
       minutes: 8
 
   - name: install CoreOS on control-2 node
-    command: virt-install --boot kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img,kernel_args='rd.neednet=1 coreos.inst.install_dev=/dev/vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-rootfs.img coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign ip=9.60.87.136::9.60.86.1:255.255.254.0:::none nameserver=9.60.87.139' --connect qemu:///system --name control-2 --memory 16384 --vcpus 4 --disk /var/lib/libvirt/images/control-2.qcow2 --accelerate --import --network network=macvtap-net --qemu-commandline="-drive if=none,id=ignition,format=raw,file=/var/www/html/ignition/master.ign,readonly=on -device virtio-blk,serial=ignition,drive=ignition" --noautoconsole
+    command: virt-install --boot kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img,kernel_args='rd.neednet=1 coreos.inst.install_dev=/dev/vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-rootfs.img coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign ip=9.60.87.136::9.60.86.1:255.255.254.0:::none nameserver=9.60.70.82' --connect qemu:///system --name control-2 --memory 16384 --vcpus 4 --disk /var/lib/libvirt/images/control-2.qcow2 --accelerate --import --network network=macvtap-net --qemu-commandline="-drive if=none,id=ignition,format=raw,file=/var/www/html/ignition/master.ign,readonly=on -device virtio-blk,serial=ignition,drive=ignition" --noautoconsole
     args:
       chdir: /var/lib/libvirt/images
 
@@ -47,7 +47,7 @@
       minutes: 8
 
   - name: install CoreOS on compute-0 node
-    command: virt-install --boot kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img,kernel_args='rd.neednet=1 coreos.inst.install_dev=/dev/vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-rootfs.img coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/worker.ign ip=9.60.87.135::9.60.86.1:255.255.254.0:::none nameserver=9.60.87.139' --connect qemu:///system --name compute-0 --memory 16384 --vcpus 4 --disk /var/lib/libvirt/images/compute-0.qcow2 --accelerate --import --network network=macvtap-net --qemu-commandline="-drive if=none,id=ignition,format=raw,file=/var/www/html/ignition/worker.ign,readonly=on -device virtio-blk,serial=ignition,drive=ignition" --noautoconsole
+    command: virt-install --boot kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img,kernel_args='rd.neednet=1 coreos.inst.install_dev=/dev/vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-rootfs.img coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/worker.ign ip=9.60.87.135::9.60.86.1:255.255.254.0:::none nameserver=9.60.70.82' --connect qemu:///system --name compute-0 --memory 16384 --vcpus 4 --disk /var/lib/libvirt/images/compute-0.qcow2 --accelerate --import --network network=macvtap-net --qemu-commandline="-drive if=none,id=ignition,format=raw,file=/var/www/html/ignition/worker.ign,readonly=on -device virtio-blk,serial=ignition,drive=ignition" --noautoconsole
     args:
       chdir: /var/lib/libvirt/images
 
@@ -56,6 +56,6 @@
       minutes: 8
 
   - name: install CoreOS on compute-1 node
-    command: virt-install --boot kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img,kernel_args='rd.neednet=1 coreos.inst.install_dev=/dev/vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-rootfs.img coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/worker.ign ip=9.60.87.134::9.60.86.1:255.255.254.0:::none nameserver=9.60.87.139' --connect qemu:///system --name compute-1 --memory 16384 --vcpus 4 --disk /var/lib/libvirt/images/compute-1.qcow2 --accelerate --import --network network=macvtap-net --qemu-commandline="-drive if=none,id=ignition,format=raw,file=/var/www/html/ignition/worker.ign,readonly=on -device virtio-blk,serial=ignition,drive=ignition" --noautoconsole
+    command: virt-install --boot kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img,kernel_args='rd.neednet=1 coreos.inst.install_dev=/dev/vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-rootfs.img coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/worker.ign ip=9.60.87.134::9.60.86.1:255.255.254.0:::none nameserver=9.60.70.82' --connect qemu:///system --name compute-1 --memory 16384 --vcpus 4 --disk /var/lib/libvirt/images/compute-1.qcow2 --accelerate --import --network network=macvtap-net --qemu-commandline="-drive if=none,id=ignition,format=raw,file=/var/www/html/ignition/worker.ign,readonly=on -device virtio-blk,serial=ignition,drive=ignition" --noautoconsole
     args:
       chdir: /var/lib/libvirt/images
