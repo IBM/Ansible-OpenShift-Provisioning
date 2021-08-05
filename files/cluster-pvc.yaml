@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv0001
+  annotations:
+    volume.beta.kubernetes.io/mount-options: rw,nfsvers=4,noexec 
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+  - ReadWriteOnce
+  nfs:
+    path: /mnt/nfs-shares/dist-ocp
+    server: 9.60.87.222
+  persistentVolumeReclaimPolicy: Retain
+  claimRef:
+    name: claim1
+    namespace: default
