@@ -1,0 +1,19 @@
+---
+
+- name: Set up macvtap bridge
+  community.libvirt.virt_net:
+    command: define
+    name: macvtap-net
+    autostart: true
+    xml: "{{ lookup ('template', 'macvtap.xml.j2') }}"
+
+- name: Start macvtap-net
+  community.libvirt.virt_net:
+    autostart: yes
+    command: start
+    name: macvtap-net
+      
+- name: Set autostart for macvtap-net
+  community.libvirt.virt_net:
+    autostart: yes
+    name: macvtap-net

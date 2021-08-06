@@ -1,0 +1,22 @@
+---
+
+#- name: install haproxy
+#  dnf:
+#  - haproxy
+
+- name: move haproxy config file to bastion
+  copy:
+    src: haproxy.cfg
+    dest: /etc/haproxy/haproxy.cfg
+    force: yes
+    backup: yes
+
+- name: enable haproxy
+  systemd:
+    state: enabled
+    named: haproxy
+
+- name: Start haproxy
+  systemd:
+    state: restarted
+    name: haproxy
