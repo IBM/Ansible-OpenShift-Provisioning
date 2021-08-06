@@ -1,0 +1,87 @@
+---
+
+- name: create OCP download landing directory
+  file: 
+    path: /ocpinst/
+    state: directory
+
+- name: Unzip OCP Client
+  ansible.builtin.unarchive:
+    src: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-client-linux.tar.gz
+    dest: /ocpinst/
+    remote_src: yes
+
+- name: Unzip OCP Installer
+  ansible.builtin.unarchive:
+    src: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-install-linux.tar.gz
+    dest: /ocpinst/
+    remote_src: yes
+
+- name: Copy kubectl file 
+  ansible.builtin.copy:
+    src: /ocpinst/kubectl
+    dest: /usr/local/bin/kubectl
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy oc file
+  ansible.builtin.copy:
+    src: /ocpinst/oc
+    dest: /usr/local/bin/oc
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy openshift-install file
+  ansible.builtin.copy:
+    src: /ocpinst/openshift-install
+    dest: /usr/local/bin/openshift-install
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy install-config.yaml to ocp install directory
+  copy:
+    src: install-config.yaml
+    dest: /ocpinst/install-config.yaml
+
+- name: Create Manifests
+  command: /ocpinst/openshift-install create manifests --dir=/ocpinst/
+  become: yes
+  
+- name: Set mastersSchedulable parameter to False
+  replace:
+    path: /ocpinst/manifests/cluster-scheduler-02-config.yml
+    regexp: ': true'
+    replace: ': false'
+
+- name: Create Ignition files
+  command: /ocpinst/openshift-install create ignition-configs --dir=/ocpinst/
+  become: yes
+
+- name: create Ignition directory on webserver
+  file: 
+    path: /var/www/html/ignition
+    state: directory
+
+- name: Copy bootstrap Ignition file to web server
+  copy:
+    src: /ocpinst/bootstrap.ign
+    dest: /var/www/html/ignition
+    remote_src: yes
+
+- name: Copy control plane Ignition file to web server
+  copy:
+    src: /ocpinst/master.ign
+    dest: /var/www/html/ignition
+    remote_src: yes
+
+- name: Copy worker Ignition file to web server
+  copy:
+    src: /ocpinst/worker.ign
+    dest: /var/www/html/ignition
+    remote_src: yes
