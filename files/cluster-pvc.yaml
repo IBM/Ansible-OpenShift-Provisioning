@@ -6,7 +6,7 @@ metadata:
     volume.beta.kubernetes.io/mount-options: rw,nfsvers=4,noexec 
 spec:
   capacity:
-    storage: 50Gi
+    storage: 150Gi
   accessModes:
   - ReadWriteOnce
   nfs:
