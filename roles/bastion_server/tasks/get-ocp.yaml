@@ -84,7 +84,7 @@
       dest: /var/www/html/ignition
       remote_src: yes
 
-  - name: Copy worker Ignition file to web server
+  - name: Copy compute Ignition file to web server
     copy:
       src: /ocpinst/worker.ign
       dest: /var/www/html/ignition

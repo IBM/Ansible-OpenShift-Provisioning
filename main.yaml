@@ -1,0 +1,22 @@
+---
+
+- hosts: kvm_host
+  become: true
+  roles:
+    - macvtap
+    - create_bastion
+
+- hosts: bastion_server
+  become: true
+  roles:
+    - haproxy
+    - httpd
+    - get-ocp
+
+- hosts: kvm_host
+  become: true
+  roles:
+    - prep_kvm_guests
+    - create_bootstrap
+    - create_control_nodes
+    - create_compute_nodes
