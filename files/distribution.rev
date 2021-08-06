@@ -14,12 +14,12 @@ bastion     IN      A       9.60.87.139
 139 IN PTR bastion.distribution.ocpz.wsclab.endicott.ibm.com.
 
 ;PTR Record IP address to Hostname
-133     IN      PTR     bootstrap.
-138     IN      PTR     control-0.
-137     IN      PTR     control-1.
-136     IN      PTR     control-2.
-135     IN      PTR     compute-0.
-134     IN      PTR     compute-1.
+;133     IN      PTR     bootstrap.
+;138     IN      PTR     control-0.
+;137     IN      PTR     control-1.
+;136     IN      PTR     control-2.
+;135     IN      PTR     compute-0.
+;134     IN      PTR     compute-1.
 138     IN      PTR     control-0.distribution.ocpz.wsclab.endicott.ibm.com.
 137     IN      PTR     control-1.distribution.ocpz.wsclab.endicott.ibm.com.
 136     IN      PTR     control-2.distribution.ocpz.wsclab.endicott.ibm.com.
