@@ -1,14 +1,15 @@
 ---
 
-- hosts: workstation
-  become: true
-  roles:
-  - install_packages
-  - update_repo_index
+#- hosts: workstation
+#  become: true
+#  roles:
+#  - install_ansible_galaxy
+#  - update_repo_index
 
 - hosts: kvm_host
   become: true
   roles:
+  #- install_packages
   - macvtap
   - create_bastion
 
@@ -31,15 +32,15 @@
   - create_control_nodes
   - create_compute_nodes
 
-- hosts: bootstrap_server
-  become: true
-  roles:
-  - verify_bootstrap
+#- hosts: bootstrap_server
+#  become: true
+#  roles:
+#  - verify_bootstrap
 
-- hosts: bastion_server
-  become: true
-  roles:
-  - remove_bootstrap
-  - approve_certs
-  - verify_installation
+#- hosts: bastion_server
+#  become: true
+#  roles:
+#  - remove_bootstrap
+#  - approve_certs
+#  - verify_installation
   
