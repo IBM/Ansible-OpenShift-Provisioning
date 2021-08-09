@@ -5,6 +5,5 @@
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-qemu.s390x.qcow2.gz
     dest: /var/lib/libvirt/images/
 
-
-- name: Unzip OCP dependencies
+- name: Unzip rhcos qcow2 files
   command: gunzip /var/lib/libvirt/images/rhcos-qemu.s390x.qcow2.gz
