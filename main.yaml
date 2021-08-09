@@ -1,22 +1,45 @@
 ---
 
+- hosts: workstation
+  become: true
+  roles:
+  - install_packages
+  - update_repo_index
+
 - hosts: kvm_host
   become: true
   roles:
-    - macvtap
-    - create_bastion
+  - macvtap
+  - create_bastion
 
 - hosts: bastion_server
   become: true
   roles:
-    - haproxy
-    - httpd
-    - get-ocp
+  - haproxy
+  - httpd
+  - get-ocp
 
 - hosts: kvm_host
   become: true
   roles:
-    - prep_kvm_guests
-    - create_bootstrap
-    - create_control_nodes
-    - create_compute_nodes
+  - prep_kvm_guests
+  - create_bootstrap
+
+- hosts: kvm_host
+  become: true
+  roles:
+  - create_control_nodes
+  - create_compute_nodes
+
+- hosts: bootstrap_server
+  become: true
+  roles:
+  - verify_bootstrap
+
+- hosts: bastion_server
+  become: true
+  roles:
+  - remove_bootstrap
+  - approve_certs
+  - verify_installation
+  
