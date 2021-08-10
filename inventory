@@ -1,5 +1,5 @@
-[workstation]
-{{ workstation_ip  }}
+#[workstation]
+#{{ workstation_ip }}
 
 [kvm_host]
 9.60.87.132
