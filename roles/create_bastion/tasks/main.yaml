@@ -1,5 +1,12 @@
 ---
 
+#Uncomment once we have a RHEL license
+#- name: download RHEL ISO image to KVM
+#  get_url:
+#      url: {{ RHEL ISO URL }}
+#      dest: /var/lib/libvirt/images/rhcos-qemu.s390x.qcow2
+#      mode: '0775'
+
 - name: virtualize bastion server
   command: qemu-img create -f qcow2 -b /var/lib/libvirt/images/rhcos-qemu.s390x.qcow2 /var/lib/libvirt/images/bastion.qcow2 30G
 
