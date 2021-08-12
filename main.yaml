@@ -4,7 +4,7 @@
 #  become: true
 #  roles:
 #  vars: "reminder to add vars for remote host to copy ssh key to, kvm_host in this case"
-#  - install_ansible_galaxy
+#  - install_packages (ansible_galaxy)
 #  - update_repo_index
 #  - ssh_key_gen
 #  - copy_ssh_key
@@ -12,9 +12,10 @@
 - hosts: kvm_host
   become: true
   roles:
-  #- install_packages
+  #- install_packages (libvirt, libvirt-devel, libvirt-daemon-kvm, qemu-kvm, virt-manager, libvirt-daemon-config-network, libvirt-client, qemu-img)
+  #- enable libvirt
   #- macvtap
-  #- create_bastion
+  - create_bastion
 
 #- hosts: workstation
 #  become: true
@@ -25,7 +26,9 @@
 - hosts: bastion_server
   become: true
   roles:
+  #- install_packages (haproxy, httpd, mod_ssl, bind, bind_utils) don't forget to enable, reminder that bind is called named when being called after install
   #- set_selinux_permissive
+  - dns
   - haproxy
   - httpd
   - get-ocp
@@ -35,10 +38,6 @@
   roles:
   - prep_kvm_guests
   - create_bootstrap
-
-- hosts: kvm_host
-  become: true
-  roles:
   - create_control_nodes
   - create_compute_nodes
 

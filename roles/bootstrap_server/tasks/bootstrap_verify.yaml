@@ -1,15 +1,11 @@
 ---
-
-- hosts: bootstrap_server
-  become: true
-  tasks:
   
-  - name: connect bootstrap
-    command: virsh console bootstrap
+- name: connect bootstrap
+  command: virsh console bootstrap
 
-  - name: Verify bootstrap install process until complete
-    command: journalctl -u bootkube.service
-      register: result
-      until: result.stdout.find("bootkube.service complete") != -1
-      retries: 100
-      delay: 300
+- name: Verify bootstrap install process until complete
+  command: journalctl -u bootkube.service
+    register: result
+    until: result.stdout.find("bootkube.service complete") != -1
+    retries: 100
+    delay: 300

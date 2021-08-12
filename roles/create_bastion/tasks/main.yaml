@@ -27,4 +27,4 @@
 
   - name: wait for bastion to install
     pause:
-      minutes: 15
+      minutes: 60
