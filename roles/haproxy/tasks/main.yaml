@@ -1,9 +1,5 @@
 ---
 
-#- name: install haproxy
-#  dnf:
-#  - haproxy
-
 - name: move haproxy config file to bastion
   copy:
     src: haproxy.cfg
@@ -13,10 +9,10 @@
 
 - name: enable haproxy
   systemd:
-    state: enabled
-    named: haproxy
+    enabled: yes
+    name: haproxy
 
-- name: Start haproxy
+- name: Restart haproxy
   systemd:
     state: restarted
     name: haproxy

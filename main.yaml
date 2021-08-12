@@ -3,19 +3,29 @@
 #- hosts: workstation
 #  become: true
 #  roles:
+#  vars: "reminder to add vars for remote host to copy ssh key to, kvm_host in this case"
 #  - install_ansible_galaxy
 #  - update_repo_index
+#  - ssh_key_gen
+#  - copy_ssh_key
 
 - hosts: kvm_host
   become: true
   roles:
   #- install_packages
-  - macvtap
-  - create_bastion
+  #- macvtap
+  #- create_bastion
+
+#- hosts: workstation
+#  become: true
+#  roles:
+#  vars: "reminder to add vars for remote host to copy ssh key to, bastion in this case"
+#  - copy_ssh_key
 
 - hosts: bastion_server
   become: true
   roles:
+  #- set_selinux_permissive
   - haproxy
   - httpd
   - get-ocp
