@@ -1,0 +1,6 @@
+#Placeholder, incomplete
+---
+
+- name: {{ host_name }}
+    dnf:
+      name: [{{ package1 }}, {{ package2 }}, 

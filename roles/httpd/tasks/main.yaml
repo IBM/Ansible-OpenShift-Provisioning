@@ -1,10 +1,10 @@
 ---
 
-#- name: install httpd
-#    dnf:
-#      name: httpd
-#      state: latest
-  
+- name: enable httpd
+  systemd:
+    name: httpd
+    enabled: yes
+
 - name: Ensure the default Apache port is 8080
   replace:
     path: /etc/httpd/conf/httpd.conf
@@ -64,29 +64,21 @@
   get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-kernel-s390x
     dest: /var/www/html/bin
-    remote_src: yes
     mode: '0755'
 
 - name: get mirrors 2
   get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-initramfs.s390x.img
     dest: /var/www/html/bin
-    remote_src: yes
     mode: '0755'
  
 - name: get mirrors 3
   get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-rootfs.s390x.img
     dest: /var/www/html/bin
-    remote_src: yes
     mode: '0755'
 
 - name: check to make sure httpd is started
   service:
     name: httpd
-    state: started
-
-- name: check httpd status
-  service:
-    state: started
-    name: httpd
+    state: restarted
