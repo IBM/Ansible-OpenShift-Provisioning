@@ -9,13 +9,13 @@
 #  - ssh_key_gen
 #  - copy_ssh_key
 
-- hosts: kvm_host
-  become: true
-  roles:
+#- hosts: kvm_host
+  #become: true
+  #roles:
   #- install_packages (libvirt, libvirt-devel, libvirt-daemon-kvm, qemu-kvm, virt-manager, libvirt-daemon-config-network, libvirt-client, qemu-img)
   #- enable libvirt
   #- macvtap
-  - create_bastion
+  #- create_bastion (reminder to eventually use boot instructions)
 
 #- hosts: workstation
 #  become: true
@@ -27,6 +27,7 @@
   become: true
   roles:
   #- install_packages (haproxy, httpd, mod_ssl, bind, bind_utils) don't forget to enable, reminder that bind is called named when being called after install
+  #- firewall (whatever that may be)
   #- set_selinux_permissive
   - dns
   - haproxy
