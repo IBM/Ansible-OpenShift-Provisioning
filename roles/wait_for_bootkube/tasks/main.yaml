@@ -1,3 +1,5 @@
+#Will not work as is. Waiting to figure out sshuttle or ProxyCommands to run commands on the bootstrap from bastion jump host.
+
 ---
   
 - name: ssh to bootstrap from bastion
@@ -7,6 +9,7 @@
   #pause: 
     #minutes: 1
 
+#above is for testing. Use below when above works.
 #1800
 
 - name: Start checking for bootkube to complete connecting nodes. Checks every 2 minutes.
@@ -16,5 +19,6 @@
   retries: 15
   delay: 1
 
+#above is for testing. Use below when above works.
 #retries: 15
 #delay: 120
