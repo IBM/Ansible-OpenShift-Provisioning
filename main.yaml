@@ -23,24 +23,29 @@
 #  vars: "reminder to add vars for remote host to copy ssh key to, bastion in this case"
 #  - copy_ssh_key
 
-- hosts: bastion_server
-  become: true
-  roles:
+#- hosts: bastion_server
+  #become: true
+  #roles:
   #- install_packages (haproxy, httpd, mod_ssl, bind, bind_utils) don't forget to enable, reminder that bind is called named when being called after install
   #- firewall (whatever that may be)
   #- set_selinux_permissive
-  - dns
-  - haproxy
-  - httpd
-  - get-ocp
+  #- dns
+  #- haproxy
+  #- httpd
+  #- get-ocp
 
-- hosts: kvm_host
+#- hosts: kvm_host
+  #become: true
+  #roles:
+  #- prep_kvm_guests
+  #- create_bootstrap
+  #- create_control_nodes
+  #- create_compute_nodes
+
+- hosts: bastion_server
   become: true
   roles:
-  - prep_kvm_guests
-  - create_bootstrap
-  - create_control_nodes
-  - create_compute_nodes
+  - wait_for_bootkube
 
 #- hosts: bootstrap_server
 #  become: true

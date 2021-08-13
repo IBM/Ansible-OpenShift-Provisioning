@@ -1,0 +1,20 @@
+---
+  
+- name: ssh to bootstrap from bastion
+  command: ssh core@9.60.87.133
+
+#- name: Wait 30 minutes for bootkube to connect nodes. May take up to 45 minutes.
+  #pause: 
+    #minutes: 1
+
+#1800
+
+- name: Start checking for bootkube to complete connecting nodes. Checks every 2 minutes.
+  command: journalctl -u bootkube.service
+  register: bootkube_status
+  until: bootkube_status.stdout.find("bootkube.service complete") != -1
+  retries: 15
+  delay: 1
+
+#retries: 15
+#delay: 120
