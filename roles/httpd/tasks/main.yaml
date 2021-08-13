@@ -48,37 +48,7 @@
 #    port: '4443'
 #    proto: tcp
 
-- name: create directory bin for mirrors
-  file:
-    path: /var/www/html/bin
-    state: directory
-    mode: '0755'
-
-- name: create directory bootstrap for mirrors
-  file:
-    path: /var/www/html/bootstrap
-    state: directory
-    mode: '0755'
-
-- name: get mirrors 1
-  get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-kernel-s390x
-    dest: /var/www/html/bin
-    mode: '0755'
-
-- name: get mirrors 2
-  get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-initramfs.s390x.img
-    dest: /var/www/html/bin
-    mode: '0755'
- 
-- name: get mirrors 3
-  get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-rootfs.s390x.img
-    dest: /var/www/html/bin
-    mode: '0755'
-
-- name: check to make sure httpd is started
-  service:
-    name: httpd
-    state: restarted
+#- name: check to make sure httpd is started
+#  service:
+#    name: httpd
+#    state: restarted

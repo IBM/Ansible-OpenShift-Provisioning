@@ -1,5 +1,29 @@
 ---
 
+- name: create directory bin for mirrors
+  file:
+    path: /var/www/html/bin
+    state: directory
+    mode: '0755'
+
+- name: get ocp kernel
+  get_url:
+    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-kernel-s390x
+    dest: /var/www/html/bin
+    mode: '0755'
+
+- name: get ocp initramfs
+  get_url:
+    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-initramfs.s390x.img
+    dest: /var/www/html/bin
+    mode: '0755'
+ 
+- name: get ocp rootfs
+  get_url:
+    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-rootfs.s390x.img
+    dest: /var/www/html/bin
+    mode: '0755'
+
 - name: create OCP download landing directory
   file: 
     path: /ocpinst/
