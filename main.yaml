@@ -9,52 +9,52 @@
 #  - ssh_key_gen
 #  - copy_ssh_key
 
-#- hosts: kvm_host
-  #become: true
-  #roles:
+- hosts: kvm_host
+  become: true
+  roles:
   #- install_packages (libvirt, libvirt-devel, libvirt-daemon-kvm, qemu-kvm, virt-manager, libvirt-daemon-config-network, libvirt-client, qemu-img)
   #- enable libvirt
-  #- macvtap
-  #- create_bastion (reminder to eventually use boot instructions)
+  - macvtap
+  - create_bastion #(reminder to eventually use boot instructions)
 
 #- hosts: workstation
 #  become: true
+#  gather_facts: no
 #  roles:
 #  vars: "reminder to add vars for remote host to copy ssh key to, bastion in this case"
 #  - copy_ssh_key
 
-#- hosts: bastion_server
-  #become: true
-  #roles:
-  #- install_packages (haproxy, httpd, mod_ssl, bind, bind_utils) don't forget to enable, reminder that bind is called named when being called after install
-  #- firewall (whatever that may be)
-  #- set_selinux_permissive
-  #- dns
-  #- haproxy
-  #- httpd
-  #- get-ocp
-
-#- hosts: kvm_host
-  #become: true
-  #roles:
-  #- prep_kvm_guests
-  #- create_bootstrap
-  #- create_control_nodes
-  #- create_compute_nodes
-
 - hosts: bastion_server
   become: true
   roles:
-  - wait_for_bootkube
+  #- install_packages (haproxy, httpd, mod_ssl, bind, bind_utils) don't forget to enable, reminder that bind is called named when being called after install
+  #- firewall (whatever that may be)
+  #- set_selinux_permissive
+  - dns
+  - haproxy
+  - httpd
+  - get-ocp
 
-#- hosts: bootstrap_server
-#  become: true
-#  roles:
-#  - verify_bootstrap
+- hosts: kvm_host
+  become: true
+  gather_facts: no
+  roles:
+  - prep_kvm_guests
+  - create_bootstrap
+  - create_control_nodes
+  - create_compute_nodes
+
+#- hosts: workstation
+  #become: true
+  #gather_facts: yes
+  #roles:
+  #- ssh_config_jump
 
 #- hosts: bastion_server
-#  become: true
-#  roles:
+  #become: true
+  #gather_facts: no
+  #roles:
+  #- wait_for_bootkube
 #  - remove_bootstrap
 #  - approve_certs
 #  - verify_installation

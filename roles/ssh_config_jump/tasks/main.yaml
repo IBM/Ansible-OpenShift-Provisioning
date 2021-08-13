@@ -1,0 +1,30 @@
+## will not work as is. Need to research using ProxyCommands or SSHuttle to run commands on bootstrap via the bastion jump host
+
+---
+
+- name: Check that the ssh_config exists
+  stat:
+    path: ~/.ssh/config
+  register: ssh_config
+
+- name: Create ssh config file, if it doesnt exist already
+  file:
+    path: ~/.ssh/config
+    state: touch
+  when: not ssh_config.stat.exists
+
+- name: Insert ssh keys for jump host configuration in /ssh/config
+  blockinfile:
+    path: ~/.ssh/config
+    block: |
+      Host bastion_server
+        HostName 9.60.87.139
+        IdentityFile ~/.ssh/ansible.pub
+        User root
+
+      Host bootstrap_server
+        HostName 9.60.87.133
+        IdentityFile ~/.ssh/ansible.pub
+        User core
+        ProxyJump bastion_server
+      
