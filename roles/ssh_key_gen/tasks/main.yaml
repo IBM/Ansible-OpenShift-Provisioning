@@ -1,0 +1,58 @@
+---
+
+- name: Check to see if local .ssh directory exists
+  stat:
+    path: "~/.ssh"
+  register: ssh_directory_exists_check
+
+- name: Print results of .ssh directory check
+  debug:
+    var: ssh_directory_exists_check
+
+- name: Create .ssh local directory if it doesn't already exist
+  file:
+    path: "~/.ssh"
+    state: directory
+    mode: "0700"
+  register: ssh_directory_creation
+  when: ssh_directory_exists_check is defined and ssh_directory_exists_check.stat.exists == false
+
+- name: Print results of ssh directory creation
+  debug:
+    var: ssh_directory_creation
+
+- name: check .ssh key pair files exist
+  stat:
+    path: "~/.ssh/{{item}}"
+  register: ssh_key_file_exists_check
+  with_items:
+    - "{{ssh_key_filename}}"
+    - "{{ssh_key_filename}}.pub"
+
+- name: Print results of ssh key pair files check
+  debug:
+    var: ssh_key_file_exists_check.results[1].stat.exists
+
+- name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key
+  community.crypto.openssh_keypair:
+    path: ~/.ssh/{{ ssh_key_filename }}
+    passphrase: ""
+  register: ssh_key_creation
+  failed_when: ssh_key_creation.rc != 0
+  when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false
+
+- name: Print results of ssh key pair creation
+  debug:
+    var: ssh_key_creation
+
+- name: add the new ssh key to the ansible.cfg file
+  lineinfile:
+    path: ansible.cfg
+    line: "private_key_file = ~/.ssh/{{ssh_key_filename}}"
+    state: present
+    backup: yes
+  register: ssh_config_file_key_addition
+
+- name: Print results of adding ssh key to ansible.cfg file
+  debug:
+    var: ssh_config_file_key_addition

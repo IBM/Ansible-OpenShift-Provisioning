@@ -1,33 +1,51 @@
 ---
 
-#- hosts: workstation
-#  become: true
-#  roles:
-#  vars: "reminder to add vars for remote host to copy ssh key to, kvm_host in this case"
-#  - install_packages (ansible_galaxy)
-#  - update_repo_index
-#  - ssh_key_gen
-#  - copy_ssh_key
+- hosts: localhost
+  become: true
+  vars_prompt:
+    - name: Confirm start of OpenShift cluster automated provisioning process.
+      prompt: "Type 'YES' to confirm automated provisioning of OpenShift cluster."
+      default: 'NO'
+      private: no
+      when: confirmation != "YES"
+  pre_tasks:
+    - name: "Check Confirmation"
+      fail: msg="Exiting... You must type 'YES' to continue."
+      when: confirmation != "YES"
+  vars:
+    - [ package_1: ansible_galaxy, package_2: sshpass, package_3: ssh-keygen, package_4: ssh-copy-id ]
+    - remote_host_ip: host
+    #- other vars needed: ssh_key_filename, remote_machine_password, remote_machine_username, remote_host_ip
+  roles:
+    #- ansible_setup (check vars file for undefined vars, run ansible_setup, and fill necessary env vars files)
+    - install_packages
+    #- ssh_key_gen
+    #- ssh_copy_id
 
 - hosts: kvm_host
   become: true
+  vars:
+    - [ package_1: libvirt, package_2: libvirt-devel, package_3: libvirt-daemon-kvm, package_4: qemu-kvm, package_5: virt-manager, package_6: libvirt-daemon-config-network, package_7: libvirt-client, package_8: qemu-img ]
   roles:
-  #- install_packages (libvirt, libvirt-devel, libvirt-daemon-kvm, qemu-kvm, virt-manager, libvirt-daemon-config-network, libvirt-client, qemu-img)
-  #- enable libvirt
-  - macvtap
-  - create_bastion #(reminder to eventually use boot instructions)
+    #- check_ssh
+    - install_packages
+    #- enable libvirt
+    - macvtap
+    - create_bastion #(reminder to eventually use boot instructions)
 
-#- hosts: workstation
-#  become: true
-#  gather_facts: no
-#  roles:
-#  vars: "reminder to add vars for remote host to copy ssh key to, bastion in this case"
-#  - copy_ssh_key
+- hosts: localhost
+  become: true
+  gather_facts: no
+  vars: 
+    - target: bastion_server
+  roles:
+    - ssh_copy_id
 
 - hosts: bastion_server
   become: true
+  vars: 
+    - [ package_1: haproxy, package_2: httpd, package_3: mod_ssl, package_4: bind, package_5: bind_utils ] #reminder that "bind" is called "named" after install
   roles:
-  #- install_packages (haproxy, httpd, mod_ssl, bind, bind_utils) don't forget to enable, reminder that bind is called named when being called after install
   #- firewall (whatever that may be)
   #- set_selinux_permissive
   - dns
@@ -44,7 +62,7 @@
   - create_control_nodes
   - create_compute_nodes
 
-#- hosts: workstation
+#- hosts: localhost
   #become: true
   #gather_facts: yes
   #roles:

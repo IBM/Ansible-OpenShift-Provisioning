@@ -1,6 +1,14 @@
-#Placeholder, incomplete
 ---
 
-- name: {{ host_name }}
-    dnf:
-      name: [{{ package1 }}, {{ package2 }}, 
+- name: Installing required packages on {{ ansible_facts['host'] }}
+  ansible.builtin.package:
+    name: 
+      - {{ package_1 }}
+      - {{ package_2 or Default(omit) }}
+      - {{ package_3 or Default(omit) }}
+      - {{ package_5 or Default(omit) }}
+      - {{ package_6 or Default(omit) }}
+      - {{ package_7 or Default(omit) }}
+      - {{ package_8 or Default(omit) }}
+    state: present
+    update_cache: yes
