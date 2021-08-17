@@ -1,11 +1,13 @@
 ---
 
 - name: enable httpd
+  tags: httpconf
   systemd:
     name: httpd
     enabled: yes
 
 - name: Ensure the default Apache port is 8080
+  tags: httpconf
   replace:
     path: /etc/httpd/conf/httpd.conf
     regexp: '^Listen 80'
@@ -13,6 +15,7 @@
     backup: yes
 
 - name: Ensure the SSL default port is 4443
+  tags: httpconf
   replace:
     path: /etc/httpd/conf.d/ssl.conf
     regexp: '^Listen 443 https'
@@ -20,6 +23,7 @@
     backup: yes
 
 - name: restart httpd to reflect changes to port
+  tags: httpconf
   service:
     name: httpd
     state: restarted
