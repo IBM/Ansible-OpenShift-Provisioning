@@ -1,6 +1,7 @@
 ---
 
 - name: move haproxy config file to bastion
+  tags: haproxy
   copy:
     src: haproxy.cfg
     dest: /etc/haproxy/haproxy.cfg
@@ -8,11 +9,13 @@
     backup: yes
 
 - name: enable haproxy
+  tags: haproxy
   systemd:
     enabled: yes
     name: haproxy
 
 - name: Restart haproxy
+  tags: haproxy
   systemd:
     state: restarted
     name: haproxy

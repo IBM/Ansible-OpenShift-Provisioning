@@ -1,16 +1,19 @@
 ---
 
 - name: enable named
+  tags: dns
   ansible.builtin.systemd:
       name: named
       enabled: yes
 
 - name: start named
+  tags: dns
   ansible.builtin.systemd:
       name: named
       state: started
 
 - name: Copy named.conf file to bastion
+  tags: dns
   ansible.builtin.copy:
     src: named.conf
     dest: /etc/
@@ -20,6 +23,7 @@
     backup: yes
 
 - name: Copy distribution.db file to bastion
+  tags: dns
   ansible.builtin.copy:
     src: distribution.db
     dest: /var/named
@@ -29,6 +33,7 @@
     backup: yes
 
 - name: Copy distribution.rev file to bastion
+  tags: dns
   ansible.builtin.copy:
     src: distribution.rev
     dest: /var/named
@@ -38,6 +43,7 @@
     backup: yes
 
 - name: restart named to update changes made to DNS
+  tags: dns
   ansible.builtin.systemd:
       name: named
       state: restarted
