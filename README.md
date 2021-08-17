@@ -1,4 +1,4 @@
 # Ansible-OpenShift-Provisioning
 
-Phillip adding comment via lesson 3
+Localhost supported operating systems: Linux, Unix and Unix-like (i.e. MacOS X)
  
