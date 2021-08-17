@@ -3,17 +3,20 @@
 ---
 
 - name: Check that the ssh_config exists
+  tags: keymastr
   stat:
     path: ~/.ssh/config
   register: ssh_config
 
 - name: Create ssh config file, if it doesnt exist already
+  tags: keymastr
   file:
     path: ~/.ssh/config
     state: touch
   when: not ssh_config.stat.exists
 
 - name: Insert ssh keys for jump host configuration in /ssh/config
+  tags: keymastr
   blockinfile:
     path: ~/.ssh/config
     block: |
