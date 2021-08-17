@@ -1,6 +1,7 @@
 ---
 
 - name: install CoreOS on compute-0 node
+  tags: compute
   command: |
     virt-install --name compute-0
     --disk size=100 --ram 16000 --cpu host --vcpus 4 
@@ -11,10 +12,12 @@
     --noautoconsole
 
 - name: pause 15 minutes
+  tags: compute
   pause:
     minutes: 15
 
 - name: install CoreOS on compute-1 node
+  tags: compute
   command: |
     virt-install --name compute-1
     --disk size=100 --ram 16000 --cpu host --vcpus 4 
@@ -25,5 +28,6 @@
     --noautoconsole
 
 - name: pause 15 minutes
+  tags: compute
   pause:
     minutes: 15

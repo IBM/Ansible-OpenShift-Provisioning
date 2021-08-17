@@ -1,15 +1,18 @@
 ---
 
 - name: Check to see if local .ssh directory exists
+  tags: keymastr
   stat:
     path: "~/.ssh"
   register: ssh_directory_exists_check
 
 - name: Print results of .ssh directory check
+  tags: keymastr
   debug:
     var: ssh_directory_exists_check
 
 - name: Create .ssh local directory if it doesn't already exist
+  tags: keymastr
   file:
     path: "~/.ssh"
     state: directory
@@ -18,10 +21,12 @@
   when: ssh_directory_exists_check is defined and ssh_directory_exists_check.stat.exists == false
 
 - name: Print results of ssh directory creation
+  tags: keymastr
   debug:
     var: ssh_directory_creation
 
 - name: check .ssh key pair files exist
+  tags: keymastr
   stat:
     path: "~/.ssh/{{item}}"
   register: ssh_key_file_exists_check
@@ -30,10 +35,12 @@
     - "{{ssh_key_filename}}.pub"
 
 - name: Print results of ssh key pair files check
+  tags: keymastr
   debug:
     var: ssh_key_file_exists_check.results[1].stat.exists
 
 - name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key
+  tags: keymastr
   community.crypto.openssh_keypair:
     path: ~/.ssh/{{ ssh_key_filename }}
     passphrase: ""
@@ -42,10 +49,12 @@
   when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false
 
 - name: Print results of ssh key pair creation
+  tags: keymastr
   debug:
     var: ssh_key_creation
 
 - name: add the new ssh key to the ansible.cfg file
+  tags: keymastr
   lineinfile:
     path: ansible.cfg
     line: "private_key_file = ~/.ssh/{{ssh_key_filename}}"
@@ -54,5 +63,6 @@
   register: ssh_config_file_key_addition
 
 - name: Print results of adding ssh key to ansible.cfg file
+  tags: keymastr
   debug:
     var: ssh_config_file_key_addition
