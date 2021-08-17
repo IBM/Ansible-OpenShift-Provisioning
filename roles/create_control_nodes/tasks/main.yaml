@@ -1,6 +1,7 @@
 ---
 
 - name: install CoreOS on control-0 node
+  tags: control
   command: |
     virt-install --name control-0
     --disk size=100 --ram 16000 --cpu host --vcpus 4 
@@ -11,10 +12,12 @@
     --noautoconsole
   
 - name: pause 15 minutes
+  tags: control
   pause:
     minutes: 15
   
 - name: install CoreOS on control-1 node
+  tags: control
   command: |
     virt-install --name control-1
     --disk size=100 --ram 16000 --cpu host --vcpus 4 
@@ -25,10 +28,12 @@
     --noautoconsole
 
 - name: pause 15 minutes
+  tags: control
   pause:
     minutes: 15
 
 - name: install CoreOS on control-2 node
+  tags: control
   command: |
     virt-install --name control-2
     --disk size=100 --ram 16000 --cpu host --vcpus 4 
@@ -39,5 +44,6 @@
     --noautoconsole
 
 - name: pause 15 minutes
+  tags: control
   pause:
     minutes: 15
