@@ -7,6 +7,7 @@
 #  - haproxy
 
 - name: move haproxy config file to bastion
+  tags: bastion
   copy:
     src: haproxy.cfg
     dest: /etc/haproxy/haproxy.cfg
@@ -14,11 +15,13 @@
     backup: yes
 
 - name: enable haproxy
+  tags: bastion
   systemd:
     state: enabled
     named: haproxy
 
 - name: Start haproxy
+  tags: bastion
   systemd:
     state: restarted
     name: haproxy
@@ -33,6 +36,7 @@
 ##       state: latest
 
 - name: Ensure the default Apache port is 8080
+  tags: bastion
     replace:
       path: /etc/httpd/conf/httpd.conf
       regexp: '^Listen 80'
@@ -40,6 +44,7 @@
       backup: yes
 
 - name: Ensure the SSL default port is 4443
+  tags: bastion
   replace:
     path: /etc/httpd/conf.d/ssl.conf
     regexp: '^Listen 443 https'
@@ -47,47 +52,55 @@
     backup: yes
 
 - name: restart httpd to reflect changes to port
+  tags: bastion
   service:
     name: httpd
     state: restarted
 
 #  - name: Allow all access to tcp port 8080
+#    tags: bastion
 #    community.general.ufw:
 #      rule: allow
 #      port: '8080'
 #      proto: tcp
 #
 #  - name: Allow all access to tcp port 80
+#    tags: bastion
 #    community.general.ufw:
 #      rule: allow
 #      port: '80'
 #      proto: tcp
 #
 #  - name: Allow all access to tcp port 443
+#    tags: bastion
 #    community.general.ufw:
 #      rule: allow
 #      port: '443'
 #      proto: tcp
 #
 #  - name: Allow all access to tcp port 4443
+#    tags: bastion
 #    community.general.ufw:
 #      rule: allow
 #      port: '4443'
 #      proto: tcp
 
 - name: create directory bin for mirrors
+  tags: bastion
   file:
     path: /var/www/html/bin
     state: directory
     mode: '0755'
 
 - name: create directory bootstrap for mirrors
+  tags: bastion
   file:
     path: /var/www/html/bootstrap
     state: directory
     mode: '0755'
 
 - name: get mirrors 1
+  tags: bastion
   get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-kernel-s390x
     dest: /var/www/html/bin
@@ -95,6 +108,7 @@
     mode: '0755'
 
 - name: get mirrors 2
+  tags: bastion
   get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-initramfs.s390x.img
     dest: /var/www/html/bin
@@ -102,6 +116,7 @@
     mode: '0755'
 
 - name: get mirrors 3
+  tags: bastion
   get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-rootfs.s390x.img
     dest: /var/www/html/bin
@@ -109,33 +124,39 @@
     mode: '0755'
 
 - name: check to make sure httpd is started
+  tags: bastion
   service:
     name: httpd
     state: started
 
 - name: check httpd status
+  tags: bastion
   service:
     state: started
     name: httpd
 
 - name: create OCP download landing directory
+  tags: bastion
   file:
     path: /ocpinst/
     state: directory
 
 - name: Unzip OCP Client
+  tags: bastion
   ansible.builtin.unarchive:
     src: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-client-linux.tar.gz
     dest: /ocpinst/
     remote_src: yes
 
 - name: Unzip OCP Installer
+  tags: bastion
   ansible.builtin.unarchive:
     src: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-install-linux.tar.gz
     dest: /ocpinst/
     remote_src: yes
 
 - name: Copy kubectl file
+  tags: bastion
   ansible.builtin.copy:
     src: /ocpinst/kubectl
     dest: /usr/local/bin/kubectl
@@ -145,6 +166,7 @@
     mode: '0755'
 
 - name: Copy oc file
+  tags: bastion
   ansible.builtin.copy:
     src: /ocpinst/oc
     dest: /usr/local/bin/oc
@@ -154,6 +176,7 @@
     mode: '0755'
 
 - name: Copy openshift-install file
+  tags: bastion
   ansible.builtin.copy:
     src: /ocpinst/openshift-install
     dest: /usr/local/bin/openshift-install
@@ -163,42 +186,50 @@
     mode: '0755'
 
 - name: Copy install-config.yaml to ocp install directory
+  tags: bastion
   copy:
     src: install-config.yaml
     dest: /ocpinst/install-config.yaml
 
 - name: Create Manifests
+  tags: bastion
   command: /ocpinst/openshift-install create manifests --dir=/ocpinst/
   become: yes
 
 - name: Set mastersSchedulable parameter to False
+  tags: bastion
   replace:
     path: /ocpinst/manifests/cluster-scheduler-02-config.yml
     regexp: ': true'
     replace: ': false'
 
 - name: Create Ignition files
+  tags: bastion
   command: /ocpinst/openshift-install create ignition-configs --dir=/ocpinst/
   become: yes
 
 - name: create Ignition directory on webserver
+  tags: bastion
   file:
     path: /var/www/html/ignition
     state: directory
 
 - name: Copy bootstrap Ignition file to web server
+  tags: bastion
   copy:
     src: /ocpinst/bootstrap.ign
     dest: /var/www/html/ignition
     remote_src: yes
 
 - name: Copy control plane Ignition file to web server
+  tags: bastion
   copy:
     src: /ocpinst/master.ign
     dest: /var/www/html/ignition
     remote_src: yes
 
 - name: Copy worker Ignition file to web server
+  tags: bastion
   copy:
     src: /ocpinst/worker.ign
     dest: /var/www/html/ignition

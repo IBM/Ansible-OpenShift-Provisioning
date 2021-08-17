@@ -1,11 +1,13 @@
 ---
 
 - name: enable httpd
+  tags: httpconf
   systemd:
     name: httpd
     enabled: yes
 
 - name: Ensure the default Apache port is 8080
+  tags: httpconf
   replace:
     path: /etc/httpd/conf/httpd.conf
     regexp: '^Listen 80'
@@ -14,9 +16,48 @@
   notify: restart httpd
 
 - name: Ensure the SSL default port is 4443
+  tags: httpconf
   replace:
     path: /etc/httpd/conf.d/ssl.conf
     regexp: '^Listen 443 https'
     replace: 'Listen 4443 https'
     backup: yes
+<<<<<<< HEAD
   notify: restart httpd
+=======
+
+- name: restart httpd to reflect changes to port
+  tags: httpconf
+  service:
+    name: httpd
+    state: restarted
+
+#- name: Allow all access to tcp port 8080
+#  community.general.ufw:
+#    rule: allow
+#    port: '8080'
+#    proto: tcp
+#
+#- name: Allow all access to tcp port 80
+#  community.general.ufw:
+#    rule: allow
+#    port: '80'
+#    proto: tcp
+#
+#- name: Allow all access to tcp port 443
+#  community.general.ufw:
+#    rule: allow
+#    port: '443'
+#    proto: tcp
+#
+#- name: Allow all access to tcp port 4443
+#  community.general.ufw:
+#    rule: allow
+#    port: '4443'
+#    proto: tcp
+
+#- name: check to make sure httpd is started
+#  service:
+#    name: httpd
+#    state: restarted
+>>>>>>> f8ddfa644dc9cf079d17ded0062d76b22c93cd97

@@ -23,8 +23,10 @@
 #    command: qemu-img create -f qcow2 -b /var/lib/libvirt/images/rhcos-qemu.s390x.qcow2 /var/lib/libvirt/images/bastion.qcow2 30G
 
   - name: start bastion install
+    tags: bastionvm
     command: virt-install --connect qemu:///system --name bastion --memory 8192 --vcpus 4 --disk size=30 --cdrom /var/lib/libvirt/images/rhel83.iso --accelerate --import --network network=macvtap-net --extra-args "ip=9.60.87.139::9.60.86.1:255.255.254.0:bastion::none nameserver=9.60.70.82 inst.repo=http://9.60.86.81/linux/s390x/boot/rel/8.3/ ipv6.disable=1" --location /rhcos-install --qemu-commandline="-drive if=none,id=ignition,format=raw,file=/var/lib/libvirt/images/rhel83.iso,readonly=on -device virtio-blk,serial=ignition,drive=ignition" --noautoconsole
 
   - name: wait for bastion to install
+    tags: bastionvm
     pause:
       minutes: 60

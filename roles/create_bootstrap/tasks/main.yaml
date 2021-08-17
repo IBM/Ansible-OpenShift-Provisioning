@@ -1,6 +1,7 @@
 ---
 
 - name: boot bootstrap
+  tags: bootstrap
   command: |
     virt-install --name bootstrap
     --disk size=100 --ram 16000 --cpu host --vcpus 4 
