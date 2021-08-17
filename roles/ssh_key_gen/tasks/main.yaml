@@ -21,7 +21,7 @@
   debug:
     var: ssh_directory_creation
 
-- name: check .ssh key pair files exist
+- name: Check .ssh key pair files exist
   stat:
     path: "~/.ssh/{{item}}"
   register: ssh_key_file_exists_check

@@ -25,14 +25,15 @@
     - create_bastion #(reminder to eventually use boot instructions)
 
 - hosts: localhost
-  become: true
+  connection: local
+  become: false
   gather_facts: no
   vars: 
     #- ssh_target_ip: host_vars[kvm_host][ip] #this is not right
   roles:
     - ssh_copy_id
 
-- hosts: bastion_server
+- hosts: bastion
   become: true
   vars: 
     - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind_utils' ] #reminder that "bind" is called "named" after install
@@ -55,12 +56,13 @@
   - create_compute_nodes
 
 #- hosts: localhost
-  #become: true
+  #connection: local
+  #become: false
   #gather_facts: yes
   #roles:
   #- ssh_config_jump
 
-#- hosts: bastion_server
+#- hosts: bastion
   #become: true
   #gather_facts: no
   #roles:

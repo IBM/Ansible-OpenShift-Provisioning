@@ -1,0 +1,21 @@
+all:
+  children:
+    kvm_host:
+      hosts:
+        9.60.87.132
+    bastion:
+      hosts:
+        9.60.87.139
+    bootstrap:
+      hosts:
+        9.60.87.133
+    control_nodes:
+      hosts:
+        9.60.87.136
+        9.60.87.137
+        9.60.87.138
+    compute_nodes:
+      hosts:
+        9.60.87.134
+        9.60.87.135
+
