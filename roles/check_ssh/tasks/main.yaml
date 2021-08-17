@@ -1,6 +1,5 @@
 ---
 
-
 - name: check ssh to remote hosts works
   tags: keymastr
   shell: "hostname; id"
