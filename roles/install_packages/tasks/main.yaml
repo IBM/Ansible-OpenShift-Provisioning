@@ -1,14 +1,15 @@
 ---
 
-- name: Installing required packages on {{ ansible_facts['host'] }}
+- name: Installing required packages on "{{ ansible_facts['host'] }}"
   ansible.builtin.package:
     name: 
-      - {{ package_1 }}
-      - {{ package_2 or Default(omit) }}
-      - {{ package_3 or Default(omit) }}
-      - {{ package_5 or Default(omit) }}
-      - {{ package_6 or Default(omit) }}
-      - {{ package_7 or Default(omit) }}
-      - {{ package_8 or Default(omit) }}
+      - "{{ packages[0] }}"
+      - "{{ packages[1] | default(omit) }}"
+      - "{{ packages[2] | default(omit) }}"
+      - "{{ packages[3] | default(omit) }}"
+      - "{{ packages[4] | default(omit) }}"
+      - "{{ packages[5] | default(omit) }}"
+      - "{{ packages[6] | default(omit) }}"
+      - "{{ packages[6] | default(omit) }}"
     state: present
     update_cache: yes
