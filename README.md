@@ -1,9 +1,7 @@
 # Ansible-OpenShift-Provisioning
 
-<<<<<<< HEAD
-Localhost supported operating systems: Linux, Unix and Unix-like (i.e. MacOS X)
-=======
-The goal of this playbook is to setup and deploy an OpenShift cluster utilizing KVM as the virtualization method
+The goal of this playbook is to setup and deploy an OpenShift cluster utilizing KVM as the virtualization method.
+To start this process, the supported operating systems for the localhost (the starting workstation) are: Linux (RedHat and Debian families) and Unix/Unix-like (i.e. MacOS X).
 
 Tags:
 bastion = configuration of bastion for OCP
@@ -19,5 +17,4 @@ httpconf = configuration of httpd server on bastion kvm guest
 kvmhost = tasks to apply to KVM host for OCP cluster
 setocp = get ocp playbook
 
->>>>>>> f8ddfa644dc9cf079d17ded0062d76b22c93cd97
  
