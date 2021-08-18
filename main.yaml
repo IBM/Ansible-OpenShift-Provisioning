@@ -3,17 +3,16 @@
 - hosts: localhost
   connection: local
   become: false
-  vars:
-    - packages: [ 'ansible_galaxy', 'sshpass', 'ssh-keygen', 'ssh-copy-id', 'community.general' ]
-    #- ssh_target_ip: host_vars[kvm_host][ip] #this is not right
-    #- other vars needed: ssh_key_filename, ssh_target_password, ssh_target_username, ssh_target_ip
   vars_files:
-    - ./env.yml
+    - env.yaml
+  vars:
+    - packages: [ 'ssh-keygen', 'ssh-copy-id', ]
+    - ssh_target_ip: "{{ env_ip_kvm_host }}"
   roles:
-    #- ansible_setup (check vars file for undefined vars, run ansible_setup, and fill necessary env vars files, run "ansible-inventory --list" and print to terminal (failed_when rc != 0) to check inventory is set up properly)
+    - ansible_setup
     - install_packages
     - ssh_key_gen
-    #- ssh_copy_id
+    - ssh_copy_id
 
 - hosts: kvm_host
   become: true
@@ -23,27 +22,28 @@
     - check_ssh
     - install_packages
     - set_selinux_permissive
-    #- enable libvirt
+    - enable_packages
     - macvtap
-    - create_bastion #(reminder to eventually use kickstart installation files)
+    - create_bastion
 
 - hosts: localhost
   connection: local
   become: false
   gather_facts: no
   vars: 
-    #- ssh_target_ip: host_vars[kvm_host][ip] #this is not right
+    - ssh_target_ip: "{{ env_ip_bastion }}"
   roles:
     - ssh_copy_id
 
 - hosts: bastion
   become: true
   vars: 
-    - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind_utils' ] #reminder that "bind" is called "named" after install
+    - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind_utils' ]
   roles:
     - check_ssh
     - firewall
     - set_selinux_permissive
+    - enable_packages
     - dns
     - haproxy
     - httpd

@@ -25,18 +25,13 @@
   debug:
     var: ssh_directory_creation
 
-<<<<<<< HEAD
 - name: Check .ssh key pair files exist
-=======
-- name: check .ssh key pair files exist
-  tags: keymastr
->>>>>>> f8ddfa644dc9cf079d17ded0062d76b22c93cd97
   stat:
     path: "~/.ssh/{{item}}"
   register: ssh_key_file_exists_check
   with_items:
-    - "{{ssh_key_filename}}"
-    - "{{ssh_key_filename}}.pub"
+    - "{{env-ssh-ans-name}}"
+    - "{{env-ssh-ans-name}}.pub"
 
 - name: Print results of ssh key pair files check
   tags: keymastr
@@ -46,7 +41,7 @@
 - name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key
   tags: keymastr
   community.crypto.openssh_keypair:
-    path: ~/.ssh/{{ ssh_key_filename }}
+    path: ~/.ssh/{{ env-ssh-ans-name }}
     passphrase: ""
   register: ssh_key_creation
   failed_when: ssh_key_creation.rc != 0
@@ -61,7 +56,7 @@
   tags: keymastr
   lineinfile:
     path: ansible.cfg
-    line: "private_key_file = ~/.ssh/{{ssh_key_filename}}"
+    line: "private_key_file = ~/.ssh/{{env-ssh-ans-name}}"
     state: present
     backup: yes
   register: ssh_config_file_key_addition

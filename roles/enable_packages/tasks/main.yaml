@@ -1,0 +1,14 @@
+---
+
+- name: enable packages
+  ansible.builtin.service:
+   name:
+    - "{{ packages[0] | default(omit) }}"
+    - "{{ packages[1] | default(omit) }}"
+    - "{{ packages[2] | default(omit) }}"
+    - "{{ packages[3] | default(omit) }}"
+    - "{{ packages[4] | default(omit) }}"
+    - "{{ packages[5] | default(omit) }}"
+    - "{{ packages[6] | default(omit) }}"
+    - "{{ packages[7] | default(omit) }}"
+  state: enabled
