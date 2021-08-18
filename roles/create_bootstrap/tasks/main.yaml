@@ -11,6 +11,6 @@
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.133::9.60.86.1:255.255.254.0:bootstrap:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/bootstrap.ign" 
     --noautoconsole
 
-- name: pause 15 minutes
+- name: Pause 15 minutes for installation. Once you see the login prompt on the bootstrap's terminal. Press "ctrl+C" and then "C" on your localhost terminal where you are seeing this message.
   pause:
     minutes: 15
