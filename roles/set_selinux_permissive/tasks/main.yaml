@@ -4,3 +4,16 @@
   ansible.posix.selinux:
     policy: targeted
     state: permissive
+
+# Below requires community.general ansible package to be installed
+
+- name: Change permissive domain for httpd
+  selinux_permissive:
+    name: httpd_t
+    permissive: true
+
+- name: Change permissive domain for haproxy
+  selinux_permissive:
+    name: haproxy_t
+    permissive: true 
+  
