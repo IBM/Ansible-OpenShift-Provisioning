@@ -4,7 +4,7 @@
   connection: local
   become: false
   vars:
-    - packages: [ 'ansible_galaxy', 'sshpass', 'ssh-keygen', 'ssh-copy-id' ]
+    - packages: [ 'ansible_galaxy', 'sshpass', 'ssh-keygen', 'ssh-copy-id', 'community.general' ]
     #- ssh_target_ip: host_vars[kvm_host][ip] #this is not right
     #- other vars needed: ssh_key_filename, ssh_target_password, ssh_target_username, ssh_target_ip
   vars_files:
@@ -22,6 +22,7 @@
   roles:
     - check_ssh
     - install_packages
+    - set_selinux_permissive
     #- enable libvirt
     - macvtap
     - create_bastion #(reminder to eventually use kickstart installation files)
@@ -41,8 +42,8 @@
     - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind_utils' ] #reminder that "bind" is called "named" after install
   roles:
     - check_ssh
-  #- firewall (whatever that may be)
-  #- set_selinux_permissive
+    - firewall
+    - set_selinux_permissive
     - dns
     - haproxy
     - httpd
@@ -69,6 +70,3 @@
   #gather_facts: no
   #roles:
   #- wait_for_bootkube
-#  - remove_bootstrap
-#  - approve_certs
-#  - verify_installation

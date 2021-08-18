@@ -5,7 +5,7 @@
 - name: fill inventory with user-input vars
   
 - name: fill install config with user-input vars
+
 - name: Gather ansible facts about local host
+
 - name: create group_vars files with user-input group names
-    
-- name: fill dns files with user-input dns names
