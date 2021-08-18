@@ -2,20 +2,20 @@ all:
   children:
     kvm_host:
       hosts:
-        9.60.87.132
+        9.60.87.132 # "{{ env-ip-kvm-host }}"
     bastion:
       hosts:
-        9.60.87.139
+        9.60.87.139 # "{{ env-ip-bastion }}"
     bootstrap:
       hosts:
-        9.60.87.133
+        9.60.87.133 # "{{ env-ip-bootstrap }}"
     control_nodes:
       hosts:
-        9.60.87.136
-        9.60.87.137
-        9.60.87.138
+        9.60.87.136 # "{{ env-ip-control-0 }}"
+        9.60.87.137 # "{{ env-ip-control-1 }}"
+        9.60.87.138 # "{{ env-ip-control-2 }}"
     compute_nodes:
       hosts:
-        9.60.87.134
-        9.60.87.135
+        9.60.87.134 # "{{ env-ip-compute-0 }}"
+        9.60.87.135 # "{{ env-ip-compute-1 }}"
 

@@ -7,8 +7,10 @@
     - packages: [ 'ansible_galaxy', 'sshpass', 'ssh-keygen', 'ssh-copy-id' ]
     #- ssh_target_ip: host_vars[kvm_host][ip] #this is not right
     #- other vars needed: ssh_key_filename, ssh_target_password, ssh_target_username, ssh_target_ip
+  vars_files:
+    - ./env.yml
   roles:
-    #- ansible_setup (check vars file for undefined vars, run ansible_setup, and fill necessary env vars files)
+    #- ansible_setup (check vars file for undefined vars, run ansible_setup, and fill necessary env vars files, run "ansible-inventory --list" and print to terminal (failed_when rc != 0) to check inventory is set up properly)
     - install_packages
     - ssh_key_gen
     #- ssh_copy_id
@@ -22,7 +24,7 @@
     - install_packages
     #- enable libvirt
     - macvtap
-    - create_bastion #(reminder to eventually use boot instructions)
+    - create_bastion #(reminder to eventually use kickstart installation files)
 
 - hosts: localhost
   connection: local
@@ -38,22 +40,22 @@
   vars: 
     - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind_utils' ] #reminder that "bind" is called "named" after install
   roles:
-  - check_ssh
+    - check_ssh
   #- firewall (whatever that may be)
   #- set_selinux_permissive
-  - dns
-  - haproxy
-  - httpd
-  - get-ocp
+    - dns
+    - haproxy
+    - httpd
+    - get-ocp
 
 - hosts: kvm_host
   become: true
   gather_facts: no
   roles:
-  - prep_kvm_guests
-  - create_bootstrap
-  - create_control_nodes
-  - create_compute_nodes
+    - prep_kvm_guests
+    - create_bootstrap
+    - create_control_nodes
+    - create_compute_nodes
 
 #- hosts: localhost
   #connection: local
@@ -70,4 +72,3 @@
 #  - remove_bootstrap
 #  - approve_certs
 #  - verify_installation
-  
