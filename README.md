@@ -19,27 +19,33 @@ Pre-requisites:
 When you are ready:
 Step 1: Download this Git repository to a folder on your local computer
 Step 2: Fill out the required variables for your specific installation in the env.yaml file
-Step 3: Navigate to the folder where you saved the Git Repository and execute the main playbook by running this shell command:
+Step 3: Get DNS configuration files (forward (.db), reverse (.rev), and named.conf configuration files) or have it pre-defined by your networking team. And place them in roles/dns/files folder.
+Step 4: Navigate to the folder where you saved the Git Repository and execute the main playbook by running this shell command:
         "ansible-playbook main.yaml --ask-become-pass"
-Step 4: Watch Ansible as it completes the installation, correcting errors if they arise.
-Step 5: When create_bastion playbook runs, open cockpit at < URL > and complete installation with these options:
+Step 5: Watch Ansible as it completes the installation, correcting errors if they arise.
+Step 6: When create_bastion playbook runs, open cockpit at < URL > and complete installation with these options:
         - list options here
         - list options here
         - list options here
-Step 6: When the playbooks for creating nodes run, watch them on the cockpit. When you see "< node-name > login" press "ctrl-C" and then "C" to continue. If you do not see the login prompt, press "ctrl+C" and then "A" to abort.
-Step 7: Verify installation by running:
+Step 7: When the playbooks for creating nodes run, watch them on the cockpit. When you see "< node-name > login" press "ctrl-C" and then "C" to continue. If you do not see the login prompt, press "ctrl+C" and then "A" to abort.
+Step 8: approve certs... need more detail
+Step 9: Shutdown and destroy bootstrap (or optionally convert bootstrap to worker node)
+Step 8: Verify installation by running:
         "./openshift-install --dir=/ocpinst wait-for install-complete"
+Step 9: 
 
 Tags:
 bastion = configuration of bastion for OCP
 keymastr = ssh key configuration and testing
 bastionvm = creation of Bastion KVM guest
 boostrap = creation of Boostrap KVM guest
-compute = creation of the Compute nodes KVM guests (2)
-control = creation of the Control nodes KVM guests (3 min)
+compute = creation of the Compute nodes KVM guests (minimum 2)
+control = creation of the Control nodes KVM guests (minimum 3)
 dns = configuration of dns server on bastion
 setocp = download of OCP installer and http server configuration
 haproxy = configuration of haproxy on bastion kvm guest
 httpconf = configuration of httpd server on bastion kvm guest
 kvmhost = tasks to apply to KVM host for OCP cluster
-localhost = for playbooks that apply to the local machine running ansible
+localhost = for tasks that apply to the local machine running Ansible
+firewall = for tasks related to firewall settings
+selinux = for tasks related to SELinux settings

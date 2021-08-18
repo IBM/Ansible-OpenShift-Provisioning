@@ -1,5 +1,11 @@
 ---
 
+- name: Change permissive domain for haproxy
+  tags: selinux,haproxy
+  selinux_permissive:
+    name: haproxy_t
+    permissive: true 
+
 - name: move haproxy config file to bastion
   tags: haproxy
   copy:

@@ -18,4 +18,3 @@ all:
       hosts:
         9.60.87.134 # "{{ env-ip-compute-0 }}"
         9.60.87.135 # "{{ env-ip-compute-1 }}"
-
