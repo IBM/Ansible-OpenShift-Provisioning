@@ -23,3 +23,18 @@
     rule: allow
     port: '4443'
     proto: tcp
+
+- name: Permit traffic in default zone for http
+  ansible.posix.firewalld:
+    service: http
+    permanent: yes
+    state: enabled
+
+- name: Permit traffic in default zone for https
+  ansible.posix.firewalld:
+    service: https
+    permanent: yes
+    state: enabled
+
+
+  
