@@ -1,11 +1,106 @@
 ---
 
-- name: Check user-input variables in env.yaml for undefined variables
-  
-- name: fill inventory with user-input vars
-  
-- name: fill install config with user-input vars
+- name: Collect only facts returned by facter
+  ansible.builtin.setup:
 
-- name: Gather ansible facts about local host
+- name: Load in variables from env.yaml
+  include_vars: env.yaml
 
-- name: create group_vars files with user-input group names
+- name: Check for any undefined user-input variables in env.yaml. Fail if true.
+  fail:
+    msg: "Required variable {{item}} has not been provided in env.yaml file."
+  when: vars[item] is undefined
+  loop:
+    - env_baseDomain
+    - env_compute_arch
+    - env_control_count
+    - env_control_arch
+    - env_metadata_name
+    - env_cidr
+    - env_host_prefix
+    - env_network_type
+    - env_service_network
+    - env_fips
+    - env_pullSecret
+    - env_sshKey
+    - env_ip_kvm_host
+    - env_ip_bastion
+    - env_ip_bootstrap
+    - env_ip_control_0
+    - env_ip_control_1
+    - env_ip_control_2
+    - env_ip_compute_0
+    - env_ip_compute_1
+    - env_ssh_username
+    - env_ssh_pass
+    - env_ssh_ans_name
+    - env_ssh_ans_pass
+  
+- name: Set facts from env.yaml so they can be used in other playbooks
+  set_fact:
+    env_baseDomain: "{{ env_baseDomain }}"
+    env_compute_arch: "{{ env_compute_arch }}"
+    env_control_count: "{{ env_control_count }}"
+    env_control_arch: "{{ env_control_arch }}"
+    env_metadata_name: "{{ env_metadata_name }}"
+    env_cidr: "{{ env_cidr }}"
+    env_host_prefix: "{{ env_host_prefix }}"
+    env_network_type: "{{ env_network_type }}"
+    env_service_network: "{{ env_service_network }}"
+    env_fips: "{{ env_fips }}"
+    env_pullSecret: "{{ env_pullSecret }}"
+    env_sshKey: "{{ env_sshKey }}"
+    env_ip_kvm_host: "{{ env_ip_kvm_host }}"
+    env_ip_bastion: "{{ env_ip_bastion }}"
+    env_ip_bootstrap: "{{ env_ip_bootstrap }}"
+    env_ip_control_0: "{{ env_ip_control_0 }}"
+    env_ip_control_1: "{{ env_ip_control_1 }}"
+    env_ip_control_2: "{{ env_ip_control_2 }}"
+    env_ip_compute_0: "{{ env_ip_compute_0 }}"
+    env_ip_compute_1: "{{ env_ip_compute_1 }}"
+    env_ssh_username: "{{ env_ssh_username }}"
+    env_ssh_pass: "{{ env_ssh_pass }}"
+    env_ssh_ans_name: "{{ env_ssh_ans_name }}"
+    env_ssh_ans_pass: "{{ env_ssh_ans_pass  }}"
+    dns_nameserver: "{{ dns_nameserver }}"
+    default_gateway: "{{ default_gateway }}"
+    netmask: "{{ netmask }}"
+    cacheable: yes
+
+- name: check inventory setup
+  command: ansible-inventory --list
+  register: inv_check
+  failed_when: "inv.check.rc != 0"
+
+- name: install homebrew package manager if localhost is running Mac OS X and doesn't already have it.
+  command: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  when: ansible_os_family == 'Darwin'
+
+- name: Install sshpass via homebrew, using github workaround because the makers of homebrew block sshpass download
+  command: brew install http://git.io/sshpass.rb
+  when: ansible_os_family == 'Darwin'
+
+- name: Install ssh packages on Linux localhost machines
+  ansible.builtin.package:
+    name: 
+      - sshpass
+      - openssh
+      - ssh-copy-id
+    state: latest
+    update_cache: yes
+  when:  host_os_family == "RedHat" or host_os_family == "Debian"
+
+- name: Install ssh packages on Mac machine via homebrew
+  community.general.homebrew:
+    name: 
+    - openssh
+    - ssh-copy-id
+  state: latest
+  update_homebrew: yes
+  when:  host_os_family == "Darwin"
+
+- name: install ansible.community.general collection for use later
+  command: ansible-galaxy collection install community.general
+
+- name: install ansible.community.crypto collection for use later
+  command: ansible-galaxy collection install community.crypto
