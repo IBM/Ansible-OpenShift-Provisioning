@@ -8,17 +8,17 @@ Supported operating systems for the localhost (the starting workstation) are:
 Pre-requisites:
 - Python3 intalled on your local computer [how-to:] (https://realpython.com/installing-python/)
 - Ansible installed on your local computer  [how-to:] (https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
-- If you are using Mac OS X for your localhost workstation to run Ansible, you need to have: 
-    - homebrew package manager installed ( how-to: https://brew.sh/ )
-    - Updated software for command line tools ( run "softwareupdate --all --install" in your terminal )
-    - sshpass package ( run "brew install esolitos/ipa/sshpass" in your terminal )
+* If you are using Mac OS X for your localhost workstation to run Ansible, you need to have: 
+    * homebrew package manager installed ( how-to: https://brew.sh/ )
+    * Updated software for command line tools ( run "softwareupdate --all --install" in your terminal )
+    * sshpass package ( run "brew install esolitos/ipa/sshpass" in your terminal )
 - A logical partition (LPAR) on an IBM Z or LinuxONE mainframe, with at least:
-    - 6 Integrated Facilities for Linux (IFLs)
-    - 75 GB of RAM
-    - 1 TB of disk space
-- On that LPAR, bare-metal Red Hat Enterprise Linux (RHEL) 8.4 with Kernel Virtual Machine (KVM) installed
-- On that LPAR, access to 8 (for a minimum installation) pre-allocated IPv4 addresses
-- Fully Qualified Domain Names (FQDN) names for all IPv4 addresses
+    * 6 Integrated Facilities for Linux (IFLs)
+    * 75 GB of RAM
+    * 1 TB of disk space
+* On that LPAR, bare-metal Red Hat Enterprise Linux (RHEL) 8.4 with Kernel Virtual Machine (KVM) installed
+* On that LPAR, access to 8 (for a minimum installation) pre-allocated IPv4 addresses
+* Fully Qualified Domain Names (FQDN) names for all IPv4 addresses
 
 When you are ready:
 Step 1: Download this Git repository to a folder on your local computer
