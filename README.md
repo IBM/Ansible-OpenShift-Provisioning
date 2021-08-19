@@ -47,7 +47,7 @@ Tags:
 * compute = creation of the Compute nodes KVM guests (minimum 2)
 * control = creation of the Control nodes KVM guests (minimum 3)
 * dns = configuration of dns server on bastion
-* setocp = download of OCP installer and http server configuration
+* getocp = download of OCP installer and http server configuration
 * haproxy = configuration of haproxy on bastion kvm guest
 * httpconf = configuration of httpd server on bastion kvm guest
 * kvmhost = tasks to apply to KVM host for OCP cluster

@@ -1,54 +1,55 @@
 ---
 
 - name: create directory bin for mirrors
-  tags: setocp
+  tags: getocp,bastion
   file:
     path: /var/www/html/bin
     state: directory
     mode: '0755'
 
 - name: get ocp kernel
-  tags: setocp
+  tags: getocp,bastion
   get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-kernel-s390x
     dest: /var/www/html/bin
     mode: '0755'
 
 - name: get ocp initramfs
-  tags: setocp
+  tags: getocp,bastion
   get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-initramfs.s390x.img
     dest: /var/www/html/bin
     mode: '0755'
  
 - name: get ocp rootfs
-  tags: setocp
+  tags: getocp,bastion
   get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-rootfs.s390x.img
     dest: /var/www/html/bin
     mode: '0755'
 
 - name: create OCP download landing directory
-  tags: setocp
+  tags: getocp,bastion
   file: 
     path: /ocpinst/
     state: directory
 
 - name: Unzip OCP Client
-  tags: setocp
+  tags: getocp,bastion
   ansible.builtin.unarchive:
     src: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-client-linux.tar.gz
     dest: /ocpinst/
     remote_src: yes
 
 - name: Unzip OCP Installer
+  tags: getocp,bastion
   ansible.builtin.unarchive:
     src: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-install-linux.tar.gz
     dest: /ocpinst/
     remote_src: yes
 
 - name: Copy kubectl file
-  tags: setocp
+  tags: getocp,bastion
   ansible.builtin.copy:
     src: /ocpinst/kubectl
     dest: /usr/local/bin/kubectl
@@ -58,7 +59,7 @@
     mode: '0755'
 
 - name: Copy oc file
-  tags: setocp
+  tags: getocp,bastion
   ansible.builtin.copy:
     src: /ocpinst/oc
     dest: /usr/local/bin/oc
@@ -68,7 +69,7 @@
     mode: '0755'
 
 - name: Copy openshift-install file
-  tags: setocp
+  tags: getocp,bastion
   ansible.builtin.copy:
     src: /ocpinst/openshift-install
     dest: /usr/local/bin/openshift-install
@@ -78,50 +79,50 @@
     mode: '0755'
 
 - name: Copy install-config.yaml to ocp install directory
-  tags: setocp
+  tags: getocp,bastion
   copy:
     src: install-config.yaml
     dest: /ocpinst/install-config.yaml
 
 - name: Create Manifests
-  tags: setocp
+  tags: getocp,bastion
   command: /ocpinst/openshift-install create manifests --dir=/ocpinst/
   become: yes
   
 - name: Set mastersSchedulable parameter to False
-  tags: setocp
+  tags: getocp,bastion
   replace:
     path: /ocpinst/manifests/cluster-scheduler-02-config.yml
     regexp: ': true'
     replace: ': false'
 
 - name: Create Ignition files
-  tags: setocp
+  tags: getocp,bastion
   command: /ocpinst/openshift-install create ignition-configs --dir=/ocpinst/
   become: yes
 
 - name: create Ignition directory on webserver
-  tags: setocp
+  tags: getocp,bastion
   file: 
     path: /var/www/html/ignition
     state: directory
 
 - name: Copy bootstrap Ignition file to web server
-  tags: setocp
+  tags: getocp,bastion
   copy:
     src: /ocpinst/bootstrap.ign
     dest: /var/www/html/ignition
     remote_src: yes
 
 - name: Copy control plane Ignition file to web server
-  tags: setocp
+  tags: getocp,bastion
   copy:
     src: /ocpinst/master.ign
     dest: /var/www/html/ignition
     remote_src: yes
 
 - name: Copy worker Ignition file to web server
-  tags: setocp
+  tags: getocp,bastion
   copy:
     src: /ocpinst/worker.ign
     dest: /var/www/html/ignition

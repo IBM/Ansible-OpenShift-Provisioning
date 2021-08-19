@@ -1,6 +1,7 @@
 ---
 
 - name: distribute the ssh key to a remote host
+  tags: ssh,kvm_host,bastion
   shell: "/usr/local/bin/sshpass -p \"{{ env_ssh_pass }}\" ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/{{ env_ssh_ans_name }}.pub -p 22 \"{{ env_ssh_username }}@{{ ssh_target_ip }}\""
   register: ssh_copy_id_execution
   failed_when: ssh_copy_id_execution.rc != 0
