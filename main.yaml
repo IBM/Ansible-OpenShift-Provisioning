@@ -6,11 +6,9 @@
   vars_files:
     - env.yaml
   vars:
-    - packages: [ 'ssh-keygen', 'ssh-copy-id', ]
     - ssh_target_ip: "{{ env_ip_kvm_host }}"
   roles:
     - ansible_setup
-    - install_packages
     - ssh_key_gen
     - ssh_copy_id
 
@@ -41,7 +39,8 @@
     - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind_utils' ]
   roles:
     - check_ssh
-    - firewall
+    - install_packages
+    - set_firewall
     - set_selinux_permissive
     - enable_packages
     - dns
