@@ -3,6 +3,7 @@
 - hosts: localhost
   connection: local
   become: false
+  gather_facts: no
   vars_files:
     - env.yaml
   vars:
@@ -14,6 +15,8 @@
 
 - hosts: kvm_host
   become: true
+  vars_files:
+    - env.yaml
   vars:
     - packages: [ 'libvirt', 'libvirt-devel', 'libvirt-daemon-kvm', 'qemu-kvm', 'virt-manager', 'libvirt-daemon-config-network', 'libvirt-client', 'qemu-img' ]
   roles:

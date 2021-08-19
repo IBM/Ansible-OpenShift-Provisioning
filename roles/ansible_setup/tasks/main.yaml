@@ -1,21 +1,23 @@
 ---
 
-- name: Ansible generic setup
-  ansible.builtin.setup:
-
 - name: install ansible.community.general collection for use later
+  tags: setup
   command: ansible-galaxy collection install community.general
 
 - name: install ansible.community.crypto collection for use later
+  tags: setup
   command: ansible-galaxy collection install community.crypto
 
 - name: install ansible.posix collection for use later
+  tags: setup
   command: ansible-galaxy collection install ansible.posix
 
 - name: Load in variables from env.yaml
+  tags: setup
   include_vars: env.yaml
 
 - name: Check for any undefined user-input variables in env.yaml. Fail if true.
+  tags: setup
   fail:
     msg: "Required variable {{item}} has not been provided in env.yaml file."
   when: vars[item] is undefined
@@ -46,6 +48,7 @@
     - env_ssh_ans_pass
   
 - name: Set facts from env.yaml so they can be used in other playbooks
+  tags: setup
   set_fact:
     env_baseDomain: "{{ env_baseDomain }}"
     env_compute_arch: "{{ env_compute_arch }}"
@@ -76,12 +79,51 @@
     netmask: "{{ netmask }}"
     cacheable: yes
 
+- name: Add the contents of user-input variables from env.yaml to group_vars/all folder to persist across hosts
+  tags: setup
+  blockinfile: 
+    path: group_vars/all/main.yaml
+    block: "{{ lookup('file', 'env.yaml') }}"
+    state: present
+    backup: yes
+
+- name: Populate inventory file with ip variables from env.yaml
+  tags: setup
+  blockinfile:
+    path: inventory
+    block: |
+      [kvm_host]
+      {{ env_ip_kvm_host }}
+
+      [bastion]
+      {{ env_ip_bastion }}
+
+      [bootstrap]
+      {{ env_ip_bootstrap }}
+
+      [control_nodes]
+      {{ env_ip_control_0 }}
+      {{ env_ip_control_1 }}
+      {{ env_ip_control_2 }}
+
+      [compute_nodes]
+      {{ env_ip_compute_0 }}
+      {{ env_ip_compute_1 }}
+    state: present
+    backup: yes
+
 - name: check inventory setup
+  tags: setup
   command: ansible-inventory --list
   register: inv_check
   failed_when: "inv_check.rc != 0"
 
+- name: Ansible generic setup to re-read inventory file after populated in previous tasks
+  tags: setup
+  ansible.builtin.gather_facts:
+
 - name: Install ssh packages on Linux localhost machines
+  tags: setup
   ansible.builtin.package:
     name: 
       - sshpass
@@ -92,6 +134,7 @@
   when: ansible_os_family == "RedHat" or ansible_os_family == "Debian"
 
 - name: Install ssh packages on Mac machine via homebrew
+  tags: setup
   community.general.homebrew:
     name: 
     - openssh
