@@ -2,12 +2,12 @@
 
 The goal of this playbook is to setup and deploy an OpenShift cluster utilizing KVM as the virtualization method.
 Supported operating systems for the localhost (the starting workstation) are: 
-- Linux (RedHat and Debian families)
-- Unix and Unix-like (i.e. MacOS X)
+* Linux (RedHat and Debian families)
+* Unix and Unix-like (i.e. MacOS X)
 
 Pre-requisites:
-- Python3 intalled on your local computer ( how-to: https://realpython.com/installing-python/ )
-- Ansible installed on your local computer ( how-to: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html )
+- Python3 intalled on your local computer [how-to:] ( https://realpython.com/installing-python/ )
+- Ansible installed on your local computer  [how-to:] ( https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html )
 - If you are using Mac OS X for your localhost workstation to run Ansible, you need to have: 
     - homebrew package manager installed ( how-to: https://brew.sh/ )
     - Updated software for command line tools ( run "softwareupdate --all --install" in your terminal )
