@@ -6,13 +6,13 @@ Supported operating systems for the localhost (the starting workstation) are:
 * Unix and Unix-like (i.e. MacOS X)
 
 Pre-requisites:
-- Python3 intalled on your local computer [how-to:] (https://realpython.com/installing-python/)
-- Ansible installed on your local computer  [how-to:] (https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+* Python3 intalled on your local computer [how-to:] (https://realpython.com/installing-python/)
+* Ansible installed on your local computer  [how-to:] (https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
 * If you are using Mac OS X for your localhost workstation to run Ansible, you need to have: 
     * homebrew package manager installed ( how-to: https://brew.sh/ )
     * Updated software for command line tools ( run "softwareupdate --all --install" in your terminal )
     * sshpass package ( run "brew install esolitos/ipa/sshpass" in your terminal )
-- A logical partition (LPAR) on an IBM Z or LinuxONE mainframe, with at least:
+* A logical partition (LPAR) on an IBM Z or LinuxONE mainframe, with at least:
     * 6 Integrated Facilities for Linux (IFLs)
     * 75 GB of RAM
     * 1 TB of disk space
@@ -21,20 +21,20 @@ Pre-requisites:
 * Fully Qualified Domain Names (FQDN) names for all IPv4 addresses
 
 When you are ready:
-Step 1: Download this Git repository to a folder on your local computer
-Step 2: Fill out the required variables for your specific installation in the env.yaml file
-Step 3: Get DNS configuration files (forward (.db), reverse (.rev), and named.conf configuration files) or have it pre-defined by your networking team. And place them in roles/dns/files folder.
-Step 4: Navigate to the folder where you saved the Git Repository and execute the main playbook by running this shell command:
+* Step 1: Download this Git repository to a folder on your local computer
+* Step 2: Fill out the required variables for your specific installation in the env.yaml file
+* Step 3: Get DNS configuration files (forward (.db), reverse (.rev), and named.conf configuration files) or have it pre-defined by your networking team. And place them in roles/dns/files folder.
+* Step 4: Navigate to the folder where you saved the Git Repository and execute the main playbook by running this shell command:
         "ansible-playbook main.yaml --ask-become-pass"
-Step 5: Watch Ansible as it completes the installation, correcting errors if they arise.
-Step 6: When create_bastion playbook runs, open cockpit at < URL > and complete installation with these options:
+* Step 5: Watch Ansible as it completes the installation, correcting errors if they arise.
+* Step 6: When create_bastion playbook runs, open cockpit at < URL > and complete installation with these options:
         - list options here
         - list options here
         - list options here
-Step 7: When the playbooks for creating nodes run, watch them on the cockpit. When you see "< node-name > login" press "ctrl-C" and then "C" to continue. If you do not see the login prompt, press "ctrl+C" and then "A" to abort.
-Step 8: approve certs... need more detail
-Step 9: Shutdown and destroy bootstrap (or optionally convert bootstrap to worker node)
-Step 8: Verify installation by running:
+* Step 7: When the playbooks for creating nodes run, watch them on the cockpit. When you see "< node-name > login" press "ctrl-C" and then "C" to continue. If you do not see the login prompt, press "ctrl+C" and then "A" to abort.
+* Step 8: approve certs... need more detail
+* Step 9: Shutdown and destroy bootstrap (or optionally convert bootstrap to worker node)
+* Step 8: Verify installation by running:
         "./openshift-install --dir=/ocpinst wait-for install-complete"
 Step 9: 
 
