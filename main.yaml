@@ -18,13 +18,14 @@
   vars_files:
     - env.yaml
   vars:
-    - packages: [ 'libvirt', 'libvirt-devel', 'libvirt-daemon-kvm', 'qemu-kvm', 'virt-manager', 'libvirt-daemon-config-network', 'libvirt-client', 'qemu-img' ]
+    - packages: [ 'libvirt-devel', 'libvirt-daemon-kvm', 'qemu-kvm', 'virt-manager', 'libvirt-daemon-config-network', 'libvirt-client', 'qemu-img', 'libvirt' ]
   roles:
     - check_ssh
     - install_packages
     - set_selinux_permissive
     - enable_packages
     - macvtap
+    - mount_rhel
     - create_bastion
 
 - hosts: localhost
@@ -45,7 +46,6 @@
     - install_packages
     - set_firewall
     - set_selinux_permissive
-    - enable_packages
     - dns
     - haproxy
     - httpd
