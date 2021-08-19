@@ -40,7 +40,7 @@
 - hosts: bastion
   become: true
   vars: 
-    - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind_utils' ]
+    - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind-utils' ]
   roles:
     - check_ssh
     - install_packages
