@@ -1,7 +1,16 @@
 ---
 
-- name: Collect only facts returned by facter
+- name: Ansible generic setup
   ansible.builtin.setup:
+
+- name: install ansible.community.general collection for use later
+  command: ansible-galaxy collection install community.general
+
+- name: install ansible.community.crypto collection for use later
+  command: ansible-galaxy collection install community.crypto
+
+- name: install ansible.posix collection for use later
+  command: ansible-galaxy collection install ansible.posix
 
 - name: Load in variables from env.yaml
   include_vars: env.yaml
@@ -70,15 +79,7 @@
 - name: check inventory setup
   command: ansible-inventory --list
   register: inv_check
-  failed_when: "inv.check.rc != 0"
-
-- name: install homebrew package manager if localhost is running Mac OS X and doesn't already have it.
-  command: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  when: ansible_os_family == 'Darwin'
-
-- name: Install sshpass via homebrew, using github workaround because the makers of homebrew block sshpass download
-  command: brew install http://git.io/sshpass.rb
-  when: ansible_os_family == 'Darwin'
+  failed_when: "inv_check.rc != 0"
 
 - name: Install ssh packages on Linux localhost machines
   ansible.builtin.package:
@@ -88,19 +89,13 @@
       - ssh-copy-id
     state: latest
     update_cache: yes
-  when:  host_os_family == "RedHat" or host_os_family == "Debian"
+  when: ansible_os_family == "RedHat" or ansible_os_family == "Debian"
 
 - name: Install ssh packages on Mac machine via homebrew
   community.general.homebrew:
     name: 
     - openssh
     - ssh-copy-id
-  state: latest
-  update_homebrew: yes
-  when:  host_os_family == "Darwin"
-
-- name: install ansible.community.general collection for use later
-  command: ansible-galaxy collection install community.general
-
-- name: install ansible.community.crypto collection for use later
-  command: ansible-galaxy collection install community.crypto
+    state: latest
+    update_homebrew: yes
+  when:  ansible_os_family == "Darwin"

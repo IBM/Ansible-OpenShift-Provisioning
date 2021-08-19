@@ -2,7 +2,7 @@
 
 - name: enable packages
   ansible.builtin.service:
-   name:
+    name:
     - "{{ packages[0] | default(omit) }}"
     - "{{ packages[1] | default(omit) }}"
     - "{{ packages[2] | default(omit) }}"
@@ -11,4 +11,4 @@
     - "{{ packages[5] | default(omit) }}"
     - "{{ packages[6] | default(omit) }}"
     - "{{ packages[7] | default(omit) }}"
-  state: enabled
+    state: enabled
