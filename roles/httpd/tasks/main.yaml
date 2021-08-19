@@ -1,19 +1,19 @@
 ---
 
 - name: Change permissive domain for httpd
-  tags: selinux,httpconf
+  tags: selinux,httpconf,bastion
   selinux_permissive:
     name: httpd_t
     permissive: true
 
 - name: enable httpd
-  tags: httpconf
+  tags: httpconf,bastion
   systemd:
     name: httpd
     enabled: yes
 
 - name: Ensure the default Apache port is 8080
-  tags: httpconf
+  tags: httpconf,bastion
   replace:
     path: /etc/httpd/conf/httpd.conf
     regexp: '^Listen 80'
@@ -22,7 +22,7 @@
   notify: restart httpd
 
 - name: Ensure the SSL default port is 4443
-  tags: httpconf
+  tags: httpconf,bastion
   replace:
     path: /etc/httpd/conf.d/ssl.conf
     regexp: '^Listen 443 https'

@@ -1,13 +1,13 @@
 ---
 
 - name: Change permissive domain for haproxy
-  tags: selinux,haproxy
+  tags: selinux,haproxy,bastion
   selinux_permissive:
     name: haproxy_t
     permissive: true 
 
 - name: move haproxy config file to bastion
-  tags: haproxy
+  tags: haproxy,bastion
   copy:
     src: haproxy.cfg
     dest: /etc/haproxy/haproxy.cfg
@@ -15,13 +15,13 @@
     backup: yes
 
 - name: enable haproxy
-  tags: haproxy
+  tags: haproxy,bastion
   systemd:
     enabled: yes
     name: haproxy
 
 - name: Restart haproxy
-  tags: haproxy
+  tags: haproxy,bastion
   systemd:
     state: restarted
     name: haproxy
