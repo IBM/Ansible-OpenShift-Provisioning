@@ -39,17 +39,17 @@ When you are ready:
 Step 9: 
 
 Tags:
-bastion = configuration of bastion for OCP
-keymastr = ssh key configuration and testing
-bastionvm = creation of Bastion KVM guest
-boostrap = creation of Boostrap KVM guest
-compute = creation of the Compute nodes KVM guests (minimum 2)
-control = creation of the Control nodes KVM guests (minimum 3)
-dns = configuration of dns server on bastion
-setocp = download of OCP installer and http server configuration
-haproxy = configuration of haproxy on bastion kvm guest
-httpconf = configuration of httpd server on bastion kvm guest
-kvmhost = tasks to apply to KVM host for OCP cluster
-localhost = for tasks that apply to the local machine running Ansible
-firewall = for tasks related to firewall settings
-selinux = for tasks related to SELinux settings
+* bastion = configuration of bastion for OCP
+* keymastr = ssh key configuration and testing
+* bastionvm = creation of Bastion KVM guest
+* boostrap = creation of Boostrap KVM guest
+* compute = creation of the Compute nodes KVM guests (minimum 2)
+* control = creation of the Control nodes KVM guests (minimum 3)
+* dns = configuration of dns server on bastion
+* setocp = download of OCP installer and http server configuration
+* haproxy = configuration of haproxy on bastion kvm guest
+* httpconf = configuration of httpd server on bastion kvm guest
+* kvmhost = tasks to apply to KVM host for OCP cluster
+* localhost = for tasks that apply to the local machine running Ansible
+* firewall = for tasks related to firewall settings
+* selinux = for tasks related to SELinux settings
