@@ -1,0 +1,5 @@
+---
+
+- name: Mount red hat core os install directory
+  tags: kvm_host
+  command: mount -o loop /var/lib/libvirt/images/rhel83.iso /rhcos-install/
