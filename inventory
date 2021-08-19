@@ -1,0 +1,23 @@
+# will populate from ansible_setup playbook
+
+[localhost]
+127.0.0.1
+# BEGIN ANSIBLE MANAGED BLOCK
+[kvm_host]
+9.60.87.132
+
+[bastion]
+9.60.87.139
+
+[bootstrap]
+9.60.87.133
+
+[control_nodes]
+9.60.87.136
+9.60.87.137
+9.60.87.138
+
+[compute_nodes]
+9.60.87.134
+9.60.87.135
+# END ANSIBLE MANAGED BLOCK

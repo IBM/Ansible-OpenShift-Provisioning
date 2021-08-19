@@ -39,6 +39,7 @@ When you are ready:
 Step 9: 
 
 Tags:
+* setup = first-time setup of ansible
 * bastion = configuration of bastion for OCP
 * keymastr = ssh key configuration and testing
 * bastionvm = creation of Bastion KVM guest
