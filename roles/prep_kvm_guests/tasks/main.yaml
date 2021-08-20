@@ -1,7 +1,7 @@
 ---
 
 - name: get rhcos qcow2 file
-  tags: kvmhost
+  tags: kvm_host
   get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-qemu.s390x.qcow2.gz
     dest: /var/lib/libvirt/images/
@@ -9,11 +9,11 @@
     mode: '0755'
 
 - name: Unzip rhcos qcow2 files
-  tags: kvmhost
+  tags: kvm_host
   command: gunzip /var/lib/libvirt/images/rhcos-qemu.s390x.qcow2.gz 
 
 - name: get rhcos initramfs image
-  tags: kvmhost
+  tags: kvm_host
   get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-initramfs.s390x.img
     dest: /var/lib/libvirt/images/
@@ -21,7 +21,7 @@
     force: yes
 
 - name: get rhcos kernel
-  tags: kvmhost
+  tags: kvm_host
   get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-kernel-s390x
     dest: /var/lib/libvirt/images/
@@ -29,7 +29,7 @@
     force: yes
 
 - name: get rhcos rootfs image
-  tags: kvmhost
+  tags: kvm_host
   get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-rootfs.s390x.img
     dest: /var/lib/libvirt/images/

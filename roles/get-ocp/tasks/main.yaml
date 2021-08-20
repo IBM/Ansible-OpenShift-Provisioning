@@ -1,5 +1,9 @@
 ---
 
+- name: Load in variables from env.yaml
+  tags: setup
+  include_vars: env.yaml
+
 - name: create directory bin for mirrors
   tags: getocp,bastion
   file:
@@ -77,6 +81,12 @@
     owner: root
     group: root
     mode: '0755'
+
+- name: Use template file to create install-config
+  tags: setup,get-ocp
+  template:
+    src: install-config.yaml.j2
+    dest: roles/get-ocp/files/install-config.yaml
 
 - name: Copy install-config.yaml to ocp install directory
   tags: getocp,bastion

@@ -1,0 +1,26 @@
+apiVersion: v1
+baseDomain: "{{ env_baseDomain }}"
+"compute\:"
+- hyperthreading: Enabled
+  name: worker
+  replicas: 2
+  architecture: "{{ env_compute_arch | default(s390x) }}"
+"controlPlane\:"
+  hyperthreading: Enabled
+  name: master
+  replicas: "{{ env_control_count | default(3) }}"
+  architecture: "{{ env_control_arch | default(s390x) }}"
+"metadata\:"
+  name: "{{ env_metadata_name }}"
+"networking\:"
+  "clusterNetwork\:"
+  - cidr: "{{ env_cidr | default("10.128.0.0/14") }}"
+    hostPrefix: "{{ env_host_prefix | default(23) }}"
+  networkType: "{{ env_network_type | default(OpenShiftSDN) }}"
+  "serviceNetwork\:"
+  - "{{ env_service_network | default("172.30.0.0/16") }}"
+"platform/:"
+  "none\: {}"
+fips: "{{ env_fips | default(false) }}"
+pullSecret: "{{ env_pullSecret }}"
+sshKey: "{{ env_ocp_pub }}"

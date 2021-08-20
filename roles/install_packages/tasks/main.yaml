@@ -1,7 +1,6 @@
 ---
 
 - name: Installing required packages
-  tags: kvm_host,bastion
   ansible.builtin.package:
     name: 
       - "{{ packages[0] | default(omit) }}"

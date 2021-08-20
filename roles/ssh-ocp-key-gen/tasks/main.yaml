@@ -1,0 +1,59 @@
+---
+
+- name: Load in variables from env.yaml
+  tags: setup
+  include_vars: env.yaml
+
+- name: Check to see if local .ssh directory exists
+  tags: keymastr
+  stat:
+    path: "~/.ssh"
+  register: ssh_directory_exists_check
+
+- name: Print results of .ssh directory check
+  tags: keymastr
+  debug:
+    var: ssh_directory_exists_check
+
+- name: Create .ssh local directory if it doesn't already exist
+  tags: keymastr
+  file:
+    path: "~/.ssh"
+    state: directory
+    mode: "0700"
+  register: ssh_directory_creation
+  when: ssh_directory_exists_check is defined and ssh_directory_exists_check.stat.exists == false
+
+- name: Print results of ssh directory creation
+  tags: keymastr
+  debug:
+    var: ssh_directory_creation
+
+- name: Check .ssh key pair files exist
+  stat:
+    path: "~/.ssh/{{item}}"
+  register: ssh_key_file_exists_check
+  with_items:
+    - "{{env_ssh_ocp_name}}"
+    - "{{env_ssh_ocp_name}}.pub"
+
+- name: Print results of ssh key pair files check
+  tags: keymastr
+  debug:
+    var: ssh_key_file_exists_check.results[1].stat.exists
+
+- name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key
+  tags: keymastr
+  community.crypto.openssh_keypair:
+    path: ~/.ssh/{{ env_ssh_ocp_name }}
+    passphrase: "{{ env_ssh_ocp_pass }}"
+  register: public_key
+  when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false
+
+- name: set public key fact
+  set_fact:
+       env-ocp-pub: '{{ public_key.env_ocp_pub }}'
+  delegate_to: '{{ item }}'
+  with_items: '{{ groups["bastion"] }}'
+
+    
