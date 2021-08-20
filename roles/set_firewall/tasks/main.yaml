@@ -2,31 +2,31 @@
 
 - name: Allow all access to tcp port 8080
   tags: firewall,bastion
-  community.general.ufw:
-    rule: allow
-    port: '8080'
-    proto: tcp
+  ansible.posix.firewalld:
+    port: 8081/tcp
+    permanent: yes
+    state: enabled
 
 - name: Allow all access to tcp port 80
   tags: firewall,bastion
-  community.general.ufw:
-    rule: allow
-    port: '80'
-    proto: tcp
+  ansible.posix.firewalld:
+    port: 80/tcp
+    permanent: yes
+    state: enabled
 
 - name: Allow all access to tcp port 443
   tags: firewall,bastion
-  community.general.ufw:
-    rule: allow
-    port: '443'
-    proto: tcp
+  ansible.posix.firewalld:
+    port: 443/tcp
+    permanent: yes
+    state: enabled
 
 - name: Allow all access to tcp port 4443
   tags: firewall,bastion
-  community.general.ufw:
-    rule: allow
-    port: '4443'
-    proto: tcp
+  ansible.posix.firewalld:
+    port: 4443/tcp
+    permanent: yes
+    state: enabled
 
 - name: Permit traffic in default zone for http
   tags: firewall,bastion
@@ -42,5 +42,7 @@
     permanent: yes
     state: enabled
 
-
-  
+- name: restart httpd
+  service:
+    name: httpd
+    state: restarted
