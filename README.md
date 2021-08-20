@@ -46,6 +46,7 @@ Tags:
 * boostrap = creation of Boostrap KVM guest
 * compute = creation of the Compute nodes KVM guests (minimum 2)
 * control = creation of the Control nodes KVM guests (minimum 3)
+* ssh-copy-id = for copying ssh id
 * dns = configuration of dns server on bastion
 * getocp = download of OCP installer and http server configuration
 * haproxy = configuration of haproxy on bastion kvm guest

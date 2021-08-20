@@ -1,6 +1,7 @@
 ---
 
 - hosts: localhost
+  tags: localhost
   connection: local
   become: false
   gather_facts: no
@@ -14,6 +15,7 @@
     - ssh_copy_id
 
 - hosts: kvm_host
+  tags: kvm_host
   become: true
   vars_files:
     - env.yaml
@@ -29,6 +31,7 @@
     - create_bastion
 
 - hosts: localhost
+  tags: localhost,bastion
   connection: local
   become: false
   gather_facts: no
@@ -38,20 +41,25 @@
     - ssh_copy_id
 
 - hosts: bastion
+  tags: bastion
   become: true
+  vars_files:
+    - env.yaml
   vars: 
     - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind-utils' ]
   roles:
-    - check_ssh
-    - install_packages
-    - set_firewall
-    - set_selinux_permissive
-    - dns
-    - haproxy
-    - httpd
+    #- check_ssh
+    #- install_packages
+    #- set_firewall
+    #- set_selinux_permissive
+    #- dns
+    #- haproxy
+    #- httpd
+    - ssh-ocp-key-gen
     - get-ocp
 
 - hosts: kvm_host
+  tags: kvm_host
   become: true
   gather_facts: no
   roles:

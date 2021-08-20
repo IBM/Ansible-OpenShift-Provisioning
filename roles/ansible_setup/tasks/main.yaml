@@ -19,7 +19,7 @@
 - name: Check for any undefined user-input variables in env.yaml. Fail if true.
   tags: setup
   fail:
-    msg: "Required variable {{item}} has not been provided in env.yaml file."
+    msg: Required variable "{{item}}" has not been provided in env.yaml file.
   when: vars[item] is undefined
   loop:
     - env_baseDomain
@@ -33,7 +33,6 @@
     - env_service_network
     - env_fips
     - env_pullSecret
-    - env_sshKey
     - env_ip_kvm_host
     - env_ip_bastion
     - env_ip_bootstrap
@@ -46,6 +45,11 @@
     - env_ssh_pass
     - env_ssh_ans_name
     - env_ssh_ans_pass
+    - env_ssh_ocp_name
+    - env_ssh_ocp_pass
+    - dns_nameserver
+    - default_gateway
+    - netmask
   
 - name: Set facts from env.yaml so they can be used in other playbooks
   tags: setup
@@ -61,7 +65,6 @@
     env_service_network: "{{ env_service_network }}"
     env_fips: "{{ env_fips }}"
     env_pullSecret: "{{ env_pullSecret }}"
-    env_sshKey: "{{ env_sshKey }}"
     env_ip_kvm_host: "{{ env_ip_kvm_host }}"
     env_ip_bastion: "{{ env_ip_bastion }}"
     env_ip_bootstrap: "{{ env_ip_bootstrap }}"
@@ -73,7 +76,9 @@
     env_ssh_username: "{{ env_ssh_username }}"
     env_ssh_pass: "{{ env_ssh_pass }}"
     env_ssh_ans_name: "{{ env_ssh_ans_name }}"
-    env_ssh_ans_pass: "{{ env_ssh_ans_pass  }}"
+    env_ssh_ans_pass: "{{ env_ssh_ans_pass }}"
+    env_ssh_ocp_name: "{{ env_ssh_ocp_name }}"
+    env_ssh_ocp_pass: "{{ env_ssh_ocp_pass }}"
     dns_nameserver: "{{ dns_nameserver }}"
     default_gateway: "{{ default_gateway }}"
     netmask: "{{ netmask }}"
@@ -111,12 +116,12 @@
       {{ env_ip_compute_1 }}
     state: present
     backup: yes
-
+    
 - name: check inventory setup
   tags: setup
   command: ansible-inventory --list
   register: inv_check
-  failed_when: "inv_check.rc != 0"
+  failed_when: inv_check.rc != 0
 
 - name: Ansible generic setup to re-read inventory file after populated in previous tasks
   tags: setup
@@ -131,7 +136,7 @@
       - ssh-copy-id
     state: latest
     update_cache: yes
-  when: ansible_os_family == "RedHat" or ansible_os_family == "Debian"
+  when: ansible_os_family == RedHat or ansible_os_family == Debian
 
 - name: Install ssh packages on Mac machine via homebrew
   tags: setup
@@ -141,4 +146,4 @@
     - ssh-copy-id
     state: latest
     update_homebrew: yes
-  when:  ansible_os_family == "Darwin"
+  when:  ansible_os_family == Darwin
