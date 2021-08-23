@@ -22,16 +22,14 @@ Pre-requisites:
 When you are ready:
 * Step 1: Download this Git repository to a folder on your local computer
 * Step 2: Go to <https://console.redhat.com/openshift/install/ibmz/user-provisioned> to download your local command line tools (oc and kubectl) and to copy the following OpenShift links to use in the next step:
-        - OCP installer
         - pull secret
         - RHCOS initramfs
         - RHCOS kernel
         - RHCOS rootfs
         - QCOW2 image
-        - * if you want to use alternate OCP client and installer links, swap them out in env.yaml (env_ocp_client and env_ocp_client)
 * Step 2: Fill out the required variables for your specific installation in the env.yaml file
 * Step 3: Get DNS configuration files (forward (.db), reverse (.rev), and named.conf configuration files) or have it pre-defined by your networking team. And place them in the roles/dns/files folder.
-* Step 4: Run ansible-setup-linux/mac.sh shell script in the main directory (run /.<s>) depending on your operating system to download required Ansible modules and programs. First change permissions by running "chmod 755 <ansible-setup-linux/mac.sh>" (choose one of linux or mac)
+* Step 4: Run ansible-setup-linux/mac.sh shell script in the main directory (run ./ansible-setup-linux/mac.sh in terminal) depending on your operating system to download required Ansible modules and programs. First change permissions by running "chmod 755 <ansible-setup-linux/mac.sh>" (choose one of linux or mac)
 * Step 4: Navigate to the folder where you saved the Git Repository and execute the main playbook by running this shell command:
         "ansible-playbook main.yaml --ask-become-pass"
 * Step 5: Watch Ansible as it completes the installation, correcting errors if they arise.
