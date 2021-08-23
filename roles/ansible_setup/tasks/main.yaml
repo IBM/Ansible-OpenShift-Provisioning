@@ -33,6 +33,12 @@
     - env_service_network
     - env_fips
     - env_pullSecret
+    - env_rhcos_initramfs
+    - env_rhcos_kernel
+    - env_rhcos_rootfs
+    - env_qcow2_img
+    - env_ocp_client
+    - env_ocp_installer
     - env_ip_kvm_host
     - env_ip_bastion
     - env_ip_bootstrap
@@ -65,6 +71,12 @@
     env_service_network: "{{ env_service_network }}"
     env_fips: "{{ env_fips }}"
     env_pullSecret: "{{ env_pullSecret }}"
+    env_rhcos_initramfs: "{{ env_rhcos_initramfs }}"
+    env_rhcos_kernel: "{{ env_rhcos_kernel }}"
+    env_rhcos_rootfs: "{{ env_rhcos_rootfs }}"
+    env_qcow2_img: "{{ env_qcow2_img }}"
+    env_ocp_client: "{{ env_ocp_client }}"
+    env_ocp_installer: "{{ env_ocp_installer }}"
     env_ip_kvm_host: "{{ env_ip_kvm_host }}"
     env_ip_bastion: "{{ env_ip_bastion }}"
     env_ip_bootstrap: "{{ env_ip_bootstrap }}"

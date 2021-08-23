@@ -3,7 +3,7 @@
 - hosts: localhost
   tags: localhost
   connection: local
-  become: false
+  become: true
   gather_facts: no
   vars_files:
     - env.yaml
@@ -46,7 +46,7 @@
   vars_files:
     - env.yaml
   vars: 
-    - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind-utils' ]
+    - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind-utils', 'openssh' ]
   roles:
     #- check_ssh
     #- install_packages
