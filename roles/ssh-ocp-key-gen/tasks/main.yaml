@@ -52,7 +52,7 @@
 
 - name: set public key fact
   set_fact:
-       env-ocp-pub: '{{ public_key.env_ocp_pub }}'
+       env-ocp-pub: '{{ public_key }}'
   delegate_to: '{{ item }}'
   with_items: '{{ groups["bastion"] }}'
 
