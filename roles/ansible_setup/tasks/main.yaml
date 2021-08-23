@@ -126,24 +126,3 @@
 - name: Ansible generic setup to re-read inventory file after populated in previous tasks
   tags: setup
   ansible.builtin.gather_facts:
-
-- name: Install ssh packages on Linux localhost machines
-  tags: setup
-  ansible.builtin.package:
-    name: 
-      - sshpass
-      - openssh
-      - ssh-copy-id
-    state: latest
-    update_cache: yes
-  when: ansible_os_family == 'RedHat' or ansible_os_family == 'Debian'
-
-- name: Install ssh packages on Mac machine via homebrew
-  tags: setup
-  community.general.homebrew:
-    name: 
-    - openssh
-    - ssh-copy-id
-    state: latest
-    update_homebrew: yes
-  when: ansible_os_family == 'Darwin'
