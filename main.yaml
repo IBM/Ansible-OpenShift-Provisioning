@@ -3,7 +3,7 @@
 - hosts: localhost
   tags: localhost
   connection: local
-  become: true
+  become: false
   gather_facts: no
   vars_files:
     - env.yaml
