@@ -1,8 +1,8 @@
 ---
 
-- name: run shell script to download required ansible modules
+- name: run ansible-setup.sh shell script to download required ansible modules
   tags: setup
-  ansible.builtin.script: ansible-modules.sh
+  ansible.builtin.script: roles/ansible_setup/files/ansible-setup.sh
 
 - name: Load in variables from env.yaml
   tags: setup
