@@ -146,4 +146,4 @@
     - ssh-copy-id
     state: latest
     update_homebrew: yes
-  when:  ansible_os_family == 'Darwin'
+  when: ansible_os_family == 'Darwin'
