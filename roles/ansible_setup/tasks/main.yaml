@@ -1,16 +1,8 @@
 ---
 
-- name: install ansible.community.general collection for use later
+- name: run shell script to download required ansible modules
   tags: setup
-  command: ansible-galaxy collection install community.general
-
-- name: install ansible.community.crypto collection for use later
-  tags: setup
-  command: ansible-galaxy collection install community.crypto
-
-- name: install ansible.posix collection for use later
-  tags: setup
-  command: ansible-galaxy collection install ansible.posix
+  ansible.builtin.script: ansible-modules.sh
 
 - name: Load in variables from env.yaml
   tags: setup
