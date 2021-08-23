@@ -38,7 +38,8 @@
   vars: 
     - ssh_target_ip: "{{ env_ip_bastion }}"
   roles:
-    - ssh_copy_id
+    - ssh_copy_id # to connect to bastion
+    - ssh-ocp-key-gen # for bastion to connect to nodes
 
 - hosts: bastion
   tags: bastion
@@ -55,7 +56,6 @@
     #- dns
     #- haproxy
     #- httpd
-    - ssh-ocp-key-gen
     - get-ocp
 
 - hosts: kvm_host

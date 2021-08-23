@@ -136,7 +136,7 @@
       - ssh-copy-id
     state: latest
     update_cache: yes
-  when: ansible_os_family == RedHat or ansible_os_family == Debian
+  when: ansible_os_family == 'RedHat' or ansible_os_family == 'Debian'
 
 - name: Install ssh packages on Mac machine via homebrew
   tags: setup
@@ -146,4 +146,4 @@
     - ssh-copy-id
     state: latest
     update_homebrew: yes
-  when:  ansible_os_family == Darwin
+  when:  ansible_os_family == 'Darwin'
