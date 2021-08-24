@@ -1,7 +1,10 @@
 # Ansible-OpenShift-Provisioning
 
+## Scope
+
 The goal of this playbook is to setup and deploy an OpenShift cluster utilizing KVM as the virtualization method.
-Supported operating systems for the localhost (the starting workstation) are: 
+
+## Supported operating systems for the localhost (the starting workstation) are: 
 * Linux (RedHat and Debian families)
 * Unix and Unix-like (i.e. MacOS X)
 
