@@ -22,11 +22,11 @@ Pre-requisites:
 When you are ready:
 * Step 1: Download this Git repository to a folder on your local computer
 * Step 2: Go to <https://console.redhat.com/openshift/install/ibmz/user-provisioned> to download your local command line tools (oc and kubectl) and to copy the following OpenShift links to use in the next step:
-        - pull secret
-        - RHCOS initramfs
-        - RHCOS kernel
-        - RHCOS rootfs
-        - QCOW2 image
+     * pull secret
+     * RHCOS initramfs
+     * RHCOS kernel
+     * RHCOS rootfs
+     * QCOW2 image
 * Step 2: Fill out the required variables for your specific installation in the env.yaml file
 * Step 3: Get DNS configuration files (forward (.db), reverse (.rev), and named.conf configuration files) or have it pre-defined by your networking team. And place them in the roles/dns/files folder.
 * Step 4: Run ansible-setup-linux/mac.sh shell script in the main directory (run ./ansible-setup-linux/mac.sh in terminal) depending on your operating system to download required Ansible modules and programs. First change permissions by running "chmod 755 <ansible-setup-linux/mac.sh>" (choose one of linux or mac)
@@ -38,11 +38,11 @@ When you are ready:
         - list options here
         - list options here
 * Step 7: When the playbooks for creating nodes run, watch them on the cockpit. When you see "< node-name > login" press "ctrl-C" and then "C" to continue. If you do not see the login prompt, press "ctrl+C" and then "A" to abort.
-* Step 8: approve certs... need more detail
+* Step 8: approve certs... need more detail here
 * Step 9: Shutdown and destroy bootstrap (or optionally convert bootstrap to worker node)
 * Step 8: Verify installation by running:
         "./openshift-install --dir=/ocpinst wait-for install-complete"
-Step 9: ./openshift-install create cluster
+* Step 9: ./openshift-install create cluster
 
 Tags:
 * setup = first-time setup of ansible
