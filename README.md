@@ -8,7 +8,8 @@ The goal of this playbook is to setup and deploy an OpenShift cluster utilizing 
 * Linux (RedHat and Debian families)
 * Unix and Unix-like (i.e. MacOS X)
 
-Pre-requisites:
+## Pre-requisites:
+
 * Python3 intalled on your local computer [how-to:] (https://realpython.com/installing-python/)
 * Ansible installed on your local computer  [how-to:] (https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
 * If you are using Mac OS X for your localhost workstation to run Ansible, you need to have: 
@@ -22,7 +23,8 @@ Pre-requisites:
 * On that LPAR, access to 8 (for a minimum installation) pre-allocated IPv4 addresses
 * Fully Qualified Domain Names (FQDN) names for all IPv4 addresses
 
-When you are ready:
+## When you are ready:
+
 * Step 1: Download this Git repository to a folder on your local computer
 * Step 2: Go to <https://console.redhat.com/openshift/install/ibmz/user-provisioned> to download your local command line tools (oc and kubectl) and to copy the following OpenShift links to use in the next step:
      * pull secret
@@ -47,7 +49,8 @@ When you are ready:
         "./openshift-install --dir=/ocpinst wait-for install-complete"
 * Step 9: ./openshift-install create cluster
 
-Tags:
+## Tags:
+
 * setup = first-time setup of ansible
 * bastion = configuration of bastion for OCP
 * keymastr = ssh key configuration and testing
