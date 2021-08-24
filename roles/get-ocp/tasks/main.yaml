@@ -14,21 +14,21 @@
 - name: get ocp kernel
   tags: getocp,bastion
   get_url:
-    url: "{{ env_rhcos_kernel }}"
+    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-rootfs.s390x.img
     dest: /var/www/html/bin
     mode: '0755'
 
 - name: get ocp initramfs
   tags: getocp,bastion
   get_url:
-    url: "{{ env_rhcos_initramfs }}"
+    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-initramfs.s390x.img
     dest: /var/www/html/bin
     mode: '0755'
  
 - name: get ocp rootfs
   tags: getocp,bastion
   get_url:
-    url: "{{ env_rhcos_rootfs }}"
+    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-rootfs.s390x.img
     dest: /var/www/html/bin
     mode: '0755'
 
@@ -41,14 +41,14 @@
 - name: Unzip OCP Client
   tags: getocp,bastion
   ansible.builtin.unarchive:
-    src: "{{ env_ocp_client | default(https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-client-linux.tar.gz) }}" 
+    src: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-client-linux.tar.gz
     dest: /ocpinst/
     remote_src: yes
 
 - name: Unzip OCP Installer
   tags: getocp,bastion
   ansible.builtin.unarchive:
-    src: "{{ env_ocp_installer | default(https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-install-linux.tar.gz) }}" 
+    src: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-install-linux.tar.gz
     dest: /ocpinst/
     remote_src: yes
 
