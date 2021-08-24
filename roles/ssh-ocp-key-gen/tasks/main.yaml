@@ -45,15 +45,20 @@
 - name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key
   tags: keymastr
   community.crypto.openssh_keypair:
-    path: ~/.ssh/{{ env_ssh_ocp_name }}
+    path: ~/.ssh/"{{ env_ssh_ocp_name }}"
     passphrase: "{{ env_ssh_ocp_pass }}"
+    backend: opensshbin
   register: ssh_ocp
+  when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false
+
+- name: Print results of ssh key generation
+  tags: keymastr
+  debug:
+    var: ssh_ocp
   when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false
 
 - name: set public key fact
   set_fact:
-       env-ocp-pub: '{{ ssh_ocp.public_key }}'
-  delegate_to: '{{ item }}'
-  with_items: '{{ groups["bastion"] }}'
-
-    
+    env_ssh_key_ocp: "{{ ssh_ocp.public_key }}"
+    cacheable: yes
+  when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false

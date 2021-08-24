@@ -50,7 +50,7 @@
     - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind-utils', 'openssh' ]
   roles:
     - check_ssh
-    - install_packages
+    #- install_packages
     - set_firewall
     - set_selinux_permissive
     - dns
