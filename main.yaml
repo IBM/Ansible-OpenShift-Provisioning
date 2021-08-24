@@ -28,7 +28,7 @@
     - enable_packages
     - macvtap
     - mount_rhel
-    - create_bastion
+    #- create_bastion
 
 - hosts: localhost
   tags: localhost,bastion
@@ -49,13 +49,13 @@
   vars: 
     - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind-utils', 'openssh' ]
   roles:
-    #- check_ssh
-    #- install_packages
-    #- set_firewall
-    #- set_selinux_permissive
-    #- dns
-    #- haproxy
-    #- httpd
+    - check_ssh
+    - install_packages
+    - set_firewall
+    - set_selinux_permissive
+    - dns
+    - haproxy
+    - httpd
     - get-ocp
 
 - hosts: kvm_host
