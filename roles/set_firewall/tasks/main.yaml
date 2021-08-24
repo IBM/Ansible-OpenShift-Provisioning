@@ -28,6 +28,13 @@
     permanent: yes
     state: enabled
 
+- name: Allow all access to tcp port 6443
+  tags: firewall,bastion
+  ansible.posix.firewalld:
+    port: 6443/tcp
+    permanent: yes
+    state: enabled
+
 - name: Permit traffic in default zone for http
   tags: firewall,bastion
   ansible.posix.firewalld:
@@ -41,6 +48,22 @@
     service: https
     permanent: yes
     state: enabled
+
+- name: Ensure the default Apache port is 8080
+  tags: httpconf,bastion
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    search_string: 'Listen 80'
+    line: 'Listen 8080'
+    backup: yes
+
+- name: Ensure the SSL default port is 4443
+  tags: httpconf,bastion
+  replace:
+    path: /etc/httpd/conf.d/ssl.conf
+    regexp: '^Listen 443 https'
+    replace: 'Listen 4443 https'
+    backup: yes
 
 - name: restart httpd
   service:
