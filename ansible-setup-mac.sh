@@ -4,5 +4,5 @@ ansible-galaxy collection install community.general
 ansible-galaxy collection install community.crypto
 ansible-galaxy collection install ansible.posix
 ansible-galaxy collection install community.libvirt
-sudo brew install sshpass -y
-sudo brew install openssh -y
+brew install sshpass -y
+brew install openssh -y

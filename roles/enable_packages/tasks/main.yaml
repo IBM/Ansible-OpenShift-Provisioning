@@ -2,7 +2,6 @@
 
 - name: enable packages
   tags: kvm_host
-  ansible.builtin.service:
-    name:
-    - libvirtd
-    state: enabled
+  service:
+    name: libvirtd
+    state: started
