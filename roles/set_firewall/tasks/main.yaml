@@ -3,7 +3,7 @@
 - name: Allow all access to tcp port 8080
   tags: firewall,bastion
   ansible.posix.firewalld:
-    port: 8081/tcp
+    port: 8080/tcp
     permanent: yes
     state: enabled
 
@@ -32,6 +32,13 @@
   tags: firewall,bastion
   ansible.posix.firewalld:
     port: 6443/tcp
+    permanent: yes
+    state: enabled
+
+- name: Allow all access to tcp port 22623
+  tags: firewall,bastion
+  ansible.posix.firewalld:
+    port: 22623/tcp
     permanent: yes
     state: enabled
 
