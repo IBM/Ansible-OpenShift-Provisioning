@@ -2,6 +2,10 @@
 
 [localhost]
 127.0.0.1
+
+[localhost:vars]
+ansible_python_interpreter=/usr/bin/python3
+
 # BEGIN ANSIBLE MANAGED BLOCK
 [kvm_host]
 9.60.87.132
