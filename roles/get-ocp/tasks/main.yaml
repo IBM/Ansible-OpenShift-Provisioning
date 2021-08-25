@@ -1,7 +1,7 @@
 ---
 
 - name: Load in variables from env.yaml
-  tags: setup
+  tags: setup,getocp,bastion
   include_vars: env.yaml
 
 - name: create directory bin for mirrors
