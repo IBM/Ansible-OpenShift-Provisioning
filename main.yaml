@@ -28,7 +28,7 @@
     - enable_packages
     - macvtap
     - mount_rhel
-    #- create_bastion
+    - create_bastion
 
 - hosts: localhost
   tags: localhost,bastion
