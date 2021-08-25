@@ -87,12 +87,16 @@
   template:
     src: install-config.yaml.j2
     dest: roles/get-ocp/files/install-config.yaml
+    force: yes
+    backup: yes
 
 - name: Copy install-config.yaml to ocp install directory
   tags: getocp,bastion
   copy:
     src: install-config.yaml
     dest: /ocpinst/install-config.yaml
+    backup: yes
+    force: yes
 
 - name: Create Manifests
   tags: getocp,bastion
