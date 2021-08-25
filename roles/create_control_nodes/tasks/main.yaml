@@ -1,5 +1,41 @@
 ---
 
+- name: check if control-0 already exists
+  tags: control
+  community.libvirt.virt:
+    name: control-0
+    command: status
+  register: control-0_check
+
+- name: print status of control-0
+  tags: control
+  debug: 
+    var: control-0_check
+
+- name: check if control-1 already exists
+  tags: control
+  community.libvirt.virt:
+    name: control-1
+    command: status
+  register: control-1_check
+
+- name: print status of control-1
+  tags: control
+  debug: 
+    var: control-1_check
+
+- name: check if control-2 already exists
+  tags: control
+  community.libvirt.virt:
+    name: control-2
+    command: status
+  register: control-2_check
+
+- name: print status of control-2
+  tags: control
+  debug: 
+    var: control-2_check
+
 - name: install CoreOS on control-0 node
   tags: control
   command: |
@@ -10,11 +46,13 @@
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.138::9.60.86.1:255.255.254.0:control-0:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign" 
     --noautoconsole
+  when: control-0_check.failed == true
   
 - name: pause 15 minutes
   tags: control
   pause:
     minutes: 15
+  when: control-0_check.failed == true
   
 - name: install CoreOS on control-1 node
   tags: control
@@ -26,11 +64,13 @@
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.137::9.60.86.1:255.255.254.0:control-1:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign" 
     --noautoconsole
+  when: control-1_check.failed == true
 
 - name: pause 15 minutes
   tags: control
   pause:
     minutes: 15
+  when: control-1_check.failed == true
 
 - name: install CoreOS on control-2 node
   tags: control
@@ -42,8 +82,10 @@
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.136::9.60.86.1:255.255.254.0:control-2:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign" 
     --noautoconsole
+  when: control-2_check.failed == true
 
 - name: pause 15 minutes
   tags: control
   pause:
     minutes: 15
+  when: control-2_check.failed == true
