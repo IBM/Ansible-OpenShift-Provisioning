@@ -49,8 +49,6 @@
     path: ~/.ssh/{{ env_ssh_ocp_name }}
     passphrase: "{{ env_ssh_ocp_pass }}"
     backend: opensshbin
-    owner: root
-    comment: "bastion root authority"
   register: ssh_ocp
   when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false
 
