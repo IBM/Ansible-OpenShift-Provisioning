@@ -26,12 +26,9 @@ The goal of this playbook is to setup and deploy an OpenShift cluster utilizing 
 ## When you are ready:
 
 * Step 1: Download this Git repository to a folder on your local computer
-* Step 2: Go to <https://console.redhat.com/openshift/install/ibmz/user-provisioned> to download your local command line tools (oc and kubectl) and to copy the following OpenShift links to use in the next step:
-     * pull secret
-     * RHCOS initramfs
-     * RHCOS kernel
-     * RHCOS rootfs
-     * QCOW2 image
+* Step 2: Go to <https://console.redhat.com/openshift/install/ibmz/user-provisioned> to:
+     * download your local command line tools (oc and kubectl)
+     * OpenShift pull secret (for inputting it into env.yaml)
 * Step 2: Fill out the required variables for your specific installation in the env.yaml file
 * Step 3: Get DNS configuration files (forward (.db), reverse (.rev), and named.conf configuration files) or have it pre-defined by your networking team. And place them in the roles/dns/files folder.
 * Step 4: Run ansible-setup-linux/mac.sh shell script in the main directory (run ./ansible-setup-linux/mac.sh in terminal) depending on your operating system to download required Ansible modules and programs. First change permissions by running "chmod 755 <ansible-setup-linux/mac.sh>" (choose one of linux or mac)
