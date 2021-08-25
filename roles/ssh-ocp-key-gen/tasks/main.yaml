@@ -43,30 +43,46 @@
   debug:
     var: ssh_key_file_exists_check.results[1].stat.exists
 
-- name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key
+- name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key if it doesn't exist already
   tags: keymastr,getocp
   community.crypto.openssh_keypair:
     path: ~/.ssh/{{ env_ssh_ocp_name }}
     passphrase: "{{ env_ssh_ocp_pass }}"
     backend: opensshbin
   register: ssh_ocp
-  when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false
+  when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false 
 
 - name: Print results of ssh key generation
   tags: keymastr,getocp
   debug:
     var: ssh_ocp.public_key
-  when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false
+  when: ssh_ocp.changed == true
 
-- name: set public key fact
+- name: set public key fact if generated just now
   tags: keymastr,getocp
   set_fact:
     env_ssh_key_ocp: ssh_ocp.public_key
     cacheable: yes
-  when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false
+  when: ssh_ocp.changed == true
+
+- name: delete the public key in host_vars/bastion/main.yaml if it is already there
+  tags: keymastr, getocp
+  lineinfile:
+    path: roles/get-ocp/vars/main.yaml
+    state: absent
+    regexp: "^env_ssh_key_ocp"
 
 - name: fill host_vars/bastion/main.yaml file with generated ssh key
   tags: keymastr, getocp
   lineinfile:
     path: roles/get-ocp/vars/main.yaml
     line: "env_ssh_key_ocp: '{{ ssh_ocp.public_key }}'"
+  when: ssh_ocp.changed == true
+
+- name: copy public key from .ssh folder if it was there already and move the contents to roles/get-ocp/vars/main.yaml
+  tags: keymastr, getocp
+  lineinfile:
+    path: roles/get-ocp/vars/main.yaml
+    regexp: "^{{ lookup('file', 'roles/get-ocp/vars/main.yaml') }}"
+    line: "env_ssh_key_ocp: {{ lookup('file', '~/.ssh/{{ env_ssh_ocp_name }}.pub') }}{{ lookup('file', 'roles/get-ocp/vars/main.yaml') }}"
+  when: ssh_ocp.changed == false
