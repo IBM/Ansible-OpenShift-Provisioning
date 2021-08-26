@@ -51,8 +51,8 @@
   roles:
     - check_ssh
     #- install_packages
-    - set_firewall
     - set_selinux_permissive
+    - set_firewall
     - dns
     - haproxy
     - httpd
