@@ -10,7 +10,7 @@
 
 - name: Unzip rhcos qcow2 files
   tags: kvm_host
-  command: gunzip /var/lib/libvirt/images/rhcos-qemu.s390x.qcow2.gz 
+  command: gunzip -f /var/lib/libvirt/images/rhcos-qemu.s390x.qcow2.gz 
 
 - name: get rhcos initramfs image
   tags: kvm_host

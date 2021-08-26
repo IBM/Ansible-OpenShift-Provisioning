@@ -14,7 +14,7 @@
 - name: get ocp kernel
   tags: getocp,bastion
   get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-rootfs.s390x.img
+    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-kernel-s390x
     dest: /var/www/html/bin
     mode: '0755'
 
@@ -83,20 +83,12 @@
     mode: '0755'
 
 - name: Use template file to create install-config
-  tags: setup,get-ocp
+  tags: setup,getocp
   template:
     src: install-config.yaml.j2
-    dest: roles/get-ocp/files/install-config.yaml
-    force: yes
-    backup: yes
-
-- name: Copy install-config.yaml to ocp install directory
-  tags: getocp,bastion
-  copy:
-    src: install-config.yaml
     dest: /ocpinst/install-config.yaml
-    backup: yes
     force: yes
+    backup: yes
 
 - name: Create Manifests
   tags: getocp,bastion
