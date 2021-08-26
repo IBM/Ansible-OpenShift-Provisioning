@@ -22,7 +22,7 @@
     mode: '0755'
     backup: yes
 
-- name: Copy distribution.db file to bastion
+- name: Copy DNS .db file to bastion
   tags: dns,bastion
   ansible.builtin.copy:
     src: distribution.db
@@ -32,7 +32,7 @@
     mode: '0755'
     backup: yes
 
-- name: Copy distribution.rev file to bastion
+- name: Copy DNS .rev file to bastion
   tags: dns,bastion
   ansible.builtin.copy:
     src: distribution.rev
