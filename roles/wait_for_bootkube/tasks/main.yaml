@@ -2,6 +2,8 @@
 
 ---
   
+#when waiting for bootstrap to come up for the first time, wait for "github.com/openshift/cluster-bootstrap/pkg/start/status.go:66:"
+
 - name: ssh to bootstrap from bastion
   command: ssh core@9.60.87.133
 

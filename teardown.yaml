@@ -1,0 +1,7 @@
+---
+
+#needed:
+#- shutdown and destroy bootstrap, control, and compute nodes
+#- delete /ocpinst/
+#- delete ssh keys from known hosts in bastion and delete ssh keys from ~/.ssh/id_rsa* 
+#- delete ssh key from roles/get-ocp/files/ocp_ssh_pub

@@ -23,4 +23,4 @@ platform:
   none: {}
 fips: {{ env_fips | default(false) }}
 pullSecret: '{{ env_pullSecret }}'
-sshKey: {{ env_ssh_key_ocp }}
+sshKey: '{{ lookup('file', 'roles/get-ocp/files/ocp_ssh_pub') }}'
