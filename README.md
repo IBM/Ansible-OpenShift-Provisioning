@@ -49,6 +49,7 @@ The goal of this playbook is to setup and deploy an OpenShift cluster utilizing 
 ## Tags:
 
 * setup = first-time setup of ansible
+* prep = run all setup playbooks
 * bastion = configuration of bastion for OCP
 * keymastr = ssh key configuration and testing
 * bastionvm = creation of Bastion KVM guest
@@ -60,7 +61,9 @@ The goal of this playbook is to setup and deploy an OpenShift cluster utilizing 
 * getocp = download of OCP installer and http server configuration
 * haproxy = configuration of haproxy on bastion kvm guest
 * httpconf = configuration of httpd server on bastion kvm guest
-* kvmhost = tasks to apply to KVM host for OCP cluster
+* kvm_host = tasks to apply to KVM host for OCP cluster
+* kvm_prep = tasks from the first set of kvm plays
+* create_nodes = tasks from the second set of kvm plays
 * localhost = for tasks that apply to the local machine running Ansible
 * firewall = for tasks related to firewall settings
 * selinux = for tasks related to SELinux settings

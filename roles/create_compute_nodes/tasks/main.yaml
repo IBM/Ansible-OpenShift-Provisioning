@@ -5,24 +5,26 @@
   community.libvirt.virt:
     name: compute-0
     command: status
-  register: compute-0_check
+  register: compute_0_check
+  ignore_errors: yes
 
 - name: print status of compute-0
   tags: compute
   debug: 
-    var: compute-0_check
+    var: compute_0_check
 
 - name: check if compute-1 already exists
   tags: compute
   community.libvirt.virt:
     name: compute-1
     command: status
-  register: compute-1_check
+  register: compute_1_check
+  ignore_errors: yes
 
 - name: print status of compute-1
   tags: compute
   debug: 
-    var: compute-1_check
+    var: compute_1_check
 
 - name: install CoreOS on compute-0 node
   tags: compute
@@ -34,13 +36,13 @@
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.135::9.60.86.1:255.255.254.0:compute-0:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/worker.ign" 
     --noautoconsole
-  when: compute-0_check.failed == true
+  when: compute_0_check.failed == true
 
 - name: pause 15 minutes
   tags: compute
   pause:
     minutes: 15
-  when: compute-0_check.failed == true
+  when: compute_0_check.failed == true
 
 - name: install CoreOS on compute-1 node
   tags: compute
@@ -52,10 +54,10 @@
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.134::9.60.86.1:255.255.254.0:compute-1:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/worker.ign" 
     --noautoconsole
-  when: compute-1_check.failed == true
+  when: compute_1_check.failed == true
 
 - name: pause 15 minutes
   tags: compute
   pause:
     minutes: 15
-  when: compute-1_check.failed == true
+  when: compute_1_check.failed == true

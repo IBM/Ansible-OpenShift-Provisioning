@@ -33,8 +33,7 @@
     - env_ssh_pass
     - env_ssh_ans_name
     - env_ssh_ans_pass
-    - env_ssh_ocp_name
-    - env_ssh_ocp_pass
+    - env_ssh_ocp_comm
     - dns_nameserver
     - default_gateway
     - netmask
@@ -65,8 +64,7 @@
     env_ssh_pass: "{{ env_ssh_pass }}"
     env_ssh_ans_name: "{{ env_ssh_ans_name }}"
     env_ssh_ans_pass: "{{ env_ssh_ans_pass }}"
-    env_ssh_ocp_name: "{{ env_ssh_ocp_name }}"
-    env_ssh_ocp_pass: "{{ env_ssh_ocp_pass }}"
+    env_ssh_ocp_comm: "{{ env_ssh_ocp_comm }}"
     dns_nameserver: "{{ dns_nameserver }}"
     default_gateway: "{{ default_gateway }}"
     netmask: "{{ netmask }}"

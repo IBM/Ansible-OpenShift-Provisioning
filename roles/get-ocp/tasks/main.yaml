@@ -17,6 +17,7 @@
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-kernel-s390x
     dest: /var/www/html/bin
     mode: '0755'
+    force: yes
 
 - name: get ocp initramfs
   tags: getocp,bastion
@@ -24,6 +25,7 @@
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-initramfs.s390x.img
     dest: /var/www/html/bin
     mode: '0755'
+    force: yes
  
 - name: get ocp rootfs
   tags: getocp,bastion
@@ -31,6 +33,7 @@
     url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-rootfs.s390x.img
     dest: /var/www/html/bin
     mode: '0755'
+    force: yes
 
 - name: create OCP download landing directory
   tags: getocp,bastion
@@ -82,6 +85,13 @@
     group: root
     mode: '0755'
 
+- name: Fetch ssh key from bastion for use in install-config
+  tags: getocp,bastion
+  ansible.builtin.fetch:
+    src: ~/.ssh/id_rsa.pub
+    dest: roles/get-ocp/files/ocp_ssh_pub
+    flat: yes
+
 - name: Use template file to create install-config
   tags: setup,getocp
   template:
@@ -119,6 +129,7 @@
     src: /ocpinst/bootstrap.ign
     dest: /var/www/html/ignition
     remote_src: yes
+    mode: '775'
 
 - name: Copy control plane Ignition file to web server
   tags: getocp,bastion
@@ -126,6 +137,7 @@
     src: /ocpinst/master.ign
     dest: /var/www/html/ignition
     remote_src: yes
+    mode: '775'
 
 - name: Copy worker Ignition file to web server
   tags: getocp,bastion
@@ -133,3 +145,4 @@
     src: /ocpinst/worker.ign
     dest: /var/www/html/ignition
     remote_src: yes
+    mode: '775'
