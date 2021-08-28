@@ -2,7 +2,7 @@
 
 ## Scope
 
-The goal of this playbook is to setup and deploy an OpenShift cluster utilizing KVM as the virtualization method.
+The goal of this playbook is to setup and deploy an OpenShift cluster on an IBM Z or LinuxONE mainframe utilizing KVM as the virtualization method.
 
 ## Supported operating systems for the localhost (the starting workstation) are: 
 * Linux (RedHat and Debian families)
@@ -10,12 +10,12 @@ The goal of this playbook is to setup and deploy an OpenShift cluster utilizing 
 
 ## Pre-requisites:
 
-* Python3 intalled on your local computer [how-to:] (https://realpython.com/installing-python/)
-* Ansible installed on your local computer  [how-to:] (https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
-* If you are using Mac OS X for your localhost workstation to run Ansible, you need to have: 
-    * homebrew package manager installed ( how-to: https://brew.sh/ )
-    * Updated software for command line tools ( run "softwareupdate --all --install" in your terminal )
-* A logical partition (LPAR) on an IBM Z or LinuxONE mainframe, with at least:
+* Python3 intalled on your local computer (how-to: https://realpython.com/installing-python/)
+* Ansible installed on your local computer  (how-to: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+* If you are using Mac OS X for your localhost workstation to run Ansible, you also need to have: 
+    * homebrew package manager installed (how-to: https://brew.sh/)
+    * Updated software for command line tools (run "softwareupdate --all --install" in your terminal)
+* Access to a logical partition (LPAR) on an IBM Z or LinuxONE mainframe, with at least:
     * 6 Integrated Facilities for Linux (IFLs)
     * 75 GB of RAM
     * 1 TB of disk space
@@ -25,12 +25,12 @@ The goal of this playbook is to setup and deploy an OpenShift cluster utilizing 
 
 ## When you are ready:
 
-* Step 1: Download this Git repository to a folder on your local computer
+* Step 1: Clone this Git repository to a folder on your local computer.
 * Step 2: Go to <https://console.redhat.com/openshift/install/ibmz/user-provisioned> to:
      * download your local command line tools (oc and kubectl)
-     * OpenShift pull secret (for inputting it into env.yaml)
-* Step 2: Fill out the required variables for your specific installation in the env.yaml file
-* Step 3: Get DNS configuration files (forward (.db), reverse (.rev), and named.conf configuration files) or have it pre-defined by your networking team. And place them in the roles/dns/files folder.
+     * copy the OpenShift pull secret (for inputting it into env.yaml) in the next step
+* Step 2: Fill out all of the required variables for your specific installation in the env.yaml file
+* Step 3: Get DNS configuration files (forward (.db), reverse (.rev), and named.conf) or have them pre-defined by your networking team. And place them in the roles/dns/files folder.
 * Step 4: Run the appropriate Ansible setup shell script, which can be found in the main directory. While in the main directory, run "./ansible-setup-mac.sh" or "./ansible-setup-linux.sh" depending on your operating system to download the required Ansible modules and packages.
 * Step 5: Navigate to the folder where you saved the Git Repository and execute the main playbook by running this shell command: "ansible-playbook main.yaml --ask-become-pass". Watch Ansible as it completes the installation, correcting errors if they arise. If the process fails in error, you should be able to run the same shell command to start the process from the top. Alternatively, use tags to run only the tasks that have that tag. See list of tags below for reference.
 * Step 6: Once the create_bastion playbook runs, open the cockpit at <https://<your kvm_host IP address>:9090>, go to the "Virtual Machines" tab, and complete the bastion's installation with these options:
