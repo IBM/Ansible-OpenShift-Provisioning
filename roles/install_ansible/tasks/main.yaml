@@ -1,0 +1,10 @@
+---
+
+- name: install ansible dependencies on bastion
+  tags: bastion, ansible
+  command: "{{ item }}"
+  loop:
+    - subscription-manager repos --enable "codeready-builder-for-rhel-8-$(arch)-rpms"
+    - sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+    - ansible-galaxy collection install community.crypto
+    - ansible-galaxy collection install community.general

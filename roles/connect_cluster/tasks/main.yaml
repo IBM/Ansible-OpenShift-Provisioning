@@ -1,0 +1,19 @@
+---
+
+- name: export kube config file
+  tags: cluster
+  command: export KUBECONFIG=/ocpinst/auth/kubeconfig
+
+- name: check if system admin
+  command: oc whoami
+  register: whoami_check
+  failed_when: whoami_check.stdout != system:admin
+
+- name: get csr info
+  tags: cluster
+  command: oc get csr
+  register: csr
+
+- name: print csr info to terminal
+  debug:
+    var: csr.stdout

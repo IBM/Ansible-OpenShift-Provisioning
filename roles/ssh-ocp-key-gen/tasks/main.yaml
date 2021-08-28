@@ -1,7 +1,7 @@
 ---
 
 - name: Load in variables from env.yaml
-  tags: keymastr, getocp
+  tags: keymastr,getocp
   include_vars: env.yaml
 
 - name: Check to see if local .ssh directory exists
@@ -11,12 +11,12 @@
   register: ssh_directory_exists_check
 
 - name: Print results of .ssh directory check
-  tags: keymastr
+  tags: keymastr,bastion,getocp
   debug:
     var: ssh_directory_exists_check
 
 - name: Create .ssh local directory if it doesn't already exist
-  tags: keymastr, getocp
+  tags: keymastr,getocp
   file:
     path: ~/.ssh
     state: directory
@@ -25,7 +25,7 @@
   when: ssh_directory_exists_check is defined and ssh_directory_exists_check.stat.exists == false
 
 - name: Print results of ssh directory creation
-  tags: keymastr
+  tags: keymastr,getocp
   debug:
     var: ssh_directory_creation
 
@@ -35,8 +35,8 @@
     path: ~/.ssh/{{item}}
   register: ssh_key_file_exists_check
   with_items:
-    - "{{env_ssh_ocp_name}}"
-    - "'{{env_ssh_ocp_name}}'.pub"
+    - "id_rsa"
+    - "id_rsa.pub"
 
 - name: Print results of ssh key pair files check
   tags: keymastr,getocp
@@ -46,9 +46,12 @@
 - name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key if it doesn't exist already
   tags: keymastr,getocp
   community.crypto.openssh_keypair:
-    path: ~/.ssh/{{ env_ssh_ocp_name }}
-    passphrase: "{{ env_ssh_ocp_pass }}"
+    path: ~/.ssh/id_rsa
     backend: opensshbin
+    owner: root
+    passphrase: ""
+    comment: "{{ env_ssh_ocp_comm }}"
+    regenerate: full_idempotence
   register: ssh_ocp
   when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false 
 
@@ -57,32 +60,3 @@
   debug:
     var: ssh_ocp.public_key
   when: ssh_ocp.changed == true
-
-- name: set public key fact if generated just now
-  tags: keymastr,getocp
-  set_fact:
-    env_ssh_key_ocp: ssh_ocp.public_key
-    cacheable: yes
-  when: ssh_ocp.changed == true
-
-- name: delete the public key in host_vars/bastion/main.yaml if it is already there
-  tags: keymastr, getocp
-  lineinfile:
-    path: roles/get-ocp/vars/main.yaml
-    state: absent
-    regexp: "^env_ssh_key_ocp"
-
-- name: fill host_vars/bastion/main.yaml file with generated ssh key
-  tags: keymastr, getocp
-  lineinfile:
-    path: roles/get-ocp/vars/main.yaml
-    line: "env_ssh_key_ocp: '{{ ssh_ocp.public_key }}'"
-  when: ssh_ocp.changed == true
-
-- name: copy public key from .ssh folder if it was there already and move the contents to roles/get-ocp/vars/main.yaml
-  tags: keymastr, getocp
-  lineinfile:
-    path: roles/get-ocp/vars/main.yaml
-    regexp: "^{{ lookup('file', 'roles/get-ocp/vars/main.yaml') }}"
-    line: "env_ssh_key_ocp: {{ lookup('file', '~/.ssh/{{ env_ssh_ocp_name }}.pub') }}{{ lookup('file', 'roles/get-ocp/vars/main.yaml') }}"
-  when: ssh_ocp.changed == false

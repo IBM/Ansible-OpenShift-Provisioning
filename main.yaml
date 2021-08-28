@@ -1,7 +1,7 @@
 ---
 
 - hosts: localhost
-  tags: localhost
+  tags: localhost, prep
   connection: local
   become: false
   gather_facts: no
@@ -15,7 +15,7 @@
     - ssh_copy_id
 
 - hosts: kvm_host
-  tags: kvm_host
+  tags: kvm_host,kvm_prep
   become: true
   vars_files:
     - env.yaml
@@ -39,7 +39,6 @@
     - ssh_target_ip: "{{ env_ip_bastion }}"
   roles:
     - ssh_copy_id # to connect to bastion
-    - ssh-ocp-key-gen # for bastion to connect to nodes
 
 - hosts: bastion
   tags: bastion
@@ -47,10 +46,12 @@
   vars_files:
     - env.yaml
   vars: 
-    - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind-utils', 'openssh' ]
+    - packages: [ 'ansible', 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind-utils', 'openssh' ]
   roles:
     - check_ssh
     #- install_packages
+    #- install_ansible
+    - ssh-ocp-key-gen # for bastion to connect to nodes
     - set_selinux_permissive
     - set_firewall
     - dns
@@ -59,7 +60,7 @@
     - get-ocp
 
 - hosts: kvm_host
-  tags: kvm_host
+  tags: kvm_host,create_nodes
   become: true
   gather_facts: no
   roles:
@@ -74,6 +75,19 @@
   #gather_facts: yes
   #roles:
   #- ssh_config_jump
+
+#- hosts: bastion
+  #become: true
+  #gather_facts: no
+  #roles:
+  #- wait_for_bootstrap
+
+#- hosts: bastion
+  #tags: bastion,cluster
+  #become: true
+  #gather_facts: no
+  #roles:
+    #- connect_cluster
 
 #- hosts: bastion
   #become: true
