@@ -2,7 +2,7 @@
 
 ## Scope
 
-The goal of this playbook is to setup and deploy an OpenShift cluster on an IBM Z or LinuxONE mainframe utilizing KVM as the virtualization method.
+The goal of this playbook is to setup and deploy a User Provisioned Infrastructure (UPI) OpenShift cluster on an IBM Z or LinuxONE mainframe utilizing KVM as the virtualization method.
 
 ## Supported operating systems for the localhost (the starting workstation) are: 
 * Linux (RedHat and Debian families)
