@@ -10,3 +10,7 @@
   tags: keymastr
   debug:
     var: ssh_connection_test.stdout_lines
+
+- name: pause for you to do any necessary setup
+  pause:
+    minutes: 60
