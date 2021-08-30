@@ -1,12 +1,12 @@
 ---
 
-- name: Check to see if local .ssh directory exists
+- name: Check to see if rhcos core install directory already exists
   tags: keymastr
   stat:
     path: "/rhcos-install/"
   register: rhcos_mount
 
-- name: Print results of .ssh directory check
+- name: Print results of rhcos core install directory check
   tags: keymastr
   debug:
     var: rhcos_mount

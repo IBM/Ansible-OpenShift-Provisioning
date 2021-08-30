@@ -51,7 +51,7 @@
     - check_ssh
     #- install_packages
     #- install_ansible
-    - ssh-ocp-key-gen # for bastion to connect to nodes
+    - ssh-ocp-key-gen # SSH key for bastion to connect to nodes
     - set_selinux_permissive
     - set_firewall
     - dns
