@@ -62,6 +62,7 @@ The goal of this playbook is to setup and deploy a User Provisioned Infrastructu
 
 ## Teardown: 
 * If you would like to teardown your VMs, run "ansible-playbook teardown.yaml --ask-become-pass --tags "partial/full". Choose either the partial or full tag.
+* If you have provisioned more than the minimum number of nodes for your installation, add them to the respective list found in roles/teardown_vms/tasks/main.yaml.
 * Use the "full" tag to teardown all VMs running on your KVM host. Once you run the full teardown, to start the main.yaml playbook back from that point, run with tags "bastionvm,bastion,create_nodes".
 * Use the "partial" tag to teardown to the point where nothing except the bastion is running on your KVM host. Once you run the partial teardown, to start the main.yaml playbook back from that point, run with tags "bastion,create_nodes".
 

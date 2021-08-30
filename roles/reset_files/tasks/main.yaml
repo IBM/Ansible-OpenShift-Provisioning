@@ -1,0 +1,25 @@
+---
+
+- name: delete /ocpinst directory
+  file:
+    path: /ocpinst
+    state: absent
+
+- name: delete OCP SSH keys from bastion's ssh folder
+  file:
+    path: ~/.ssh/{{ item }}
+    state: absent
+  loop:
+    - id_rsa
+    - id_rsa.pub
+
+- name: delete bastion's ssh known hosts file to remove fingerprints
+  file: 
+    path: ~/.ssh/known_hosts
+    state: absent
+
+- name: create empty bastion ssh known hosts file 
+  file:
+    path: ~/.ssh/known_hosts
+    state: touch
+    mode: '644'
