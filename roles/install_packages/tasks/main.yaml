@@ -1,15 +1,14 @@
 ---
 
-- name: Installing required packages
+- name: print the list of packages to be installed and updated
+  tags: pkg
+  debug:
+    var: packages
+
+- name: installing required packages
+  tags: pkg
   ansible.builtin.package:
-    name: 
-      - "{{ packages[0] | default(omit) }}"
-      - "{{ packages[1] | default(omit) }}"
-      - "{{ packages[2] | default(omit) }}"
-      - "{{ packages[3] | default(omit) }}"
-      - "{{ packages[4] | default(omit) }}"
-      - "{{ packages[5] | default(omit) }}"
-      - "{{ packages[6] | default(omit) }}"
-      - "{{ packages[7] | default(omit) }}"
+    name: "{{ item }}"
     state: latest
     update_cache: yes
+  loop: "{{ packages }}"
