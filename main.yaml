@@ -23,7 +23,7 @@
     - packages: [ 'libvirt-devel', 'libvirt-daemon-kvm', 'qemu-kvm', 'virt-manager', 'libvirt-daemon-config-network', 'libvirt-client', 'qemu-img', 'libvirt' ] 
   roles:
     - check_ssh
-    - install_packages
+    #- install_packages
     - set_selinux_permissive
     - enable_packages
     - macvtap
@@ -49,8 +49,8 @@
     - packages: [ 'ansible', 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind-utils', 'openssh' ]
   roles:
     - check_ssh
-    #- install_packages
-    #- install_ansible
+    - install_packages
+    - install_ansible
     - ssh-ocp-key-gen # SSH key for bastion to connect to nodes
     - set_selinux_permissive
     - set_firewall
