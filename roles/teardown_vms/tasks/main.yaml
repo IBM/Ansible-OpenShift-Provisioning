@@ -1,26 +1,24 @@
 ---
 
-- name: print list of vms given from teardown.yaml
+- name: print the list of VMs given from teardown.yaml
   debug:
     var: vms
 
-- name: print the number of vms given from teardown.yaml
+- name: print the number of VMs given from teardown.yaml
   debug:
     var: "{{ vms | length }}"
 
-- name: shutdown vms
-  tags: test
+- name: shutdown listed VMs
   community.libvirt.virt:
     name: "{{ item }}"
     command: shutdown
   loop: "{{ vms }}"
 
-- name: wait 5 minute for VMs to shutdown gracefully
+- name: wait up to 5 minute for VMs to shutdown gracefully
   pause:
     minutes: 5
 
-- name: undefine vms
-  tags: test
+- name: undefine listed VMs
   community.libvirt.virt:
     name: "{{ item }}"
     command: undefine
