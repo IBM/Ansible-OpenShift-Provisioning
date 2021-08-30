@@ -44,7 +44,6 @@
     path: ~/.ssh/{{ env_ssh_ans_name }}
     passphrase: ""
   register: ssh_key_creation
-  failed_when: ssh_key_creation.rc != 0
   when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false
 
 - name: Print results of ssh key pair creation
