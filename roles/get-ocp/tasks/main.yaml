@@ -85,6 +85,26 @@
     group: root
     mode: '0755'
 
+- name: check to see if ocp_ssh_pub file exists
+  tags: getocp,bastion
+  stat:
+    path: roles/get-ocp/files/ocp_ssh_pub
+  register: ocp_ssh_pub
+
+- name: delete ocp_ssh_pub file
+  tags: getocp, bastion
+  file:
+    state: absent
+    path: roles/get-ocp/files/ocp_ssh_pub
+  when: ocp_ssh_pub.stat.exists == true
+  register: ocp_ssh_pub_del
+
+- name: create ocp_ssh_pub if it needs to be
+  file:
+    path: roles/get-ocp/files/ocp_ssh_pub
+    mode: '0755'
+  when: ocp_ssh_pub_del.changed == true or ocp_ssh_pub.stat.exists == false
+
 - name: Fetch ssh key from bastion for use in install-config
   tags: getocp,bastion
   ansible.builtin.fetch:

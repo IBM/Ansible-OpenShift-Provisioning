@@ -1,12 +1,9 @@
 ---
 
-#needed:
-#- shutdown and destroy bootstrap, control, and compute nodes
-#- delete /ocpinst/
-#- delete ssh keys from known hosts in bastion and delete ssh keys from ~/.ssh/id_rsa* 
-#- delete ssh key from roles/get-ocp/files/ocp_ssh_pub
+# Use the "full" tag when running this playbook to reset your installation back to the point where no VMs were running on the KVM host. 
+# If you have more nodes than what is present in the "vms" list below, feel free to add more to the list. 
+# After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'bastionvm,bastion,create_nodes'"
 
-# Use the "full" tag when running this playbook to reset your installation back to the point where no VMs were running on the KVM host. After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'bastionvm,bastion,create_nodes'"
 - hosts: kvm_host
   tags: full
   become: true
@@ -16,11 +13,15 @@
   roles:
     - teardown_vms
 
-# Use the "partial" tag when running this playbook to reset your installation back to the point where just the bastion node was running on the KVM host. After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'bastion,create_nodes'"
+# Use the "partial" tag when running this playbook to reset your installation back to the point where just the bastion node was running on the KVM host. 
+# If you have more nodes than what is present in the "vms" list below, feel free to add more to the list. 
+# After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'bastion,create_nodes'"
+
 - hosts: bastion
   tags: partial
   become: true
   gather_facts: no
+  roles:
     - reset_files
 
 - hosts: kvm_host
