@@ -70,6 +70,7 @@ The goal of this playbook is to setup and deploy a User Provisioned Infrastructu
 
 * setup = first-time setup of ansible
 * prep = run all setup playbooks
+* pkg = install and update all packages
 * bastion = configuration of bastion for OCP
 * keymastr = ssh key configuration and testing
 * bastionvm = creation of Bastion KVM guest

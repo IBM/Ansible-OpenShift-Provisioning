@@ -19,8 +19,8 @@
   become: true
   vars_files:
     - env.yaml
-  vars:
-    - packages: [ 'libvirt-devel', 'libvirt-daemon-kvm', 'qemu-kvm', 'virt-manager', 'libvirt-daemon-config-network', 'libvirt-client', 'qemu-img', 'libvirt' ]
+  vars: # feel free to add more packages as needed
+    - packages: [ 'libvirt-devel', 'libvirt-daemon-kvm', 'qemu-kvm', 'virt-manager', 'libvirt-daemon-config-network', 'libvirt-client', 'qemu-img', 'libvirt' ] 
   roles:
     - check_ssh
     - install_packages
@@ -45,7 +45,7 @@
   become: true
   vars_files:
     - env.yaml
-  vars: 
+  vars: # feel free to add more packages as needed
     - packages: [ 'ansible', 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind-utils', 'openssh' ]
   roles:
     - check_ssh
