@@ -35,7 +35,7 @@
     --network network=macvtap-net 
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.135::9.60.86.1:255.255.254.0:compute-0:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/worker.ign" 
-    --noautoconsole
+    --noautoconsole --wait=-1
   when: compute_0_check.failed == true
 
 - name: pause 15 minutes
@@ -53,7 +53,7 @@
     --network network=macvtap-net 
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.134::9.60.86.1:255.255.254.0:compute-1:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/worker.ign" 
-    --noautoconsole
+    --noautoconsole --wait=-1
   when: compute_1_check.failed == true
 
 - name: pause 15 minutes
