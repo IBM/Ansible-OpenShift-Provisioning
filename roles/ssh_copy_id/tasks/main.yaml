@@ -1,19 +1,11 @@
 ---
 
-#- name: distribute the ssh key to a remote host
-#  tags: ssh,ssh-copy-id
-#  shell: "ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/{{ env_ssh_ans_name }}.pub -p 22 \"{{ env_ssh_username }}@{{ ssh_target_ip }}\""
-#  register: ssh_copy_id_execution
+- name: distribute the ssh key to a remote host
+  tags: ssh,ssh-copy-id
+  shell: "ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/{{ env_ssh_ans_name }}.pub -p 22 \"{{ env_ssh_username }}@{{ ssh_target_ip }}\""
+  register: ssh_copy_id_execution
 
-#- name: Print results of copying ssh id to remote host.
-#  tags: ssh,ssh-copy-id
-#  debug:
-#    var: ssh_copy_id_execution
-
-- name: copy ssh key to remote host
-  tags: ssh-copy-id 
-  copy:
-    src: ~/.ssh/{{ env_ssh_ans_name }}.pub
-    dest: ~/.ssh/{{ env_ssh_ans_name }}.pub
-    mode: '644'
-    owner: root
+- name: Print results of copying ssh id to remote host.
+  tags: ssh,ssh-copy-id
+  debug:
+    var: ssh_copy_id_execution
