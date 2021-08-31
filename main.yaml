@@ -46,11 +46,11 @@
   vars_files:
     - env.yaml
   vars: # feel free to add more packages as needed
-    - packages: [ 'ansible', 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind-utils', 'openssh' ]
+    - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind-utils', 'openssh' ]
   roles:
     - check_ssh
+    #- install_ansible
     - install_packages
-    - install_ansible
     - ssh-ocp-key-gen # SSH key for bastion to connect to nodes
     - set_selinux_permissive
     - set_firewall
@@ -82,12 +82,12 @@
   #roles:
   #- wait_for_bootstrap
 
-#- hosts: bastion
-  #tags: bastion,cluster
-  #become: true
-  #gather_facts: no
-  #roles:
-    #- connect_cluster
+- hosts: bastion
+  tags: bastion,cluster
+  become: true
+  gather_facts: no
+  roles:
+    - connect_cluster
 
 #- hosts: bastion
   #become: true

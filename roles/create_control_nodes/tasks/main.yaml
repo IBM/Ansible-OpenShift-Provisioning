@@ -48,7 +48,7 @@
     --network network=macvtap-net 
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.138::9.60.86.1:255.255.254.0:control-0:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign" 
-    --noautoconsole
+    --noautoconsole --wait=-1
   when: control_0_check.failed == true
   
 - name: pause 15 minutes
@@ -66,7 +66,7 @@
     --network network=macvtap-net 
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.137::9.60.86.1:255.255.254.0:control-1:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign" 
-    --noautoconsole
+    --noautoconsole --wait=-1
   when: control_1_check.failed == true
 
 - name: pause 15 minutes
@@ -84,7 +84,7 @@
     --network network=macvtap-net 
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.136::9.60.86.1:255.255.254.0:control-2:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign" 
-    --noautoconsole
+    --noautoconsole --wait=-1
   when: control_2_check.failed == true
 
 - name: pause 45 minutes

@@ -103,6 +103,7 @@
   file:
     path: roles/get-ocp/files/ocp_ssh_pub
     mode: '0755'
+    state: touch
   when: ocp_ssh_pub_del.changed == true or ocp_ssh_pub.stat.exists == false
 
 - name: Fetch ssh key from bastion for use in install-config
