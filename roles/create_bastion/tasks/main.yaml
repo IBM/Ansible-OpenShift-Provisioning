@@ -28,6 +28,7 @@
     name: bastion
     command: status
   register: bastion_check
+  ignore_errors: true
 
 - name: print status of bastion
   tags: kvm_host, bastionvm

@@ -4,7 +4,9 @@
   tags: bastion, ansible
   command: "{{ item }}"
   loop:
-    - subscription-manager repos --enable "codeready-builder-for-rhel-8-$(arch)-rpms"
-    - sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+    - subscription-manager repos --enable "codeready-builder-for-rhel-8-s390x-rpms"
+    - sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+    - sudo rpm -i epel-release-latest-8.noarch.rpm
+    - sudo yum -y install ansible
     - ansible-galaxy collection install community.crypto
     - ansible-galaxy collection install community.general
