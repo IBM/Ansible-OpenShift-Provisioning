@@ -1,5 +1,9 @@
 ---
 
+- name: Load in variables from env.yaml
+  tags: setup
+  include_vars: env.yaml
+
 - name: check if bootstrap already exists
   tags: bootstrap
   community.libvirt.virt:
@@ -21,7 +25,7 @@
     --os-type linux --os-variant rhel8.0 
     --network network=macvtap-net 
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.133::9.60.86.1:255.255.254.0:bootstrap:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/bootstrap.ign" 
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env_ip_bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env_ip_bootstrap}}::{{env_default_gateway}}:{{env_netmask}}:bootstrap:enc1:none:1500 nameserver={{env_dns_nameserver}} coreos.inst.ignition_url=http://{{env_dns_nameserver}}:8080/ignition/bootstrap.ign" 
     --noautoconsole --wait=-1
   when: bootstrap_check.failed == true
 
