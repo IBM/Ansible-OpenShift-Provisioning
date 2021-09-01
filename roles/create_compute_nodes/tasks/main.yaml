@@ -1,5 +1,9 @@
 ---
 
+- name: Load in variables from env.yaml
+  tags: setup
+  include_vars: env.yaml
+
 - name: check if compute-0 already exists
   tags: compute
   community.libvirt.virt:
@@ -34,7 +38,7 @@
     --os-type linux --os-variant rhel8.0 
     --network network=macvtap-net 
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.135::9.60.86.1:255.255.254.0:compute-0:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/worker.ign" 
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env_ip_bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env_ip_compute_0}}::{{env_default_gateway}}:{{env_netmask}}:compute-0:enc1:none:1500 nameserver={{env_dns_nameserver}} coreos.inst.ignition_url=http://{{env_ip_bastion}}:8080/ignition/worker.ign" 
     --noautoconsole --wait=-1
   when: compute_0_check.failed == true
 
@@ -52,7 +56,7 @@
     --os-type linux --os-variant rhel8.0 
     --network network=macvtap-net 
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.134::9.60.86.1:255.255.254.0:compute-1:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/worker.ign" 
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env_ip_bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env_ip_compute_1}}::{{env_default_gateway}}:{{env_netmask}}:compute-1:enc1:none:1500 nameserver={{env_dns_nameserver}} coreos.inst.ignition_url=http://{{env_ip_bastion}}:8080/ignition/worker.ign" 
     --noautoconsole --wait=-1
   when: compute_1_check.failed == true
 

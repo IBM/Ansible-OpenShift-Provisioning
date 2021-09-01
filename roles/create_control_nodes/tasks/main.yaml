@@ -1,5 +1,9 @@
 ---
 
+- name: Load in variables from env.yaml
+  tags: setup
+  include_vars: env.yaml
+
 - name: check if control-0 already exists
   tags: control
   community.libvirt.virt:
@@ -47,7 +51,7 @@
     --os-type linux --os-variant rhel8.0 
     --network network=macvtap-net 
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.138::9.60.86.1:255.255.254.0:control-0:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign" 
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env_ip_bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env_ip_control_0}}::{{env_default_gateway}}:{{env_netmask}}:control-0:enc1:none:1500 nameserver={{env_ip_bastion}} coreos.inst.ignition_url=http://{{env_ip_bastion}}:8080/ignition/master.ign" 
     --noautoconsole --wait=-1
   when: control_0_check.failed == true
   
@@ -65,7 +69,7 @@
     --os-type linux --os-variant rhel8.0 
     --network network=macvtap-net 
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.137::9.60.86.1:255.255.254.0:control-1:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign" 
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env_ip_bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env_ip_control_1}}::{{env_default_gateway}}:{{env_netmask}}:control-1:enc1:none:1500 nameserver={{env_ip_bastion}} coreos.inst.ignition_url=http://{{env_ip_bastion}}:8080/ignition/master.ign" 
     --noautoconsole --wait=-1
   when: control_1_check.failed == true
 
@@ -83,11 +87,11 @@
     --os-type linux --os-variant rhel8.0 
     --network network=macvtap-net 
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img 
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://9.60.87.139:8080/bin/rhcos-live-rootfs.s390x.img ip=9.60.87.136::9.60.86.1:255.255.254.0:control-2:enc1:none:1500 nameserver=9.60.87.139 coreos.inst.ignition_url=http://9.60.87.139:8080/ignition/master.ign" 
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env_ip_bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env_ip_control_2}}::{{env_default_gateway}}:{{env_netmask}}:control-2:enc1:none:1500 nameserver={{env_ip_bastion}} coreos.inst.ignition_url=http://{{env_ip_bastion}}:8080/ignition/master.ign" 
     --noautoconsole --wait=-1
   when: control_2_check.failed == true
 
-- name: pause 45 minutes
+- name: pause 45 minutes to wait for bootkube.service to complete connecting control nodes. See README for more information.
   tags: control
   pause:
     minutes: 45

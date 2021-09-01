@@ -4,7 +4,7 @@
 
 * The goal of this playbook is to setup and deploy a User Provisioned Infrastructure (UPI) OpenShift cluster on an
   IBM Z or LinuxONE mainframe utilizing KVM as the virtualization method.
-* This README file gives extremely detailed step-by-step instructions for you to use as a reference. It assumes near zero experience.
+* This README file gives extremely detailed step-by-step instructions for you to use as a reference. It assumes near zero experience with Ansible.
 
 ## Supported Operating Systems (for local workstation): 
 
