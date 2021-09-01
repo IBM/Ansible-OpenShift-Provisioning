@@ -34,7 +34,7 @@
     * system tools
 * On that LPAR, access to 8 (for a minimum installation) pre-allocated IPv4 addresses
 * Fully Qualified Domain Names (FQDN) names for all IPv4 addresses
-* DNS configuration files (forward (.db), reverse (.rev), and named.conf). Note: we plan to automate this in the future.
+* DNS configuration files (forward (.db), reverse (.rev), and named.conf). 
 
 ## Installation Instructions:
 
@@ -85,7 +85,6 @@
     * Once you fill out all the required configuration settings, press "b" to begin installation.
     * Once you see "bastion login", come back to the terminal to continue your run by pressing "ctrl+c" and then
       "c". If there was a problem and you need to stop the playbook, press "ctrl+c" and then "a".
-    * Note: we plan to automate the installation configuration in the future.
 * **Step 7: Starting Up Bootstrap and Control Nodes**
     * The playbook will continue to run, preparing the bootstrap and control nodes.
     * To monitor the nodes as they come up, watch them on the cockpit at: "https://your-KVM-host-IP-address-here:9090"
