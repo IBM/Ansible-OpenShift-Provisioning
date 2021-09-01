@@ -62,6 +62,8 @@
   tags: kvm_host,create_nodes
   become: true
   gather_facts: no
+  vars_files:
+    - env.yaml
   roles:
     - prep_kvm_guests
     - create_bootstrap

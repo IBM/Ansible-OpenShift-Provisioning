@@ -37,6 +37,7 @@
     - env_dns_nameserver
     - env_default_gateway
     - env_netmask
+    - env_ftp
 
 - name: Populate inventory file with ip variables from env.yaml
   tags: setup
