@@ -9,6 +9,7 @@
     - env.yaml
   vars:
     - ssh_target_ip: "{{ env_ip_kvm_host }}"
+
   roles:
     - ansible_setup
     - ssh_key_gen
