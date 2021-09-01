@@ -25,7 +25,7 @@
 - name: Copy DNS .db file to bastion
   tags: dns,bastion
   ansible.builtin.copy:
-    src: distribution.db
+    src: "{{ env_metadata_name }}.db"
     dest: /var/named
     owner: named
     group: named
@@ -35,7 +35,7 @@
 - name: Copy DNS .rev file to bastion
   tags: dns,bastion
   ansible.builtin.copy:
-    src: distribution.rev
+    src: "{{ env_metadata_name }}.rev"
     dest: /var/named
     owner: named
     group: named
