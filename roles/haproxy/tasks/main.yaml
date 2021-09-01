@@ -1,10 +1,19 @@
 ---
 
+- name: Load in variables from env.yaml
+  tags: haproxy,bastion
+  include_vars: env.yaml
+
 - name: Change permissive domain for haproxy
   tags: selinux,haproxy,bastion
   selinux_permissive:
     name: haproxy_t
     permissive: true 
+
+- name: use template to create haproxy config file 
+  template:
+    src: haproxy.cfg.j2
+    dest: 
 
 - name: move haproxy config file to bastion
   tags: haproxy,bastion

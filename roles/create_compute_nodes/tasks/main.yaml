@@ -1,7 +1,7 @@
 ---
 
 - name: Load in variables from env.yaml
-  tags: setup
+  tags: compute
   include_vars: env.yaml
 
 - name: check if compute-0 already exists
