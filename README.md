@@ -50,8 +50,10 @@
     * In a text editor of your choice, open env.yaml, found in the main directory of this repository
     * Fill out all of the required variables for your specific installation
 * **Step 3: DNS Configuration**
-    * Get DNS configuration files (forward (.db), reverse (.rev), and named.conf), or have them pre-defined by
-      your networking team, and place them in the roles/dns/files folder.
+    * Get DNS configuration files (forward (.db), reverse (.rev), and named.conf), or have them pre-defined by your networking team.
+    * Place them in the roles/dns/files folder 
+    * Please leave the named.conf the same name.
+    * Rename the .db and .rev files with the same name you set for "env_metadata_name" in env.yaml (i.e. distribution.rev)
 * **Step 4: Setup Script** 
     * Navigate to the folder where you saved the Git Repository
     * Run "ansible-playbook setup.yaml --ask-become-pass"
@@ -130,7 +132,7 @@
     * From the bastion as root user (as above), navigate to /ocpinst ("cd /ocpinst")
     * Run "./openshift-install --dir=/ocpinst wait-for install-complete"
     * If installation is ready, running the above command will give you some information about how to log into the OpenShift cluster's dashboard. 
-    * Copy the provided URL into a web browser and use the provided "kubeadmin" login and password for first time sign-on.
+    * Copy the provided URL into a web browser and use "kubeadmin" as login and the provided password for first time sign-on.
 * **Step 14: Celebrate!**
     * Your OpenShift cluster provisioning and installation is now complete.
 
@@ -147,7 +149,7 @@
   "run ansible-playbook main.yaml --ask-become-pass --tags "bastionvm,bastion,create_nodes"
 * Once you run the partial teardown, to start the main.yaml playbook back from that point, run main.yaml with the tags "bastion,create_nodes".
 
-## Tags:
+## Tags (in alphabetical order):
 
 * bastion = configuration of bastion for OCP
 * bastionvm = creation of Bastion KVM guest
