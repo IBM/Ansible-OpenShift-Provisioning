@@ -34,9 +34,9 @@
     - env_ssh_ans_name
     - env_ssh_ans_pass
     - env_ssh_ocp_comm
-    - dns_nameserver
-    - default_gateway
-    - netmask
+    - env_dns_nameserver
+    - env_default_gateway
+    - env_netmask
 
 - name: Populate inventory file with ip variables from env.yaml
   tags: setup
@@ -77,7 +77,7 @@
     regexp: '^private_key_file='
     line: private_key_file=~/.ssh/{{ env_ssh_ans_name }}
 
-- name: encrypt env.yaml and .vault_pass.txt
+- name: encrypt env.yaml to protect sensitive data
   tags: setup
   shell: ansible-vault encrypt env.yaml
   
