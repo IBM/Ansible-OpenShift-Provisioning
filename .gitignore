@@ -1,2 +1,6 @@
 .DS_Store
 .iso
+roles/get-ocp/files/ocp_ssh_pub
+env.yaml
+group_vars/all/main.yaml*
+.vault_pass.txt
