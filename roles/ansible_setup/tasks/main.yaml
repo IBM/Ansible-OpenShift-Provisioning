@@ -69,12 +69,17 @@
   register: inv_check
   failed_when: inv_check.rc != 0
 
-- name: fill ansible.cfg with given variable name for ansible passwordless ssh setup
+# .vault_pass.txt is in the .gitignore file, and will therefore not be uploaded to Git should you do a git push.
+- name: fill ansible.cfg with provided variable ansible ssh key file name
   tags: setup
   ansible.builtin.lineinfile:
     path: ansible.cfg
     regexp: '^private_key_file='
     line: private_key_file=~/.ssh/{{ env_ssh_ans_name }}
+
+- name: encrypt env.yaml and .vault_pass.txt
+  tags: setup
+  shell: ansible-vault encrypt env.yaml
   
 - name: Ansible generic setup to re-read inventory file after populated in previous tasks
   tags: setup
