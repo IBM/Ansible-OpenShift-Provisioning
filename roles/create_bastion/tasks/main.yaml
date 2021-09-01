@@ -23,7 +23,7 @@
 #    command: qemu-img create -f qcow2 -b /var/lib/libvirt/images/rhcos-qemu.s390x.qcow2 /var/lib/libvirt/images/bastion.qcow2 30G
 
 - name: Load in variables from env.yaml
-  tags: setup
+  tags: kvm_host, bastionvm
   include_vars: env.yaml
 
 - name: check if bastion already exists

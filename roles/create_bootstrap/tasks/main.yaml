@@ -1,7 +1,7 @@
 ---
 
 - name: Load in variables from env.yaml
-  tags: setup
+  tags: bootstrap
   include_vars: env.yaml
 
 - name: check if bootstrap already exists
