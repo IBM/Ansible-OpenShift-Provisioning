@@ -42,7 +42,7 @@
     * Navigate to a folder where you would like to store this project in your terminal
     * Run "git clone https://github.com/IBM/Ansible-OpenShift-Provisioning.git"
 * **Step 2: Get OpenShift Information**
-    * In a web browser, navigate to https://console.redhat.com/openshift/install/ibmz/user-provisioned in order to:
+    * In a web browser, navigate to https://console.redhat.com/openshift/install/ibmz/user-provisioned
     * Download your local command line tools (oc and kubectl)
     * Copy the OpenShift pull secret (for use in the next step)
 * **Step 2: Set Variables**
@@ -54,7 +54,8 @@
 * **Step 4: Setup Script** 
     * Navigate to the folder where you saved the Git Repository
     * Depending on which operating system you are using on your local workstation, run either
-      "ansible-playbook setup-mac.yaml --ask-become-pass" or "ansible-playbook setup-linux.yaml --ask-become-pass" 
+      "ansible-playbook setup-mac.yaml --ask-become-pass" if your local workstation is a Mac, or 
+      "ansible-playbook setup-linux.yaml --ask-become-pass" if you are using Linx
 
 ### Provisioning
 * **Step 5: Running the Main Playbook** 
@@ -135,8 +136,8 @@
 ## Teardown: 
 
 * If you would like to teardown your VMs, first determine whether you would like to do a full or partial teardown.
-* Full: to teardown all the VMs running on your KVM host, run: "ansible-playbook teardown.yaml --ask-become-pass --tags "full"
-* Partial: To teardown all the VMS except for the bastion, run: "ansible-playbook teardown.yaml --ask-become-pass --tags "partial"
+* Full: to teardown all the VMs running on your KVM host, run: "ansible-playbook teardown.yaml --ask-become-pass --tags full
+* Partial: To teardown all the VMS except for the bastion, run: "ansible-playbook teardown.yaml --ask-become-pass --tags partial
 * If you have provisioned more than the minimum number of nodes for your installation, add them to the
   respective list found in roles/teardown_vms/tasks/main.yaml.
 * Once you run the full teardown, to start the main.yaml playbook back from that point, run:
@@ -145,25 +146,25 @@
 
 ## Tags:
 
-* setup = first-time setup of ansible
-* prep = run all setup playbooks
-* pkg = install and update all packages
 * bastion = configuration of bastion for OCP
-* keymastr = ssh key configuration and testing
 * bastionvm = creation of Bastion KVM guest
 * boostrap = creation of Boostrap KVM guest
 * compute = creation of the Compute nodes KVM guests
 * control = creation of the Control nodes KVM guests
-* ssh-copy-id = for copying ssh id
-* dns = configuration of dns server on bastion
+* create_nodes = tasks from the second set of kvm plays
+* dns = configuration of DNS server on bastion
+* firewall = for tasks related to firewall settings
+* full = for use with teardown.yaml to bring down all VMs
 * getocp = download of OCP installer and http server configuration
 * haproxy = configuration of haproxy on bastion kvm guest
 * httpconf = configuration of httpd server on bastion kvm guest
+* keymastr = ssh key configuration and testing
 * kvm_host = tasks to apply to KVM host for OCP cluster
 * kvm_prep = tasks from the first set of kvm plays
-* create_nodes = tasks from the second set of kvm plays
 * localhost = for tasks that apply to the local machine running Ansible
-* firewall = for tasks related to firewall settings
-* selinux = for tasks related to SELinux settings
 * partial = for use with teardown.yaml to bring down VMs except bastion
-* full = for use with teardown.yaml to bring down all VMs
+* pkg = install and update all packages
+* prep = run all setup playbooks
+* selinux = for tasks related to SELinux settings
+* setup = first-time setup of ansible
+* ssh-copy-id = for copying ssh id
