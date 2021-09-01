@@ -4,7 +4,7 @@
 
 * The goal of this playbook is to setup and deploy a User Provisioned Infrastructure (UPI) OpenShift cluster on an
   IBM Z or LinuxONE mainframe utilizing KVM as the virtualization method.
-* This README file gives an extremely detailed step-by-step instruction for you to use as a reference. It assumes near zero experience.
+* This README file gives extremely detailed step-by-step instructions for you to use as a reference. It assumes near zero experience.
 
 ## Supported Operating Systems (for local workstation): 
 
@@ -13,6 +13,7 @@
 
 ## Pre-requisites:
 
+* Red Hat Enterprise Linux (RHEL) license
 * Python3 intalled on your local computer (how-to: https://realpython.com/installing-python/)
 * Ansible installed on your local computer  (how-to: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
 * If you are using Mac OS X for your localhost workstation to run Ansible, you also need to have: 
@@ -53,9 +54,10 @@
       your networking team, and place them in the roles/dns/files folder.
 * **Step 4: Setup Script** 
     * Navigate to the folder where you saved the Git Repository
-    * Depending on which operating system you are using on your local workstation, run either
-      "ansible-playbook setup-mac.yaml --ask-become-pass" if your local workstation is a Mac, or 
-      "ansible-playbook setup-linux.yaml --ask-become-pass" if you are using Linx
+    * Run "ansible-playbook setup.yaml --ask-become-pass"
+    * When the setup playbook starts, it will prompt you for a password to use for encrypting Ansible vault files
+    * No files are encrypted until you run the main playbook in step 5 below
+    * If you would like to decrypt a file protected by Ansible vault, run: "ansible-vault decrypt file-name-here"
 
 ### Provisioning
 * **Step 5: Running the Main Playbook** 
@@ -125,7 +127,8 @@
     * It may take hours, especially the cluster operators. Run the above two bullets' commmands to check in occasionally.
     * Once all nodes are ready and cluster operators are available, you are ready to continue to the next step.
 * **Step 12: Verify OpenShift Installation** 
-    * From the bastion as root user (as above), run: "./openshift-install --dir=/ocpinst wait-for install-complete"
+    * From the bastion as root user (as above), navigate to /ocpinst ("cd /ocpinst")
+    * Run "./openshift-install --dir=/ocpinst wait-for install-complete"
     * If installation is ready, running the above command will give you some information about how to log into the OpenShift cluster's dashboard. 
     * Copy the provided URL into a web browser and use the provided "kubeadmin" login and password for first time sign-on.
 * **Step 14: Celebrate!**

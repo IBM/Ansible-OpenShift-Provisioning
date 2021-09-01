@@ -1,7 +1,0 @@
----
-
-- hosts: localhost
-  tags: localhost, prep
-  connection: local
-  become: false
-  gather_facts: no

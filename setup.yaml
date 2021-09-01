@@ -1,0 +1,42 @@
+---
+
+- hosts: localhost
+  tags: localhost, prep
+  connection: local
+  become: false
+  gather_facts: yes
+  vars_prompt:
+    - name: vault_pass
+      prompt: Please provide a secure password to be used for encrypting your sensitive files in Ansible
+      private: yes
+      unsafe: yes # this just means you can use special characters. The password is safe.
+
+  tasks:
+    - name: check to see if .vault_pass.txt exists already
+      stat:
+        path: .vault_pass.txt
+      register: vault_pass_check
+
+    - name: delete .vault_pass.txt if it exists already to ensure idempotence 
+      file:
+        path: .vault_pass.txt
+        state: absent
+      when: vault_pass_check.stat.exists
+
+    - name: fill .vault_pass.txt with user-provided password
+      lineinfile: 
+        path: .vault_pass.txt
+        state: present
+        create: yes
+        line: "{{ vault_pass }}"
+
+    - name: install Ansible dependencies and packages
+      shell: files/shell_scripts/ansible-setup-mac.sh
+      when: ansible_facts['os_family'] == "Darwin"
+    
+    - name: install Ansible dependencies and packages
+      shell: files/shell_scripts/ansible-setup-linux.sh
+      when: ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == "Debian"
+
+      
+      

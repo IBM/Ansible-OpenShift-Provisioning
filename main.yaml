@@ -9,7 +9,6 @@
     - env.yaml
   vars:
     - ssh_target_ip: "{{ env_ip_kvm_host }}"
-
   roles:
     - ansible_setup
     - ssh_key_gen
@@ -24,7 +23,7 @@
     - packages: [ 'libvirt-devel', 'libvirt-daemon-kvm', 'qemu-kvm', 'virt-manager', 'libvirt-daemon-config-network', 'libvirt-client', 'qemu-img', 'libvirt' ] 
   roles:
     - check_ssh
-    #- install_packages
+    - install_packages
     - set_selinux_permissive
     - enable_packages
     - macvtap
@@ -50,7 +49,6 @@
     - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind-utils', 'openssh' ]
   roles:
     - check_ssh
-    #- install_ansible
     - install_packages
     - ssh-ocp-key-gen # SSH key for bastion to connect to nodes
     - set_selinux_permissive
@@ -83,12 +81,12 @@
   #roles:
   #- wait_for_bootstrap
 
-- hosts: bastion
-  tags: bastion,cluster
-  become: true
-  gather_facts: no
-  roles:
-    - connect_cluster
+#- hosts: bastion
+  #tags: bastion,cluster
+  #become: true
+  #gather_facts: no
+  #roles:
+    #- connect_cluster
 
 #- hosts: bastion
   #become: true
