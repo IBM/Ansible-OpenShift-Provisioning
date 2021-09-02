@@ -140,8 +140,8 @@
 ## Teardown: 
 
 * If you would like to teardown your VMs, first determine whether you would like to do a full or partial teardown.
-* Full: to teardown all the VMs running on your KVM host, run: "ansible-playbook teardown.yaml --ask-become-pass --tags full
-* Partial: To teardown all the VMS except for the bastion, run: "ansible-playbook teardown.yaml --ask-become-pass --tags partial
+* Full: to teardown all the VMs running on your KVM host, run: "ansible-playbook teardown.yaml --ask-become-pass --tags full"
+* Partial: To teardown all the VMS except for the bastion, run: "ansible-playbook teardown.yaml --ask-become-pass --tags partial"
 * If you have provisioned more than the minimum number of nodes for your installation, add them to the
   respective list found in roles/teardown_vms/tasks/main.yaml.
 * Once you run the full teardown, to start the main.yaml playbook back from that point, run:
