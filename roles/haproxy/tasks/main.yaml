@@ -11,17 +11,12 @@
     permissive: true 
 
 - name: use template to create haproxy config file 
+  tags: haproxy,bastion
   template:
     src: haproxy.cfg.j2
-    dest: 
-
-- name: move haproxy config file to bastion
-  tags: haproxy,bastion
-  copy:
-    src: haproxy.cfg
     dest: /etc/haproxy/haproxy.cfg
-    force: yes
     backup: yes
+    force: yes
 
 - name: enable haproxy
   tags: haproxy,bastion
