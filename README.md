@@ -116,7 +116,7 @@
     * Then run "export KUBECONFIG=/ocpinst/auth/kubeconfig"
     * Check that worked by running "oc whoami", which should return "system:admin"
 * **Step 11: Approve Certificates**
-    * Fromm the bastion, running as root user (as above) run "oc get csr". This will bring up a list of certificates that need approval.
+    * From the bastion, running as root user (as above) run "oc get csr". This will bring up a list of certificates that need approval.
     * To approve all certificates at the same time, run the following command: 
       "for i in \`oc get csr --no-headers | grep -i pending |  awk '{ print $1 }\'`; do oc adm certificate approve $i; done" 
     * It may take some time for all the certificates that need approval to show up. Keep running "oc get csr" to check to make sure that 
