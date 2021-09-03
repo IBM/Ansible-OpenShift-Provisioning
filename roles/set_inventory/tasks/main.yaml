@@ -62,7 +62,6 @@
       {{ env_ip_compute_0 }}
       {{ env_ip_compute_1 }}
     state: present
-    backup: yes
     
 - name: check inventory setup
   tags: setup

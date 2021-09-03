@@ -22,4 +22,4 @@
   ansible.builtin.lineinfile:
     path: ansible.cfg
     insertafter: '\[defaults\]'
-    line: vault_password_file = .vault_pass.txt
+    line: vault_password_file=.vault_pass.txt
