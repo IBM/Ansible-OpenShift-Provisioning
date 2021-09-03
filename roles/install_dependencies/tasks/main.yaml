@@ -1,13 +1,29 @@
 ---
 
 - name: Gather facts to get OS family to see which setup script to run
-  tags: setup
+  tags: t
   ansible.builtin.gather_facts:
 
 - name: install Ansible dependencies and packages
-  shell: ansible-setup-mac.sh
+  tags: t
+  shell: "{{ item }}"
+  loop:  
+    - ansible-galaxy collection install community.general
+    - ansible-galaxy collection install community.crypto
+    - ansible-galaxy collection install ansible.posix
+    - ansible-galaxy collection install community.libvirt
+    - brew install openssh
   when: ansible_facts['os_family'] == "Darwin"
 
 - name: install Ansible dependencies and packages
-  shell: ansible-setup-linux.sh
+  tags: t
+  shell: "{{ item }}"
+  loop:
+    - ansible-galaxy collection install community.general
+    - ansible-galaxy collection install community.crypto
+    - ansible-galaxy collection install ansible.posix
+    - ansible-galaxy collection install community.libvirt
+    - sudo dnf install sshpass -y
+    - sudo dnf install openssh -y
   when: ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == "Debian"
+  
