@@ -1,5 +1,9 @@
 ---
 
+- name: Gather facts to get OS family to see which setup script to run
+  tags: setup
+  ansible.builtin.gather_facts:
+
 - name: install Ansible dependencies and packages
   shell: ansible-setup-mac.sh
   when: ansible_facts['os_family'] == "Darwin"

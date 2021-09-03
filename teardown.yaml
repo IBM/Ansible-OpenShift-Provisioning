@@ -1,5 +1,7 @@
 ---
 
+
+
 # Use the "full" tag when running this playbook to reset your installation back to the point where no VMs were running on the KVM host. 
 # If you have more nodes than what is present in the "vms" list below, feel free to add more to the list. 
 # After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'bastionvm,bastion,create_nodes'"
@@ -9,7 +11,7 @@
   become: true
   gather_facts: no
   vars:
-    - vms: ['bastion', bootstrap', 'control-0', 'control-1', 'control-2', 'compute-0', 'compute-1']
+    - vms: ['bastion', 'bootstrap', 'control-0', 'control-1', 'control-2', 'compute-0', 'compute-1']
   roles:
     - teardown_vms
 
