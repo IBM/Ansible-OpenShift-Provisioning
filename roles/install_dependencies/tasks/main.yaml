@@ -1,11 +1,9 @@
 ---
 
 - name: Gather facts to get OS family to see which setup script to run
-  tags: t
   ansible.builtin.gather_facts:
 
 - name: install Ansible dependencies and packages
-  tags: t
   shell: "{{ item }}"
   loop:  
     - ansible-galaxy collection install community.general
@@ -16,7 +14,6 @@
   when: ansible_facts['os_family'] == "Darwin"
 
 - name: install Ansible dependencies and packages
-  tags: t
   shell: "{{ item }}"
   loop:
     - ansible-galaxy collection install community.general
