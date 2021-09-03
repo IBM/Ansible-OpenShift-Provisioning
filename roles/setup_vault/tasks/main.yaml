@@ -11,9 +11,15 @@
     state: absent
   when: vault_pass_check.stat.exists
 
+# .vault_pass.txt is in the .gitignore file, and will therefore not be uploaded to Git should you do a push.
 - name: fill .vault_pass.txt with user-provided password
   lineinfile: 
     path: .vault_pass.txt
-    state: present
     create: yes
     line: "{{ vault_pass }}"
+
+- name: fill ansible.cfg with default location to find Ansible vault password file
+  ansible.builtin.lineinfile:
+    path: ansible.cfg
+    insertafter: "^[defaults]"
+    line: vault_password_file = .vault_pass.txt

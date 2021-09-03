@@ -63,7 +63,7 @@
 
 ### Provisioning
 * **Step 5: Running the Main Playbook** 
-    * If you are not already there, navigate to the folder where you saved the Git Repository in your terminal
+    * If you are not already there, navigate to the folder where you saved the Git repository in your terminal
     * Execute the main playbook by running this shell command: "ansible-playbook main.yaml --ask-become-pass"
     * Watch Ansible as it completes the installation, correcting errors if they arise. 
     * If the process fails in error, you should be able to run the same shell command to start the process from the top. 
