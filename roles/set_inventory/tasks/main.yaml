@@ -78,5 +78,5 @@
   tags: setup
   ansible.builtin.lineinfile:
     path: ansible.cfg
-    insertafter: "^[defaults]"
+    insertafter: '\[defaults\]'
     line: private_key_file=~/.ssh/{{ env_ssh_ans_name }}
