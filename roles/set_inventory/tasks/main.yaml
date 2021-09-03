@@ -70,18 +70,13 @@
   register: inv_check
   failed_when: inv_check.rc != 0
 
-# .vault_pass.txt is in the .gitignore file, and will therefore not be uploaded to Git should you do a git push.
+- name: Gather facts to re-read inventory after changes made to inventory
+  tags: setup
+  ansible.builtin.gather_facts:
+
 - name: fill ansible.cfg with provided variable ansible ssh key file name
   tags: setup
   ansible.builtin.lineinfile:
     path: ansible.cfg
-    regexp: '^private_key_file='
+    insertafter: "^[defaults]"
     line: private_key_file=~/.ssh/{{ env_ssh_ans_name }}
-
-- name: encrypt env.yaml to protect sensitive data
-  tags: setup
-  shell: ansible-vault encrypt env.yaml
-  
-- name: Ansible generic setup to re-read inventory file after populated in previous tasks
-  tags: setup
-  ansible.builtin.gather_facts:

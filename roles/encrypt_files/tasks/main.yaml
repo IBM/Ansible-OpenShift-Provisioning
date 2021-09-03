@@ -1,0 +1,6 @@
+---
+
+- name: encrypt provided files_to_encrypt from main playbook to protect sensitive data
+  tags: setup
+  shell: ansible-vault encrypt {{ items }}
+  loop: "{{ files_to_encrypt }}"

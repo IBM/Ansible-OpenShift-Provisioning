@@ -8,17 +8,28 @@
   debug:
     var: "{{ vms | length }}"
 
-- name: shutdown listed VMs
+- name: register only running VMs
+  community.libvirt.virt:
+    command: list_vms
+    state: running
+  register: running_vms
+
+- name: print only running vms
+  debug:
+    var: running_vms.list_vms
+
+- name: shutdown running VMs
   community.libvirt.virt:
     name: "{{ item }}"
     command: shutdown
-  loop: "{{ vms }}"
+  loop: "{{ running_vms.list_vms }}"
+  when: 
 
 - name: wait up to 5 minute for VMs to shutdown gracefully
   pause:
     minutes: 5
 
-- name: undefine listed VMs
+- name: undefine VMs given from teardown.yaml
   community.libvirt.virt:
     name: "{{ item }}"
     command: undefine

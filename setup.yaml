@@ -13,3 +13,4 @@
   roles:
     - setup_vault
     - install_dependencies
+    - set_inventory

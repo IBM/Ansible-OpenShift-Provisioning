@@ -9,8 +9,9 @@
     - env.yaml
   vars:
     - ssh_target_ip: "{{ env_ip_kvm_host }}"
+    - files_to_encrypt: [ 'env.yaml' ] # add to this list as needed
   roles:
-    - ansible_setup
+    - encrypt_files
     - ssh_key_gen
     - ssh_copy_id
 
