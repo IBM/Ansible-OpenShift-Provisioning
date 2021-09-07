@@ -1,11 +1,15 @@
 ---
 
-- name: distribute the ssh key to a remote host
-  tags: ssh,ssh-copy-id
-  shell: "ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/{{ env_ssh_ans_name }}.pub -p 22 \"{{ env_ssh_username }}@{{ ssh_target_ip }}\""
-  register: ssh_copy_id_execution
+- name: Load in variables from env.yaml
+  tags: ssh-copy-id
+  include_vars: env.yaml
+
+- name: ssh copy id to remote host
+  tags: ssh-copy-id
+  command: "ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/{{ env_ssh_ans_name }}.pub -p 22 '{{ env_ssh_username }}@{{ ssh_target_ip }}'"
+  register: ssh_copy
 
 - name: Print results of copying ssh id to remote host.
   tags: ssh,ssh-copy-id
   debug:
-    var: ssh_copy_id_execution
+    var: ssh_copy
