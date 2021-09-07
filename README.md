@@ -66,25 +66,52 @@
     * If you are not already there, navigate to the folder where you saved the Git repository in your terminal
     * Execute the main playbook by running this shell command: "ansible-playbook main.yaml --ask-become-pass"
     * Watch Ansible as it completes the installation, correcting errors if they arise. 
-    * If the process fails in error, you should be able to run the same shell command to start the process from the top. 
-    * Alternatively, use tags to run only the tasks that have that tag. See main.yaml to determine what you would like 
-      to run. There is also a list of all the tags at the bottom of this page for reference.
+    * To look at what is running in detail, from the main directory open roles/'task-you-want-to-inspect'/tasks/main.yaml
+    * If the process fails in error, you should be able to run the same shell command to start the process from the top. To be more selective with what parts of the main playbook run, use tags. See main.yaml to determine what you part you would like to run and use those tags when running the main playbook. There is also a list of all the tags at the bottom of this page for reference. Example: "ansible-playbook main.yaml --ask-become-pass -- tags 'bastion,get-ocp'
+    * Note: we chose to not edit the user's .bash_profile/.bashrc with an automatic ssh-add command because that would change the user's local workstation set-up in a way that was undesirable. Therefore, if you close out your terminal session in the middle of provisioning, you will need to run "ansible-playbook main.yaml --tags ssh-agent" before doing anything else.
 * **Step 6: Bastion Configuration** 
     * Once the create_bastion task runs, it will pause the playbook to give you time to configure it.
     * Use a web browser to open the cockpit by going to: "https://your-KVM-host-IP-address-here:9090"
-    * Click on the "Virtual Machines" tab, then click on bastion from the list, click on the black terminal 
-      screen and press Enter. Complete its installation with these options enabled:
-        * server
-        * hardware monitoring utilities
-        * networking file system client
-        * remote management for linux
-        * headless mgmt
-        * system tools
-        * basic web server
-        * network servers
+    * Click on the "Virtual Machines" tab, then click on bastion from the list, click on the black terminal screen and press Enter. Wait until you see it asking for you to make a selection.
+    * To finish the bastion's installation, you will need to configure the VM by doing the following:
+      * Press 2 to enter Text Mode (hit the Enter key after every step)
+      * From the main menu, press 3 to configure the Installation Source
+        * Press 3 to use Network
+        * Type in the URL that points to your RHEL ISO
+      * From the main menu, press 4 to go to Software Selection
+        * Press 2 for Server, Enter, then "c" to continue
+        * From this list, press the number and then hit Enter for each:
+          * 1 - Hardware Monitoring utilities
+          * 8 - Networking File System Client2
+          * 9 - Network Servers
+          * 11 - Remote Management for Linux
+          * 13 - Basic Web Server
+          * 17 - Headless Management
+          * 21 - System Tools
+        * Press "c" to continue, and 'c' again to get back to the main menu
+      * From the main menu, press 5 to set the installation destination
+        * If there is a disk already checked, press "c" to use the continue. If not, select the disk you would like to use.
+        * If it is not already selected, press 2 to use all free space, otherwise, press "c" to continue.
+        * Select "LVM" from the list and press "c" to continue
+      * From the main menu, press 7 to set Network Configurations
+        * Press 2 to configure device enc1
+          * Press 1 and enter the bastion's IP address
+          * Press 2 and enter the netmask
+          * Press 3 and enter the default gateway
+          * Press 4 and type "ignore"
+          * Press 6 and enter DNS nameservers
+          * Press 'c' to continue 
+      * From the main menu, press 9 to set the Root Password
+      * From the main menu, press 10 to create a user
+        * Press 1 to create user
+        * Press 2 to set full name
+        * Press 3 to set a username
+        * Press 5 to set a password
+        * Press 6 to give the user root access (optional)
+      * From the main menu, double check that all check boxes have an X
     * Once you fill out all the required configuration settings, press "b" to begin installation.
-    * Once you see "bastion login", come back to the terminal to continue your run by pressing "ctrl+c" and then
-      "c". If there was a problem and you need to stop the playbook, press "ctrl+c" and then "a".
+    * Wait for the installation to complete, this may take some time. Monitor its progress, it may need you to press 'Enter' to continue. Once the installation completes, you will have to press the 'Run' button on the cockpit for it to start up and finish configuration.
+    * Once you see "bastion login", come back to the terminal to continue your run by pressing "ctrl+c" and then "c". If there was a problem and you need to stop the playbook, press "ctrl+c" and then "a". If configuration and installation took longer than the pause and the playbook continued and then failed, continue the playbook by running the following command: "ansible-playbook main.yaml --ask-become-pass --tags 'bastion,create_nodes'"
 * **Step 7: Starting Up Bootstrap and Control Nodes**
     * The playbook will continue to run, preparing the bootstrap and control nodes.
     * To monitor the nodes as they come up, watch them on the cockpit at: "https://your-KVM-host-IP-address-here:9090"
@@ -171,4 +198,5 @@
 * prep = run all setup playbooks
 * selinux = for tasks related to SELinux settings
 * setup = first-time setup of ansible
+* ssh-agent = setting up ansible ssh-agent
 * ssh-copy-id = for copying ssh id
