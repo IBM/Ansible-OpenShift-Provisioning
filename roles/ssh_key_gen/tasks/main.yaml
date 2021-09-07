@@ -16,7 +16,7 @@
   file:
     path: "~/.ssh"
     state: directory
-    mode: "0700"
+    mode: '700'
   register: ssh_directory_creation
   when: ssh_directory_exists_check is defined and ssh_directory_exists_check.stat.exists == false
 
@@ -50,17 +50,3 @@
   tags: keymastr
   debug:
     var: ssh_key_creation
-
-- name: add the new ssh key to the ansible.cfg file
-  tags: keymastr
-  lineinfile:
-    path: ansible.cfg
-    line: "private_key_file = ~/.ssh/{{env_ssh_ans_name}}"
-    state: present
-    backup: yes
-  register: ssh_config_file_key_addition
-
-- name: Print results of adding ssh key to ansible.cfg file
-  tags: keymastr
-  debug:
-    var: ssh_config_file_key_addition
