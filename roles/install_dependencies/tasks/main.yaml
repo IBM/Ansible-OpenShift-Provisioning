@@ -20,7 +20,6 @@
     - ansible-galaxy collection install community.crypto
     - ansible-galaxy collection install ansible.posix
     - ansible-galaxy collection install community.libvirt
-    - sudo dnf install sshpass -y
     - sudo dnf install openssh -y
   when: ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == "Debian"
   
