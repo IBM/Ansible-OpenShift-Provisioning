@@ -1,6 +1,8 @@
 ---
 
-- name: encrypt provided files_to_encrypt from main playbook to protect sensitive data
+- name: encrypt env.yaml, skip if already encrypted
   tags: setup
-  shell: ansible-vault encrypt {{ items }}
+  command: ansible-vault encrypt "{{ item }}"
   loop: "{{ files_to_encrypt }}"
+  register: encrypt_files
+  ignore_errors: yes
