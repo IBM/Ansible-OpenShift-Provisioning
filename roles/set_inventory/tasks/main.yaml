@@ -79,3 +79,15 @@
     path: ansible.cfg
     insertafter: '\[defaults\]'
     line: private_key_file=~/.ssh/{{ env_ssh_ans_name }}
+
+- name: delete ocp_ssh_pub file if it exists already to ensure idempotence
+  tags: getocp, bastion
+  file:
+    state: absent
+    path: roles/get-ocp/files/ocp_ssh_pub
+
+- name: create ocp_ssh_pub if it needs to be
+  file:
+    path: roles/get-ocp/files/ocp_ssh_pub
+    mode: '0755'
+    state: touch
