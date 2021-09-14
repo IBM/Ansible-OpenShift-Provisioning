@@ -3,6 +3,5 @@
 .vscode
 roles/get-ocp/files/ocp_ssh_pub
 .vault_pass.txt
-env.yaml
 inventory
 ansible.cfg
