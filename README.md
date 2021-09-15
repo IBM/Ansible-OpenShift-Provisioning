@@ -20,8 +20,8 @@
     * homebrew package manager installed (how-to: https://brew.sh/)
     * Updated software for command line tools (run "softwareupdate --all --install" in your terminal)
 * Access to a logical partition (LPAR) on an IBM Z or LinuxONE mainframe, with at least:
-    * 6 Integrated Facilities for Linux (IFLs)
-    * 75 GB of RAM
+    * 6 Dedicated Integrated Facilities for Linux (IFLs)
+    * 85 GB of RAM
     * 1 TB of disk space
 * On that LPAR, bare-metal Red Hat Enterprise Linux (RHEL) 8.4 with Kernel Virtual Machine (KVM) installed with
   the following options enabled:
@@ -46,15 +46,15 @@
     * In a web browser, navigate to https://console.redhat.com/openshift/install/ibmz/user-provisioned
     * Download your local command line tools (oc and kubectl)
     * Copy the OpenShift pull secret (for use in the next step)
-* **Step 2: Set Variables**
+* **Step 3: Set Variables**
     * In a text editor of your choice, open env.yaml, found in the main directory of this repository
     * Fill out all of the required variables for your specific installation
-* **Step 3: DNS Configuration**
+* **Step 4: DNS Configuration**
     * Get DNS configuration files (forward (.db), reverse (.rev), and named.conf), or have them pre-defined by your networking team.
     * Place them in the roles/dns/files folder 
     * Please leave the named.conf the same name.
     * Rename the .db and .rev files with the same name you set for "env_metadata_name" in env.yaml (i.e. distribution.rev)
-* **Step 4: Setup Script** 
+* **Step 5: Setup Script** 
     * Navigate to the folder where you saved the Git Repository
     * Run "ansible-playbook setup.yaml --ask-become-pass"
     * When the setup playbook starts, it will prompt you for a password to use for encrypting Ansible vault files
@@ -62,14 +62,14 @@
     * If you would like to decrypt a file protected by Ansible vault, run: "ansible-vault decrypt file-name-here"
 
 ### Provisioning
-* **Step 5: Running the Main Playbook** 
+* **Step 6: Running the Main Playbook** 
     * If you are not already there, navigate to the folder where you saved the Git repository in your terminal
     * Execute the main playbook by running this shell command: "ansible-playbook main.yaml --ask-become-pass"
     * Watch Ansible as it completes the installation, correcting errors if they arise. 
     * To look at what is running in detail, from the main directory open roles/'task-you-want-to-inspect'/tasks/main.yaml
     * If the process fails in error, you should be able to run the same shell command to start the process from the top. To be more selective with what parts of the main playbook run, use tags. See main.yaml to determine what you part you would like to run and use those tags when running the main playbook. There is also a list of all the tags at the bottom of this page for reference. Example: "ansible-playbook main.yaml --ask-become-pass -- tags 'bastion,get-ocp'
     * Note: we chose to not edit the user's .bash_profile/.bashrc with an automatic ssh-add command because that would change the user's local workstation set-up in a way that was undesirable. Therefore, if you close out your terminal session in the middle of provisioning, you will need to run "ansible-playbook main.yaml --tags ssh-agent" before doing anything else.
-* **Step 6: Bastion Configuration** 
+* **Step 7: Bastion Configuration** 
     * Once the create_bastion task runs, it will pause the playbook to give you time to configure it.
     * Use a web browser to open the cockpit by going to: "https://your-KVM-host-IP-address-here:9090"
     * Click on the "Virtual Machines" tab, then click on bastion from the list, click on the black terminal screen and press Enter. Wait until you see it asking for you to make a selection.
@@ -112,7 +112,7 @@
     * Once you fill out all the required configuration settings, press "b" to begin installation.
     * Wait for the installation to complete, this may take some time. Monitor its progress, it may need you to press 'Enter' to continue. Once the installation completes, you will have to press the 'Run' button on the cockpit for it to start up and finish configuration.
     * Once you see "bastion login", come back to the terminal to continue your run by pressing "ctrl+c" and then "c". If there was a problem and you need to stop the playbook, press "ctrl+c" and then "a". If configuration and installation took longer than the pause and the playbook continued and then failed, continue the playbook by running the following command: "ansible-playbook main.yaml --ask-become-pass --tags 'bastion,create_nodes'"
-* **Step 7: Starting Up Bootstrap and Control Nodes**
+* **Step 8: Starting Up Bootstrap and Control Nodes**
     * The playbook will continue to run, preparing the bootstrap and control nodes.
     * To monitor the nodes as they come up, watch them on the cockpit at: "https://your-KVM-host-IP-address-here:9090"
     * Click on the "Virtual Machines" tab and then click on the VM you want to monitor. Click on the black 
@@ -120,7 +120,7 @@
     * Once you see "node-name login" prompt come back to the terminal where you ran Ansible and press "ctrl+c" and 
       then "c" to continue running the playbook. 
     * If you encounter an error that does not resolve with time, press "ctrl+c" and then "a" to stop the process and debug.
-* **Step 8: Bootkube Verification**
+* **Step 9: Bootkube Verification**
     * SSH into the bastion (run "ssh your-bastion-IP-address-here" in the terminal)
     * From there, change to root user (run "su root") and type in the root password that you set during configuration
     * Then SSH into the bootstrap as core ("ssh core@your-bootstrap-IP-address-here") 
@@ -130,36 +130,36 @@
     * This may take some time, 30 minutes or more. Check in occassionally by running "journalctl -u bootkube.service" again
       to update the log. Remember to hold the spacebar to go to the bottom, press "q" to quit.
     * Once all control nodes are connected, the bootkube log will read "bootkube.service complete".
-* **Step 9: Starting Up Compute Nodes**  
+* **Step 10: Starting Up Compute Nodes**  
     * Repeat Step 7 with the Compute nodes. 
     * Monitor their status at the cockpit, found at "https://your-KVM-host-IP-address:9090"
     * They are ready once their terminal screen shows a login prompt
     * Once all your compute nodes are up and running, and bootkube is complete, you are ready for cluster verification
 
 ### Verification
-* **Step 10: Export Kube Config**
+* **Step 11: Export Kube Config**
     * SSH into the bastion (run "ssh your-bastion-IP-address-here")
     * Change to root user (run "su root") and type in your password from when you configured the bastion.
     * Then run "export KUBECONFIG=/ocpinst/auth/kubeconfig"
     * Check that worked by running "oc whoami", which should return "system:admin"
-* **Step 11: Approve Certificates**
+* **Step 12: Approve Certificates**
     * From the bastion, running as root user (as above) run "oc get csr". This will bring up a list of certificates that need approval.
     * To approve all certificates at the same time, run the following command: 
       "for i in \`oc get csr --no-headers | grep -i pending |  awk '{ print $1 }\'`; do oc adm certificate approve $i; done" 
     * It may take some time for all the certificates that need approval to show up. Keep running "oc get csr" to check to make sure that 
       no new certificates have appeared since you last approved them.
     * Once all certificates read "Approved, Issued". You're ready for the next step.
-* **Step 11: Wait for Cluster To Become Operational**
+* **Step 13: Wait for Cluster To Become Operational**
     * From the bastion, as root user (as above) check node status by running: "oc get nodes". All nodes need to be "Ready" in the "Status" column.
     * From the bastion, as root user (as above) run "oc get clusteroperators". All cluster operators need to be "True" in the "Available" column.
     * It may take hours, especially the cluster operators. Run the above two bullets' commmands to check in occasionally.
     * Once all nodes are ready and cluster operators are available, you are ready to continue to the next step.
-* **Step 12: Verify OpenShift Installation** 
+* **Step 14: Verify OpenShift Installation** 
     * From the bastion as root user (as above), navigate to /ocpinst ("cd /ocpinst")
     * Run "./openshift-install --dir=/ocpinst wait-for install-complete"
     * If installation is ready, running the above command will give you some information about how to log into the OpenShift cluster's dashboard. 
     * Copy the provided URL into a web browser and use "kubeadmin" as login and the provided password for first time sign-on.
-* **Step 14: Celebrate!**
+* **Step 15: Celebrate!**
     * Your OpenShift cluster provisioning and installation is now complete.
 
 * Optional: Leave the bootstrap running as is, shut it down and destroy it, or convert it into a compute node.
