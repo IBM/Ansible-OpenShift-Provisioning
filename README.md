@@ -82,7 +82,7 @@
         * Press 2 for Server, Enter, then "c" to continue
         * From this list, press the number and then hit Enter for each:
           * 1 - Hardware Monitoring utilities
-          * 8 - Networking File System Client2
+          * 8 - Networking File System Client
           * 9 - Network Servers
           * 11 - Remote Management for Linux
           * 13 - Basic Web Server
