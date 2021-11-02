@@ -1,15 +1,15 @@
 # Ansible-OpenShift-Provisioning
 
 ## Table of Contents
-[Scope](#Scope)
-[Supported Operating Systems](#Supported-Operating-Systems)
-[Pre-Requisites](#Pre-Requisites)
-[Instructions](#Installation-Instructions)
-[Setup](#Setup)
-[Provisioning](#Provisioning)
-[Verification] (#Verification)
-[Teardown](#Teardown)
-[Tags](#Tags)
+* [Scope](#Scope)
+* [Supported Operating Systems](#Supported-Operating-Systems)
+* [Pre-Requisites](#Pre-Requisites)
+* [Instructions](#Installation-Instructions)
+* [Setup](#Setup)
+* [Provisioning](#Provisioning)
+* [Verification] (#Verification)
+* [Teardown](#Teardown)
+* [Tags](#Tags)
 
 ## Scope
 * The goal of this playbook is to setup and deploy a User Provisioned Infrastructure (UPI) OpenShift cluster on an IBM Z or LinuxONE mainframe utilizing KVM as the virtualization method.
