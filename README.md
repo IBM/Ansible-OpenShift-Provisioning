@@ -185,10 +185,10 @@ for local workstation running Ansible
 * Once you run the partial teardown, to start the main.yaml playbook back from that point, run main.yaml with the tags "bastion,create_nodes".
 
 ## Tags
-* If the process fails in error, you should be able to run the same shell command to start the process from the top. To be more selective with what parts of playbooks run, use tags. Open a playbook and look at the "tags: " section under hosts for each play to determine what you part you would like to run and then use those tags when running the main playbook. 
-Examples: 
-ansible-playbook main.yaml --ask-become-pass --tags getocp (for one tag), or
-ansible-playbook main.yaml --ask-become-pass --tags 'bastion,get-ocp' (for multiple tags)
+If the process fails in error, you should be able to run the same shell command to start the process from the top. To be more selective with what parts of playbooks run, use tags. Open a playbook and look at the "tags: " section under hosts for each play to determine what you part you would like to run and then use those tags when running the main playbook. 
+* Examples: 
+* ansible-playbook main.yaml --ask-become-pass --tags getocp (for one tag), or
+* ansible-playbook main.yaml --ask-become-pass --tags 'bastion,get-ocp' (for multiple tags)
 
 In alphabetical order:
 * bastion = configuration of bastion for OCP
