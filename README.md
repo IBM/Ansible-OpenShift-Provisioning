@@ -7,7 +7,7 @@
 * [Instructions](#Installation-Instructions)
 * [Setup](#Setup)
 * [Provisioning](#Provisioning)
-* [Verification] (#Verification)
+* [Verification](#Verification)
 * [Teardown](#Teardown)
 * [Tags](#Tags)
 
@@ -20,7 +20,7 @@ for local workstation running Ansible
 * Linux (RedHat and Debian)
 * MacOS X
 
-## Pre-requisites:
+## Pre-Requisites:
 * Red Hat Enterprise Linux (RHEL) license or free trial
 * Red Hat OpenShift Container Platform license or free trial
 * Python3 intalled on your local computer (how-to: https://realpython.com/installing-python/)
