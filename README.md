@@ -186,7 +186,7 @@ for local workstation running Ansible
 
 ## Tags
 If the process fails in error, you should be able to run the same shell command to start the process from the top. To be more selective with what parts of playbooks run, use tags. Open a playbook and look at the "tags: " section under hosts for each play to determine what you part you would like to run and then use those tags when running the main playbook. 
-* Examples: 
+Examples: 
 * ansible-playbook main.yaml --ask-become-pass --tags getocp (for one tag), or
 * ansible-playbook main.yaml --ask-become-pass --tags 'bastion,get-ocp' (for multiple tags)
 
