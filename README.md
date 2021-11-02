@@ -1,21 +1,30 @@
 # Ansible-OpenShift-Provisioning
 
-## Scope
+## Table of Contents
+[Scope](#Scope)
+[Supported Operating Systems](#Supported-Operating-Systems)
+[Pre-Requisites](#Pre-Requisites)
+[Instructions](#Installation-Instructions)
+[Setup](#Setup)
+[Provisioning](#Provisioning)
+[Verification] (#Verification)
+[Teardown](#Teardown)
+[Tags](#Tags)
 
-* The goal of this playbook is to setup and deploy a User Provisioned Infrastructure (UPI) OpenShift cluster on an
-  IBM Z or LinuxONE mainframe utilizing KVM as the virtualization method.
+## Scope
+* The goal of this playbook is to setup and deploy a User Provisioned Infrastructure (UPI) OpenShift cluster on an IBM Z or LinuxONE mainframe utilizing KVM as the virtualization method.
 * This README file gives extremely detailed step-by-step instructions for you to use as a reference. It assumes near zero experience with Ansible.
 
-## Supported Operating Systems (for local workstation): 
-
+## Supported Operating Systems 
+for local workstation running Ansible
 * Linux (RedHat and Debian)
 * MacOS X
 
 ## Pre-requisites:
-
-* Red Hat Enterprise Linux (RHEL) license
+* Red Hat Enterprise Linux (RHEL) license or free trial
+* Red Hat OpenShift Container Platform license or free trial
 * Python3 intalled on your local computer (how-to: https://realpython.com/installing-python/)
-* Ansible installed on your local computer  (how-to: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+* Ansible installed on your local computer (how-to: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
 * If you are using Mac OS X for your localhost workstation to run Ansible, you also need to have: 
     * homebrew package manager installed (how-to: https://brew.sh/)
     * Updated software for command line tools (run "softwareupdate --all --install" in your terminal)
@@ -47,18 +56,18 @@
     * Download your local command line tools (oc and kubectl)
     * Copy the OpenShift pull secret (for use in the next step)
 * **Step 3: Set Variables**
-    * In a text editor of your choice, open env.yaml, found in the main directory of this repository
+    * In a text editor of your choice, open [env.yaml](env.yaml)
     * Fill out all of the required variables for your specific installation
 * **Step 4: DNS Configuration**
     * Get DNS configuration files (forward (.db), reverse (.rev), and named.conf), or have them pre-defined by your networking team.
-    * Place them in the roles/dns/files folder 
+    * Place them in the [roles/dns/files folder](roles/dns/files) 
     * Please leave the named.conf the same name.
-    * Rename the .db and .rev files with the same name you set for "env_metadata_name" in env.yaml (i.e. distribution.rev)
+    * Rename the .db and .rev files with the same name you set for "env_metadata_name" in [env.yaml](env.yaml) (i.e. distribution.rev)
 * **Step 5: Setup Script** 
     * Navigate to the folder where you saved the Git Repository
     * Run "ansible-playbook setup.yaml --ask-become-pass"
     * When the setup playbook starts, it will prompt you for a password to use for encrypting Ansible vault files
-    * No files are encrypted until you run the main playbook in step 5 below
+    * No files are encrypted until you run the [main playbook](main.yaml) in step 5 below
     * If you would like to decrypt a file protected by Ansible vault, run: "ansible-vault decrypt file-name-here"
 
 ### Provisioning
@@ -67,10 +76,10 @@
     * Execute the main playbook by running this shell command: "ansible-playbook main.yaml --ask-become-pass"
     * Watch Ansible as it completes the installation, correcting errors if they arise. 
     * To look at what is running in detail, from the main directory open roles/'task-you-want-to-inspect'/tasks/main.yaml
-    * If the process fails in error, you should be able to run the same shell command to start the process from the top. To be more selective with what parts of the main playbook run, use tags. See main.yaml to determine what you part you would like to run and use those tags when running the main playbook. There is also a list of all the tags at the bottom of this page for reference. Example: "ansible-playbook main.yaml --ask-become-pass -- tags 'bastion,get-ocp'
+    * If the process fails in error, you should be able to run the same shell command to start the process from the top. To be more selective with what parts of the main playbook run, use [tags](#Tags). See the [main playbook](main.yaml) to determine what part you would like to run and use those tags when running the [main playbook](main.yaml). Example: "ansible-playbook main.yaml --ask-become-pass -- tags 'bastion,get-ocp'
     * Note: we chose to not edit the user's .bash_profile/.bashrc with an automatic ssh-add command because that would change the user's local workstation set-up in a way that was undesirable. Therefore, if you close out your terminal session in the middle of provisioning, you will need to run "ansible-playbook main.yaml --tags ssh-agent" before doing anything else.
 * **Step 7: Bastion Configuration** 
-    * Once the create_bastion task runs, it will pause the playbook to give you time to configure it.
+    * Once the [create_bastion](roles/create_bastion/tasks/main.yaml) task runs, it will pause the playbook to give you time to configure it.
     * Use a web browser to open the cockpit by going to: "https://your-KVM-host-IP-address-here:9090"
     * Click on the "Virtual Machines" tab, then click on bastion from the list, click on the black terminal screen and press Enter. Wait until you see it asking for you to make a selection.
     * To finish the bastion's installation, you will need to configure the VM by doing the following:
@@ -111,18 +120,19 @@
       * From the main menu, double check that all check boxes have an X
     * Once you fill out all the required configuration settings, press "b" to begin installation.
     * Wait for the installation to complete, this may take some time. Monitor its progress, it may need you to press 'Enter' to continue. Once the installation completes, you will have to press the 'Run' button on the cockpit for it to start up and finish configuration.
-    * Once you see "bastion login", come back to the terminal to continue your run by pressing "ctrl+c" and then "c". If there was a problem and you need to stop the playbook, press "ctrl+c" and then "a". If configuration and installation took longer than the pause and the playbook continued and then failed, continue the playbook by running the following command: "ansible-playbook main.yaml --ask-become-pass --tags 'bastion,create_nodes'"
+    * Once you see "bastion login", come back to the terminal to continue your run by pressing "ctrl+c" and then "c". 
+    * If there was a problem and you need to stop the playbook, press "ctrl+c" and then "a" to Abort. If configuration and installation took longer than the pause and the playbook continued and then failed, continue the playbook by running the following command: "ansible-playbook main.yaml --ask-become-pass --tags 'bastion,create_nodes'"
 * **Step 8: Starting Up Bootstrap and Control Nodes**
     * The playbook will continue to run, preparing the bootstrap and control nodes.
     * To monitor the nodes as they come up, watch them on the cockpit at: "https://your-KVM-host-IP-address-here:9090"
     * Click on the "Virtual Machines" tab and then click on the VM you want to monitor. Click on the black 
       terminal screen and press Enter.
-    * Once you see "node-name login" prompt come back to the terminal where you ran Ansible and press "ctrl+c" and 
+    * Once you see "'node-name' login" prompt come back to the terminal where you ran Ansible and press "ctrl+c" and 
       then "c" to continue running the playbook. 
     * If you encounter an error that does not resolve with time, press "ctrl+c" and then "a" to stop the process and debug.
 * **Step 9: Bootkube Verification**
     * SSH into the bastion (run "ssh your-bastion-IP-address-here" in the terminal)
-    * From there, change to root user (run "su root") and type in the root password that you set during configuration
+    * From there, change to root user (run "su root") and type in the root password that you set during bastion configuration
     * Then SSH into the bootstrap as core ("ssh core@your-bootstrap-IP-address-here") 
     * Run "journalctl -u bootkube.service" to watch the bootstrap connect to the control nodes (hold spacebar to 
       get to the bottom of the log). Press "q" to exit the log. 
@@ -165,7 +175,6 @@
 * Optional: Leave the bootstrap running as is, shut it down and destroy it, or convert it into a compute node.
 
 ## Teardown: 
-
 * If you would like to teardown your VMs, first determine whether you would like to do a full or partial teardown.
 * Full: to teardown all the VMs running on your KVM host, run: "ansible-playbook teardown.yaml --ask-become-pass --tags full"
 * Partial: To teardown all the VMS except for the bastion, run: "ansible-playbook teardown.yaml --ask-become-pass --tags partial"
@@ -175,8 +184,13 @@
   "run ansible-playbook main.yaml --ask-become-pass --tags "bastionvm,bastion,create_nodes"
 * Once you run the partial teardown, to start the main.yaml playbook back from that point, run main.yaml with the tags "bastion,create_nodes".
 
-## Tags (in alphabetical order):
+## Tags
+* If the process fails in error, you should be able to run the same shell command to start the process from the top. To be more selective with what parts of playbooks run, use tags. Open a playbook and look at the "tags: " section under hosts for each play to determine what you part you would like to run and then use those tags when running the main playbook. 
+Examples: 
+ansible-playbook main.yaml --ask-become-pass --tags getocp (for one tag), or
+ansible-playbook main.yaml --ask-become-pass --tags 'bastion,get-ocp' (for multiple tags)
 
+In alphabetical order:
 * bastion = configuration of bastion for OCP
 * bastionvm = creation of Bastion KVM guest
 * boostrap = creation of Boostrap KVM guest
