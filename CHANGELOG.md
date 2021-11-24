@@ -6,15 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ## [0.0.1] - 2021-08-24
 
-### Added
-- Added a changelog
-
 [unreleased]: https://github.com/IBM/Ansible-OpenShift-Provisioning/compare/v0.0.1...HEAD
 [0.0.1]: https://github.com/IBM/Ansible-OpenShift-Provisioning/compare/v0.0.1
 
 ## [Automated Bastion Update]
 
-## [1.0.0] - 2021-11-24
+## 1.0.0 - 2021-11-24
 
 ### Summary
 - Fully automated bastion installation and configuration using cloud-init
@@ -37,11 +34,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 - Removed encryption of env.yaml as it was unnecessary and increased complexity
 
-
-[Automated Bastion Update]: https://github.com/IBM/Ansible-OpenShift-Provisioning/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/IBM/Ansible-OpenShift-Provisioning/compare/v1.0.0
-
-## [Roadmap]
+## Roadmap
 
 - Make ssh-copy-id role idempotent.
 - Add role to check if DNS is working properly before continuing
