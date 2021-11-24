@@ -9,40 +9,40 @@
     - env.yaml
   vars:
     - ssh_target_ip: "{{ env_ip_kvm_host }}"
-    - files_to_encrypt: [ 'env.yaml' ] # add to this list as needed
   roles:
-    - encrypt_files
     - ssh_key_gen
     - ssh_copy_id
     - ssh_agent
-
+    
 - hosts: kvm_host
   tags: kvm_host,kvm_prep
   become: true
   vars_files:
     - env.yaml
   vars: # feel free to add more packages as needed
-    - packages: [ 'libvirt-devel', 'libvirt-daemon-kvm', 'qemu-kvm', 'virt-manager', 'libvirt-daemon-config-network', 'libvirt-client', 'qemu-img', 'libvirt' ] 
+    - packages: ['@server-product-environment','@hardware-monitoring','@network-file-system-client','@remote-system-management',
+                '@headless-management','@system-tools','libvirt-devel','libvirt-daemon-kvm','qemu-kvm','virt-manager','genisoimage',
+                'libvirt-daemon-config-network','libvirt-client','qemu-img','virt-install','virt-viewer','libvirt-daemon-kvm','libvirt'] 
   roles:
     - check_ssh
+    - attach_subscription
     - install_packages
     - set_selinux_permissive
     - enable_packages
     - macvtap
-    - mount_rhel
     - create_bastion
 
 - hosts: localhost
-  tags: localhost,bastion
+  tags: bastion
   connection: local
   become: false
   gather_facts: no
-  vars: 
-    - ssh_target_ip: "{{ env_ip_bastion }}"
   vars_files:
     - env.yaml
+  vars:
+    - ssh_target_ip: "{{ env_ip_bastion }}"
   roles:
-    - ssh_copy_id # to connect to bastion
+    - ssh_copy_id
 
 - hosts: bastion
   tags: bastion
@@ -50,10 +50,11 @@
   vars_files:
     - env.yaml
   vars: # feel free to add more packages as needed
-    - packages: [ 'haproxy', 'httpd', 'mod_ssl', 'bind', 'bind-utils', 'openssh' ]
+    - packages: ['haproxy','httpd','bind','bind-utils','expect','firewalld','mod_ssl']
   roles:
     - check_ssh
-    - install_packages
+    - attach_subscription
+    - install_packages #RHEL subscription already attached
     - ssh-ocp-key-gen # SSH key for bastion to connect to nodes
     - set_selinux_permissive
     - set_firewall
