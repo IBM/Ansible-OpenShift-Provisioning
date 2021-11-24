@@ -1,37 +1,21 @@
 ---
 
-- name: get rhcos qcow2 file
+- name: Load in variables from env.yaml
   tags: kvm_host
-  get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-qemu.s390x.qcow2.gz
-    dest: /var/lib/libvirt/images/
-    force: yes
-    mode: '0755'
-
-- name: Unzip rhcos qcow2 files
-  tags: kvm_host
-  command: gunzip -f /var/lib/libvirt/images/rhcos-qemu.s390x.qcow2.gz 
-
-- name: get rhcos initramfs image
-  tags: kvm_host
-  get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-initramfs.s390x.img
-    dest: /var/lib/libvirt/images/
-    mode: '0755'
-    force: yes
+  include_vars: env.yaml
 
 - name: get rhcos kernel
   tags: kvm_host
   get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-kernel-s390x
-    dest: /var/lib/libvirt/images/
+    url: "{{ env_rhcos_kernel }}"
+    dest: /var/lib/libvirt/images/rhcos-live-kernel-s390x
     mode: '0755'
     force: yes
 
-- name: get rhcos rootfs image
+- name: get rhcos initramfs image
   tags: kvm_host
   get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-rootfs.s390x.img
-    dest: /var/lib/libvirt/images/
+    url: "{{ env_rhcos_initramfs }}"
+    dest: /var/lib/libvirt/images/rhcos-live-initramfs.s390x.img
     mode: '0755'
     force: yes
