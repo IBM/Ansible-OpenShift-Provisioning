@@ -1,5 +1,9 @@
 ---
 
+- name: Load in variables from env.yaml
+  tags: dns,setup
+  include_vars: env.yaml
+
 - name: enable named
   tags: dns,bastion
   ansible.builtin.systemd:
@@ -12,31 +16,42 @@
       name: named
       state: started
 
-- name: Copy named.conf file to bastion
+- name: split IP addresses for use in templates
   tags: dns,bastion
-  ansible.builtin.copy:
-    src: named.conf
-    dest: /etc/
+  set_fact: 
+    bastion_split_ip: "{{ env_ip_bastion.split('.') }}"
+    bootstrap_split_ip: "{{ env_ip_bootstrap.split('.') }}"
+    cont_0_split_ip: "{{ env_ip_control_0.split('.') }}"
+    cont_1_split_ip: "{{ env_ip_control_1.split('.') }}"
+    cont_2_split_ip: "{{ env_ip_control_2.split('.') }}"
+    comp_0_split_ip: "{{ env_ip_compute_0.split('.') }}"
+    comp_1_split_ip: "{{ env_ip_compute_1.split('.') }}"
+
+- name: Template named.conf file to bastion
+  tags: dns,bastion
+  template:
+    src: dns-named.conf.j2
+    dest: /etc/named.conf
     owner: root
     group: root
     mode: '0755'
     backup: yes
 
-- name: Copy DNS .db file to bastion
+- name: Template DNS .db file to bastion
   tags: dns,bastion
-  ansible.builtin.copy:
-    src: "{{ env_metadata_name }}.db"
-    dest: /var/named
+  template:
+    src: dns.db.j2
+    dest: /var/named/{{env_metadata_name}}.db
     owner: named
     group: named
     mode: '0755'
     backup: yes
 
-- name: Copy DNS .rev file to bastion
+- name: Template DNS .rev file to bastion
   tags: dns,bastion
-  ansible.builtin.copy:
-    src: "{{ env_metadata_name }}.rev"
-    dest: /var/named
+  template:
+    src: dns.rev.j2
+    dest: /var/named/{{env_metadata_name}}.rev
     owner: named
     group: named
     mode: '0755'
