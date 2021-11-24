@@ -11,6 +11,7 @@
     - ansible-galaxy collection install ansible.posix
     - ansible-galaxy collection install community.libvirt
     - brew install openssh
+    - brew install expect
   when: ansible_facts['os_family'] == "Darwin"
 
 - name: install Ansible dependencies and packages
@@ -21,5 +22,6 @@
     - ansible-galaxy collection install ansible.posix
     - ansible-galaxy collection install community.libvirt
     - sudo dnf install openssh -y
+    - sudo dnf install expect -y
   when: ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == "Debian"
   
