@@ -1,0 +1,10 @@
+---
+
+- name: Attach RHEL subscription
+  tags: subscription
+  community.general.redhat_subscription:
+    state: present
+    username: "{{env_rh_username}}"
+    password: "{{env_rh_passwd}}"
+    auto_attach: yes
+    force_register: yes
