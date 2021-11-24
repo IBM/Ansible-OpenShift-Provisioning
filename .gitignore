@@ -1,7 +1,6 @@
 .DS_Store
 .iso
 .vscode
-roles/get-ocp/files/ocp_ssh_pub
-.vault_pass.txt
 inventory
+env.yaml
 ansible.cfg
