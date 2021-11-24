@@ -10,30 +10,20 @@
     path: /var/www/html/bin
     state: directory
     mode: '0755'
-
-- name: get ocp kernel
-  tags: getocp,bastion
-  get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-kernel-s390x
-    dest: /var/www/html/bin
-    mode: '0755'
-    force: yes
-
-- name: get ocp initramfs
-  tags: getocp,bastion
-  get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-initramfs.s390x.img
-    dest: /var/www/html/bin
-    mode: '0755'
-    force: yes
  
-- name: get ocp rootfs
+- name: get rhcos rootfs
   tags: getocp,bastion
   get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/rhcos-live-rootfs.s390x.img
-    dest: /var/www/html/bin
+    url: "{{ env_rhcos_rootfs }}"
+    dest: /var/www/html/bin/rhcos-live-rootfs.s390x.img
     mode: '0755'
     force: yes
+
+- name: Since ignition files deprecate after 24 hours, delete OCP download landing directory for idempotency.
+  tags: getocp,bastion
+  file: 
+    path: /ocpinst
+    state: absent
 
 - name: create OCP download landing directory
   tags: getocp,bastion
@@ -44,14 +34,14 @@
 - name: Unzip OCP Client
   tags: getocp,bastion
   ansible.builtin.unarchive:
-    src: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-client-linux.tar.gz
+    src: "{{ env_ocp_client }}"
     dest: /ocpinst/
     remote_src: yes
 
 - name: Unzip OCP Installer
   tags: getocp,bastion
   ansible.builtin.unarchive:
-    src: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-install-linux.tar.gz
+    src: "{{ env_ocp_installer }}"
     dest: /ocpinst/
     remote_src: yes
 
