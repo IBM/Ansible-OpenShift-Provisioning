@@ -1,0 +1,38 @@
+$TTL 86400
+@ IN SOA {{ env_bastion_name }}.{{ env_baseDomain }}. admin.{{ env_baseDomain }}.(
+                                                2020021821 ;Serial
+                                                3600 ;Refresh
+                                                1800 ;Retry
+                                                604800 ;Expire
+                                                86400 ;Minimum TTL
+)
+
+;Name Server / Bastion Information
+@ IN NS {{ env_bastion_name }}.{{ env_baseDomain }}.
+
+;IP Address for Name Server
+{{ env_bastion_name }} IN A {{ env_ip_bastion }}
+
+;entry for bootstrap host.
+{{ env_bootstrap_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. IN A {{ env_ip_bootstrap }}
+
+;entries for the master nodes
+{{ env_control_0_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. IN A {{ env_ip_control_0 }}
+{{ env_control_1_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. IN A {{ env_ip_control_1 }}
+{{ env_control_2_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. IN A {{ env_ip_control_2 }}
+
+;entries for the worker nodes
+{{ env_compute_0_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. IN A {{ env_ip_compute_0 }}
+{{ env_compute_1_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. IN A {{ env_ip_compute_1 }}
+
+;entry of your load balancer
+haproxy IN A {{ env_ip_bastion }}
+
+;The api identifies the IP of your load balancer.
+api.{{ env_metadata_name }}     IN    CNAME haproxy.{{ env_baseDomain }}.
+api-int.{{ env_metadata_name }} IN    CNAME haproxy.{{ env_baseDomain }}.
+
+;The wildcard also identifies the load balancer.
+*.apps.{{ env_metadata_name }}  IN    CNAME haproxy.{{ env_baseDomain }}.
+
+;EOF
