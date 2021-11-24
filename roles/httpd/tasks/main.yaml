@@ -1,18 +1,19 @@
 ---
 
 - name: Change permissive domain for httpd
-  tags: selinux,httpconf,bastion
+  tags: selinux,httpd,bastion
   selinux_permissive:
     name: httpd_t
     permissive: true
 
 - name: enable httpd
-  tags: httpconf,bastion
+  tags: httpd,bastion
   systemd:
     name: httpd
     enabled: yes
 
 - name: restart httpd
+  tags: httpd,bastion
   service:
     name: httpd
     state: restarted
