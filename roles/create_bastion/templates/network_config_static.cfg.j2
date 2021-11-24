@@ -1,0 +1,10 @@
+version: 2
+ethernets:
+  eth0:
+    dhcp4: false
+    # default libvirt network
+    addresses: [ {{ env_ip_bastion }} ]
+    gateway4: {{ env_default_gateway }}
+    nameservers:
+      search: [ {{ env_baseDomain }} ]
+      addresses: [ {{ env_dns_nameserver }},{{ env_dns_forwarder }} ]

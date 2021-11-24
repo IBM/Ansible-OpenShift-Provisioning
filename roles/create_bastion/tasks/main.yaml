@@ -1,51 +1,128 @@
 ---
 
-#Uncomment once we have a RHEL license
-#- name: download RHEL ISO image to KVM
-#  get_url:
-#      url: {{ RHEL ISO URL }}
-#      dest: /var/lib/libvirt/images/rhel83.iso
-#      mode: '0775'
-
-#- name: Unzip RHEL iso
-#  ansible.builtin.unarchive:
-#    src: https://mirror.redhat.com/rhel/latest/latest/RHEL-8.3.0-20201009.2-s390x-dvd1.iso
-#    dest: /var/lib/libvirt/images/rhel83.iso
-#    remote_src: yes
-
-  #- name: create install mount directory
-  #  command: mkdir /rhcos-install
-
-  #- name: mount rhcos install directory
-  #  command: mount -o loop /var/lib/libvirt/images/rhel83.iso /rhcos-install/
-
-#  - name: virtualize bastion server
-#    command: qemu-img create -f qcow2 -b /var/lib/libvirt/images/rhcos-qemu.s390x.qcow2 /var/lib/libvirt/images/bastion.qcow2 30G
-
 - name: Load in variables from env.yaml
   tags: kvm_host, bastionvm
   include_vars: env.yaml
 
-- name: check if bastion already exists
+- name: enable cockpit console
+  tags: kvm_host, bastionvm
+  command: systemctl enable --now cockpit.socket
+
+- name: remove working directory for idempotency
+  tags: kvm_host, bastionvm
+  file:
+    path: /var/lib/libvirt/images/tmp
+    state: absent
+
+- name: create working directory
+  tags: kvm_host, bastionvm
+  file:
+    path: /var/lib/libvirt/images/tmp
+    state: directory
+    mode: '0755'
+
+- name: check if RHEL qcow2 is already downloaded
+  tags: kvm_host, bastionvm
+  stat:
+    path: /var/lib/libvirt/images/bastion.qcow2
+  register: rhel_qcow2
+
+- name: download RHEL qcow2 file
+  tags: kvm_host, bastionvm
+  get_url:
+    url: "{{ env_rhel_qcow2 }}"
+    dest: /var/lib/libvirt/images/bastion_base.qcow2
+    mode: '0775'
+  when: rhel_qcow2.stat.exists == false
+  register: rhel_qcow2_download
+
+- name: remove snapshot for idempotency
+  tags: kvm_host, bastionvm
+  file:
+    path: /var/lib/libvirt/images/{{env_bastion_name}}-snapshot-cloudimg.qcow2
+    state: absent
+
+- name: create base image
+  tags: kvm_host, bastionvm
+  command: "qemu-img create -b /var/lib/libvirt/images/bastion_base.qcow2 -f qcow2 /var/lib/libvirt/images/{{env_bastion_name}}-snapshot-cloudimg.qcow2 {{env_bastion_disk_size}}G"
+  register: qemu_create
+
+- name: print result of creation of base image
+  tags: kvm_host, bastionvm
+  debug:
+    var: qemu_create
+
+- name: get info about qemu image creation
+  tags: kvm_host, bastionvm
+  command: "qemu-img info /var/lib/libvirt/images/{{env_bastion_name}}-snapshot-cloudimg.qcow2"
+  register: qemu_info
+
+- name: print output from qemu image creation information
+  tags: kvm_host, bastionvm
+  debug:
+    var: qemu_info
+
+- name: create instance-id
+  tags: kvm_host, bastionvm
+  shell: "echo \"instance-id: $(uuidgen || echo i-abcdefg)\" > /var/lib/libvirt/images/tmp/meta-data"
+  register: uuidgen
+
+- name: print output from uuidgen command
+  tags: kvm_host, bastionvm
+  debug:
+    var: uuidgen
+
+- name: Use cloud_init.cfg.j2 template to make user-data file
+  tags: kvm_host, bastionvm
+  template:
+    src: cloud_init.cfg.j2
+    dest: /var/lib/libvirt/images/tmp/user-data
+
+- name: Use network_config_static.cfg.j2 template to make network-config file
+  tags: kvm_host, bastionvm
+  template:
+    src: network_config_static.cfg.j2
+    dest: /var/lib/libvirt/images/tmp/network-config
+
+- name: generate iso file
+  tags: kvm_host, bastionvm
+  command: genisoimage -output /var/lib/libvirt/images/{{env_bastion_name}}-seed.img -volid cidata -joliet -rock /var/lib/libvirt/images/tmp/meta-data /var/lib/libvirt/images/tmp/network-config /var/lib/libvirt/images/tmp/user-data
+  register: gen_iso
+
+- name: print output from generating iso
+  tags: kvm_host, bastionvm
+  debug:
+    var: gen_iso
+
+- name: check if bastion already exists. Expect an ignored error if it doesn't exist.
   tags: kvm_host, bastionvm
   community.libvirt.virt:
-    name: bastion
+    name: "{{ env_bastion_name }}"
     command: status
   register: bastion_check
   ignore_errors: true
 
-- name: print status of bastion
+- name: Boot bastion
   tags: kvm_host, bastionvm
-  debug: 
-    var: bastion_check
-
-- name: start bastion install
-  tags: kvm_host, bastionvm
-  command: virt-install --connect qemu:///system --name bastion --memory 8192 --vcpus 4 --disk size=30 --cdrom /var/lib/libvirt/images/rhel83.iso --accelerate --import --network network=macvtap-net --extra-args "ip={{env_ip_bastion}}::{{env_default_gateway}}:{{env_netmask}}:bastion::none nameserver={{env_dns_nameserver}} inst.repo=http://{{env_ftp}}/linux/s390x/boot/rel/8.3/ ipv6.disable=1" --location /rhcos-install --qemu-commandline="-drive if=none,id=ignition,format=raw,file=/var/lib/libvirt/images/rhel83.iso,readonly=on -device virtio-blk,serial=ignition,drive=ignition" --noautoconsole
+  command: virt-install 
+    --name {{env_bastion_name}} \
+    --virt-type kvm --memory {{env_bastion_ram}} --vcpus {{env_bastion_vcpu}} \
+    --boot hd \
+    --disk path=/var/lib/libvirt/images/{{env_bastion_name}}-seed.img,device=cdrom \
+    --disk path=/var/lib/libvirt/images/{{env_bastion_name}}-snapshot-cloudimg.qcow2,device=disk \
+    --graphics none \
+    --os-type Linux --os-variant rhel{{env_bastion_os_variant}} \
+    --network network=macvtap-net \
+    --noautoconsole \
+    --noreboot
   when: bastion_check.failed == true
 
-- name: README - Pausing for 60 minutes for you to complete the bastion installation of rhel OS with your specific installation's requirements. Please go to your kvm host at https://your-kvm-host-ip-address-here:9090 to complete installation. Once you see the login prompt on the bastion's terminal, come back here and press "ctrl+c" and then "c" on your localhost terminal where you are seeing this message.
+- name: Start bastion VM
+  tags: kvm_host, bastionvm
+  command: virsh start {{env_bastion_name}}
+
+- name: wait 3 minutes for automated bastion installation and configuration to complete. To monitor, use a web browser to go to https://your-kvm-host-ip-address-here:9090, sign in as root and use the password you set for env_vm_root_passwd in env.yaml, then go to the Virtual Machines tab, click on bastion's hostname.
   tags: kvm_host, bastionvm
   pause:
-    minutes: 60
+    minutes: 3
   when: bastion_check.failed == true
