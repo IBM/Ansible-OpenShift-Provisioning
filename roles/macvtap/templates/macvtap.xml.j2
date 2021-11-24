@@ -1,6 +1,6 @@
 <network>
     <name>macvtap-net</name>
-    <forward dev='enc1' mode='bridge'>
-        <interface dev='enc1'/>
+    <forward dev='{{ env_net_int_name }}' mode='bridge'>
+        <interface dev='{{ env_net_int_name }}'/>
     </forward>
 </network>
