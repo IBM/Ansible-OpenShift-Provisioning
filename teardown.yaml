@@ -1,17 +1,19 @@
 ---
 
-
-
 # Use the "full" tag when running this playbook to reset your installation back to the point where no VMs were running on the KVM host. 
 # If you have more nodes than what is present in the "vms" list below, feel free to add more to the list. 
 # After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'bastionvm,bastion,create_nodes'"
 
 - hosts: kvm_host
-  tags: full
+  tags: full_teardown
   become: true
   gather_facts: no
-  vars:
-    - vms: ['bastion', 'bootstrap', 'control-0', 'control-1', 'control-2', 'compute-0', 'compute-1']
+  vars_files:
+    - env.yaml
+  pre_tasks:
+    - name: Create list of VMs to teardown.
+      set_fact:
+        vms: ['{{env_bastion_name}}', '{{env_bootstrap_name}}', '{{env_control_0_name}}', '{{env_control_1_name}}', '{{env_control_2_name}}', '{{env_compute_0_name}}', '{{env_compute_1_name}}']
   roles:
     - teardown_vms
 
@@ -20,17 +22,38 @@
 # After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'bastion,create_nodes'"
 
 - hosts: bastion
-  tags: partial
+  tags: partial_teardown
   become: true
   gather_facts: no
+  vars_files:
+    - env.yaml
   roles:
     - reset_files
 
 - hosts: kvm_host
-  tags: partial
+  tags: partial_teardown
   become: true
   gather_facts: no
-  vars:
-    - vms: ['bootstrap', 'control-0', 'control-1', 'control-2', 'compute-0', 'compute-1']
+  vars_files:
+    - env.yaml
+  pre_tasks:
+    - name: Create list of VMs to teardown.
+      set_fact:
+        vms: ['{{env_bootstrap_name}}','{{env_control_0_name}}','{{env_control_1_name}}','{{env_control_2_name}}','{{env_compute_0_name}}','{{env_compute_1_name}}']
+  roles:
+    - teardown_vms
+
+# Use the "boot_teardown" tag when running this playbook to reset your installation back to the point where just the bastion node was running on the KVM host. 
+
+- hosts: kvm_host
+  tags: boot_teardown
+  become: true
+  gather_facts: no
+  vars_files:
+    - env.yaml
+  pre_tasks:
+    - name: Create list of VMs to teardown.
+      set_fact:
+        vms: ['{{env_bootstrap_name}}']
   roles:
     - teardown_vms
