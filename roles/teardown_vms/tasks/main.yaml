@@ -1,36 +1,15 @@
 ---
 
-- name: print the list of VMs given from teardown.yaml
-  debug:
-    var: vms
-
-- name: print the number of VMs given from teardown.yaml
-  debug:
-    var: "{{ vms | length }}"
-
-- name: register only running VMs
-  community.libvirt.virt:
-    command: list_vms
-    state: running
-  register: running_vms
-
-- name: print only running vms
-  debug:
-    var: running_vms.list_vms
-
-- name: shutdown running VMs
+- name: Destroy running VMs. Expect errors if some VMs are already destroyed.
   community.libvirt.virt:
     name: "{{ item }}"
-    command: shutdown
-  loop: "{{ running_vms.list_vms }}"
-  when: 
+    command: destroy
+  loop: "{{ vms }}"
+  ignore_errors: yes
 
-- name: wait up to 5 minute for VMs to shutdown gracefully
-  pause:
-    minutes: 5
-
-- name: undefine VMs given from teardown.yaml
+- name: Undefine remaining existing VMs. Expect errors if some VMs are already undefined.
   community.libvirt.virt:
     name: "{{ item }}"
     command: undefine
   loop: "{{ vms }}"
+  ignore_errors: yes
