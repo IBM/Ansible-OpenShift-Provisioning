@@ -33,10 +33,22 @@
     - "{{env_ssh_ans_name}}"
     - "{{env_ssh_ans_name}}.pub"
 
+- name: create a vars file for key path
+  tags: keymastr
+  file:
+    state: touch
+    path: roles/ssh_copy_id/vars/path_to_key_pair.yaml
+
+- name: Save key path for use in ssh-copy-id role
+  tags: keymastr
+  lineinfile:
+    line: "path_to_key_pair: {{ssh_key_file_exists_check.results[1].invocation.module_args.path}}"
+    path: roles/ssh_copy_id/vars/path_to_key_pair.yaml
+
 - name: Print results of ssh key pair files check
   tags: keymastr
   debug:
-    var: ssh_key_file_exists_check.results[1].stat.exists
+    var: ssh_key_file_exists_check.results[0].stat.exists
 
 - name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key
   tags: keymastr
