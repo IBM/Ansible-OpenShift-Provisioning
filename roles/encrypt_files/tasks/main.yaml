@@ -1,8 +1,0 @@
----
-
-- name: encrypt env.yaml, skip if already encrypted
-  tags: setup
-  command: ansible-vault encrypt "{{ item }}"
-  loop: "{{ files_to_encrypt }}"
-  register: encrypt_files
-  ignore_errors: yes
