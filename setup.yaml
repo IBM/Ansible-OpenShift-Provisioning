@@ -5,12 +5,6 @@
   connection: local
   become: false
   gather_facts: yes
-  vars_prompt:
-    - name: vault_pass
-      prompt: Please provide a secure password to be used for encrypting your sensitive files in Ansible
-      private: yes
-      unsafe: yes # this just means you can use special characters. The password is safe.
   roles:
-    - setup_vault
     - install_dependencies
     - set_inventory
