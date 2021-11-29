@@ -43,6 +43,7 @@ All notable changes to this project will be documented in this file.
 - Add role to check if DNS is working properly before continuing
 - Add picture of finished infrastructure to README
 - Add README’s for each role
+- Add update_vars role to create vars files from env.yaml / update if changed to increase effifiency and user understanding
 - Create inventories and playbooks folders
 - Integrate setup.yaml into main.yaml - no longer need to be separate because encryption role removed
 - Automate verification steps. This is difficult because Ansible has to use bastion as a jumphost.
