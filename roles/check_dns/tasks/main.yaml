@@ -3,6 +3,9 @@
 - name: check internal cluster DNS resolution
   tags: check_dns,dns
   command: "nslookup {{ item }}"
+  register: command_result
+  # fail step if the output contains "server can't find"
+  failed_when: '"server can" in command_result.stdout'
   with_items:
     - "{{ env_bastion_name }}.{{ env_baseDomain }}"
     - "{{ env_bootstrap_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
@@ -18,6 +21,9 @@
     
 - name: check external DNS resolution from DNS forwarder
   tags: check_dns,dns
+  register: command_result
+  # fail step if the output contains "server can't find"
+  failed_when: '"server can" in command_result.stdout'
   command: "nslookup {{ item }}"
   loop: 
     - www.google.com
