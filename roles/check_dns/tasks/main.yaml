@@ -1,0 +1,25 @@
+---
+
+- name: check internal cluster DNS resolution
+  tags: check_dns,dns
+  command: "nslookup {{ item }}"
+  with_items:
+    - "{{ env_bastion_name }}.{{ env_baseDomain }}"
+    - "{{ env_bootstrap_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
+    - "{{ env_control_0_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
+    - "{{ env_control_1_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
+    - "{{ env_control_2_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
+    - "{{ env_compute_0_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
+    - "{{ env_compute_1_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
+    - "haproxy.{{ env_baseDomain }}"
+    - "api.{{ env_metadata_name }}.{{ env_baseDomain }}"
+    - "api-int.{{ env_metadata_name }}.{{ env_baseDomain }}"
+    - "test.apps.{{ env_metadata_name }}.{{ env_baseDomain }}"
+    
+- name: check external DNS resolution from DNS forwarder
+  tags: check_dns,dns
+  command: "nslookup {{ item }}"
+  loop: 
+    - www.google.com
+    - www.ibm.com
+    - www.redhat.com
