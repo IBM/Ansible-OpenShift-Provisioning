@@ -1,13 +1,13 @@
 ---
 
-- name: Destroy running VMs. Expect errors if some VMs are already destroyed.
+- name: Destroy running VMs. Expect ignored errors if some VMs are already destroyed.
   community.libvirt.virt:
     name: "{{ item }}"
     command: destroy
   loop: "{{ vms }}"
   ignore_errors: yes
 
-- name: Undefine remaining existing VMs. Expect errors if some VMs are already undefined.
+- name: Undefine remaining existing VMs. Expect ignored errors if some VMs are already undefined.
   community.libvirt.virt:
     name: "{{ item }}"
     command: undefine
