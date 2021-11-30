@@ -59,6 +59,7 @@
     - set_selinux_permissive
     - set_firewall
     - dns
+    - check_dns
     - haproxy
     - httpd
     - get-ocp
