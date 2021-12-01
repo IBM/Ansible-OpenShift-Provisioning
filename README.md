@@ -123,7 +123,7 @@ List of Tags (in alphabetical order):
 * create_nodes = tasks from the second set of kvm plays
 * dns = configuration of DNS server on bastion
 * firewall = for tasks related to firewall settings
-* full_teardown = for use with teardown.yaml to bring down all VMs
+* full_teardown = for use with teardown.yaml to bring down all KVM guests. To continue from that point, run the main playbook with "--tags 'bastionvm,bastion,create_nodes'"
 * getocp = download of OCP installer and http server configuration
 * haproxy = configuration of haproxy on bastion kvm guest
 * httpd = configuration of httpd server on bastion kvm guest
@@ -131,7 +131,7 @@ List of Tags (in alphabetical order):
 * kvm_host = tasks to apply to KVM host for OCP cluster
 * kvm_prep = tasks from the first set of kvm plays
 * localhost = for tasks that apply to the local machine running Ansible
-* partial_teardown = for use with teardown.yaml to bring down all VMs except the bastion
+* partial_teardown = for use with teardown.yaml to bring down all KVM guests except the bastion. To continue from that point, run the main playbook with "--tags 'bastion,create_nodes'"
 * pkg = install and update all packages
 * prep = run all setup playbooks
 * selinux = for tasks related to SELinux settings
