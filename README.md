@@ -21,7 +21,7 @@ for local workstation running Ansible
 * MacOS X
 
 ## Pre-Requisites:
-* An Red Hat account ([Sign Up](https://www.redhat.com/wapps/ugc/register.html?_flowId=register-flow&_flowExecutionKey=e1s1))
+* A Red Hat account ([Sign Up](https://www.redhat.com/wapps/ugc/register.html?_flowId=register-flow&_flowExecutionKey=e1s1))
 * A [license](https://access.redhat.com/products/red-hat-openshift-container-platform/) or [free trial](https://www.redhat.com/en/technologies/cloud-computing/openshift/try-it) of Red Hat OpenShift Container Platform for IBM Z systems - s390x architecture (OCP license comes with licenses for RHEL and CoreOS)
 * Python3 intalled on your local computer ([how-to](https://realpython.com/installing-python/))
 * Ansible installed on your local computer ([how-to](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html))
