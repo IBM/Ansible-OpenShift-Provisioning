@@ -25,14 +25,11 @@ $TTL 86400
 {{ env_compute_0_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. IN A {{ env_ip_compute_0 }}
 {{ env_compute_1_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. IN A {{ env_ip_compute_1 }}
 
-;entry of your load balancer
-haproxy IN A {{ env_ip_bastion }}
-
 ;The api identifies the IP of your load balancer.
-api.{{ env_metadata_name }}     IN    CNAME haproxy.{{ env_baseDomain }}.
-api-int.{{ env_metadata_name }} IN    CNAME haproxy.{{ env_baseDomain }}.
+api.{{ env_metadata_name }}     IN    CNAME {{ env_bastion_name }}.{{ env_baseDomain }}.
+api-int.{{ env_metadata_name }} IN    CNAME {{ env_bastion_name }}.{{ env_baseDomain }}.
 
 ;The wildcard also identifies the load balancer.
-*.apps.{{ env_metadata_name }}  IN    CNAME haproxy.{{ env_baseDomain }}.
+*.apps.{{ env_metadata_name }}  IN    CNAME {{ env_bastion_name }}.{{ env_baseDomain }}.
 
 ;EOF
