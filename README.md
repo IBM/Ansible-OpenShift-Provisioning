@@ -21,11 +21,12 @@ for local workstation running Ansible
 * MacOS X
 
 ## Pre-Requisites:
-* Red Hat OpenShift Container Platform license or free trial (includes licenses for RHEL and CoreOS)
-* Python3 intalled on your local computer (how-to: https://realpython.com/installing-python/)
-* Ansible installed on your local computer (how-to: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+* An acvtive Red Hat account ([Sign Up](https://www.redhat.com/wapps/ugc/register.html?_flowId=register-flow&_flowExecutionKey=e1s1))
+* A [license](https://access.redhat.com/products/red-hat-openshift-container-platform/) or [free trial](https://www.redhat.com/en/technologies/cloud-computing/openshift/try-it) of Red Hat OpenShift Container Platform for IBM Z systems - s390x architecture (OCP license comes with licenses for RHEL and CoreOS)
+* Python3 intalled on your local computer ([how-to](https://realpython.com/installing-python/))
+* Ansible installed on your local computer ([how-to](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html))
 * If you are using Mac OS X for your localhost workstation to run Ansible, you also need to have: 
-    * homebrew package manager installed (how-to: https://brew.sh/)
+    * homebrew package manager installed ([how-to](https://brew.sh/))
     * Updated software for command line tools (run "softwareupdate --all --install" in your terminal)
 * Access to a logical partition (LPAR) on an IBM Z or LinuxONE mainframe, with at least:
     * 6 Integrated Facilities for Linux (IFLs) with SMT2 enabled
@@ -41,12 +42,12 @@ for local workstation running Ansible
 * **Step 1: Get This Repository**
     * Navigate to a folder where you would like to store this project in your terminal
     * Run "git clone https://github.com/IBM/Ansible-OpenShift-Provisioning.git"
-* **Step 2: Get OpenShift Information**
-    * In a web browser, navigate to https://console.redhat.com/openshift/install/ibmz/user-provisioned
-    * Copy the OpenShift pull secret (for use in the next step)
+* **Step 2: Get Red Hat Info**
+    * In a web browser, navigate to Red Hat's [customer portal](https://access.redhat.com/products/red-hat-enterprise-linux/), click on the 'Download Latest' button, use the drop-down to select Red Hat Enterprise Linux for IBM z Systems, select your desired version, make sure 'Architcture' is 's390x', and then scroll down to 'Red Hat Enterprise Linux X.X Update KVM Guest Image' and right click on 'Download Now' and copy link. Paste it into [env.yaml](env.yaml) as the variable 'env_rhel_qcow2'.
+    * In a web browser, navigate to the Red Hat [console](https://console.redhat.com/openshift/install/ibmz/user-provisioned) and copy the OpenShift pull secret and paste it into [env.yaml](env.yaml) as the variable 'env_pullSecret'.
 * **Step 3: Set Variables**
     * In a text editor of your choice, open [env.yaml](env.yaml)
-    * Fill out the variables to match your specific installation. Many variables are pre-filled with defaults. For a default installation, you only need to fill in the empty variables.
+    * Fill out the remaining variables to match your specific installation. Many variables are pre-filled with defaults. For a default installation, you only need to fill in the empty variables.
 * **Step 4: Setup Script** 
     * Navigate to the folder where you cloned the Git Repository
     * Run "ansible-playbook setup.yaml --ask-become-pass"
