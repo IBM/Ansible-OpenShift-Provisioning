@@ -33,8 +33,7 @@ for local workstation running Ansible
     * 85 GB of RAM
     * 1 TB of disk space
 * On that LPAR, Red Hat Enterprise Linux (RHEL) with networking configured and a root password set
-* On that LPAR, access to 8 (for a minimum installation) pre-allocated IPv4 addresses
-* Fully Qualified Domain Names (FQDN) names for all IPv4 addresses 
+* On that LPAR, access to 8 (for a minimum installation) pre-allocated IPv4 addresses with Fully Qualified Domain Names (FQDN)
 
 ## Installation Instructions:
 
