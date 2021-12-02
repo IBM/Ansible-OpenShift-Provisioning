@@ -11,6 +11,10 @@ if {$force_conservative} {
 
 set timeout -1
 spawn ssh-copy-id -o StrictHostKeyChecking=no -i {{path_to_key_pair}} root@{{ ssh_target_ip }}
-expect "*assword: "
-send -- "{{env.access.login.kvm.root_password}}\r"
-expect eof
+expect {
+	"*assword: " {
+		send -- "{{env.access.login.kvm.root_password}}\r"
+		expect eof
+	}
+	"Number of key(s) added:" {}
+}
