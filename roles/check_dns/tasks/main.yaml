@@ -1,12 +1,14 @@
 ---
 
+- name: create list of IP addresses from env.yaml
+  tags: check_dns
+  set_fact:
+    ip_from_env: ['{{ env_ip_bastion }}','{{ env_ip_bootstrap }}','{{ env_ip_control_0 }}','{{ env_ip_control_1 }}','{{ env_ip_control_2 }}','{{ env_ip_compute_0 }}','{{ env_ip_compute_1 }}','{{ env_ip_bastion }}','{{ env_ip_bastion }}','{{ env_ip_bastion }}']
+
 - name: check internal cluster DNS resolution
   tags: check_dns,dns
-  command: "nslookup {{ item }}"
-  register: command_result
-  # fail step if the output contains "server can't find"
-  failed_when: '"server can" in command_result.stdout'
-  with_items:
+  shell: "dig +short {{ item }} | tail -n1"
+  loop:
     - "{{ env_bastion_name }}.{{ env_baseDomain }}"
     - "{{ env_bootstrap_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
     - "{{ env_control_0_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
@@ -17,7 +19,12 @@
     - "api.{{ env_metadata_name }}.{{ env_baseDomain }}"
     - "api-int.{{ env_metadata_name }}.{{ env_baseDomain }}"
     - "test.apps.{{ env_metadata_name }}.{{ env_baseDomain }}"
-    
+  register: internal_check
+  failed_when: ip_from_env[i] != internal_check.stdout
+  loop_control:
+    extended: yes
+    index_var: i
+       
 - name: check external DNS resolution from DNS forwarder
   tags: check_dns,dns
   register: command_result
