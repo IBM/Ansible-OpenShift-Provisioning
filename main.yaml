@@ -15,7 +15,7 @@
     - ssh_agent
     
 - hosts: kvm_host
-  tags: kvm_host,kvm_prep
+  tags: kvm_host, kvm_prep
   become: true
   vars_files:
     - env.yaml
@@ -58,14 +58,14 @@
     - ssh-ocp-key-gen # SSH key for bastion to connect to nodes
     - set_selinux_permissive
     - set_firewall
-    - dns
+    #- dns
     - check_dns
     - haproxy
     - httpd
     - get-ocp
 
 - hosts: kvm_host
-  tags: kvm_host,create_nodes
+  tags: kvm_host, create_nodes
   become: true
   gather_facts: no
   vars_files:
@@ -75,3 +75,16 @@
     - create_bootstrap
     - create_control_nodes
     - create_compute_nodes
+
+- hosts: bastion
+  tags: verification, bastion
+  become: true
+  gather_facts: yes
+  vars_files:
+    - env.yaml
+  roles:
+    - wait_for_bootstrap
+    - approve_certs
+    - check_nodes
+    - wait_for_cluster_operators
+    - wait_for_install_complete
