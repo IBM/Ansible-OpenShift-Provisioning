@@ -58,8 +58,8 @@ All notable changes to this project will be documented in this file.
 ### Removed
 - Instructions in README for doing OCP verification steps manually
 
-[Automated OCP Verification Update]: https://github.com/IBM/Ansible-OpenShift-Provisioning/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/IBM/Ansible-OpenShift-Provisioning/compare/v1.0.0
+[Automated OCP Verification Update]: https://github.com/IBM/Ansible-OpenShift-Provisioning/compare/v1.1.0...v1.0.0
+[1.1.0]: https://github.com/IBM/Ansible-OpenShift-Provisioning/compare/v1.1.0...v1.0.0
 
 ## Roadmap
 
