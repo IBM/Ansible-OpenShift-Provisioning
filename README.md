@@ -68,10 +68,12 @@ for local workstation running Ansible
 
 ## Troubleshooting:
 If you encounter errors while running the main playbook, there are a few things you can do:
-*1)* Check your variables in env.yaml
-*2)* Inspect the task that failed by inspecting the task in roles/role_name/tasks_main.yaml
-*3)* Re-Run the role indivually with with [tags](#Tags)
-*4)* Teardown problematic KVM guests with [teardown](#Teardown) scripts and start again with [tags](#Tags)
+* 1) Check your variables in env.yaml
+* 2) Inspect the task that failed by inspecting the task in roles/role_name/tasks_main.yaml
+* 3) Google the specific error message
+* 3) Re-Run the role indivually with with [tags](#Tags)
+* 4) Teardown troublesome KVM guests with [teardown](#Teardown) scripts and start again with [tags](#Tags)
+* 6) E-mail Jacob Emery at jacob.emery@ibm.com
 
 ## Teardown: 
 * If you would like to teardown your VMs, first determine whether you would like to do a full, partial, or bootstrap teardown, specified below.
