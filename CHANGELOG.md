@@ -2,10 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-###Jump-To:
-* [Latest](#1.1.0 - Automated OCP Verification Update - 2021-12-03)
-* [1.0.0](#1.0.0 - Automated Bastion Update - 2021-11-24)
-* [0.0.1](#0.0.1 - Unreleased - 2021-08-24)
+### Jump-To:
+* [Latest](#1.1.0---Automated-OCP-Verification-Update---2021-12-03)
+* [1.0.0](#1.0.0---Automated-Bastion-Update---2021-11-24)
+* [0.0.1](#0.0.1---Unreleased---2021-08-24)
 * [Roadmap](#Roadmap)
 
 
