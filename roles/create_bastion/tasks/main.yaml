@@ -21,19 +21,19 @@
     state: directory
     mode: '0755'
 
-- name: check if RHEL qcow2 is already downloaded
-  tags: kvm_host, bastionvm
+- name: check to see if qcow2 file already exists on KVM host
+  tags: bastionvm
   stat:
-    path: /var/lib/libvirt/images/bastion.qcow2
-  register: rhel_qcow2
+    path: /var/lib/libvirt/images/bastion_base.qcow2
+  register: qcow2_check
 
-- name: download RHEL qcow2 file
+- name: copy RHEL qcow2 file to KVM host. This may take a while.
   tags: kvm_host, bastionvm
-  get_url:
-    url: "{{ env_rhel_qcow2 }}"
+  copy:
+    src: "{{ env_rhel_qcow2 }}"
     dest: /var/lib/libvirt/images/bastion_base.qcow2
     mode: '0775'
-  when: rhel_qcow2.stat.exists == false
+  when: qcow2_check.stat.exists == false
   register: rhel_qcow2_download
 
 - name: remove snapshot for idempotency
