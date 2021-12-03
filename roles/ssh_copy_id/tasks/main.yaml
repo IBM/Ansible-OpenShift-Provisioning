@@ -43,6 +43,12 @@
     path: roles/ssh_copy_id/files/ssh-copy-id-expect-pass.exp
     state: absent
 
+- name: re-create ssh-copy-id files folder
+  tags: ssh-copy-id,ssh
+  file:
+    path: roles/ssh_copy_id/files/
+    state: directory
+
 - name: Print results of copying ssh id to remote host.
   tags: ssh-copy-id
   debug:
