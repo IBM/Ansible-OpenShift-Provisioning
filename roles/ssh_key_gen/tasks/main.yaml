@@ -33,6 +33,11 @@
     - "{{env_ssh_ans_name}}"
     - "{{env_ssh_ans_name}}.pub"
 
+- name: Print results of ssh key pair files check
+  tags: keymastr
+  debug:
+    var: ssh_key_file_exists_check.results[0].stat.exists
+
 - name: create a vars file for key path
   tags: keymastr
   file:
