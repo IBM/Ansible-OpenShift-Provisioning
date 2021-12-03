@@ -2,10 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-Jump-To:
-* [Latest](#1.1.0)
-* [1.0.0](#1.0.0)
-* [0.0.1](#0.0.1)
+###Jump-To:
+* [Latest](#1.1.0 - Automated OCP Verification Update - 2021-12-03)
+* [1.0.0](#1.0.0 - Automated Bastion Update - 2021-11-24)
+* [0.0.1](#0.0.1 - Unreleased - 2021-08-24)
+* [Roadmap](#Roadmap)
 
 
 ## 1.1.0 - Automated OCP Verification Update - 2021-12-03
@@ -16,7 +17,6 @@ Jump-To:
 ### Added
 - 5 roles related to automating OCP verification steps: wait_for_bootstrap, approve_certs, check_nodes, wait_for_cluster_operators, and wait_for_install_complete.
 - role to check internal and external DNS configuration before continuing. Including checking to make sure the name resolves to the correct IP address.
-- 
 ### Modified
 - The mirrors for CoreOS versions to update to 4.9 and tested them.
 - The acquisition method of RHEL qcow2 from downloading via ephemeral link to having the user download the file to their local machine as a pre-req. This was changed to avoid having to re-copy the link every time it expires.
