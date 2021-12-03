@@ -1,0 +1,48 @@
+---
+
+- name: Make sure kubeconfig works
+  tags: wait_for_bootstrap
+  environment:
+    KUBECONFIG: "/ocpinst/auth/kubeconfig"
+  shell: oc whoami
+  register: oc_whoami
+  until: oc_whoami.stdout == "system:admin"
+  retries: 120
+  delay: 30
+  
+- name: print output of oc whoami, should be system:admin
+  tags: wait_for_bootstrap
+  debug:
+    var: oc_whoami.stdout
+
+- name: Watch bootstrap
+  tags: wait_for_bootstrap
+  command: chdir=/ocpinst ./openshift-install wait-for bootstrap-complete
+  async: 3600
+  poll: 0
+  register: bootstrap_complete_sleeper
+
+- name: Retry bootstrap job id check until it's finished. This may take some time.
+  tags: wait_for_bootstrap
+  async_status:
+    jid: "{{ bootstrap_complete_sleeper.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+  retries: 120
+  delay: 30
+
+- name: Destroy bootstrap. Expect ignored errors if bootstrap is already destroyed.
+  tags: wait_for_bootstrap
+  community.libvirt.virt:
+    name: "{{ env_bootstrap_name }}"
+    command: destroy
+  ignore_errors: yes
+  delegate_to: "{{ env_ip_kvm_host}}"
+
+- name: Undefine bootstrap. Expect ignored errors if bootstrap is already undefined.
+  tags: wait_for_bootstrap  
+  community.libvirt.virt:
+    name: "{{ env_bootstrap_name }}"
+    command: undefine
+  ignore_errors: yes
+  delegate_to: "{{ env_ip_kvm_host}}"

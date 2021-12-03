@@ -1,0 +1,23 @@
+---
+
+- name: Check cluster operators
+  tags: wait_for_cluster_operators
+  environment:
+    KUBECONFIG: "/ocpinst/auth/kubeconfig"
+  shell: oc get co
+  register: oc_get_co
+
+- name: print clusteroperator status
+  tags: wait_for_cluster_operators
+  debug:
+    var: oc_get_co.stdout_lines
+
+- name: Make sure all cluster operators are Available before continuing. This may take a while.
+  tags: wait_for_cluster_operators
+  environment:
+    KUBECONFIG: "/ocpinst/auth/kubeconfig"
+  shell: oc get co | awk '{print $3}'
+  register: co_check
+  until: ("False" not in co_check.stdout)
+  retries: 120
+  delay: 30
