@@ -19,12 +19,12 @@
     - "api.{{ env_metadata_name }}.{{ env_baseDomain }}"
     - "api-int.{{ env_metadata_name }}.{{ env_baseDomain }}"
     - "test.apps.{{ env_metadata_name }}.{{ env_baseDomain }}"
-  register: internal_check
-  failed_when: ip_from_env[i] != internal_check.stdout
+  register: command_result
+  failed_when: ip_from_env[i] != command_result.stdout
   loop_control:
     extended: yes
     index_var: i
-       
+    
 - name: check external DNS resolution from DNS forwarder
   tags: check_dns,dns
   register: command_result
