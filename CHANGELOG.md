@@ -3,13 +3,13 @@
 All notable changes to this project will be documented in this file.
 
 ### Jump-To:
-* [Latest](#1.1.0---Automated-OCP-Verification-Update---2021-12-03)
-* [1.0.0](#1.0.0---Automated-Bastion-Update---2021-11-24)
-* [0.0.1](#0.0.1---Unreleased---2021-08-24)
+* [Latest](#1.1.0)
+* [1.0.0](#1.0.0)
+* [0.0.1](#0.0.1)
 * [Roadmap](#Roadmap)
 
-
-## 1.1.0 - Automated OCP Verification Update - 2021-12-03
+## 1.1.0 
+### Automated OCP Verification Update - 2021-12-03
 
 ### Summary
 - Fully automated all OCP verification steps. Cutting the number of steps nearly in half. The main playbook can now run completely hands-off from kicking it off all the way to an operational cluster. The last step provides the first-time login credentials.
@@ -25,7 +25,8 @@ All notable changes to this project will be documented in this file.
 ### Removed
 - Instructions in README for doing OCP verification steps manually
 
-## 1.0.0 - Automated Bastion Update - 2021-11-24
+## 1.0.0
+### Automated Bastion Update 2021-11-24
 
 ### Summary
 - Fully automated bastion installation and configuration using cloud-init
@@ -48,7 +49,8 @@ All notable changes to this project will be documented in this file.
 ### Removed
 - Encryption of env.yaml as it was unnecessary and increased complexity
 
-## 0.0.1 - Unreleased - 2021-08-24
+## 0.0.1 
+### Unreleased 2021-08-24
 
 ## Roadmap
 * Add option in env.yaml to create HAProxy on bastion or not
