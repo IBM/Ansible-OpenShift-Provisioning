@@ -38,6 +38,10 @@
   tags: setup
   ansible.builtin.gather_facts:
 
+- name: Refresh inventory
+  tags: setup
+  meta: refresh_inventory
+
 - name: fill ansible.cfg with provided variable ansible ssh key file name
   tags: setup
   ansible.builtin.lineinfile:
@@ -78,7 +82,7 @@
     path: main.yaml
     regexp: "- attach_subscription"
     replace: "#- attach_subscription"
-  when: auto_attach_rhel_sub | bool == False
+  when: not auto_attach_rhel_sub
 
 - name: Comment out DNS setup role in main.yaml if requested with env.yaml env_dns_on_bastion boolean
   tags: setup
@@ -86,4 +90,4 @@
     regexp: "- dns"
     path: main.yaml
     replace: "#- dns"
-  when: env_dns_on_bastion | bool == False
+  when: not env_dns_on_bastion
