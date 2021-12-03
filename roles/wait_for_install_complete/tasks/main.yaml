@@ -1,0 +1,29 @@
+---
+
+- name: Wait for OpenShift install to complete
+  tags: wait_for_install_complete
+  environment:
+    KUBECONFIG: "/ocpinst/auth/kubeconfig"
+  shell: /ocpinst/openshift-install --dir=/ocpinst wait-for install-complete
+  register: wait_install_complete
+  until: ("Install complete!" in wait_install_complete.stderr)
+  retries: 120
+  delay: 30
+
+- name: Set OCP URL
+  tags: wait_for_install_complete
+  set_fact:
+    ocp_url: https://console-openshift-console.apps.{{env_metadata_name}}.{{env_baseDomain}}
+
+- name: Set OCP password
+  tags: wait_for_install_complete
+  command: "cat /ocpinst/auth/kubeadmin-password"
+  register: ocp_passwd
+
+- name: Congratulations! OpenShift installation complete. Use the information below for first-time login.
+  tags: wait_for_install_complete
+  command: "echo {{ item }}"
+  loop: 
+    - " URL: {{ocp_url}} "
+    - " Username: kubeadmin "
+    - " Password: {{ocp_passwd.stdout}} "
