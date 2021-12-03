@@ -7,7 +7,8 @@
 * [Instructions](#Installation-Instructions)
 * [Setup](#Setup)
 * [Provisioning](#Provisioning)
-* [Install Complete](*Install-Complete)
+* [Post-Install Complete](#Post-Install-Complete)
+* [Troubleshooting](#Troubleshooting)
 * [Teardown](#Teardown)
 * [Tags](#Tags)
 
@@ -60,7 +61,7 @@ for local workstation running Ansible
     * If the process fails in error, you should be able to run the same shell command to start the process from the top. To be more selective with what parts of the main playbook run, use [tags](#Tags). See the [main playbook](main.yaml) to determine what part you would like to run and use those tags when running the [main playbook](main.yaml). Example: "ansible-playbook main.yaml --ask-become-pass --tags 'get-ocp,create_nodes'"
     * Note: we chose to not edit the user's .bash_profile/.bashrc with an automatic ssh-add command because that would change the user's local workstation set-up in a way that was potentially undesirable. Therefore, if you close out your terminal session in the middle of provisioning, you will need to run "ansible-playbook main.yaml --tags ssh-agent" before doing anything else.
 
-### Install Complete
+### Post-Install Complete 
 * **Step 6: First-Time Login**
     * The last step of the main playbook will print a URL, username and temporary password for first-time login.
     * Use a web-browser to type in the URL, which should take you to a sign-in page. Use the provided credentials to sign in.
