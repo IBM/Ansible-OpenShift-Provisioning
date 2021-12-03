@@ -1,25 +1,9 @@
----
 
-- name: delete /ocpinst directory
-  file:
-    path: /ocpinst
-    state: absent
+- name: Load in variables from env.yaml
+  include_vars: env.yaml
 
-- name: delete OCP SSH keys from bastion's ssh folder
-  file:
-    path: ~/.ssh/{{ item }}
-    state: absent
-  loop:
-    - id_rsa
-    - id_rsa.pub
-
-- name: delete bastion's ssh known hosts file to remove fingerprints
+- name: delete files_to_reset from teardown.yaml
   file: 
-    path: ~/.ssh/known_hosts
+    path: "{{ item }}"
     state: absent
-
-- name: create empty bastion ssh known hosts file 
-  file:
-    path: ~/.ssh/known_hosts
-    state: touch
-    mode: '644'
+  loop: files_to_reset
