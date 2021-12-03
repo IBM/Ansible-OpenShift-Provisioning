@@ -4,16 +4,41 @@
 # If you have more nodes than what is present in the "vms" list below, feel free to add more to the list. 
 # After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'bastionvm,bastion,create_nodes'"
 
+- hosts: localhost
+  tags: full_teardown
+  connection: local
+  become: false
+  gather_facts: no
+  vars_files:
+    - env.yaml
+  tasks:
+    - name: remove bastion from localhost's known_hosts file
+      lineinfile:
+        path: "~/.ssh/known_hosts"
+        regexp: "{{ env_ip_bastion}}"
+        state: absent
+
 - hosts: kvm_host
   tags: full_teardown
   become: true
   gather_facts: no
+  vars:
+    - vms: ['{{env_bastion_name}}', '{{env_bootstrap_name}}', '{{env_control_0_name}}', '{{env_control_1_name}}', '{{env_control_2_name}}', '{{env_compute_0_name}}', '{{env_compute_1_name}}']
   vars_files:
     - env.yaml
-  pre_tasks:
-    - name: Create list of VMs to teardown.
-      set_fact:
-        vms: ['{{env_bastion_name}}', '{{env_bootstrap_name}}', '{{env_control_0_name}}', '{{env_control_1_name}}', '{{env_control_2_name}}', '{{env_compute_0_name}}', '{{env_compute_1_name}}']
+  post_tasks:
+    - name: Capture files to delete
+      find:
+        paths: /var/lib/libvirt/images
+        file_type: file
+        excludes: 
+        - lost+found
+      register: found_files
+    - name: delete files in /var/lib/libvirt/images except for lost+found
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ found_files['files'] }}"
   roles:
     - teardown_vms
 
@@ -21,10 +46,26 @@
 # If you have more nodes than what is present in the "vms" list below, feel free to add more to the list. 
 # After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'bastion,create_nodes'"
 
+- hosts: localhost
+  tags: partial_teardown
+  connection: local
+  become: false
+  gather_facts: no
+  vars_files:
+    - env.yaml
+  tasks:
+    - name: remove bastion from localhost's known_hosts file
+      lineinfile:
+        path: "~/.ssh/known_hosts"
+        regexp: "{{ env_ip_bastion}}"
+        state: absent
+
 - hosts: bastion
   tags: partial_teardown
   become: true
   gather_facts: no
+  vars:
+    - files_to_reset: ['~/.ssh/known_hosts', '~/.ssh/id_rsa','~/.ssh/id_rsa.pub','/ocpinst'] # feel free to add as needed
   vars_files:
     - env.yaml
   roles:
