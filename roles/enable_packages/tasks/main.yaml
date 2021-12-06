@@ -1,7 +1,0 @@
----
-
-- name: enable packages
-  tags: kvm_host
-  service:
-    name: libvirtd
-    state: started
