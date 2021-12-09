@@ -1,35 +1,55 @@
 ---
 
-- name: create list of IP addresses from env.yaml
-  tags: check_dns
-  set_fact:
-    ip_from_env: ['{{ env_ip_bastion }}','{{ env_ip_bootstrap }}','{{ env_ip_control_0 }}','{{ env_ip_control_1 }}','{{ env_ip_control_2 }}','{{ env_ip_compute_0 }}','{{ env_ip_compute_1 }}','{{ env_ip_bastion }}','{{ env_ip_bastion }}','{{ env_ip_bastion }}']
+- name: Load in variables from env.yaml
+  tags: check_dns,dns
+  include_vars: env.yaml
 
-- name: check internal cluster DNS resolution
+- name: Check internal cluster DNS resolution for bastion and its services
   tags: check_dns,dns
   shell: "dig +short {{ item }} | tail -n1"
   loop:
-    - "{{ env_bastion_name }}.{{ env_baseDomain }}"
-    - "{{ env_bootstrap_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
-    - "{{ env_control_0_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
-    - "{{ env_control_1_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
-    - "{{ env_control_2_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
-    - "{{ env_compute_0_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
-    - "{{ env_compute_1_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}"
-    - "api.{{ env_metadata_name }}.{{ env_baseDomain }}"
-    - "api-int.{{ env_metadata_name }}.{{ env_baseDomain }}"
-    - "test.apps.{{ env_metadata_name }}.{{ env_baseDomain }}"
-  register: command_result
-  failed_when: ip_from_env[i] != command_result.stdout
+    - "{{ env.hostname.bastion }}.{{ env.install_config.base_domain }}"
+    - "api.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}"
+    - "api-int.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}"
+    - "test.apps.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}"
+  register: bastion_lookup
+  failed_when: env.ip.bastion != bastion_lookup.stdout
+    
+- name: Check internal cluster DNS resolution for bootstrap
+  tags: check_dns,dns
+  shell: "dig +short {{ env.hostname.bootstrap }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }} | tail -n1"
+  register: bootstrap_lookup
+  failed_when: env.ip.bootstrap != bootstrap_lookup.stdout
+
+- name: Print results from bootstrap lookup
+  tags: check_dns, dns
+  debug:
+    var: bootstrap_lookup.stdout
+
+- name: Check control nodes DNS resolution
+  tags: check_dns,dns
+  shell: "dig +short {{ env.hostname.control[i] }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}  | tail -n1"
+  register: control_lookup
+  failed_when: env.ip.control[i] != control_lookup.stdout
+  with_sequence: start=0 end={{env.install_config.control.replicas - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
-    
-- name: check external DNS resolution from DNS forwarder
+
+- name: Check compute nodes DNS resolution
   tags: check_dns,dns
-  register: command_result
-  # fail step if the output contains "server can't find"
-  failed_when: '"server can" in command_result.stdout'
+  shell: "dig +short {{ env.hostname.compute[i] }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}  | tail -n1"
+  register: compute_lookup
+  failed_when: env.ip.compute[i] != compute_lookup.stdout
+  with_sequence: start=0 end={{env.install_config.compute.replicas - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+
+- name: Check external DNS resolution from DNS forwarder
+  tags: check_dns,dns
+  register: external_dns_check
+  failed_when: '"server can" in external_dns_check.stdout'
   command: "nslookup {{ item }}"
   loop: 
     - www.google.com

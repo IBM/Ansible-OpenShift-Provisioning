@@ -3,8 +3,8 @@ ethernets:
   eth0:
     dhcp4: false
     # default libvirt network
-    addresses: [ {{ env_ip_bastion }} ]
-    gateway4: {{ env_default_gateway }}
+    addresses: [ {{ env.ip.bastion }} ]
+    gateway4: {{ env.networking.gateway }}
     nameservers:
-      search: [ {{ env_baseDomain }} ]
-      addresses: [ {{ env_dns_nameserver }},{{ env_dns_forwarder }} ]
+      search: [ {{ env.install_config.base_domain }} ]
+      addresses: [ {{ env.networking.dns.nameserver }},{{ env.networking.dns.forwarder }} ]

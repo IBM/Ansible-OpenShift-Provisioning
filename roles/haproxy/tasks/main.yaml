@@ -1,31 +1,72 @@
 ---
 
 - name: Load in variables from env.yaml
-  tags: haproxy,bastion
+  tags: haproxy
   include_vars: env.yaml
 
 - name: Change permissive domain for haproxy
-  tags: selinux,haproxy,bastion
+  tags: selinux,haproxy
   selinux_permissive:
     name: haproxy_t
     permissive: true 
 
-- name: use template to create haproxy config file 
-  tags: haproxy,bastion
+- name: Use template to create haproxy config file 
+  tags: haproxy
   template:
     src: haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
     backup: yes
     force: yes
 
-- name: enable haproxy
-  tags: haproxy,bastion
-  systemd:
-    enabled: yes
-    name: haproxy
+- name: Add control node information to 6443 section in haproxy config
+  tags: haproxy
+  lineinfile:
+    line: "  server {{ env.hostname.control[i] }} {{env.ip.control[i]}}:6443 check inter 1s"
+    path: /etc/haproxy/haproxy.cfg
+    insertafter: "6443 section"
+  with_sequence: start=0 end={{env.install_config.control.replicas - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+
+- name: Add control node information to 22623 section in haproxy config
+  tags: haproxy
+  lineinfile:
+    line: "  server {{ env.hostname.control[i] }} {{env.ip.control[i]}}:22623 check inter 1s"
+    path: /etc/haproxy/haproxy.cfg
+    insertafter: "22623 section"
+  with_sequence: start=0 end={{env.install_config.control.replicas - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+
+- name: Add compute node information to 443 section in haproxy config
+  tags: haproxy
+  lineinfile:
+    line: "  server {{ env.hostname.compute[i] }} {{ env.ip.compute[i] }}:443 check inter 1s"
+    path: /etc/haproxy/haproxy.cfg
+    insertafter: "443 section"
+  with_sequence: start=0 end={{env.install_config.compute.replicas - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+
+- name: Add compute node information to 80 section in haproxy config
+  tags: haproxy
+  lineinfile:
+    line: "  server {{ env.hostname.compute[i] }} {{ env.ip.compute[i] }}:80 check inter 1s"
+    path: /etc/haproxy/haproxy.cfg
+  with_sequence: start=0 end={{env.install_config.compute.replicas - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+
+- name: Set haproxy boolean to enable connections
+  tags: haproxy
+  command: setsebool -P haproxy_connect_any 1
 
 - name: Restart haproxy
-  tags: haproxy,bastion
+  tags: haproxy
   systemd:
     state: restarted
     name: haproxy

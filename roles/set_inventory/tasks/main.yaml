@@ -4,29 +4,40 @@
   tags: setup
   include_vars: env.yaml
 
-- name: Populate inventory file with ip variables from env.yaml
+- name: Populate inventory with KVM host, bastion and bootstrap IP addresses
   tags: setup
   blockinfile:
     path: inventory
     block: |
       [kvm_host]
-      {{ env_ip_kvm_host }}
+      {{env.ip.kvm}}
 
       [bastion]
-      {{ env_ip_bastion }}
+      {{env.ip.bastion}}
 
       [bootstrap]
-      {{ env_ip_bootstrap }}
+      {{env.ip.bootstrap}}
 
       [control_nodes]
-      {{ env_ip_control_0 }}
-      {{ env_ip_control_1 }}
-      {{ env_ip_control_2 }}
 
       [compute_nodes]
-      {{env_ip_compute_0}}
-      {{env_ip_compute_1}}
     state: present
+
+- name: Add control nodes' IP addresses to inventory
+  tags: setup
+  lineinfile:
+    path: inventory
+    insertafter: "control_nodes"
+    line: "{{ item }}"
+  loop: "{{env.ip.control}}"
+
+- name: Add compute nodes' IP addresses to inventory
+  tags: setup
+  lineinfile:
+    path: inventory
+    insertafter: "compute_nodes"
+    line: "{{ item }}"
+  loop: "{{env.ip.compute}}"
 
 - name: check inventory setup
   tags: setup
@@ -42,19 +53,12 @@
   tags: setup
   meta: refresh_inventory
 
-- name: fill ansible.cfg with provided variable ansible ssh key file name
-  tags: setup
-  ansible.builtin.lineinfile:
-    path: ansible.cfg
-    insertafter: '\[defaults\]'
-    line: private_key_file=~/.ssh/{{ env_ssh_ans_name }}
-
 - name: fill ansible.cfg with default ansible password
   tags: setup
   ansible.builtin.lineinfile:
     path: ansible.cfg
     insertafter: '\[defaults\]'
-    line: ansible_password={{env_vm_root_passwd}}
+    line: ansible_password={{env.access.login.kvm.root_password}}
 
 - name: fill ansible.cfg with default ansible user
   tags: setup
@@ -67,27 +71,27 @@
   tags: setup
   file:
     state: absent
-    path: roles/get-ocp/files/ocp_ssh_pub
+    path: roles/get_ocp/files/ocp_ssh_pub
 
 - name: create ocp_ssh_pub if it needs to be
   tags: setup
   file:
-    path: roles/get-ocp/files/ocp_ssh_pub
+    path: roles/get_ocp/files/ocp_ssh_pub
     mode: '0755'
     state: touch
 
-- name: comment out auto-attach rhel subscription line in main.yaml if requested with env.yaml auto_attach_rhel_sub boolean
+- name: comment out auto-attach RHEL subscription role calls in main.yaml if requested
   tags: setup
   replace:
     path: main.yaml
     regexp: "- attach_subscription"
     replace: "#- attach_subscription"
-  when: not auto_attach_rhel_sub
+  when: not env.redhat.attach_subscription
 
-- name: Comment out DNS setup role in main.yaml if requested with env.yaml env_dns_on_bastion boolean
+- name: Comment out DNS setup on bastion role calls in main.yaml if requested
   tags: setup
   replace:
     regexp: "- dns"
     path: main.yaml
     replace: "#- dns"
-  when: not env_dns_on_bastion
+  when: not env.networking.dns.setup_on_bastion

@@ -1,23 +1,69 @@
 ---
 
-- name: Check cluster operators
+- name: First round of checking cluster operators
   tags: wait_for_cluster_operators
   environment:
     KUBECONFIG: "/ocpinst/auth/kubeconfig"
   shell: oc get co
   register: oc_get_co
 
-- name: print clusteroperator status
+- name: View first round cluster operator status check
   tags: wait_for_cluster_operators
   debug:
     var: oc_get_co.stdout_lines
 
-- name: Make sure all cluster operators are Available before continuing. This may take a while.
+- name: First round of waiting for cluster operators. Trying 5 times before printing status again.
   tags: wait_for_cluster_operators
   environment:
     KUBECONFIG: "/ocpinst/auth/kubeconfig"
   shell: oc get co | awk '{print $3}'
   register: co_check
   until: ("False" not in co_check.stdout)
-  retries: 120
+  retries: 5
+  delay: 30
+  ignore_errors: yes
+
+- name: Second round of checking cluster operators
+  tags: wait_for_cluster_operators
+  environment:
+    KUBECONFIG: "/ocpinst/auth/kubeconfig"
+  shell: oc get co
+  register: oc_get_co
+
+- name: View second round cluster operator status check
+  tags: wait_for_cluster_operators
+  debug:
+    var: oc_get_co.stdout_lines
+
+- name: Second round of waiting for cluster operators. Trying 5 times before printing status again.
+  tags: wait_for_cluster_operators
+  environment:
+    KUBECONFIG: "/ocpinst/auth/kubeconfig"
+  shell: oc get co | awk '{print $3}'
+  register: co_check
+  until: ("False" not in co_check.stdout)
+  retries: 5
+  delay: 30
+  ignore_errors: yes
+
+- name: Third round of checking cluster operators
+  tags: wait_for_cluster_operators
+  environment:
+    KUBECONFIG: "/ocpinst/auth/kubeconfig"
+  shell: oc get co
+  register: oc_get_co
+
+- name: View third round clusteroperator status check
+  tags: wait_for_cluster_operators
+  debug:
+    var: oc_get_co.stdout_lines
+
+- name: Third and final round of waiting for cluster operators. Trying 10 times before failing.
+  tags: wait_for_cluster_operators
+  environment:
+    KUBECONFIG: "/ocpinst/auth/kubeconfig"
+  shell: oc get co | awk '{print $3}'
+  register: co_check
+  until: ("False" not in co_check.stdout)
+  retries: 10
   delay: 30

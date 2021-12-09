@@ -1,11 +1,11 @@
 ---
 
-- name: add ansible ssh key to ssh-agent. See README Step 5 note for additional details.
-  tags: ssh-agent
-  shell: eval $(ssh-agent) && ssh-add ~/.ssh/{{env_ssh_ans_name}}
+- name: Add ansible SSH key to ssh-agent
+  tags: ssh_agent, ssh
+  shell: eval $(ssh-agent) && ssh-add ~/.ssh/ansible
   register: ssh_agent_setup
 
-- name: print results from setting up ssh agent
-  tags: ssh-agent
+- name: Print results from setting up SSH agent
+  tags: ssh_agent, ssh
   debug:
     var: ssh_agent_setup

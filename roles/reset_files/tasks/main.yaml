@@ -2,8 +2,8 @@
 - name: Load in variables from env.yaml
   include_vars: env.yaml
 
-- name: delete files_to_reset from teardown.yaml
+- name: Delete files_to_reset from teardown.yaml
   file: 
     path: "{{ item }}"
     state: absent
-  loop: files_to_reset
+  loop: "{{files_to_reset}}"

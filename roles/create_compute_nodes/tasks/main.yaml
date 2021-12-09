@@ -1,67 +1,26 @@
 ---
 
 - name: Load in variables from env.yaml
-  tags: compute
+  tags: create_compute_nodes
   include_vars: env.yaml
 
-- name: check if compute-0 already exists
-  tags: compute
-  community.libvirt.virt:
-    name: "{{ env_compute_0_name }}"
-    command: status
-  register: compute_0_check
-  ignore_errors: yes
-
-- name: print status of compute-0
-  tags: compute
-  debug: 
-    var: compute_0_check
-
-- name: check if compute-1 already exists
-  tags: compute
-  community.libvirt.virt:
-    name: "{{ env_compute_1_name }}"
-    command: status
-  register: compute_1_check
-  ignore_errors: yes
-
-- name: print status of compute-1
-  tags: compute
-  debug: 
-    var: compute_1_check
-
-- name: install CoreOS on compute-0 node
-  tags: compute
+- name: Install CoreOS on compute nodes
+  tags: create_compute_nodes
   command: |
     virt-install \
-    --name {{env_compute_0_name}} \
-    --disk size={{env_comp_disk_size}} \
-    --ram {{env_comp_ram}} \
-    --cpu {{env_comp_cpu}} \
-    --vcpus {{env_comp_vcpu}} \
+    --name {{env.hostname.compute[i]}} \
+    --disk size={{env.node_resources.compute.disk_size}} \
+    --ram {{env.node_resources.compute.ram}} \
+    --cpu host \
+    --vcpus {{env.node_resources.compute.vcpu}} \
     --os-type linux \
-    --os-variant rhel{{env_comp_os_variant}} \
+    --os-variant rhel{{env.node_resources.compute.os_variant}} \
     --network network=macvtap-net \
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env_ip_bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env_ip_compute_0}}::{{env_default_gateway}}:{{env_netmask}}:{{env_compute_0_name}}::none:1500 nameserver={{env_dns_nameserver}} coreos.inst.ignition_url=http://{{env_ip_bastion}}:8080/ignition/worker.ign" \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.ip.bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.ip.compute[i]}}::{{env.networking.gateway}}:{{env.networking.netmask}}:{{env.hostname.compute[i]}}::none:1500 nameserver={{env.networking.dns.nameserver}} coreos.inst.ignition_url=http://{{env.ip.bastion}}:8080/ignition/worker.ign" \
     --wait=-1 \
-    --noautoconsole 
-  when: compute_0_check.failed == true
-
-- name: install CoreOS on compute-1 node
-  tags: compute
-  command: |
-    virt-install \
-    --name {{env_compute_1_name}} \
-    --disk size={{env_comp_disk_size}} \
-    --ram {{env_comp_ram}} \
-    --cpu {{env_comp_cpu}} \
-    --vcpus {{env_comp_vcpu}} \
-    --os-type linux \
-    --os-variant rhel{{env_comp_os_variant}} \
-    --network network=macvtap-net \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env_ip_bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env_ip_compute_1}}::{{env_default_gateway}}:{{env_netmask}}:{{env_compute_1_name}}::none:1500 nameserver={{env_dns_nameserver}} coreos.inst.ignition_url=http://{{env_ip_bastion}}:8080/ignition/worker.ign" \
-    --wait=-1 \
-    --noautoconsole 
-  when: compute_1_check.failed == true
+    --noautoconsole
+  with_sequence: start=0 end={{env.install_config.compute.replicas - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i

@@ -1,15 +1,67 @@
 ---
 
-- name: Destroy running VMs. Expect ignored errors if some VMs are already destroyed.
+- name: Destroy bastion for full, skip for partial teardown.. Expect ignored errors if it is already destroyed.
   community.libvirt.virt:
-    name: "{{ item }}"
+    name: "{{ env.hostname.bastion }}"
     command: destroy
-  loop: "{{ vms }}"
+  when: bastion_teardown
   ignore_errors: yes
 
-- name: Undefine remaining existing VMs. Expect ignored errors if some VMs are already undefined.
+- name: Undefine bastion for full, skip for partial teardown. Expect ignored errors if it is already undefined.
   community.libvirt.virt:
-    name: "{{ item }}"
+    name: "{{ env.hostname.bastion }}"
     command: undefine
-  loop: "{{ vms }}"
+  when: bastion_teardown
+  ignore_errors: yes
+
+- name: Destroy bootstrap. Expect ignored errors if it is already destroyed.
+  community.libvirt.virt:
+    name: "{{ env.hostname.bootstrap }}"
+    command: destroy
+  ignore_errors: yes
+
+- name: Undefine bootstrap. Expect ignored errors if it is already undefined.
+  community.libvirt.virt:
+    name: "{{ env.hostname.bootstrap }}"
+    command: undefine
+  ignore_errors: yes
+
+- name: Destroy running control nodes. Expect ignored errors if some VMs are already destroyed.
+  community.libvirt.virt:
+    name: "{{ env.hostname.control[i] }}"
+    command: destroy
+  with_sequence: start=0 end={{env.install_config.control.replicas - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+  ignore_errors: yes
+
+- name: Undefine remaining control nodes. Expect ignored errors if some VMs are already undefined.
+  community.libvirt.virt:
+    name: "{{ env.hostname.control[i] }}"
+    command: undefine
+  with_sequence: start=0 end={{env.install_config.control.replicas - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+  ignore_errors: yes
+
+- name: Destroy running compute nodes. Expect ignored errors if some VMs are already destroyed.
+  community.libvirt.virt:
+    name: "{{ env.hostname.compute[i] }}"
+    command: destroy
+  with_sequence: start=0 end={{env.install_config.compute.replicas - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+  ignore_errors: yes
+
+- name: Undefine remaining compute nodes. Expect ignored errors if some VMs are already undefined.
+  community.libvirt.virt:
+    name: "{{ env.hostname.compute[i] }}"
+    command: undefine
+  with_sequence: start=0 end={{env.install_config.compute.replicas - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
   ignore_errors: yes

@@ -13,7 +13,7 @@
 - name: Set OCP URL
   tags: wait_for_install_complete
   set_fact:
-    ocp_url: https://console-openshift-console.apps.{{env_metadata_name}}.{{env_baseDomain}}
+    ocp_url: https://console-openshift-console.apps.{{env.install_config.metadata_name}}.{{env.install_config.base_domain}}
 
 - name: Set OCP password
   tags: wait_for_install_complete

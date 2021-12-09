@@ -1,5 +1,5 @@
 $TTL 86400
-@ IN SOA {{ env_bastion_name }}.{{ env_baseDomain }}. admin.{{ env_baseDomain }}.(
+@ IN SOA {{ env.hostname.bastion }}.{{ env.install_config.base_domain }}. admin.{{ env.install_config.base_domain }}.(
                                                 2020021821 ;Serial
                                                 3600 ;Refresh
                                                 1800 ;Retry
@@ -8,28 +8,23 @@ $TTL 86400
 )
 
 ;Name Server / Bastion Information
-@ IN NS {{ env_bastion_name }}.{{ env_baseDomain }}.
+@ IN NS {{ env.hostname.bastion }}.{{ env.install_config.base_domain }}.
 
 ;IP Address for Name Server
-{{ env_bastion_name }} IN A {{ env_ip_bastion }}
+{{ env.hostname.bastion }} IN A {{ env.ip.bastion }}
 
 ;entry for bootstrap host.
-{{ env_bootstrap_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. IN A {{ env_ip_bootstrap }}
+{{ env.hostname.bootstrap }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}. IN A {{ env.ip.bootstrap }}
 
-;entries for the master nodes
-{{ env_control_0_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. IN A {{ env_ip_control_0 }}
-{{ env_control_1_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. IN A {{ env_ip_control_1 }}
-{{ env_control_2_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. IN A {{ env_ip_control_2 }}
+;entries for the control nodes
 
-;entries for the worker nodes
-{{ env_compute_0_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. IN A {{ env_ip_compute_0 }}
-{{ env_compute_1_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. IN A {{ env_ip_compute_1 }}
+;entries for the compute nodes
 
 ;The api identifies the IP of your load balancer.
-api.{{ env_metadata_name }}     IN    CNAME {{ env_bastion_name }}.{{ env_baseDomain }}.
-api-int.{{ env_metadata_name }} IN    CNAME {{ env_bastion_name }}.{{ env_baseDomain }}.
+api.{{ env.install_config.metadata_name }}     IN    CNAME {{ env.hostname.bastion }}.{{ env.install_config.base_domain }}.
+api-int.{{ env.install_config.metadata_name }} IN    CNAME {{ env.hostname.bastion }}.{{ env.install_config.base_domain }}.
 
 ;The wildcard also identifies the load balancer.
-*.apps.{{ env_metadata_name }}  IN    CNAME {{ env_bastion_name }}.{{ env_baseDomain }}.
+*.apps.{{ env.install_config.metadata_name }}  IN    CNAME {{ env.hostname.bastion }}.{{ env.install_config.base_domain }}.
 
 ;EOF

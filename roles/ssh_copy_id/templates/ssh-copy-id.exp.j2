@@ -1,7 +1,6 @@
 #!/usr/local/bin/expect -f
 
-set force_conservative 0  ;# set to 1 to force conservative mode even if
-			  ;# script wasn't run conservatively originally
+set force_conservative 0  
 if {$force_conservative} {
 	set send_slow {1 .1}
 	proc send {ignore arg} {
@@ -13,5 +12,5 @@ if {$force_conservative} {
 set timeout -1
 spawn ssh-copy-id -o StrictHostKeyChecking=no -i {{path_to_key_pair}} root@{{ ssh_target_ip }}
 expect "*assword: "
-send -- "{{env_vm_passwd}}\r"
+send -- "{{env.access.login.kvm.root_password}}\r"
 expect eof

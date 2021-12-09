@@ -1,7 +1,7 @@
 ---
 
 - name: Add ports to firewalld
-  tags: firewall,bastion
+  tags: set_firewall
   firewalld:
     port: "{{ item }}"
     permanent: yes
@@ -16,7 +16,7 @@
     - 53/udp
 
 - name: Permit traffic in default zone for http and https
-  tags: firewall,bastion
+  tags: set_firewall
   ansible.posix.firewalld:
     service: "{{ item }}"
     permanent: yes
@@ -26,7 +26,7 @@
     - https
 
 - name: Ensure the default Apache port is 8080
-  tags: httpconf,bastion.firewall
+  tags: set_firewall
   lineinfile:
     path: /etc/httpd/conf/httpd.conf
     search_string: 'Listen 80'
@@ -34,7 +34,7 @@
     backup: yes
 
 - name: Ensure the SSL default port is 4443
-  tags: httpconf,bastion,firewall
+  tags: set_firewall
   replace:
     path: /etc/httpd/conf.d/ssl.conf
     regexp: '^Listen 443 https'
@@ -42,13 +42,13 @@
     backup: yes
 
 - name: reload firewalld to reflect changes
-  tags: firewall,bastion
+  tags: set_firewall
   systemd:
     name: firewalld
     state: reloaded
 
 - name: restart httpd
-  tags: firewall,bastion
+  tags: set_firewall
   service:
     name: httpd
     state: restarted

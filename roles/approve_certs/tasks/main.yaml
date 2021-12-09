@@ -9,12 +9,12 @@
   register: csr_approved_1
   ignore_errors: yes
 
-- name: viewing first csr approved
+- name: Viewing first csr approved
   tags: approve_certs
   debug:
     msg: "{{csr_approved_1.stdout_lines}}"
 
-- name: pause to let new certificates needing approval to generate
+- name: Pause to let new certificates needing approval to generate
   tags: approve_certs
   pause: 
     seconds: 30
@@ -28,12 +28,12 @@
   register: csr_approved_2
   ignore_errors: yes
 
-- name: viewing second csr approved
+- name: Viewing second csr approved
   tags: approve_certs
   debug:
     msg: "{{csr_approved_2.stdout_lines}}"
 
-- name: pause to let new certificates needing approval to generate
+- name: Pause to let new certificates needing approval to generate
   tags: approve_certs
   pause: 
     seconds: 30
@@ -47,12 +47,12 @@
   register: csr_approved_3
   ignore_errors: yes
 
-- name: viewing third csr approved
+- name: Viewing third csr approved
   tags: approve_certs
   debug:
     msg: "{{csr_approved_3.stdout_lines}}"
 
-- name: pause to let new certificates needing approval to generate
+- name: Pause to let new certificates needing approval to generate
   tags: approve_certs
   pause: 
     seconds: 30
@@ -66,12 +66,12 @@
   register: csr_approved_4
   ignore_errors: yes
 
-- name: viewing fourth csr approved
+- name: Viewing fourth csr approved
   tags: approve_certs
   debug:
     msg: "{{csr_approved_4.stdout_lines}}"
 
-- name: pause to let new certificates needing approval to generate
+- name: Pause to let new certificates needing approval to generate
   tags: approve_certs
   pause: 
     seconds: 30
@@ -85,7 +85,7 @@
   register: csr_approved_5
   ignore_errors: yes
 
-- name: viewing fifth csr approved
+- name: Viewing fifth csr approved
   tags: approve_certs
   debug:
     msg: "{{csr_approved_4.stdout_lines}}"
