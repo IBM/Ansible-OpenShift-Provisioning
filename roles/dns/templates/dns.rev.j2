@@ -1,5 +1,5 @@
 $TTL 86400
-@ IN SOA {{ env_bastion_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}. admin.{{ env_metadata_name }}.{{ env_baseDomain }} (
+@ IN SOA {{ env.hostname.bastion }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}. admin.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }} (
                                             2020011800 ;Serial
                                             3600 ;Refresh
                                             1800 ;Retry
@@ -7,18 +7,13 @@ $TTL 86400
                                             86400 ;Minimum TTL
 )
 ;Name Server Information
-@ IN NS {{ env_bastion_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}.
-{{ env_bastion_name }}     IN      A       {{ env_ip_bastion }}
+@ IN NS {{ env.hostname.bastion }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}.
+{{ env.hostname.bastion }}     IN      A       {{ env.ip.bastion }}
 
 ;Reverse lookup for Name Server
-{{ bastion_split_ip.3 }} IN PTR {{ env_bastion_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}.
+{{ bastion_split_ip.3 }} IN PTR {{ env.hostname.bastion }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}.
 
 ;PTR Record IP address to Hostname
-{{ cont_0_split_ip.3 }}     IN      PTR     {{ env_control_0_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}.
-{{ cont_1_split_ip.3 }}     IN      PTR     {{ env_control_1_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}.
-{{ cont_2_split_ip.3 }}     IN      PTR     {{ env_control_2_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}.
-{{ comp_0_split_ip.3 }}     IN      PTR     {{ env_compute_0_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}.
-{{ comp_1_split_ip.3 }}     IN      PTR     {{ env_compute_1_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}.
-{{ bootstrap_split_ip.3 }}     IN      PTR     {{ env_bootstrap_name }}.{{ env_metadata_name }}.{{ env_baseDomain }}.
-{{ bastion_split_ip.3 }}     IN      PTR     api-int.{{ env_metadata_name }}.{{ env_baseDomain }}.
-{{ bastion_split_ip.3 }}     IN      PTR     api.{{ env_metadata_name }}.{{ env_baseDomain }}.
+{{ bootstrap_split_ip.3 }}     IN      PTR     {{ env.hostname.bootstrap }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}.
+{{ bastion_split_ip.3 }}     IN      PTR     api-int.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}.
+{{ bastion_split_ip.3 }}     IN      PTR     api.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}.

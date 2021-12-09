@@ -1,14 +1,14 @@
 ---
 
 - name: print the list of packages to be installed and updated
-  tags: pkg
+  tags: install_packages
   debug:
     var: packages
 
 - name: installing required packages. This may take a while, depending on the number of packages to be installed.
-  tags: pkg
+  tags: install_packages
   ansible.builtin.package:
     name: "{{ item }}"
     state: latest
     update_cache: yes
-  loop: "{{ packages }}"
+  loop: "{{ packages }}" 

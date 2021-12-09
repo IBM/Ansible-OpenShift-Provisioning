@@ -1,29 +1,14 @@
 ---
 
-# Use the "full" tag when running this playbook to reset your installation back to the point where no VMs were running on the KVM host. 
-# If you have more nodes than what is present in the "vms" list below, feel free to add more to the list. 
-# After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'bastionvm,bastion,create_nodes'"
-
-- hosts: localhost
-  tags: full_teardown
-  connection: local
-  become: false
-  gather_facts: no
-  vars_files:
-    - env.yaml
-  tasks:
-    - name: remove bastion from localhost's known_hosts file
-      lineinfile:
-        path: "~/.ssh/known_hosts"
-        regexp: "{{ env_ip_bastion}}"
-        state: absent
+# Use the "full_teardown" tag when running this playbook to reset your installation back to the point where no VMs were running on the KVM host. 
+# After you run this playbook, run the main playbook from the beginning with no tags ("ansible-playbook main.yaml --ask-become-pass")
 
 - hosts: kvm_host
   tags: full_teardown
   become: true
   gather_facts: no
   vars:
-    - vms: ['{{env_bastion_name}}', '{{env_bootstrap_name}}', '{{env_control_0_name}}', '{{env_control_1_name}}', '{{env_control_2_name}}', '{{env_compute_0_name}}', '{{env_compute_1_name}}']
+    - bastion_teardown: yes
   vars_files:
     - env.yaml
   post_tasks:
@@ -32,19 +17,45 @@
         paths: /var/lib/libvirt/images
         file_type: file
         excludes: 
-        - lost+found
+          - "lost+found"
       register: found_files
     - name: delete files in /var/lib/libvirt/images except for lost+found
       file:
         path: "{{ item.path }}"
         state: absent
       with_items: "{{ found_files['files'] }}"
+    - name: remove local workstation from KVM hosts' authorized_keys file
+      file:
+        path: "~/.ssh/authorized_keys"
+        state: absent
   roles:
     - teardown_vms
 
-# Use the "partial" tag when running this playbook to reset your installation back to the point where just the bastion node was running on the KVM host. 
-# If you have more nodes than what is present in the "vms" list below, feel free to add more to the list. 
-# After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'bastion,create_nodes'"
+- hosts: localhost
+  tags: full_teardown
+  connection: local
+  become: false
+  gather_facts: no
+  vars:
+    - files_to_reset: ['~/.ssh/ansible','~/.ssh/ansible.pub'] # feel free to add as needed
+  vars_files:
+    - env.yaml
+  pre_tasks:
+    - name: remove bastion from localhost's known_hosts file
+      lineinfile:
+        path: "~/.ssh/known_hosts"
+        regexp: "{{ env.ip.bastion}}"
+        state: absent
+    - name: remove KVM host from localhost's known_hosts file
+      lineinfile:
+        path: "~/.ssh/known_hosts"
+        regexp: "{{ env.ip.kvm}}"
+        state: absent
+  roles:
+  - reset_files
+
+# Use the "partial_teardown" tag when running this playbook to reset your installation back to the point where just the bastion node was running on the KVM host. 
+# After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'bastion,create_nodes,verification'"
 
 - hosts: localhost
   tags: partial_teardown
@@ -57,7 +68,7 @@
     - name: remove bastion from localhost's known_hosts file
       lineinfile:
         path: "~/.ssh/known_hosts"
-        regexp: "{{ env_ip_bastion}}"
+        regexp: "{{ env.ip.bastion}}"
         state: absent
 
 - hosts: bastion
@@ -75,26 +86,9 @@
   tags: partial_teardown
   become: true
   gather_facts: no
+  vars:
+    - bastion_teardown: no
   vars_files:
     - env.yaml
-  pre_tasks:
-    - name: Create list of VMs to teardown.
-      set_fact:
-        vms: ['{{env_bootstrap_name}}','{{env_control_0_name}}','{{env_control_1_name}}','{{env_control_2_name}}','{{env_compute_0_name}}','{{env_compute_1_name}}']
-  roles:
-    - teardown_vms
-
-# Use the "boot_teardown" tag when running this playbook to reset your installation back to the point where just the bastion node was running on the KVM host. 
-
-- hosts: kvm_host
-  tags: boot_teardown
-  become: true
-  gather_facts: no
-  vars_files:
-    - env.yaml
-  pre_tasks:
-    - name: Create list of VMs to teardown.
-      set_fact:
-        vms: ['{{env_bootstrap_name}}']
   roles:
     - teardown_vms

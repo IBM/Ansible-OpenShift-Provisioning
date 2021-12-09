@@ -10,7 +10,7 @@
   retries: 120
   delay: 30
   
-- name: print output of oc whoami, should be system:admin
+- name: Print output of oc whoami, should be system:admin
   tags: wait_for_bootstrap
   debug:
     var: oc_whoami.stdout
@@ -34,15 +34,15 @@
 - name: Destroy bootstrap. Expect ignored errors if bootstrap is already destroyed.
   tags: wait_for_bootstrap
   community.libvirt.virt:
-    name: "{{ env_bootstrap_name }}"
+    name: "{{ env.hostname.bootstrap }}"
     command: destroy
   ignore_errors: yes
-  delegate_to: "{{ env_ip_kvm_host}}"
+  delegate_to: "{{ env.ip.kvm }}"
 
 - name: Undefine bootstrap. Expect ignored errors if bootstrap is already undefined.
   tags: wait_for_bootstrap  
   community.libvirt.virt:
-    name: "{{ env_bootstrap_name }}"
+    name: "{{ env.hostname.bootstrap }}"
     command: undefine
   ignore_errors: yes
-  delegate_to: "{{ env_ip_kvm_host}}"
+  delegate_to: "{{ env.ip.kvm }}"

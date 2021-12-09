@@ -1,18 +1,18 @@
 ---
 
-- name: Check to see if local .ssh directory exists
-  tags: keymastr
+- name: Check to see if local SSH directory exists
+  tags: ssh_key_gen, ssh
   stat:
     path: "~/.ssh"
   register: ssh_directory_exists_check
 
-- name: Print results of .ssh directory check
-  tags: keymastr
+- name: Print results of SSH directory check
+  tags: ssh_key_gen, ssh
   debug:
     var: ssh_directory_exists_check
 
-- name: Create .ssh local directory if it doesn't already exist
-  tags: keymastr
+- name: Create SSH local directory if it doesn't already exist
+  tags: ssh_key_gen, ssh
   file:
     path: "~/.ssh"
     state: directory
@@ -20,50 +20,47 @@
   register: ssh_directory_creation
   when: ssh_directory_exists_check is defined and ssh_directory_exists_check.stat.exists == false
 
-- name: Print results of ssh directory creation
-  tags: keymastr
+- name: Print results of SSH directory creation
+  tags: ssh_key_gen, ssh
   debug:
     var: ssh_directory_creation
 
-- name: Check .ssh key pair files exist
+- name: Check SSH if key pair files exist
   stat:
     path: "~/.ssh/{{item}}"
   register: ssh_key_file_exists_check
   with_items:
-    - "{{env_ssh_ans_name}}"
-    - "{{env_ssh_ans_name}}.pub"
+    - "ansible"
+    - "ansible.pub"
 
-- name: Print results of ssh key pair files check
-  tags: keymastr
+- name: Print results of SSH key pair files check
+  tags: ssh_key_gen, ssh
   debug:
     var: ssh_key_file_exists_check.results[0].stat.exists
 
-- name: create a vars file for key path
-  tags: keymastr
+- name: Create a vars file for path to key
+  tags: ssh_key_gen, ssh
   file:
     state: touch
     path: roles/ssh_copy_id/vars/path_to_key_pair.yaml
 
-- name: Save key path for use in ssh-copy-id role
-  tags: keymastr
+- name: Save path to key pair for use in ssh-copy-id role
+  tags: ssh_key_gen, ssh
   lineinfile:
     line: "path_to_key_pair: {{ssh_key_file_exists_check.results[1].invocation.module_args.path}}"
     path: roles/ssh_copy_id/vars/path_to_key_pair.yaml
 
-- name: Print results of ssh key pair files check
-  tags: keymastr
-  debug:
-    var: ssh_key_file_exists_check.results[0].stat.exists
-
-- name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key
-  tags: keymastr
+- name: Generate an OpenSSH keypair with the default values (4096 bits, RSA)
+  tags: ssh_key_gen, ssh
   community.crypto.openssh_keypair:
-    path: ~/.ssh/{{ env_ssh_ans_name }}
+    path: ~/.ssh/ansible
     passphrase: ""
+    comment: "{{ env.access.ssh.ansible.comment }}"
   register: ssh_key_creation
   when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false
 
 - name: Print results of ssh key pair creation
-  tags: keymastr
+  tags: ssh_key_gen, ssh
   debug:
     var: ssh_key_creation
+  when: ssh_key_creation.changed == true

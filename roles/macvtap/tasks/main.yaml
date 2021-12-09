@@ -1,7 +1,7 @@
 ---
 
 - name: Set up macvtap bridge
-  tags: kvmhost, macvtap
+  tags: macvtap
   community.libvirt.virt_net:
     command: define
     name: macvtap-net
@@ -9,14 +9,14 @@
     xml: "{{ lookup ('template', 'macvtap.xml.j2') }}"
 
 - name: Start macvtap-net
-  tags: kvmhost, macvtap
+  tags: macvtap
   community.libvirt.virt_net:
     autostart: yes
     command: start
     name: macvtap-net
       
 - name: Set autostart for macvtap-net
-  tags: kvmhost, macvtap
+  tags: macvtap
   community.libvirt.virt_net:
     autostart: yes
     name: macvtap-net

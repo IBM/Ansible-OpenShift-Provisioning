@@ -8,7 +8,7 @@
   vars_files:
     - env.yaml
   vars:
-    - ssh_target_ip: "{{ env_ip_kvm_host }}"
+    - ssh_target_ip: "{{ env.ip.kvm }}"
   roles:
     - ssh_key_gen
     - ssh_copy_id
@@ -19,16 +19,13 @@
   become: true
   vars_files:
     - env.yaml
-  vars: # feel free to add more packages as needed
-    - packages: ['@server-product-environment','@hardware-monitoring','@network-file-system-client','@remote-system-management',
-                '@headless-management','@system-tools','libvirt-devel','libvirt-daemon-kvm','qemu-kvm','virt-manager','genisoimage',
-                'libvirt-daemon-config-network','libvirt-client','qemu-img','virt-install','virt-viewer','libvirt-daemon-kvm','libvirt'] 
+  vars: 
+    - packages: "{{ env.pkgs.kvm}}"
   roles:
     - check_ssh
     - attach_subscription
     - install_packages
     - set_selinux_permissive
-    - enable_packages
     - macvtap
     - create_bastion
 
@@ -40,7 +37,7 @@
   vars_files:
     - env.yaml
   vars:
-    - ssh_target_ip: "{{ env_ip_bastion }}"
+    - ssh_target_ip: "{{ env.ip.bastion }}"
   roles:
     - ssh_copy_id
 
@@ -49,20 +46,20 @@
   become: true
   vars_files:
     - env.yaml
-  vars: # feel free to add more packages as needed
-    - packages: ['haproxy','httpd','bind','bind-utils','expect','firewalld','mod_ssl']
+  vars:
+    - packages: "{{env.pkgs.bastion}}"
   roles:
     - check_ssh
     - attach_subscription
     - install_packages
-    - ssh-ocp-key-gen # SSH key for bastion to connect to nodes
+    - ssh_ocp_key_gen
     - set_selinux_permissive
     - set_firewall
-    #- dns
+    - dns
     - check_dns
     - haproxy
     - httpd
-    - get-ocp
+    - get_ocp
 
 - hosts: kvm_host
   tags: kvm_host, create_nodes

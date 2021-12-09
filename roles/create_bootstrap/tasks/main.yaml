@@ -1,36 +1,36 @@
 ---
 
 - name: Load in variables from env.yaml
-  tags: bootstrap
+  tags: create_bootstrap
   include_vars: env.yaml
 
-- name: check if bootstrap already exists
-  tags: bootstrap
+- name: Check if bootstrap already exists
+  tags: create_bootstrap
   community.libvirt.virt:
-    name: "{{ env_bootstrap_name }}"
+    name: "{{ env.hostname.bootstrap }}"
     command: status
   register: bootstrap_check
   ignore_errors: yes
 
-- name: print status of bootstrap
-  tags: bootstrap
+- name: Print status of bootstrap
+  tags: create_bootstrap
   debug: 
     var: bootstrap_check
 
-- name: boot bootstrap
-  tags: bootstrap
+- name: Start bootstrap installation
+  tags: create_bootstrap
   command: |
     virt-install \
-    --name {{env_bootstrap_name}} \
-    --disk /var/lib/libvirt/images/{{env_bootstrap_name}}-bootstrap.qcow2,size={{ env_boot_disk_size }} \
-    --ram {{ env_boot_ram }} \
-    --cpu {{ env_boot_cpu }} \
-    --vcpus {{ env_boot_vcpu }} \
+    --name {{env.hostname.bootstrap}} \
+    --disk /var/lib/libvirt/images/{{env.hostname.bootstrap}}-bootstrap.qcow2,size={{ env.node_resources.bootstrap.disk_size }} \
+    --ram {{ env.node_resources.bootstrap.ram }} \
+    --cpu host \
+    --vcpus {{ env.node_resources.bootstrap.vcpu }} \
     --os-type linux \
-    --os-variant rhel{{ env_boot_os_variant }} \
+    --os-variant rhel{{ env.node_resources.bootstrap.os_variant }} \
     --network network=macvtap-net \
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env_ip_bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env_ip_bootstrap}}::{{env_default_gateway}}:{{env_netmask}}:{{env_bootstrap_name}}::none:1500 nameserver={{env_dns_nameserver}} coreos.inst.ignition_url=http://{{env_ip_bastion}}:8080/ignition/bootstrap.ign" \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.ip.bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.ip.bootstrap}}::{{env.networking.gateway}}:{{env.networking.netmask}}:{{env.hostname.bootstrap}}::none:1500 nameserver={{env.networking.dns.nameserver}} coreos.inst.ignition_url=http://{{env.ip.bastion}}:8080/ignition/bootstrap.ign" \
     --graphics none \
     --wait=-1 \
     --noautoconsole 
