@@ -35,7 +35,7 @@ for local workstation running Ansible
     * 1 TB of disk space mounted to /var/lib/libvirt/images
     * Red Hat Enterprise Linux (RHEL) 8.4 with networking configured and a root password set
     * Access to 8 (for a minimum installation) pre-allocated IPv4 addresses
-* Note on DNS: The [main playbook](main.yaml) will create a DNS server on the bastion by default. If you plan to use a pre-existing DNS server instead, please make sure to mark the variable env.networking.dns.setup_on_bastion to 'false' in [env.yaml](env.yaml) to skip that step. Either way, the playbook will double-check the DNS configuration before continuing.
+* Note on DNS: The [main playbook](main.yaml) will create a DNS server on the bastion by default. If you plan to use a pre-existing DNS server instead, when filling out the variables in [env.yaml](env.yaml) in Step 3, please make sure to mark 'env.networking.dns.setup_on_bastion' to 'false'. Either way, the playbook will double-check the DNS configuration before continuing.
 
 ## Installation Instructions:
 
@@ -44,7 +44,7 @@ for local workstation running Ansible
     * Navigate to a folder where you would like to store this project in your terminal
     * Run "git clone https://github.com/IBM/Ansible-OpenShift-Provisioning.git"
 * **Step 2: Get Red Hat Info**
-    * In a web browser, navigate to Red Hat's [customer portal](https://access.redhat.com/products/red-hat-enterprise-linux/), click on the 'Download Latest' button, use the drop-down to select Red Hat Enterprise Linux for IBM z Systems, select your desired version, make sure 'Architcture' is 's390x', and then scroll down to 'Red Hat Enterprise Linux X.X Update KVM Guest Image' and click on 'Download Now'. See where it downloads, copy the path and paste it into [env.yaml](env.yaml) as the variable 'env_rhel_qcow2'.
+    * In a web browser, navigate to Red Hat's [customer portal](https://access.redhat.com/products/red-hat-enterprise-linux/), click on the 'Download Latest' button, use the drop-down to select Red Hat Enterprise Linux for IBM z Systems, select your desired version, make sure 'Architcture' is 's390x', and then scroll down to 'Red Hat Enterprise Linux X.X Update KVM Guest Image' and click on 'Download Now'. See where it downloads, copy the path and paste it into [env.yaml](env.yaml) as the variable 'env.redhat.path_to_qcow2'.
     * In a web browser, navigate to the Red Hat [console](https://console.redhat.com/openshift/install/ibmz/user-provisioned) and copy the OpenShift pull secret and paste it into [env.yaml](env.yaml) as the variable 'env_pullSecret'.
 * **Step 3: Set Variables**
     * In a text editor of your choice, open [env.yaml](env.yaml)
@@ -72,10 +72,10 @@ for local workstation running Ansible
 
 ## Troubleshooting:
 If you encounter errors while running the main playbook, there are a few things you can do:
-1) Double check your variables in env.yaml
+1) Double check your variables in [env.yaml](env.yaml)
 2) Inspect the part that failed by opening roles/role_name/tasks/main.yaml
 3) Google the specific error message
-3) Re-Run the role indivually with [tags](#Tags)
+3) Re-run the role indivually with [tags](#Tags) and the verbosity '-v' option to get more debugging information (more v's give more info). For example: "ansible-playbook main.yaml --ask-become-pass --tags get_ocp -vvv"
 4) Teardown troublesome KVM guests with [teardown](#Teardown) scripts and start again with [tags](#Tags). To start from the beginning, run "ansible-playbook teardown.yaml --ask-become-pass --tags full_teardown
 6) E-mail Jacob Emery at jacob.emery@ibm.com
 7) If it's a problem with an OpenShift verification step, first re-reun the role with [tags](#Tags). If that doesn't work, SSH into the bastion as root ("ssh root@bastion-ip-address-here") and then run,"export KUBECONFIG=/ocpinst/auth/kubeconfig" and then "oc whoami" and make sure it ouputs "system:admin". Then run the shell command from the role you would like to check on manually: i.e. 'oc get nodes', 'oc get co', etc.
