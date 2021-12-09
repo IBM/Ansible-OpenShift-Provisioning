@@ -32,9 +32,10 @@ for local workstation running Ansible
 * Access to a logical partition (LPAR) on an IBM Z or LinuxONE mainframe, with at least:
     * 6 Integrated Facilities for Linux (IFLs) with SMT2 enabled
     * 85 GB of RAM
-    * 1 TB of disk space
-* On that LPAR, Red Hat Enterprise Linux (RHEL) with networking configured and a root password set
-* On that LPAR, access to 8 (for a minimum installation) pre-allocated IPv4 addresses with Fully Qualified Domain Names (FQDN)
+    * 1 TB of disk space mounted to /var/lib/libvirt/images
+    * Red Hat Enterprise Linux (RHEL) 8.4 with networking configured and a root password set
+    * Access to 8 (for a minimum installation) pre-allocated IPv4 addresses
+* Note on DNS: The [main playbook](main.yaml) will create a DNS server on the bastion by default. If you plan to use a pre-existing DNS server instead, please make sure to mark the variable env.networking.dns.setup_on_bastion to 'false' in [env.yaml](env.yaml) to skip that step. Either way, the playbook will double-check the DNS configuration before continuing.
 
 ## Installation Instructions:
 
@@ -47,18 +48,20 @@ for local workstation running Ansible
     * In a web browser, navigate to the Red Hat [console](https://console.redhat.com/openshift/install/ibmz/user-provisioned) and copy the OpenShift pull secret and paste it into [env.yaml](env.yaml) as the variable 'env_pullSecret'.
 * **Step 3: Set Variables**
     * In a text editor of your choice, open [env.yaml](env.yaml)
-    * Fill out the remaining variables to match your specific installation. Many variables are pre-filled with defaults. For a default installation, you only need to fill in the empty variables.
+    * Fill out variables marked with '#X' to match your specific installation. 
+    * Many variables are pre-filled with defaults, change pre-filled variables at your own discretion.
+    * This is the most important step in the process. Take the time to make sure everything here is correct.
 * **Step 4: Setup Script** 
-    * Navigate to the folder where you cloned the Git Repository
-    * Run "ansible-playbook setup.yaml --ask-become-pass"
+    * Navigate to the folder where you cloned the Git Repository in your terminal.
+    * Run this shell command: "ansible-playbook setup.yaml --ask-become-pass"
 
 ### Provisioning
 * **Step 5: Running the Main Playbook** 
-    * If you are not already there, navigate to the folder where you cloned the Git repository in your terminal.
-    * Run the main playbook by running this shell command: "ansible-playbook main.yaml --ask-become-pass"
+    * Navigate to the folder where you cloned the Git repository in your terminal.
+    * Start the main playbook by running this shell command: "ansible-playbook main.yaml --ask-become-pass"
     * Watch Ansible as it completes the installation, correcting errors if they arise. 
     * To look at what is running in detail, open roles/'task-you-want-to-inspect'/tasks/main.yaml
-    * If the process fails in error, you should be able to run the same shell command to start the process from the top. To be more selective with what parts of the main playbook run, use [tags](#Tags). See the [main playbook](main.yaml) to determine what part you would like to run and use those tags when running the [main playbook](main.yaml). Example: "ansible-playbook main.yaml --ask-become-pass --tags 'get-ocp,create_nodes'"
+    * If the process fails in error, go through the steps in the [troubleshooting](#Troubleshooting) section. use [tags](#Tags) to selectively start from a certain point. See the [main playbook](main.yaml) to determine what part you would like to run and use those tags when running the [main playbook](main.yaml). Example: "ansible-playbook main.yaml --ask-become-pass --tags 'get-ocp,create_nodes'"
     * Note: we chose to not edit the user's .bash_profile/.bashrc with an automatic ssh-add command because that would change the user's local workstation set-up in a way that was potentially undesirable. Therefore, if you close out your terminal session in the middle of provisioning, you will need to run "ansible-playbook main.yaml --tags ssh-agent" before doing anything else.
 
 ### Post-Install Complete 
@@ -69,59 +72,58 @@ for local workstation running Ansible
 
 ## Troubleshooting:
 If you encounter errors while running the main playbook, there are a few things you can do:
-* 1) Check your variables in env.yaml
-* 2) Inspect the task that failed by inspecting the task in roles/role_name/tasks_main.yaml
-* 3) Google the specific error message
-* 3) Re-Run the role indivually with with [tags](#Tags)
-* 4) Teardown troublesome KVM guests with [teardown](#Teardown) scripts and start again with [tags](#Tags)
-* 6) E-mail Jacob Emery at jacob.emery@ibm.com
+1) Double check your variables in env.yaml
+2) Inspect the part that failed by opening roles/role_name/tasks/main.yaml
+3) Google the specific error message
+3) Re-Run the role indivually with [tags](#Tags)
+4) Teardown troublesome KVM guests with [teardown](#Teardown) scripts and start again with [tags](#Tags). To start from the beginning, run "ansible-playbook teardown.yaml --ask-become-pass --tags full_teardown
+6) E-mail Jacob Emery at jacob.emery@ibm.com
+7) If it's a problem with an OpenShift verification step, first re-reun the role with [tags](#Tags). If that doesn't work, SSH into the bastion as root ("ssh root@bastion-ip-address-here") and then run,"export KUBECONFIG=/ocpinst/auth/kubeconfig" and then "oc whoami" and make sure it ouputs "system:admin". Then run the shell command from the role you would like to check on manually: i.e. 'oc get nodes', 'oc get co', etc.
 
 ## Teardown: 
-* If you would like to teardown your VMs, first determine whether you would like to do a full, partial, or bootstrap teardown, specified below.
-* Full: to teardown all the VMs running on your KVM host, run: "ansible-playbook teardown.yaml --ask-become-pass --tags full_teardown"
-* Partial: To teardown all the VMS except for the bastion, run: "ansible-playbook teardown.yaml --ask-become-pass --tags partial_teardown"
-* Bootstrap: The bootstrap is not needed after OpenShift fully installs and will be automatically brough down in the process of running the main playbook. To easily tear it down, run: "ansible-playbook teardown.yaml --ask-become-pass --tags boot_teardown"
-* If you have provisioned more than the minimum number of nodes for your installation, add them to the
-  respective list found in roles/teardown_vms/tasks/main.yaml.
-* Once you run the full teardown, to start the main.yaml playbook back from that point, run:
-  "run ansible-playbook main.yaml --ask-become-pass --tags "bastionvm,bastion,create_nodes"
-* Once you run the partial teardown, to start the main.yaml playbook back from that point, run main.yaml with "--tags 'getocp,create_nodes'"
+* If you would like to teardown your VMs, first determine whether you would like to do a full or partial teardown, specified below.
+* Full: To teardown all the VMs running on your KVM host, run: "ansible-playbook teardown.yaml --ask-become-pass --tags full_teardown". Start back again from the beginning by running "ansible-playbook main.yaml --ask-become-pass"
+* Partial: To teardown all the VMS except for the bastion, run: "ansible-playbook teardown.yaml --ask-become-pass --tags partial_teardown". To start the main.yaml playbook back from that point, run main.yaml with "--tags 'get_ocp,create_nodes,verification'"
 
 ## Tags
-If the process fails in error, you should be able to run the same shell command to start the process from the top. To be more selective with what parts of playbooks run, use tags. To determine what you part of a playbook or role you would like to run, open the file (either main.yaml or a role/tasks/main.yaml file) and look at the "tags: " section for a task and then use those tags when running the main playbook (examples below). 
+* To be more selective with what parts of playbooks run, use tags. 
+* This is especially helpful for troubleshooting. 
+* To determine what you part of a playbook you would like to run, check the list below. Tags match their corresponding roles. There are also some tags like "bastion" that cover multiple roles. To see these tags, see the [main playbook](main.yaml).
 * Examples: 
-* ansible-playbook main.yaml --ask-become-pass --tags getocp (for one tag), or
-* ansible-playbook main.yaml --ask-become-pass --tags 'bastion,get-ocp' (for multiple tags)
+* "ansible-playbook main.yaml --ask-become-pass --tags get_ocp" (for one tag), or
+* "ansible-playbook main.yaml --ask-become-pass --tags 'bastion,get_ocp'" (for multiple tags)
 
 List of Tags (in alphabetical order):
 * approve_certs = Tasks for approve_certs role
+* attach_subscription = Auto-attach Red Hat subscription role
 * bastion = Configuration of bastion
-* bastionvm = Creation of Bastion KVM guest
-* bootstrap = Creation of Boostrap KVM guest
-* boot_teardown = Use with teardown.yaml to bring down the bootstrap
 * check_nodes = Tasks for check_nodes role
 * check_dns = Check DNS resolution
+* check_ssh = Check SSH role
 * compute = Creation of the compute nodes
 * control = Creation of the control nodes
+* create_bastion = Creation of bastion KVM guest
+* create_bootstrap = Creation of boostrap KVM guest
 * create_nodes = Second set of KVM host's plays
 * dns = Configuration of DNS server on bastion
-* firewall = Configuration of firewall
 * full_teardown = Use with teardown.yaml to bring down all KVM guests
-* get-ocp = Prepare bastion for OCP
+* get_ocp = Prepare bastion for installing OpenShift
 * haproxy = Configuration of load balancer on bastion
 * httpd = Configuration of Apache server on bastion
-* ssh-keygen = SSH key configuration and testing
+* install_packages = Install and update packages
 * kvm_host = All KVM host tasks
 * kvm_prep = First set of KVM host's tasks
 * localhost = Tasks that apply to the local machine running Ansible
+* prep_kvm_guest = Get Red Hat CoreOS kernel and initramfs on host
 * partial_teardown = Use with teardown.yaml to bring down all VMs except bastion
-* pkg = Install and update packages
-* selinux = Tasks related to SELinux settings
+* set_selinux_permissive = Tasks related to SELinux settings
+* set_firewall = Configuration of firewall
 * setup = First set of setup tasks on the localhost
 * ssh = All SSH tasks
-* ssh-agent = Setting up SSH agent
-* ssh-copy-id = Copying SSH key to target
-* subscription = Attach Red Hat Subscription
+* ssh_agent = Setting up SSH agent
+* ssh_copy_id = Copying SSH key to target
+* ssh_key_gen = Ansible SSH keypair creation
+* ssh_ocp_key_gen = Generate SSH key pair for OpenShift on bastion
 * verification = All OpenShift cluster verification tasks
 * wait_for_bootstrap = Tasks for to wait_for_bootstrap role
 * wait_for_cluster_operators = Tasks for wait_for_cluster_operators
