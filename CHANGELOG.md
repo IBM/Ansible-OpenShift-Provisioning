@@ -2,11 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
-### Jump-To:
-* [Latest](#1.1.0)
-* [1.0.0](#1.0.0)
-* [0.0.1](#0.0.1)
-* [Roadmap](#Roadmap)
+## 1.2.0
+### Scaling Update - 2021-12-09
+### Summary
+- Now supports any number of control and compute nodes to be provisioned in the cluster.
+- This update heavily modifies the variable structure in env.yaml in order to make scaling work.
+
+### Added
+- Support for scaling of control and compute nodes.
+
+### Modified
+- Variable structure in env.yaml in order to support scaling.
+- Tags to match their corresponding role.
+- Every reference to a variable from env.yaml to match the new structure.
+
+## Roadmap
+* Add option to have load balancer on bastion or not
+* Add option for OpenShift to use a proxy server
+* Add picture of finished infrastructure to README
+* Add README’s for each role
+* Make ssh-copy-id role idempotent
+* Air-gapped (disconnected) install of OpenShift option
+* Add an option to automte the creation of an LPAR and install RHEL on KVM host
 
 ## 1.1.0 
 ### Automated OCP Verification Update - 2021-12-03
@@ -51,12 +68,3 @@ All notable changes to this project will be documented in this file.
 
 ## 0.0.1 
 ### Unreleased 2021-08-24
-
-## Roadmap
-* Add option in env.yaml to create HAProxy on bastion or not
-* Add option for using a proxy server for OpenShift in install-config via env.yaml
-* Add functionality to provision more than 3 control and 2 compute nodes
-* Make ssh-copy-id role idempotent.
-* Add picture of finished infrastructure to README
-* Add README’s for each role
-* Air-gapped (disconnected) install of OpenShift option
