@@ -28,7 +28,7 @@
 - name: Get Red Hat CoreOS initramfs
   tags: prep_kvm_guests
   get_url:
-    url: "{{ env_rhcos_initramfs }}"
+    url: "{{ env.coreos.initramfs }}"
     dest: /var/lib/libvirt/images/rhcos-live-initramfs.s390x.img
     mode: '0755'
     force: yes
