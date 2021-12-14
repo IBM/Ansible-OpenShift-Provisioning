@@ -15,7 +15,7 @@ disable_root: false
 chpasswd: 
   list: |
     root:{{ env.access.login.bastion.root_password }}
-    {{ env.access.login.bastion.username }}:{{ env.access.login.bastion.username }}
+    {{ env.access.login.bastion.username }}:{{ env.access.login.bastion.password }}
   expire: False
 
 #growpart:
