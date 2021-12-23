@@ -51,6 +51,20 @@
         path: "~/.ssh/known_hosts"
         regexp: "{{ env.ip.kvm}}"
         state: absent
+    - name: Delete SSH key vars files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ roles/get_ocp/files/ocp_ssh_pub.yaml }}"
+        - "{{ roles/ssh_copy_id/vars/path_to_key_pair.yaml }}"
+    - name: Recreate empty SSH key vars files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ roles/get_ocp/files/ocp_ssh_pub.yaml }}"
+        - "{{ roles/ssh_copy_id/vars/path_to_key_pair.yaml }}"
   roles:
   - reset_files
 
