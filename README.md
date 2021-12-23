@@ -27,8 +27,8 @@ for local workstation running Ansible
 * Python3 intalled on your local computer ([how-to](https://realpython.com/installing-python/))
 * Ansible installed on your local computer ([how-to](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html))
 * If you are using Mac OS X for your localhost workstation to run Ansible, you also need to have: 
-    * homebrew package manager installed ([how-to](https://brew.sh/))
-    * Updated software for command line tools (run "softwareupdate --all --install" in your terminal)
+    * Homebrew package manager installed ([how-to](https://brew.sh/))
+    * Updated software for command line tools (run "softwareupdate --all --install" and "xcode-select --install" in your terminal)
 * Access to a logical partition (LPAR) on an IBM Z or LinuxONE mainframe, with at least:
     * 6 Integrated Facilities for Linux (IFLs) with SMT2 enabled
     * 85 GB of RAM
