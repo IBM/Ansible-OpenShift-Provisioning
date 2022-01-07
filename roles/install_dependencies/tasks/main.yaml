@@ -1,9 +1,9 @@
 ---
 
-- name: Gather facts to get OS family to see which setup script to run
+- name: Gather facts to get OS family to see which task to run
   ansible.builtin.gather_facts:
 
-- name: install Ansible dependencies and packages
+- name: Check for latest versions then install dependencies and packages for Mac workstations, skip if not Mac.
   shell: "{{ item }}"
   loop:  
     - ansible-galaxy collection install community.general
@@ -14,14 +14,14 @@
     - brew install expect
   when: ansible_facts['os_family'] == "Darwin"
 
-- name: install Ansible dependencies and packages
+- name: Check for latest versions then install dependencies and packages for Debian workstations, skip if not Debian.
   shell: "{{ item }}"
   loop:
     - ansible-galaxy collection install community.general
     - ansible-galaxy collection install community.crypto
     - ansible-galaxy collection install ansible.posix
     - ansible-galaxy collection install community.libvirt
-    - sudo dnf install openssh -y
-    - sudo dnf install expect -y
+    - sudo yum install openssh -y
+    - sudo yum install expect -y
   when: ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == "Debian"
   
