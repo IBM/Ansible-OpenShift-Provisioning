@@ -20,7 +20,30 @@
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.ip.bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.ip.compute[i]}}::{{env.networking.gateway}}:{{env.networking.netmask}}:{{env.hostname.compute[i]}}::none:1500 nameserver={{env.networking.dns.nameserver}} coreos.inst.ignition_url=http://{{env.ip.bastion}}:8080/ignition/worker.ign" \
     --wait=-1 \
     --noautoconsole
-  with_sequence: start=0 end={{env.install_config.compute.replicas - 1}} stride=1
+  with_sequence: start=0 end={{(env.hostname.compute | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
+
+- name: Install CoreOS on infra nodes
+  tags: create_compute_nodes
+  command: |
+    virt-install \
+    --name {{env.hostname.infra[i]}} \
+    --disk size={{env.node_resources.infra.disk_size}} \
+    --ram {{env.node_resources.infra.ram}} \
+    --cpu host \
+    --vcpus {{env.node_resources.infra.vcpu}} \
+    --os-type linux \
+    --os-variant rhel{{env.node_resources.infra.os_variant}} \
+    --network network=macvtap-net \
+    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.ip.bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.ip.infra[i]}}::{{env.networking.gateway}}:{{env.networking.netmask}}:{{env.hostname.infra[i]}}::none:1500 nameserver={{env.networking.dns.nameserver}} coreos.inst.ignition_url=http://{{env.ip.bastion}}:8080/ignition/worker.ign" \
+    --wait=-1 \
+    --noautoconsole
+  with_sequence: start=0 end={{(env.hostname.infra | length) - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+  when: env.hostname.infra is defined
+
