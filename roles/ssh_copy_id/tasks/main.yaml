@@ -21,9 +21,9 @@
   tags: ssh_copy_id, ssh
   lineinfile:
     path: "~/.ssh/known_hosts"
-    line: "{{ ssh_target_ip }}"
+    line: "{{ ssh_target[0] }}"
     state: absent
-  delegate_to: localhost
+  delegate_to: workstation
 
 - name: Use template file to create expect script
   tags: ssh_copy_id, ssh

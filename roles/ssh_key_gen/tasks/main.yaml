@@ -1,15 +1,13 @@
 ---
+- name: Load in variables from env.yaml
+  tags: ssh_key_gen, ssh
+  include_vars: env.yaml
 
 - name: Check to see if local SSH directory exists
   tags: ssh_key_gen, ssh
   stat:
     path: "~/.ssh"
   register: ssh_directory_exists_check
-
-- name: Print results of SSH directory check
-  tags: ssh_key_gen, ssh
-  debug:
-    var: ssh_directory_exists_check
 
 - name: Create SSH local directory if it doesn't already exist
   tags: ssh_key_gen, ssh
@@ -18,25 +16,21 @@
     state: directory
     mode: '700'
   register: ssh_directory_creation
-  when: ssh_directory_exists_check is defined and ssh_directory_exists_check.stat.exists == false
+  when: ssh_directory_exists_check.stat.exists == false
 
-- name: Print results of SSH directory creation
+- name: Generate an OpenSSH keypair with the default values (4096 bits, RSA)
+  tags: ssh_key_gen, ssh
+  community.crypto.openssh_keypair:
+    path: ~/.ssh/ansible
+    passphrase: ""
+    comment: "{{ env.access.ssh.ansible_key_comment }}"
+    regenerate: always
+  register: ssh_key_creation
+
+- name: Print results of ssh key pair creation
   tags: ssh_key_gen, ssh
   debug:
-    var: ssh_directory_creation
-
-- name: Check SSH if key pair files exist
-  stat:
-    path: "~/.ssh/{{item}}"
-  register: ssh_key_file_exists_check
-  with_items:
-    - "ansible"
-    - "ansible.pub"
-
-- name: Print results of SSH key pair files check
-  tags: ssh_key_gen, ssh
-  debug:
-    var: ssh_key_file_exists_check.results[0].stat.exists
+    var: ssh_key_creation
 
 - name: Create a vars file for path to key
   tags: ssh_key_gen, ssh
@@ -47,20 +41,5 @@
 - name: Save path to key pair for use in ssh-copy-id role
   tags: ssh_key_gen, ssh
   lineinfile:
-    line: "path_to_key_pair: {{ssh_key_file_exists_check.results[1].invocation.module_args.path}}"
+    line: "path_to_key_pair: {{ssh_key_creation.filename}}.pub"
     path: roles/ssh_copy_id/vars/path_to_key_pair.yaml
-
-- name: Generate an OpenSSH keypair with the default values (4096 bits, RSA)
-  tags: ssh_key_gen, ssh
-  community.crypto.openssh_keypair:
-    path: ~/.ssh/ansible
-    passphrase: ""
-    comment: "{{ env.access.ssh.ansible.comment }}"
-  register: ssh_key_creation
-  when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false
-
-- name: Print results of ssh key pair creation
-  tags: ssh_key_gen, ssh
-  debug:
-    var: ssh_key_creation
-  when: ssh_key_creation.changed == true
