@@ -1,5 +1,5 @@
 $TTL 86400
-@ IN SOA {{ env.hostname.bastion }}.{{ env.install_config.base_domain }}. admin.{{ env.install_config.base_domain }}.(
+@ IN SOA {{ env.hostname.bastion }}.{{ env.networking.base_domain }}. admin.{{ env.networking.base_domain }}.(
                                                 2020021821 ;Serial
                                                 3600 ;Refresh
                                                 1800 ;Retry
@@ -8,23 +8,25 @@ $TTL 86400
 )
 
 ;Name Server / Bastion Information
-@ IN NS {{ env.hostname.bastion }}.{{ env.install_config.base_domain }}.
+@ IN NS {{ env.hostname.bastion }}.{{ env.networking.base_domain }}.
 
 ;IP Address for Name Server
 {{ env.hostname.bastion }} IN A {{ env.ip.bastion }}
 
 ;entry for bootstrap host.
-{{ env.hostname.bootstrap }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}. IN A {{ env.ip.bootstrap }}
+{{ env.hostname.bootstrap }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}. IN A {{ env.ip.bootstrap }}
 
 ;entries for the control nodes
 
 ;entries for the compute nodes
 
+;entries for extra RHEL VMs (if requested)
+
 ;The api identifies the IP of your load balancer.
-api.{{ env.install_config.metadata_name }}     IN    CNAME {{ env.hostname.bastion }}.{{ env.install_config.base_domain }}.
-api-int.{{ env.install_config.metadata_name }} IN    CNAME {{ env.hostname.bastion }}.{{ env.install_config.base_domain }}.
+api.{{ env.networking.metadata_name }}     IN    CNAME {{ env.hostname.bastion }}.{{ env.networking.base_domain }}.
+api-int.{{ env.networking.metadata_name }} IN    CNAME {{ env.hostname.bastion }}.{{ env.networking.base_domain }}.
 
 ;The wildcard also identifies the load balancer.
-*.apps.{{ env.install_config.metadata_name }}  IN    CNAME {{ env.hostname.bastion }}.{{ env.install_config.base_domain }}.
+*.apps.{{ env.networking.metadata_name }}  IN    CNAME {{ env.hostname.bastion }}.{{ env.networking.base_domain }}.
 
 ;EOF

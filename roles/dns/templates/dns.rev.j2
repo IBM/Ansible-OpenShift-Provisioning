@@ -1,5 +1,5 @@
 $TTL 86400
-@ IN SOA {{ env.hostname.bastion }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}. admin.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }} (
+@ IN SOA {{ env.hostname.bastion }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}. admin.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }} (
                                             2020011800 ;Serial
                                             3600 ;Refresh
                                             1800 ;Retry
@@ -7,13 +7,13 @@ $TTL 86400
                                             86400 ;Minimum TTL
 )
 ;Name Server Information
-@ IN NS {{ env.hostname.bastion }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}.
+@ IN NS {{ env.hostname.bastion }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}.
 {{ env.hostname.bastion }}     IN      A       {{ env.ip.bastion }}
 
 ;Reverse lookup for Name Server
-{{ bastion_split_ip.3 }} IN PTR {{ env.hostname.bastion }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}.
+{{ bastion_split_ip.3 }} IN PTR {{ env.hostname.bastion }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}.
 
 ;PTR Record IP address to Hostname
-{{ bootstrap_split_ip.3 }}     IN      PTR     {{ env.hostname.bootstrap }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}.
-{{ bastion_split_ip.3 }}     IN      PTR     api-int.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}.
-{{ bastion_split_ip.3 }}     IN      PTR     api.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}.
+{{ bootstrap_split_ip.3 }}     IN      PTR     {{ env.hostname.bootstrap }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}.
+{{ bastion_split_ip.3 }}     IN      PTR     api-int.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}.
+{{ bastion_split_ip.3 }}     IN      PTR     api.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}.
