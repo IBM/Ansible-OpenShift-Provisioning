@@ -15,7 +15,7 @@
 - name: Print status of bootstrap
   tags: create_bootstrap
   debug: 
-    var: bootstrap_check
+    var: bootstrap_check.msg
 
 - name: Start bootstrap installation
   tags: create_bootstrap
@@ -35,3 +35,11 @@
     --wait=-1 \
     --noautoconsole 
   when: bootstrap_check.failed == true
+
+- name: Set bootstrap qcow2 permissions
+  tags: create_bootstrap
+  command: chmod 600 /var/lib/libvirt/images/{{env.hostname.bootstrap}}-bootstrap.qcow2
+
+- name: Set bootstrap qcow2 ownership to qemu
+  tags: create_bootstrap
+  command: chown qemu:qemu /var/lib/libvirt/images/{{env.hostname.bootstrap}}-bootstrap.qcow2
