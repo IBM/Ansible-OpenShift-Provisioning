@@ -8,12 +8,15 @@
   tags: setup
   blockinfile:
     path: inventory
+    marker: "#{mark} ansible managed block from set_inventory role"
+    marker_begin: "start of"
+    marker_end: "end of"
     block: |
       [kvm_host]
-      {{env.ip.kvm}}
+      {{env.ip.kvm}} ansible_connection=ssh ansible_ssh_user={{env.access.login.kvm.user}} ansible_ssh_pass={{env.access.login.kvm.pass}} ansible_become_password={{env.access.login.kvm.sudo_pass}}
 
       [bastion]
-      {{env.ip.bastion}}
+      {{env.ip.bastion}} ansible_connection=ssh ansible_ssh_user={{env.access.login.bastion.user}} ansible_ssh_pass={{env.access.login.bastion.pass}} ansible_become_password={{env.access.login.bastion.sudo_pass}}
 
       [bootstrap]
       {{env.ip.bootstrap}}
@@ -39,6 +42,38 @@
     line: "{{ item }}"
   loop: "{{env.ip.compute}}"
 
+- name: Add infrastructure nodes group to inventory if set
+  tags: setup
+  lineinfile:
+    path: inventory
+    line: "[infra]"
+  when: env.ip.infra is defined
+
+- name: Add infrastructure nodes' IP addresses to inventory
+  tags: setup
+  lineinfile:
+    path: inventory
+    insertafter: "infra"
+    line: "{{ item }}"
+  loop: "{{env.ip.infra}}"
+  when: env.ip.infra is defined
+
+- name: Add extra RHEL VM apps group to inventory if set
+  tags: setup
+  lineinfile:
+    path: inventory
+    line: "[app]"
+  when: env.ip.app is defined
+
+- name: Add extra RHEL VM apps' IP addresses to inventory
+  tags: setup
+  lineinfile:
+    path: inventory
+    insertafter: "app"
+    line: "{{ item }} ansible_connection=ssh ansible_ssh_user={{env.access.login.app.user}} ansible_ssh_pass={{env.access.login.app.pass}} ansible_become_password={{env.access.login.app.sudo_pass}}"
+  loop: "{{env.ip.app}}"
+  when: env.ip.app is defined
+
 - name: check inventory setup
   tags: setup
   command: ansible-inventory --list
@@ -52,46 +87,3 @@
 - name: Refresh inventory
   tags: setup
   meta: refresh_inventory
-
-- name: fill ansible.cfg with default ansible password
-  tags: setup
-  ansible.builtin.lineinfile:
-    path: ansible.cfg
-    insertafter: '\[defaults\]'
-    line: ansible_password={{env.access.login.kvm.root_password}}
-
-- name: fill ansible.cfg with default ansible user
-  tags: setup
-  ansible.builtin.lineinfile:
-    path: ansible.cfg
-    insertafter: '\[defaults\]'
-    line: remote_user=root
-
-- name: delete ocp_ssh_pub file if it exists already to ensure idempotence
-  tags: setup
-  file:
-    state: absent
-    path: roles/get_ocp/files/ocp_ssh_pub
-
-- name: create ocp_ssh_pub if it needs to be
-  tags: setup
-  file:
-    path: roles/get_ocp/files/ocp_ssh_pub
-    mode: '0755'
-    state: touch
-
-- name: comment out auto-attach RHEL subscription role calls in main.yaml if requested
-  tags: setup
-  replace:
-    path: main.yaml
-    regexp: "- attach_subscription"
-    replace: "#- attach_subscription"
-  when: not env.redhat.attach_subscription
-
-- name: Comment out DNS setup on bastion role calls in main.yaml if requested
-  tags: setup
-  replace:
-    regexp: "- dns"
-    path: main.yaml
-    replace: "#- dns"
-  when: not env.networking.dns.setup_on_bastion
