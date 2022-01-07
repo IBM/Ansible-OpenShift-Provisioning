@@ -2,8 +2,6 @@
 
 - name: First round of checking cluster operators
   tags: wait_for_cluster_operators
-  environment:
-    KUBECONFIG: "/ocpinst/auth/kubeconfig"
   shell: oc get co
   register: oc_get_co
 
@@ -14,8 +12,6 @@
 
 - name: First round of waiting for cluster operators. Trying 5 times before printing status again.
   tags: wait_for_cluster_operators
-  environment:
-    KUBECONFIG: "/ocpinst/auth/kubeconfig"
   shell: oc get co | awk '{print $3}'
   register: co_check
   until: ("False" not in co_check.stdout)
@@ -25,8 +21,6 @@
 
 - name: Second round of checking cluster operators
   tags: wait_for_cluster_operators
-  environment:
-    KUBECONFIG: "/ocpinst/auth/kubeconfig"
   shell: oc get co
   register: oc_get_co
 
@@ -37,8 +31,6 @@
 
 - name: Second round of waiting for cluster operators. Trying 5 times before printing status again.
   tags: wait_for_cluster_operators
-  environment:
-    KUBECONFIG: "/ocpinst/auth/kubeconfig"
   shell: oc get co | awk '{print $3}'
   register: co_check
   until: ("False" not in co_check.stdout)
@@ -48,20 +40,92 @@
 
 - name: Third round of checking cluster operators
   tags: wait_for_cluster_operators
-  environment:
-    KUBECONFIG: "/ocpinst/auth/kubeconfig"
   shell: oc get co
   register: oc_get_co
 
-- name: View third round clusteroperator status check
+- name: View third round cluster operator status check
   tags: wait_for_cluster_operators
   debug:
     var: oc_get_co.stdout_lines
 
-- name: Third and final round of waiting for cluster operators. Trying 10 times before failing.
+- name: Third round of waiting for cluster operators. Trying 5 times before printing status again.
   tags: wait_for_cluster_operators
-  environment:
-    KUBECONFIG: "/ocpinst/auth/kubeconfig"
+  shell: oc get co | awk '{print $3}'
+  register: co_check
+  until: ("False" not in co_check.stdout)
+  retries: 5
+  delay: 30
+  ignore_errors: yes
+
+- name: Fourth round of checking cluster operators
+  tags: wait_for_cluster_operators
+  shell: oc get co
+  register: oc_get_co
+
+- name: View fourth round cluster operator status check
+  tags: wait_for_cluster_operators
+  debug:
+    var: oc_get_co.stdout_lines
+
+- name: Fourth round of waiting for cluster operators. Trying 5 times before printing status again.
+  tags: wait_for_cluster_operators
+  shell: oc get co | awk '{print $3}'
+  register: co_check
+  until: ("False" not in co_check.stdout)
+  retries: 5
+  delay: 30
+  ignore_errors: yes
+
+- name: Fifth round of checking cluster operators
+  tags: wait_for_cluster_operators
+  shell: oc get co
+  register: oc_get_co
+
+- name: View fifth round cluster operator status check
+  tags: wait_for_cluster_operators
+  debug:
+    var: oc_get_co.stdout_lines
+
+- name: Fifth round of waiting for cluster operators. Trying 5 times before printing status again.
+  tags: wait_for_cluster_operators
+  shell: oc get co | awk '{print $3}'
+  register: co_check
+  until: ("False" not in co_check.stdout)
+  retries: 5
+  delay: 30
+  ignore_errors: yes
+
+- name: Sixth round of checking cluster operators
+  tags: wait_for_cluster_operators
+  shell: oc get co
+  register: oc_get_co
+
+- name: View sixth round cluster operator status check
+  tags: wait_for_cluster_operators
+  debug:
+    var: oc_get_co.stdout_lines
+
+- name: Sixth round of waiting for cluster operators. Trying 5 times before printing status again.
+  tags: wait_for_cluster_operators
+  shell: oc get co | awk '{print $3}'
+  register: co_check
+  until: ("False" not in co_check.stdout)
+  retries: 5
+  delay: 30
+  ignore_errors: yes
+
+- name: Seventh round of checking cluster operators
+  tags: wait_for_cluster_operators
+  shell: oc get co
+  register: oc_get_co
+
+- name: View seventh round clusteroperator status check
+  tags: wait_for_cluster_operators
+  debug:
+    var: oc_get_co.stdout_lines
+
+- name: Seventh and final round of waiting for cluster operators. Trying 10 times before failing.
+  tags: wait_for_cluster_operators
   shell: oc get co | awk '{print $3}'
   register: co_check
   until: ("False" not in co_check.stdout)
