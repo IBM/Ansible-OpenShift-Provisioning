@@ -8,16 +8,16 @@
   tags: check_dns,dns
   shell: "dig +short {{ item }} | tail -n1"
   loop:
-    - "{{ env.hostname.bastion }}.{{ env.install_config.base_domain }}"
-    - "api.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}"
-    - "api-int.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}"
-    - "test.apps.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}"
+    - "{{ env.hostname.bastion }}.{{ env.networking.base_domain }}"
+    - "api.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}"
+    - "api-int.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}"
+    - "test.apps.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}"
   register: bastion_lookup
   failed_when: env.ip.bastion != bastion_lookup.stdout
     
 - name: Check internal cluster DNS resolution for bootstrap
   tags: check_dns,dns
-  shell: "dig +short {{ env.hostname.bootstrap }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }} | tail -n1"
+  shell: "dig +short {{ env.hostname.bootstrap }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }} | tail -n1"
   register: bootstrap_lookup
   failed_when: env.ip.bootstrap != bootstrap_lookup.stdout
 
@@ -28,23 +28,45 @@
 
 - name: Check control nodes DNS resolution
   tags: check_dns,dns
-  shell: "dig +short {{ env.hostname.control[i] }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}  | tail -n1"
+  shell: "dig +short {{ env.hostname.control[i] }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}  | tail -n1"
   register: control_lookup
   failed_when: env.ip.control[i] != control_lookup.stdout
-  with_sequence: start=0 end={{env.install_config.control.replicas - 1}} stride=1
+  with_sequence: start=0 end={{(env.hostname.control | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
 
 - name: Check compute nodes DNS resolution
   tags: check_dns,dns
-  shell: "dig +short {{ env.hostname.compute[i] }}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}  | tail -n1"
+  shell: "dig +short {{ env.hostname.compute[i] }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}  | tail -n1"
   register: compute_lookup
   failed_when: env.ip.compute[i] != compute_lookup.stdout
-  with_sequence: start=0 end={{env.install_config.compute.replicas - 1}} stride=1
+  with_sequence: start=0 end={{(env.hostname.compute | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
+
+- name: Check infrastructure nodes DNS resolution
+  tags: check_dns,dns
+  shell: "dig +short {{ env.hostname.infra[i] }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}  | tail -n1"
+  register: infra_lookup
+  failed_when: env.ip.infra[i] != infra_lookup.stdout
+  with_sequence: start=0 end={{(env.hostname.infra | length) - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+  when: env.hostname.infra is defined
+
+- name: Check extra RHEL VM apps DNS resolution
+  tags: check_dns,dns
+  shell: "dig +short {{ env.hostname.app[i] }}.{{ env.networking.base_domain }}  | tail -n1"
+  register: app_lookup
+  failed_when: env.ip.app[i] != app_lookup.stdout
+  with_sequence: start=0 end={{(env.hostname.app | length) - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+  when: env.hostname.app is defined
 
 - name: Check external DNS resolution from DNS forwarder
   tags: check_dns,dns
