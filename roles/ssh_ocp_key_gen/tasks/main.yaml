@@ -7,56 +7,46 @@
 - name: Check to see if local SSH directory exists
   tags: ssh_ocp_key_gen, ssh
   stat:
-    path: ~/.ssh
+    path: /home/{{ env.access.login.bastion.user }}/.ssh
   register: ssh_directory_exists_check
-
-- name: Print results of SSH directory check
-  tags: ssh_ocp_key_gen, ssh
-  debug:
-    var: ssh_directory_exists_check
 
 - name: Create SSH local directory if it doesn't already exist
   tags: ssh_ocp_key_gen, ssh
   file:
-    path: ~/.ssh
+    path: /home/{{ env.access.login.bastion.user }}/.ssh
     state: directory
     mode: "0700"
   register: ssh_directory_creation
-  when: ssh_directory_exists_check is defined and ssh_directory_exists_check.stat.exists == false
-
-- name: Print results of SSH directory creation
-  tags: ssh_ocp_key_gen, ssh
-  debug:
-    var: ssh_directory_creation
-
-- name: Check SSH key pair files exist
-  tags: ssh_ocp_key_gen, ssh
-  stat:
-    path: ~/.ssh/{{item}}
-  register: ssh_key_file_exists_check
-  with_items:
-    - "id_rsa"
-    - "id_rsa.pub"
-
-- name: Print results of SSH key pair files check
-  tags: ssh_ocp_key_gen, ssh
-  debug:
-    var: ssh_key_file_exists_check.results[1].stat.exists
+  when: ssh_directory_exists_check.stat.exists == false
 
 - name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key if it doesn't exist already
   tags: ssh_ocp_key_gen, ssh
   community.crypto.openssh_keypair:
-    path: ~/.ssh/id_rsa
+    path: /home/{{ env.access.login.bastion.user }}/.ssh/id_rsa
     backend: opensshbin
-    owner: root
+    owner: "{{ env.access.login.bastion.user }}"
     passphrase: ""
-    comment: "{{ env.access.ssh.ocp.comment }}"
-    regenerate: full_idempotence
+    comment: "{{ env.access.ssh.ocp_key_comment }}"
+    regenerate: always
   register: ssh_ocp
-  when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false 
 
 - name: Print results of SSH key generation
   tags: ssh_ocp_key_gen, ssh
   debug:
     var: ssh_ocp.public_key
   when: ssh_ocp.changed == true
+
+- name: Set SSH key permissions
+  tags: ssh_ocp_key_gen, ssh
+  command: chmod 600 /home/{{ env.access.login.bastion.user }}/.ssh/{{item}}
+  loop: 
+    - id_rsa
+    - id_rsa.pub
+
+- name: Set SSH key ownership
+  tags: ssh_ocp_key_gen, ssh
+  command: chown {{ env.access.login.bastion.user }}:{{ env.access.login.bastion.user }} /home/{{ env.access.login.bastion.user }}/.ssh/{{item}}
+  loop:
+    - id_rsa
+    - id_rsa.pub
+
