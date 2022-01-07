@@ -1,6 +1,6 @@
 ---
 
-- name: Destroy bastion for full, skip for partial teardown.. Expect ignored errors if it is already destroyed.
+- name: Destroy bastion for full, skip for partial teardown. Expect ignored errors if it is already destroyed.
   community.libvirt.virt:
     name: "{{ env.hostname.bastion }}"
     command: destroy
@@ -30,7 +30,7 @@
   community.libvirt.virt:
     name: "{{ env.hostname.control[i] }}"
     command: destroy
-  with_sequence: start=0 end={{env.install_config.control.replicas - 1}} stride=1
+  with_sequence: start=0 end={{(env.hostname.control | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
@@ -40,7 +40,7 @@
   community.libvirt.virt:
     name: "{{ env.hostname.control[i] }}"
     command: undefine
-  with_sequence: start=0 end={{env.install_config.control.replicas - 1}} stride=1
+  with_sequence: start=0 end={{(env.hostname.control | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
@@ -50,7 +50,7 @@
   community.libvirt.virt:
     name: "{{ env.hostname.compute[i] }}"
     command: destroy
-  with_sequence: start=0 end={{env.install_config.compute.replicas - 1}} stride=1
+  with_sequence: start=0 end={{(env.hostname.compute | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
@@ -60,8 +60,30 @@
   community.libvirt.virt:
     name: "{{ env.hostname.compute[i] }}"
     command: undefine
-  with_sequence: start=0 end={{env.install_config.compute.replicas - 1}} stride=1
+  with_sequence: start=0 end={{(env.hostname.compute | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
   ignore_errors: yes
+
+- name: Destroy running infrastructure nodes, if defined. Expect ignored errors if some VMs are already destroyed.
+  community.libvirt.virt:
+    name: "{{ env.hostname.infra[i] }}"
+    command: destroy
+  with_sequence: start=0 end={{(env.hostname.infra | length) - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+  ignore_errors: yes
+  when: env.hostname.infra is defined
+
+- name: Undefine remaining infrastructure nodes. Expect ignored errors if some VMs are already undefined.
+  community.libvirt.virt:
+    name: "{{ env.hostname.infra[i] }}"
+    command: undefine
+  with_sequence: start=0 end={{(env.hostname.infra | length) - 1}}  stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+  ignore_errors: yes
+  when: env.hostname.infra is defined
