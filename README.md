@@ -80,7 +80,7 @@
     * In a web browser, navigate to the Red Hat [console](https://console.redhat.com/openshift/install/ibmz/user-provisioned) and copy the OpenShift pull secret and paste it into [env.yaml](env.yaml) as the variable `env.redhat.pull_secret`.
 * **Step 3: Set Variables**
     * In a text editor of your choice, open [env.yaml](env.yaml)
-    * Fill out variables marked with `#X` to match your specific installation. 
+    * Fill out variables marked with `X` to match your specific installation. 
     * There are two sections of this file, separated by a comment block, which distinguishes variables that need to be filled in and variables that are pre-filled with defaults but can be altered if desired.
     * This is the most important step in the process. Take the time to make sure everything here is correct.
 * **Step 4: Setup Script** 
