@@ -21,7 +21,7 @@
     --graphics none \
     --wait=-1 \
     --noautoconsole 
-  with_sequence: start=0 end={{env.install_config.control.replicas - 1}} stride=1
+  with_sequence: start=0 end={{(env.hostname.control | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
