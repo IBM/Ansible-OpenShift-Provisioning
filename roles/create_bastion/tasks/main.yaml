@@ -1,101 +1,119 @@
 ---
 
 - name: Load in variables from env.yaml
-  tags: create_bastion
+  tags: create_bastion,bastion
   include_vars: env.yaml
 
 - name: Enable cockpit console
-  tags: create_bastion
+  tags: create_bastion,bastion
   command: systemctl enable --now cockpit.socket
 
 - name: Remove working directory for idempotency
-  tags: create_bastion
+  tags: create_bastion,bastion
   file:
     path: /var/lib/libvirt/images/tmp
     state: absent
 
 - name: Create working directory
-  tags: create_bastion
+  tags: create_bastion,bastion
   file:
     path: /var/lib/libvirt/images/tmp
     state: directory
     mode: '0755'
 
 - name: Check to see if qcow2 file already exists on KVM host
-  tags: create_bastion
+  tags: create_bastion,bastion
   stat:
     path: /var/lib/libvirt/images/bastion_base.qcow2
   register: qcow2_check
 
 - name: Copy RHEL qcow2 file to KVM host. This may take a while.
-  tags: create_bastion
+  tags: create_bastion,bastion
   copy:
     src: "{{ env.redhat.path_to_qcow2 }}"
     dest: /var/lib/libvirt/images/bastion_base.qcow2
-    mode: '0775'
+    mode: '600'
+    owner: qemu
+    group: qemu
   when: qcow2_check.stat.exists == false
   register: rhel_qcow2_download
 
 - name: Remove snapshot for idempotency
-  tags: create_bastion
+  tags: create_bastion,bastion
   file:
     path: /var/lib/libvirt/images/{{env.hostname.bastion}}-snapshot-cloudimg.qcow2
     state: absent
 
 - name: Create base image
-  tags: create_bastion
+  tags: create_bastion,bastion
   command: "qemu-img create -b /var/lib/libvirt/images/bastion_base.qcow2 -f qcow2 /var/lib/libvirt/images/{{env.hostname.bastion}}-snapshot-cloudimg.qcow2 {{env.node_resources.bastion.disk_size}}G"
   register: qemu_create
 
 - name: Print result of creation of base image
-  tags: create_bastion
+  tags: create_bastion,bastion
   debug:
     var: qemu_create
 
+- name: Set bastion qcow2 permissions
+  tags: create_bastion,bastion
+  command: chmod 600 /var/lib/libvirt/images/{{env.hostname.bastion}}-snapshot-cloudimg.qcow2
+
+- name: Set bastion qcow2 ownership to qemu
+  tags: create_bastion,bastion
+  command: chown qemu:qemu /var/lib/libvirt/images/{{env.hostname.bastion}}-snapshot-cloudimg.qcow2
+
 - name: Get info about qemu image creation
-  tags: create_bastion
+  tags: create_bastion,bastion
   command: "qemu-img info /var/lib/libvirt/images/{{env.hostname.bastion}}-snapshot-cloudimg.qcow2"
   register: qemu_info
 
 - name: Print output from qemu image creation information
-  tags: create_bastion
+  tags: create_bastion,bastion
   debug:
     var: qemu_info
 
 - name: Create instance-id
-  tags: create_bastion
+  tags: create_bastion,bastion
   shell: "echo \"instance-id: $(uuidgen || echo i-abcdefg)\" > /var/lib/libvirt/images/tmp/meta-data"
   register: uuidgen
 
 - name: Print output from uuidgen command
-  tags: create_bastion
+  tags: create_bastion,bastion
   debug:
     var: uuidgen
 
 - name: Use cloud_init.cfg.j2 template to make user-data file
-  tags: create_bastion
+  tags: create_bastion,bastion
   template:
     src: cloud_init.cfg.j2
     dest: /var/lib/libvirt/images/tmp/user-data
 
 - name: Use network_config_static.cfg.j2 template to make network-config file
-  tags: create_bastion
+  tags: create_bastion,bastion
   template:
     src: network_config_static.cfg.j2
     dest: /var/lib/libvirt/images/tmp/network-config
 
 - name: Generate iso file
-  tags: create_bastion
+  tags: create_bastion,bastion
   command: genisoimage -output /var/lib/libvirt/images/{{env.hostname.bastion}}-seed.img -volid cidata -joliet -rock /var/lib/libvirt/images/tmp/meta-data /var/lib/libvirt/images/tmp/network-config /var/lib/libvirt/images/tmp/user-data
   register: gen_iso
 
+- name: Set bastion seed image permissions
+  tags: create_bastion,bastion
+  command: chmod 600 /var/lib/libvirt/images/{{env.hostname.bastion}}-seed.img
+
+- name: Set bastion seed image ownership to qemu
+  tags: create_bastion,bastion
+  command: chown qemu:qemu /var/lib/libvirt/images/{{env.hostname.bastion}}-seed.img
+
 - name: Print output from generating iso
-  tags: create_bastion
+  tags: create_bastion,bastion
   debug:
     var: gen_iso
 
 - name: Check if bastion already exists. Expect an ignored error if it doesn't exist.
-  tags: create_bastion
+  tags: create_bastion,bastion
   community.libvirt.virt:
     name: "{{ env.hostname.bastion }}"
     command: status
@@ -103,7 +121,7 @@
   ignore_errors: true
 
 - name: Boot bastion
-  tags: create_bastion
+  tags: create_bastion,bastion
   command: virt-install 
     --name {{ env.hostname.bastion }} \
     --virt-type kvm \
@@ -120,11 +138,12 @@
   when: bastion_check.failed == true
 
 - name: Restart bastion
-  tags: create_bastion
+  tags: create_bastion,bastion
   command: virsh start {{ env.hostname.bastion }}
+  when: bastion_check.failed == true
 
-- name: Waiting 3 minutes for automated bastion installation and configuration to complete. To monitor, use a web browser to go to https://your-kvm-host-ip-address-here:9090, sign in as 'root' and use the password you set for env.access.login.kvm.root_password in env.yaml, then go to the 'Virtual Machines' tab and click on the bastion's hostname.
-  tags: create_bastion
+- name: Waiting 3 minutes for automated bastion installation and configuration to complete. To monitor, use a web browser to go to https://your-kvm-host-ip-address-here:9090, sign in as 'root' and use the password you set for env.access.login.kvm.sudo_pass in env.yaml, then go to the 'Virtual Machines' tab and click on the bastion's hostname.
+  tags: create_bastion,bastion
   pause:
     minutes: 3
   when: bastion_check.failed == true
