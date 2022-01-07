@@ -1,7 +1,7 @@
 ---
 
-- hosts: localhost
-  tags: localhost, prep
+- hosts: workstation
+  tags: workstation, prep
   connection: local
   become: false
   gather_facts: yes
