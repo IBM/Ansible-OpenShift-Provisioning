@@ -1,12 +1,12 @@
 #cloud-config
 hostname: {{env.hostname.bastion}}
-fqdn: {{env.hostname.bastion}}.{{ env.install_config.metadata_name }}.{{ env.install_config.base_domain }}
+fqdn: {{env.hostname.bastion}}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}
 manage_etc_hosts: true
 users:
-  - name: {{ env.access.login.bastion.username }}
+  - name: {{ env.access.login.bastion.user }}
     sudo: ALL=(ALL) NOPASSWD:ALL
     groups: adm,sys
-    home: /home/{{ env.access.login.bastion.username }}
+    home: /home/{{ env.access.login.bastion.user }}
     shell: /bin/bash
     lock_passwd: false
 # allow both password auth and cert auth via ssh (console access can still login)
@@ -14,8 +14,8 @@ ssh_pwauth: true
 disable_root: false
 chpasswd: 
   list: |
-    root:{{ env.access.login.bastion.root_password }}
-    {{ env.access.login.bastion.username }}:{{ env.access.login.bastion.password }}
+    root:{{ env.access.login.bastion.sudo_pass }}
+    {{ env.access.login.bastion.user }}:{{ env.access.login.bastion.pass }}
   expire: False
 
 #growpart:
