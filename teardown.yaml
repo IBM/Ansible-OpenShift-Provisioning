@@ -1,10 +1,10 @@
 ---
 
-# Use the "full_teardown" tag when running this playbook to reset your installation back to the point where no VMs were running on the KVM host. 
+# Use the "full" tag when running this playbook to reset your installation back to the point where no VMs were running on the KVM host. Extra RHEL apps will not be torn down.
 # After you run this playbook, run the main playbook from the beginning with no tags ("ansible-playbook main.yaml --ask-become-pass")
 
 - hosts: kvm_host
-  tags: full_teardown
+  tags: full
   become: true
   gather_facts: no
   vars:
@@ -31,8 +31,8 @@
   roles:
     - teardown_vms
 
-- hosts: localhost
-  tags: full_teardown
+- hosts: workstation
+  tags: full
   connection: local
   become: false
   gather_facts: no
@@ -41,63 +41,35 @@
   vars_files:
     - env.yaml
   pre_tasks:
-    - name: remove bastion from localhost's known_hosts file
+    - name: remove bastion from workstation's known_hosts file
       lineinfile:
         path: "~/.ssh/known_hosts"
         regexp: "{{ env.ip.bastion}}"
         state: absent
-    - name: remove KVM host from localhost's known_hosts file
+    - name: remove KVM host from workstation's known_hosts file
       lineinfile:
         path: "~/.ssh/known_hosts"
         regexp: "{{ env.ip.kvm}}"
         state: absent
-    - name: Delete SSH key vars files
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - "{{ roles/get_ocp/files/ocp_ssh_pub.yaml }}"
-        - "{{ roles/ssh_copy_id/vars/path_to_key_pair.yaml }}"
-    - name: Recreate empty SSH key vars files
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - "{{ roles/get_ocp/files/ocp_ssh_pub.yaml }}"
-        - "{{ roles/ssh_copy_id/vars/path_to_key_pair.yaml }}"
   roles:
   - reset_files
 
-# Use the "partial_teardown" tag when running this playbook to reset your installation back to the point where just the bastion node was running on the KVM host. 
-# After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'bastion,create_nodes,verification'"
-
-- hosts: localhost
-  tags: partial_teardown
-  connection: local
-  become: false
-  gather_facts: no
-  vars_files:
-    - env.yaml
-  tasks:
-    - name: remove bastion from localhost's known_hosts file
-      lineinfile:
-        path: "~/.ssh/known_hosts"
-        regexp: "{{ env.ip.bastion}}"
-        state: absent
+# Use the "partial" tag when running this playbook to reset your installation back to the point where just the bastion node was running on the KVM host. If extra RHEL VM apps were created, they will not be torn down.
+# After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'get_ocp,create_nodes,verification'"
 
 - hosts: bastion
-  tags: partial_teardown
+  tags: partial
   become: true
   gather_facts: no
   vars:
-    - files_to_reset: ['~/.ssh/known_hosts', '~/.ssh/id_rsa','~/.ssh/id_rsa.pub','/ocpinst'] # feel free to add as needed
+    - files_to_reset: ['/home/{{ env.access.login.bastion.user }}/ocpinst'] # feel free to add as needed
   vars_files:
     - env.yaml
   roles:
     - reset_files
 
 - hosts: kvm_host
-  tags: partial_teardown
+  tags: partial
   become: true
   gather_facts: no
   vars:
@@ -106,3 +78,81 @@
     - env.yaml
   roles:
     - teardown_vms
+
+# Use the "app" tag with teardown.yaml to teardown all extra RHEL VM apps running on the KVM host.
+# To recreate them, run the main playbook with "--tags app"
+
+- hosts: workstation
+  tags: app
+  connection: local
+  become: false
+  gather_facts: no
+  vars_files:
+    - env.yaml
+  tasks:
+    - name: remove apps from workstation's known_hosts file for idempotency if created
+      lineinfile:
+        path: "~/.ssh/known_hosts"
+        regexp: "{{ env.ip.app[i] }}"
+        state: absent
+      with_sequence: start=0 end={{(env.hostname.app | length) - 1}} stride=1
+      loop_control:
+        extended: yes
+        index_var: i
+      when: env.ip.app is defined
+    
+- hosts: kvm_host
+  tags: app
+  become: true
+  gather_facts: no
+  vars_files:
+    - env.yaml
+  tasks:
+    - name: Destroy running app nodes. Expect ignored errors if some VMs are already destroyed.
+      community.libvirt.virt:
+        name: "{{ item }}"
+        command: destroy
+      loop: "{{ env.hostname.app }}"
+      ignore_errors: yes
+
+    - name: Undefine remaining app nodes. Expect ignored errors if some VMs are already undefined.
+      community.libvirt.virt:
+        name: "{{ item }}"
+        command: undefine
+      loop: "{{ env.hostname.app }}"
+      ignore_errors: yes
+
+    - name: Remove apps qcow2 files for idempotency
+      tags: create_extra_rhel
+      file:
+        path: /var/lib/libvirt/images/{{ item }}.qcow2
+        state: absent
+      loop: "{{env.hostname.app}}"
+
+    - name: Remove seeds for idempotency
+      tags: create_extra_rhel
+      file:
+        path: /var/lib/libvirt/images/{{ item }}-seed.img
+        state: absent
+      loop: "{{env.hostname.app}}"
+
+    - name: Remove app meta data for idempotency
+      tags: create_extra_rhel
+      file:
+        path: /var/lib/libvirt/images/tmp/{{ item }}/meta-data
+        state: absent
+      loop: "{{ env.hostname.app }}"
+
+    - name: Remove app user data for idempotency
+      tags: create_extra_rhel
+      file:
+        path: /var/lib/libvirt/images/tmp/{{ item }}/user-data
+        state: absent
+      loop: "{{ env.hostname.app }}"
+
+    - name: Remove app network config data for idempotency
+      tags: create_extra_rhel
+      file:
+        path: /var/lib/libvirt/images/tmp/{{ item }}/network-config
+        state: absent
+      loop: "{{ env.hostname.app }}"
