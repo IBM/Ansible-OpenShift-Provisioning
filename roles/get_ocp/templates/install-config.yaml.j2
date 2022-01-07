@@ -1,17 +1,17 @@
 apiVersion: {{ env.install_config.api_version }}
-baseDomain: {{ env.install_config.base_domain }}
+baseDomain: {{ env.networking.base_domain }}
 compute:
 - hyperthreading: {{ env.install_config.compute.hyperthreading }}
   name: worker
-  replicas: {{ env.install_config.compute.replicas }}
+  replicas: {{(env.ip.compute | length)}}
   architecture: {{ env.install_config.compute.architecture }}
 controlPlane:
   hyperthreading: {{ env.install_config.control.hyperthreading }}
   name: master
-  replicas: {{ env.install_config.control.replicas }}
+  replicas: {{(env.ip.control | length)}}
   architecture: {{ env.install_config.control.architecture }}
 metadata:
-  name: {{ env.install_config.metadata_name }}
+  name: {{ env.networking.metadata_name }}
 networking:
   clusterNetwork:
   - cidr: {{ env.install_config.cluster_network.cidr }}
@@ -22,5 +22,4 @@ networking:
 platform:
   none: {}
 fips: {{ env.install_config.fips }}
-pullSecret: '{{ env.install_config.pull_secret }}'
-sshKey: '{{ lookup('file', 'roles/get_ocp/files/ocp_ssh_pub.yaml') }}'
+pullSecret: '{{ env.redhat.pull_secret }}'
