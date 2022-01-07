@@ -6,5 +6,5 @@ ethernets:
     addresses: [ {{ env.ip.bastion }} ]
     gateway4: {{ env.networking.gateway }}
     nameservers:
-      search: [ {{ env.install_config.base_domain }} ]
+      search: [ {{ env.networking.base_domain }} ]
       addresses: [ {{ env.networking.dns.nameserver }},{{ env.networking.dns.forwarder }} ]
