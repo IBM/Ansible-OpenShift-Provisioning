@@ -1,33 +1,31 @@
 ---
 
-- name: Make sure kubeconfig works
+- name: Make sure kubeconfig works properly.
   tags: wait_for_bootstrap
-  environment:
-    KUBECONFIG: "/ocpinst/auth/kubeconfig"
   shell: oc whoami
   register: oc_whoami
   until: oc_whoami.stdout == "system:admin"
   retries: 120
   delay: 30
   
-- name: Print output of oc whoami, should be system:admin
+- name: Print output of oc whoami, should be "system:admin" if previous task worked.
   tags: wait_for_bootstrap
   debug:
     var: oc_whoami.stdout
 
-- name: Watch bootstrap
-  tags: wait_for_bootstrap
-  command: chdir=/ocpinst ./openshift-install wait-for bootstrap-complete
+- name: Watch wait-for bootstrap-complete process.
+  tags: wait_for_bootstrap 
+  shell: openshift-install wait-for bootstrap-complete --dir=/home/{{ env.access.login.bastion.user }}/ocpinst
   async: 3600
   poll: 0
-  register: bootstrap_complete_sleeper
+  register: watch_bootstrap
 
-- name: Retry bootstrap job id check until it's finished. This may take some time.
+- name: Retry wait-for bootstrap-complete job ID check until it's finished. This may take some time.
   tags: wait_for_bootstrap
   async_status:
-    jid: "{{ bootstrap_complete_sleeper.ansible_job_id }}"
-  register: job_result
-  until: job_result.finished
+    jid: "{{ watch_bootstrap.ansible_job_id }}"
+  register: bootstrapping
+  until: bootstrapping.finished
   retries: 120
   delay: 30
 
@@ -45,4 +43,11 @@
     name: "{{ env.hostname.bootstrap }}"
     command: undefine
   ignore_errors: yes
+  delegate_to: "{{ env.ip.kvm }}"
+
+- name: Remove qcow2
+  tags: wait_for_bootstrap
+  file:
+    path: /var/lib/libvirt/images/{{env.hostname.bootstrap}}-bootstrap.qcow2
+    state: absent
   delegate_to: "{{ env.ip.kvm }}"
