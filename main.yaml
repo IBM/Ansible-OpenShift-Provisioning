@@ -1,21 +1,21 @@
 ---
 
-- hosts: localhost
-  tags: setup
+- hosts: workstation
+  tags: workstation,kvm_host
   connection: local
   become: false
   gather_facts: no
   vars_files:
     - env.yaml
   vars:
-    - ssh_target_ip: "{{ env.ip.kvm }}"
+    - ssh_target: ["{{ env.ip.kvm }}","{{ env.access.login.kvm.user }}","{{ env.access.login.kvm.pass }}"]
   roles:
     - ssh_key_gen
     - ssh_copy_id
     - ssh_agent
     
 - hosts: kvm_host
-  tags: kvm_host, kvm_prep
+  tags: kvm_host,kvm_prep
   become: true
   vars_files:
     - env.yaml
@@ -23,26 +23,26 @@
     - packages: "{{ env.pkgs.kvm}}"
   roles:
     - check_ssh
-    - attach_subscription
+    - {role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined}
     - install_packages
     - set_selinux_permissive
     - macvtap
     - create_bastion
 
-- hosts: localhost
-  tags: bastion
+- hosts: workstation
+  tags: workstation,bastion
   connection: local
   become: false
   gather_facts: no
   vars_files:
     - env.yaml
   vars:
-    - ssh_target_ip: "{{ env.ip.bastion }}"
+    - ssh_target: ["{{ env.ip.bastion }}","{{ env.access.login.bastion.user }}","{{ env.access.login.bastion.pass }}"]
   roles:
     - ssh_copy_id
 
 - hosts: bastion
-  tags: bastion
+  tags: bastion_setup,bastion
   become: true
   vars_files:
     - env.yaml
@@ -50,19 +50,19 @@
     - packages: "{{env.pkgs.bastion}}"
   roles:
     - check_ssh
-    - attach_subscription
+    - {role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined}
     - install_packages
     - ssh_ocp_key_gen
     - set_selinux_permissive
     - set_firewall
-    - dns
+    - {role: dns, when: env.networking.dns.setup_on_bastion }
     - check_dns
     - haproxy
     - httpd
-    - get_ocp
+    - {role: get_ocp, become: false }
 
 - hosts: kvm_host
-  tags: kvm_host, create_nodes
+  tags: kvm_host,create_nodes
   become: true
   gather_facts: no
   vars_files:
@@ -72,10 +72,25 @@
     - create_bootstrap
     - create_control_nodes
     - create_compute_nodes
+    - {role: create_extra_rhel, when: env.ip.app is defined }
 
-- hosts: bastion
-  tags: verification, bastion
+- hosts: app
+  tags: app_setup,app
   become: true
+  vars_files:
+    - env.yaml
+  vars: 
+    - packages: "{{ env.pkgs.app}}"
+  roles: 
+    - {role: attach_subscription, when: env.ip.app is defined and env.redhat.username is defined and env.redhat.password is defined}
+    - {role: install_packages , when: env.ip.app is defined }
+  
+- hosts: bastion
+  tags: verification,bastion
+  become: false
+  become_user: jacob
+  environment:
+    KUBECONFIG: "/home/{{ env.access.login.bastion.user }}/ocpinst/auth/kubeconfig"
   gather_facts: yes
   vars_files:
     - env.yaml
