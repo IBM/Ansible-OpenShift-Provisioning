@@ -1,0 +1,131 @@
+---
+
+- name: Load in variables from env.yaml
+  tags: create_extra_rhel,app
+  include_vars: env.yaml
+
+- name: Check to see if qcow2 file already exists on KVM host
+  tags: create_extra_rhel,app
+  stat:
+    path: /var/lib/libvirt/images/bastion_base.qcow2
+  ignore_errors: yes
+  register: qcow2_check
+
+- name: Copy RHEL qcow2 file to KVM host if it's not there already. This may take a while.
+  tags: create_extra_rhel,app
+  copy:
+    src: "{{ env.redhat.path_to_qcow2 }}"
+    dest: /var/lib/libvirt/images/bastion_base.qcow2
+    mode: '600'
+    owner: qemu
+    group: qemu
+  when: qcow2_check.stat.exists == false
+
+- name: Create working directory
+  tags: create_extra_rhel,app
+  file:
+    path: /var/lib/libvirt/images/tmp/{{ item }}
+    state: directory
+    mode: '0755'
+  loop: "{{ env.hostname.app }}"
+
+- name: Create base image
+  tags: create_extra_rhel,app
+  command: "qemu-img create -b /var/lib/libvirt/images/bastion_base.qcow2 -f qcow2 /var/lib/libvirt/images/{{item}}.qcow2 {{env.node_resources.app.disk_size}}G"
+  register: qemu_create
+  loop: "{{env.hostname.app}}"
+
+- name: Set apps qcow2 permissions
+  tags: create_extra_rhel,app
+  command: chmod 600 /var/lib/libvirt/images/{{env.hostname.app[i]}}.qcow2
+  with_sequence: start=0 end={{(env.hostname.app | length) - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+
+- name: Set apps qcow2 ownership to qemu
+  tags: create_extra_rhel,app
+  command: chown qemu:qemu /var/lib/libvirt/images/{{env.hostname.app[i]}}.qcow2
+  with_sequence: start=0 end={{(env.hostname.app | length) - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+
+- name: Get info about qemu image creation
+  tags: create_extra_rhel,app
+  command: "qemu-img info /var/lib/libvirt/images/{{ item }}.qcow2"
+  register: qemu_info
+  loop: "{{env.hostname.app}}"
+
+- name: Create instance-id
+  tags: create_extra_rhel,app
+  shell: "echo \"instance-id: $(uuidgen || echo i-abcdefg)\" > /var/lib/libvirt/images/tmp/{{ item }}/meta-data"
+  register: uuidgen
+  loop: "{{ env.hostname.app }}"
+
+- name: Use cloud_init.cfg.j2 template to make user-data file
+  tags: create_extra_rhel,app
+  template:
+    src: roles/create_extra_rhel/templates/cloud_init.cfg.j2
+    dest: /var/lib/libvirt/images/tmp/{{ item }}/user-data
+  loop: "{{ env.hostname.app }}"
+
+- name: Use network_config_static.cfg.j2 template to make network-config file
+  tags: create_extra_rhel,app
+  template:
+    src: roles/create_extra_rhel/templates/network_config_static.cfg.j2
+    dest: /var/lib/libvirt/images/tmp/{{ env.hostname.app[i] }}/network-config
+  with_sequence: start=0 end={{(env.hostname.app | length) - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+
+- name: Generate iso file
+  tags: create_extra_rhel,app
+  command: genisoimage -output /var/lib/libvirt/images/{{ item }}-seed.img -volid cidata -joliet -rock /var/lib/libvirt/images/tmp/{{ item }}/meta-data /var/lib/libvirt/images/tmp/{{ item }}/network-config /var/lib/libvirt/images/tmp/{{ item }}/user-data
+  register: gen_iso
+  loop: "{{ env.hostname.app }}"
+
+- name: Set apps seed images permissions
+  tags: create_extra_rhel,app
+  command: chmod 600 /var/lib/libvirt/images/{{ env.hostname.app[i] }}-seed.img
+  with_sequence: start=0 end={{(env.hostname.app | length) - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+
+- name: Set apps seed images ownership to qemu
+  tags: create_extra_rhel,app
+  command: chown qemu:qemu /var/lib/libvirt/images/{{ env.hostname.app[i] }}-seed.img
+  with_sequence: start=0 end={{(env.hostname.app | length) - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+
+- name: Boot app
+  tags: create_extra_rhel,app
+  command: virt-install 
+    --name {{ item }} \
+    --virt-type kvm \
+    --memory {{ env.node_resources.app.ram }} \
+    --vcpus {{ env.node_resources.app.vcpu }} \
+    --boot hd \
+    --disk path=/var/lib/libvirt/images/{{ item }}-seed.img,device=cdrom \
+    --disk path=/var/lib/libvirt/images/{{ item }}.qcow2,device=disk \
+    --graphics none \
+    --os-type Linux --os-variant rhel{{env.node_resources.app.os_variant}} \
+    --network network=macvtap-net \
+    --noautoconsole \
+    --noreboot
+  loop: "{{ env.hostname.app }}"
+
+- name: Restart apps
+  tags: create_extra_rhel,app
+  command: virsh start {{ item }}
+  loop: "{{ env.hostname.app }}"
+
+- name: Waiting 3 minutes for automated apps installation and configuration to complete. To monitor, use a web browser to go to https://your-kvm-host-ip-address-here:9090
+  tags: create_extra_rhel,app
+  pause:
+    minutes: 3
+    
