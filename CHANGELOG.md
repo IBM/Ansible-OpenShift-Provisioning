@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## 1.2.0 - Scaling Update - 2021-12-09
+## 1.2.0 - Scaling - 2021-12-09
 ### Summary
 - Now supports any number of control and compute nodes to be provisioned in the cluster.
 - This update heavily modifies the variable structure in env.yaml in order to make scaling work.
@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file.
 * Air-gapped (disconnected) install of OpenShift option
 * Add an option to automte the creation of an LPAR and install RHEL on KVM host
 
-## 1.1.0 - Automated OCP Verification Update - 2021-12-03
+## 1.1.0 - Automated OCP Verification - 2021-12-03
 
 ### Summary
 - Fully automated all OCP verification steps. Cutting the number of steps nearly in half. The main playbook can now run completely hands-off from kicking it off all the way to an operational cluster. The last step provides the first-time login credentials.
@@ -40,7 +40,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 - Instructions in README for doing OCP verification steps manually
 
-## 1.0.0 - Automated Bastion Update 2021-11-24
+## 1.0.0 - Automated Bastion - 2021-11-24
 
 ### Summary
 - Fully automated bastion installation and configuration using cloud-init
