@@ -2,8 +2,6 @@
 
   - name: Check nodes status
     tags: check_nodes
-    environment:
-      KUBECONFIG: "/ocpinst/auth/kubeconfig"
     shell: oc get nodes | awk '{print $1, $2}'
     register: oc_get_nodes
   
@@ -14,8 +12,6 @@
 
   - name: Make sure nodes are 'Ready' before continuing
     tags: check_nodes
-    environment:
-      KUBECONFIG: "/ocpinst/auth/kubeconfig"
     shell: oc get nodes | awk '{print $2}'
     register: nodes_check
     until: ("NotReady" not in nodes_check.stdout)
