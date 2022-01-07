@@ -27,8 +27,8 @@ frontend stats
   stats hide-version
   stats refresh 30s
   stats show-node
-  stats show-desc Stats for {{env.install_config.metadata_name}} cluster 
-  stats auth admin:{{env.install_config.metadata_name}}
+  stats show-desc Stats for {{env.networking.metadata_name}} cluster 
+  stats auth admin:{{env.networking.metadata_name}}
   stats uri /stats
 listen api-server-6443 
   bind *:6443
