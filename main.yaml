@@ -25,7 +25,6 @@
     - check_ssh
     - {role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined}
     - install_packages
-    - set_selinux_permissive
     - macvtap
     - create_bastion
 
@@ -53,7 +52,6 @@
     - {role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined}
     - install_packages
     - ssh_ocp_key_gen
-    - set_selinux_permissive
     - set_firewall
     - {role: dns, when: env.networking.dns.setup_on_bastion }
     - check_dns
@@ -72,6 +70,14 @@
     - create_bootstrap
     - create_control_nodes
     - create_compute_nodes
+    
+- hosts: kvm_host
+  tags: app
+  become: true
+  gather_facts: no
+  vars_files:
+    - env.yaml
+  roles:
     - {role: create_extra_rhel, when: env.ip.app is defined }
 
 - hosts: app
@@ -88,7 +94,6 @@
 - hosts: bastion
   tags: verification,bastion
   become: false
-  become_user: jacob
   environment:
     KUBECONFIG: "/home/{{ env.access.login.bastion.user }}/ocpinst/auth/kubeconfig"
   gather_facts: yes
