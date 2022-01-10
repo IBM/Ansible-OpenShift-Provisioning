@@ -43,7 +43,7 @@
       ~~~
       xcode-select --install
       ~~~
-* [Python3]((https://realpython.com/installing-python/)) and [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) intalled on your local workstation \
+* [Python3](https://realpython.com/installing-python/) and [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) intalled on your local workstation \
   * <u>Mac</u>:
     ~~~
     brew install python3
