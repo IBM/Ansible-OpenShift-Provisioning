@@ -61,6 +61,7 @@
   loop_control:
     extended: yes
     index_var: i
+  when: env.hostname.infra is defined
 
 - name: Add compute node information to 80 section in haproxy config
   tags: haproxy
@@ -81,6 +82,7 @@
   loop_control:
     extended: yes
     index_var: i
+  when: env.hostname.infra is defined
 
 - name: Set haproxy boolean to enable connections
   tags: haproxy
