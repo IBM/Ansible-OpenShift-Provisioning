@@ -35,7 +35,6 @@ Released: 2022-01-06
     * Task to httpd to allow port 4443 because SELinux is no longer set to permissive (see '[Removed](###Removed)' below).
 * ### Modified
     * Formatting of README file to be prettier and more useful.
-    * Ansible connection to SSH with password authentication since it was necessary for copying SSH keys anyway. Kept copying of SSH keys to Ansible-managed servers because it's still useful to have.
     * env.yaml to have two sections separated by a comment block: one for variables that need to be filled out, the other for pre-filled variables that can be modified if desired.
     * Ansible user from running as root to an admin user with sudo privileges.
 * ### Removed
