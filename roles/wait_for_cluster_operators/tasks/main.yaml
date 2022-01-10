@@ -17,7 +17,7 @@
   until: ("False" not in co_check.stdout)
   retries: 5
   delay: 30
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Second round of checking cluster operators
   tags: wait_for_cluster_operators
@@ -36,7 +36,7 @@
   until: ("False" not in co_check.stdout)
   retries: 5
   delay: 30
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Third round of checking cluster operators
   tags: wait_for_cluster_operators
@@ -55,7 +55,7 @@
   until: ("False" not in co_check.stdout)
   retries: 5
   delay: 30
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Fourth round of checking cluster operators
   tags: wait_for_cluster_operators
@@ -74,7 +74,7 @@
   until: ("False" not in co_check.stdout)
   retries: 5
   delay: 30
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Fifth round of checking cluster operators
   tags: wait_for_cluster_operators
@@ -93,7 +93,7 @@
   until: ("False" not in co_check.stdout)
   retries: 5
   delay: 30
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Sixth round of checking cluster operators
   tags: wait_for_cluster_operators
@@ -112,7 +112,7 @@
   until: ("False" not in co_check.stdout)
   retries: 5
   delay: 30
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Seventh round of checking cluster operators
   tags: wait_for_cluster_operators

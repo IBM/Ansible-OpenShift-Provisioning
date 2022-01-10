@@ -8,7 +8,7 @@
   tags: create_extra_rhel,app
   stat:
     path: /var/lib/libvirt/images/bastion_base.qcow2
-  ignore_errors: yes
+  ignore_errors: true
   register: qcow2_check
 
 - name: Copy RHEL qcow2 file to KVM host if it's not there already. This may take a while.

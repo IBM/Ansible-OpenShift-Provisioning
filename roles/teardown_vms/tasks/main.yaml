@@ -5,26 +5,26 @@
     name: "{{ env.hostname.bastion }}"
     command: destroy
   when: bastion_teardown
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Undefine bastion for full, skip for partial teardown. Expect ignored errors if it is already undefined.
   community.libvirt.virt:
     name: "{{ env.hostname.bastion }}"
     command: undefine
   when: bastion_teardown
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Destroy bootstrap. Expect ignored errors if it is already destroyed.
   community.libvirt.virt:
     name: "{{ env.hostname.bootstrap }}"
     command: destroy
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Undefine bootstrap. Expect ignored errors if it is already undefined.
   community.libvirt.virt:
     name: "{{ env.hostname.bootstrap }}"
     command: undefine
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Destroy running control nodes. Expect ignored errors if some VMs are already destroyed.
   community.libvirt.virt:
@@ -34,7 +34,7 @@
   loop_control:
     extended: yes
     index_var: i
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Undefine remaining control nodes. Expect ignored errors if some VMs are already undefined.
   community.libvirt.virt:
@@ -44,7 +44,7 @@
   loop_control:
     extended: yes
     index_var: i
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Destroy running compute nodes. Expect ignored errors if some VMs are already destroyed.
   community.libvirt.virt:
@@ -54,7 +54,7 @@
   loop_control:
     extended: yes
     index_var: i
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Undefine remaining compute nodes. Expect ignored errors if some VMs are already undefined.
   community.libvirt.virt:
@@ -64,7 +64,7 @@
   loop_control:
     extended: yes
     index_var: i
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Destroy running infrastructure nodes, if defined. Expect ignored errors if some VMs are already destroyed.
   community.libvirt.virt:
@@ -74,7 +74,7 @@
   loop_control:
     extended: yes
     index_var: i
-  ignore_errors: yes
+  ignore_errors: true
   when: env.hostname.infra is defined
 
 - name: Undefine remaining infrastructure nodes. Expect ignored errors if some VMs are already undefined.
@@ -85,5 +85,5 @@
   loop_control:
     extended: yes
     index_var: i
-  ignore_errors: yes
+  ignore_errors: true
   when: env.hostname.infra is defined

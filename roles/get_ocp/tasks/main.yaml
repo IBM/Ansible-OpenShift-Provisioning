@@ -31,7 +31,7 @@
 
 - name: Delete OCP download directory for idempotency, because ignition files deprecate after 24 hours.
   tags: get_ocp
-  become: yes
+  become: true
   file: 
     path: /home/{{ env.access.login.bastion.user }}/ocpinst
     state: absent
@@ -54,7 +54,7 @@
 
 - name: Copy kubectl, oc, and openshift-install binaries to /usr/local/bin
   tags: get_ocp
-  become: yes
+  become: true
   ansible.builtin.copy:
     src: /home/{{ env.access.login.bastion.user }}/ocpinst/{{item}}
     dest: /usr/local/bin/{{item}}
@@ -92,11 +92,11 @@
 - name: Create manifests
   tags: get_ocp
   command: /home/{{ env.access.login.bastion.user }}/ocpinst/openshift-install create manifests --dir=/home/{{ env.access.login.bastion.user }}/ocpinst/
-  become: yes
+  become: true
   
 - name: Set masters schedulable parameter to false
   tags: get_ocp
-  become: yes
+  become: true
   replace:
     path: /home/{{ env.access.login.bastion.user }}/ocpinst/manifests/cluster-scheduler-02-config.yml
     regexp: ': true'
@@ -104,7 +104,7 @@
 
 - name: Set permissions for ocpinst directory contents to bastion admin user
   tags: get_ocp
-  become: yes
+  become: true
   command: chmod 0755 /home/{{ env.access.login.bastion.user }}/ocpinst/{{item}}
   loop:
     - manifests
@@ -114,7 +114,7 @@
 
 - name: Set ownership of ocpinst directory contents to bastion admin user
   tags: get_ocp
-  become: yes
+  become: true
   command: chown {{ env.access.login.bastion.user }}:{{ env.access.login.bastion.user }} /home/{{ env.access.login.bastion.user }}/ocpinst/{{item}}
   loop:
     - manifests
@@ -124,12 +124,12 @@
 
 - name: Create ignition files
   tags: get_ocp
-  become: yes
+  become: true
   command: /home/{{ env.access.login.bastion.user }}/ocpinst/openshift-install create ignition-configs  --dir=/home/{{ env.access.login.bastion.user }}/ocpinst/
 
 - name: Set permissions of ignitions and related files to bastion admin user
   tags: get_ocp
-  become: yes
+  become: true
   command: chmod 0755 /home/{{ env.access.login.bastion.user }}/ocpinst/{{item}}
   loop: 
     - bootstrap.ign
@@ -140,7 +140,7 @@
 
 - name: Set ownership of ignitions and related files to bastion admin user
   tags: get_ocp
-  become: yes
+  become: true
   command: chown {{ env.access.login.bastion.user }}:{{ env.access.login.bastion.user }} /home/{{ env.access.login.bastion.user }}/ocpinst/{{item}}
   loop: 
     - bootstrap.ign
@@ -153,14 +153,14 @@
 
 - name: create ignition directory on webserver
   tags: get_ocp
-  become: yes
+  become: true
   file: 
     path: /var/www/html/ignition
     state: directory
 
 - name: Copy ignition files to web server
   tags: get_ocp
-  become: yes
+  become: true
   copy:
     src: /home/{{ env.access.login.bastion.user }}/ocpinst/{{ item }}.ign
     dest: /var/www/html/ignition

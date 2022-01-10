@@ -34,7 +34,7 @@
   community.libvirt.virt:
     name: "{{ env.hostname.bootstrap }}"
     command: destroy
-  ignore_errors: yes
+  ignore_errors: true
   delegate_to: "{{ env.ip.kvm }}"
 
 - name: Undefine bootstrap. Expect ignored errors if bootstrap is already undefined.
@@ -42,11 +42,12 @@
   community.libvirt.virt:
     name: "{{ env.hostname.bootstrap }}"
     command: undefine
-  ignore_errors: yes
+  ignore_errors: true
   delegate_to: "{{ env.ip.kvm }}"
 
 - name: Remove qcow2
   tags: wait_for_bootstrap
+  become: true
   file:
     path: /var/lib/libvirt/images/{{env.hostname.bootstrap}}-bootstrap.qcow2
     state: absent

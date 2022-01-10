@@ -68,7 +68,7 @@
     index_var: i
   when: env.hostname.app is defined
 
-- name: Check external DNS resolution from DNS forwarder
+- name: Check external DNS resolution from forwarder
   tags: check_dns,dns
   register: external_dns_check
   failed_when: '"server can" in external_dns_check.stdout'
