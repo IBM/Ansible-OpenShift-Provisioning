@@ -1,6 +1,6 @@
 ---
 
-- name: Add ports to firewalld
+- name: Add ports to firewall
   tags: set_firewall
   firewalld:
     port: "{{ item }}"
@@ -47,9 +47,3 @@
   systemd:
     name: firewalld
     state: reloaded
-
-- name: restart httpd
-  tags: set_firewall
-  service:
-    name: httpd
-    state: restarted

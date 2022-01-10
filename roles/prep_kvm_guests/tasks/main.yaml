@@ -33,3 +33,11 @@
     mode: '0755'
     force: yes
   when: initramfs_check.stat.exists == false
+
+- name: Add admin user to qemu and libvirt groups
+  tags: prep_kvm_guests
+  become: true
+  command: usermod -aG {{item}} {{ env.access.login.kvm.user }}
+  loop:
+    - libvirt
+    - qemu

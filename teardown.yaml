@@ -113,14 +113,14 @@
         name: "{{ item }}"
         command: destroy
       loop: "{{ env.hostname.app }}"
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Undefine remaining app nodes. Expect ignored errors if some VMs are already undefined.
       community.libvirt.virt:
         name: "{{ item }}"
         command: undefine
       loop: "{{ env.hostname.app }}"
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Remove apps qcow2 files for idempotency
       tags: create_extra_rhel
