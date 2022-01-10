@@ -10,7 +10,7 @@
     name: "{{ env.hostname.bootstrap }}"
     command: status
   register: bootstrap_check
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Print status of bootstrap
   tags: create_bootstrap
@@ -37,9 +37,11 @@
   when: bootstrap_check.failed == true
 
 - name: Set bootstrap qcow2 permissions
+  become: true
   tags: create_bootstrap
   command: chmod 600 /var/lib/libvirt/images/{{env.hostname.bootstrap}}-bootstrap.qcow2
 
 - name: Set bootstrap qcow2 ownership to qemu
+  become: true
   tags: create_bootstrap
   command: chown qemu:qemu /var/lib/libvirt/images/{{env.hostname.bootstrap}}-bootstrap.qcow2

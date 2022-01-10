@@ -5,7 +5,7 @@
   shell: |
     /home/{{ env.access.login.bastion.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.access.login.bastion.user }}/ocpinst/oc adm certificate approve
   register: csr_approved
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Viewing approved certificates
   tags: approve_certs
@@ -22,7 +22,7 @@
   shell: |
     /home/{{ env.access.login.bastion.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.access.login.bastion.user }}/ocpinst/oc adm certificate approve
   register: csr_approved
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Viewing approved certificates
   tags: approve_certs
@@ -39,7 +39,7 @@
   shell: |
     /home/{{ env.access.login.bastion.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.access.login.bastion.user }}/ocpinst/oc adm certificate approve
   register: csr_approved
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Viewing approved certificates
   tags: approve_certs
@@ -56,7 +56,7 @@
   shell: |
     /home/{{ env.access.login.bastion.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.access.login.bastion.user }}/ocpinst/oc adm certificate approve
   register: csr_approved
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Viewing approved certificates
   tags: approve_certs
@@ -73,7 +73,7 @@
   shell: |
     /home/{{ env.access.login.bastion.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.access.login.bastion.user }}/ocpinst/oc adm certificate approve
   register: csr_approved
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Viewing approved certificates
   tags: approve_certs
@@ -90,7 +90,7 @@
   shell: |
     /home/{{ env.access.login.bastion.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.access.login.bastion.user }}/ocpinst/oc adm certificate approve
   register: csr_approved
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Viewing approved certificates
   tags: approve_certs
@@ -107,7 +107,7 @@
   shell: |
     /home/{{ env.access.login.bastion.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.access.login.bastion.user }}/ocpinst/oc adm certificate approve
   register: csr_approved
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Viewing approved certificates
   tags: approve_certs
@@ -124,7 +124,7 @@
   shell: |
     /home/{{ env.access.login.bastion.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.access.login.bastion.user }}/ocpinst/oc adm certificate approve
   register: csr_approved
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Viewing approved certificates
   tags: approve_certs
@@ -141,7 +141,7 @@
   shell: |
     /home/{{ env.access.login.bastion.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.access.login.bastion.user }}/ocpinst/oc adm certificate approve
   register: csr_approved
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Viewing approved certificates
   tags: approve_certs
@@ -158,7 +158,7 @@
   shell: |
     /home/{{ env.access.login.bastion.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.access.login.bastion.user }}/ocpinst/oc adm certificate approve
   register: csr_approved
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Viewing approved certificates
   tags: approve_certs
@@ -175,7 +175,7 @@
   shell: |
     /home/{{ env.access.login.bastion.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.access.login.bastion.user }}/ocpinst/oc adm certificate approve
   register: csr_approved
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Viewing approved certificates
   tags: approve_certs
