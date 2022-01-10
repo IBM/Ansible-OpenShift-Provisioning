@@ -5,7 +5,7 @@ manage_etc_hosts: true
 users:
   - name: {{ env.access.login.bastion.user }}
     sudo: ALL=(ALL) NOPASSWD:ALL
-    groups: adm,sys
+    groups: adm,sys,wheel
     home: /home/{{ env.access.login.bastion.user }}
     shell: /bin/bash
     lock_passwd: false
