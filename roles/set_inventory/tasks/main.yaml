@@ -13,10 +13,10 @@
     marker_end: "end of"
     block: |
       [kvm_host]
-      {{env.ip.kvm}} ansible_connection=ssh ansible_ssh_user={{env.access.login.kvm.user}} ansible_ssh_pass={{env.access.login.kvm.pass}} ansible_become_password={{env.access.login.kvm.sudo_pass}}
+      {{env.ip.kvm}} ansible_become_password={{env.access.login.kvm.sudo_pass}}
 
       [bastion]
-      {{env.ip.bastion}} ansible_connection=ssh ansible_ssh_user={{env.access.login.bastion.user}} ansible_ssh_pass={{env.access.login.bastion.pass}} ansible_become_password={{env.access.login.bastion.sudo_pass}}
+      {{env.ip.bastion}} ansible_become_password={{env.access.login.bastion.sudo_pass}}
 
       [bootstrap]
       {{env.ip.bootstrap}}
@@ -70,7 +70,7 @@
   lineinfile:
     path: inventory
     insertafter: "app"
-    line: "{{ item }} ansible_connection=ssh ansible_ssh_user={{env.access.login.app.user}} ansible_ssh_pass={{env.access.login.app.pass}} ansible_become_password={{env.access.login.app.sudo_pass}}"
+    line: "{{ item }} ansible_become_password={{env.access.login.app.sudo_pass}}"
   loop: "{{env.ip.app}}"
   when: env.ip.app is defined
 
