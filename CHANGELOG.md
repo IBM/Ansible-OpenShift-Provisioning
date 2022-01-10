@@ -20,21 +20,27 @@ All notable changes to this project will be documented in this file.
 * Make ssh-copy-id role idempotent
 * Add an option to automte the creation of an LPAR and install RHEL on KVM host
 
-## <u>Infrastructure Nodes and Extra Apps</u>
+## <u>Infrastructure Nodes, Extra Apps, Security</u>
 Version: 1.3.0 \
 Released: 2022-01-06 
 * ### Summary 
     * Now able to designate compute nodes as infrastructure nodes, and create optional RHEL VMs for additional non-cluster applications running on the KVM host.
+    * Made changes to SSH and SELinux tasks to be more secure.
 * ### Added
     * Support for creating infrastructure nodes and extra apps.
     * Added tcp port 53 to firewall.
-    * Setting of permissions and ownership of important configuration files to admin user instead of root.
+    * Setting of permissions and ownership of important configuration files to bastion admin user instead of root.
+    * Wheel to groups that bastion admin user is added to on boot.
     * More rounds of checking cluster operators and CSRs in verification steps to ensure the playbook doesn't fail if it takes a long time for those steps to complete.
+    * Task to httpd to allow port 4443 because SELinux is no longer set to permissive (see '[Removed](###Removed)' below).
 * ### Modified
-    * README file to be prettier.
+    * Formatting of README file to be prettier and more useful.
     * Ansible connection to SSH with password authentication since it was necessary for copying SSH keys anyway. Kept copying of SSH keys to Ansible-managed servers because it's still useful to have.
     * env.yaml to have two sections separated by a comment block: one for variables that need to be filled out, the other for pre-filled variables that can be modified if desired.
     * Ansible user from running as root to an admin user with sudo privileges.
+* ### Removed
+    * The need to run anything as root user for security reasons.
+    * set_selinux_permissive mode role for security reasons.
 
 ## <u>Scaling</u>
 Version: 1.2.0 \
