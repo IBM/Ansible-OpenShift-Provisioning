@@ -120,11 +120,11 @@ If you encounter errors while running the main playbook, there are a few things 
 3) Google the specific error message.
 3) Re-run the role indivually with [tags](#Tags) and the verbosity '-v' option to get more debugging information (more v's give more info). For example: 
     ~~~
-    ansible-playbook main.yaml --ask-become-pass --tags get_ocp -vvv
+    ansible-playbook main.yaml --tags get_ocp -vvv
     ~~~
 4) Teardown troublesome KVM guests with [teardown](#Teardown) scripts and start again with [tags](#Tags). To start from the beginning, run: 
     ~~~
-    ansible-playbook teardown.yaml --ask-become-pass --tags full
+    ansible-playbook teardown.yaml --tags full
     ~~~
 6) E-mail Jacob Emery at jacob.emery@ibm.com
 7) If it's a problem with an OpenShift verification step, first re-reun the role with [tags](#Tags). If that doesn't work, SSH into the bastion as root ("ssh root@bastion-ip-address-here") and then run,"export KUBECONFIG=~/ocpinst/auth/kubeconfig" and then "oc whoami" and make sure it ouputs "system:admin". Then run the shell command from the role you would like to check on manually: i.e. 'oc get nodes', 'oc get co', etc.
