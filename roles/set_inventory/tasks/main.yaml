@@ -13,10 +13,10 @@
     marker_end: "end of"
     block: |
       [kvm_host]
-      {{env.ip.kvm}} ansible_become_password={{env.access.login.kvm.sudo_pass}}
+      {{env.ip.kvm}} ansible_user={{ env.access.login.kvm.user }} ansible_become_password={{env.access.login.kvm.sudo_pass}}
 
       [bastion]
-      {{env.ip.bastion}} ansible_become_password={{env.access.login.bastion.sudo_pass}}
+      {{env.ip.bastion}} ansible_user={{ env.access.login.bastion.user }} ansible_become_password={{env.access.login.bastion.sudo_pass}}
 
       [bootstrap]
       {{env.ip.bootstrap}}
