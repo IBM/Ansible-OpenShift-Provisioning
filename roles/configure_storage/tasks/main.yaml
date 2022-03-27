@@ -1,0 +1,58 @@
+---
+    
+- name: create empty list for lun names
+  tags: configure_storage
+  set_fact:
+    lun_list: []
+
+- name: Fill list of lun names
+  tags: configure_storage
+  set_fact:
+    lun_list: "{{lun_list}} + [ '/dev/mapper/{{ item }}' ]"
+    cacheable: yes
+  loop: "{{ env.z.lpar.storage_group.lun_name[1:] }}"
+
+- name: Create a volume group.
+  tags: configure_storage
+  community.general.lvg:
+    pvs: "{{ lun_list }}"
+    state: present
+    vg: "{{ env.z.lpar.storage_group.vg.name }}"   
+
+- name: Create a logical volume.
+  tags: configure_storage
+  community.general.lvol:
+    vg: "{{ env.z.lpar.storage_group.vg.name }}"
+    lv: "{{ env.z.lpar.storage_group.lv.name }}" 
+    size: 100%VG
+
+#- name: Create directory for filesystem, if does not exist.
+#  tags: configure_storage
+#  file:
+#    path: "{{ env.z.lpar.storage_group.pool_path }}" 
+#    state: directory
+#    mode: '0755'
+
+- name: Format the filesystem.
+  tags: configure_storage
+  community.general.filesystem:
+    fstype: "{{env.z.lpar.storage_group.fs.type}}"
+    dev: /dev/{{ env.z.lpar.storage_group.vg.name }}/{{ env.z.lpar.storage_group.lv.name }}
+
+- name: Mount the logical volume on the filesystem.
+  tags: configure_storage
+  mount:
+    path: "{{ env.z.lpar.storage_group.pool_path }}"
+    src: /dev/{{ env.z.lpar.storage_group.vg.name }}/{{ env.z.lpar.storage_group.lv.name }}
+    fstype: "{{ env.z.lpar.storage_group.fs.type }}"
+    state: mounted
+
+- name: Template storage pool from XML file
+  tags: configure_storage
+  template: 
+    src: vdisk.xml.j2
+    dest: "~/{{ env.z.lpar.storage_group.fs.name }}-vdisk.xml"
+
+- name: Create virsh storage pool
+  tags: configure_storage
+  command: virsh pool-define {{ env.z.lpar.storage_group.fs.name }}-vdisk.xml
