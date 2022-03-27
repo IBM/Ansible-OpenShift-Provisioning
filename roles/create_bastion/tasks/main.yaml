@@ -1,149 +1,115 @@
 ---
 
-- name: Load in variables from env.yaml
-  tags: create_bastion,bastion
-  include_vars: env.yaml
-
-- name: Enable cockpit console
-  tags: create_bastion,bastion
-  command: systemctl enable --now cockpit.socket
-
-- name: Remove working directory for idempotency
-  tags: create_bastion,bastion
+- name: Clean up old kickstart for idempotency
+  tags: create_bastion
+  become: false
   file:
-    path: /var/lib/libvirt/images/tmp
+    path: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
     state: absent
+  delegate_to: "{{vault.ftp.ip}}"
 
-- name: Create working directory
-  tags: create_bastion,bastion
+- name: Create a directory on the FTP server for bastion configuration files.
+  become: false
+  tags: create_bastion
   file:
-    path: /var/lib/libvirt/images/tmp
+    path: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}"
     state: directory
+  delegate_to: "{{vault.ftp.ip}}"
+
+- name: Template kickstart file to FTP server.
+  tags: create_bastion
+  become: false
+  template:
+    src: "bastion-ks.cfg.j2"
+    dest: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
+  delegate_to: "{{vault.ftp.ip}}"
+
+- name: Update bastion kickstart config file with network parameters
+  tags: create_bastion
+  become: false
+  lineinfile:
+    path: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
+    regexp: "Network information"
+    line: "network --bootproto=static --ip={{vault.bastion.networking.ip}} --gateway={{env.bastion.networking.gateway}}  --netmask={{env.bastion.networking.subnetmask}}  --noipv6 --nameserver={{env.bastion.networking.nameserver}} --activate --hostname={{env.bastion.networking.hostname}}"
+  delegate_to: "{{vault.ftp.ip}}"
+
+- name: Create hash from bastion's root password to input in kickstart file.
+  tags: create_bastion
+  shell: echo "{{ vault.bastion.access.root_pass }}" | openssl passwd -6 -in -
+  register: root_pass_hash
+
+- name: Add hashed root password to bastion's RHEL kickstart config file.
+  tags: create_bastion
+  become: false
+  lineinfile:
+    path: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
+    insertafter: "Root password"
+    line: "rootpw --iscrypted {{ root_pass_hash.stdout }}"
+  delegate_to: "{{vault.ftp.ip}}"
+
+- name: Create hash from bastion user password to input in kickstart file.
+  tags: create_bastion
+  shell: echo "{{ vault.bastion.access.pass }}" | openssl passwd -6 -in -
+  register: user_pass_hash
+
+- name: Add hashed user password to bastion's RHEL kickstart config file.
+  tags: create_bastion
+  become: false
+  lineinfile:
+    path: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
+    insertafter: "Users and Groups Definitions"
+    line: "user --groups=wheel --name={{env.bastion.access.user}} --password={{user_pass_hash.stdout}} --iscrypted"
+  delegate_to: "{{vault.ftp.ip}}"
+
+- name: Create tmp folder
+  tags: create_bastion
+  file:
+    path: "{{ role_path }}/tmp"
+    state: directory
+
+- name: Fetch completed kickstart file from FTP server
+  tags: create_bastion
+  become: false
+  fetch:
+    src: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
+    dest: "{{ role_path }}/tmp/bastion-ks.cfg"   
+    flat: yes
+  delegate_to: "{{ vault.ftp.ip }}"
+
+- name: Copy kickstart to KVM host libvirt images directory
+  tags: create_bastion
+  copy:
+    src: "{{ role_path }}/tmp/bastion-ks.cfg"
+    dest: "{{ env.z.lpar.storage_group.pool_path }}/bastion-ks.cfg"
+    owner: "{{ env.z.lpar.access.user }}"
     mode: '0755'
 
-- name: Check to see if qcow2 file already exists on KVM host
-  tags: create_bastion,bastion
-  stat:
-    path: /var/lib/libvirt/images/bastion_base.qcow2
-  register: qcow2_check
-
-- name: Copy RHEL qcow2 file to KVM host. This may take a while.
-  tags: create_bastion,bastion
-  copy:
-    src: "{{ env.redhat.path_to_qcow2 }}"
-    dest: /var/lib/libvirt/images/bastion_base.qcow2
-    mode: '600'
-    owner: qemu
-    group: qemu
-  when: qcow2_check.stat.exists == false
-  register: rhel_qcow2_download
-
-- name: Remove snapshot for idempotency
-  tags: create_bastion,bastion
+- name: Remove tmp folder
+  tags: create_bastion, test23
   file:
-    path: /var/lib/libvirt/images/{{env.hostname.bastion}}-snapshot-cloudimg.qcow2
+    path: "{{ role_path }}/tmp"
     state: absent
 
-- name: Create base image
-  tags: create_bastion,bastion
-  command: "qemu-img create -b /var/lib/libvirt/images/bastion_base.qcow2 -f qcow2 /var/lib/libvirt/images/{{env.hostname.bastion}}-snapshot-cloudimg.qcow2 {{env.node_resources.bastion.disk_size}}G"
-  register: qemu_create
+- name: Split iso_mount_dir variable on / for use in virt-install location parameter
+  tags: create_bastion
+  set_fact: 
+    ins_dir: "{{ env.ftp.iso_mount_dir.split('/') }}"
 
-- name: Print result of creation of base image
-  tags: create_bastion,bastion
-  debug:
-    var: qemu_create
-
-- name: Set bastion qcow2 permissions
-  tags: create_bastion,bastion
-  command: chmod 600 /var/lib/libvirt/images/{{env.hostname.bastion}}-snapshot-cloudimg.qcow2
-
-- name: Set bastion qcow2 ownership to qemu
-  tags: create_bastion,bastion
-  command: chown qemu:qemu /var/lib/libvirt/images/{{env.hostname.bastion}}-snapshot-cloudimg.qcow2
-
-- name: Get info about qemu image creation
-  tags: create_bastion,bastion
-  command: "qemu-img info /var/lib/libvirt/images/{{env.hostname.bastion}}-snapshot-cloudimg.qcow2"
-  register: qemu_info
-
-- name: Print output from qemu image creation information
-  tags: create_bastion,bastion
-  debug:
-    var: qemu_info
-
-- name: Create instance-id
-  tags: create_bastion,bastion
-  shell: "echo \"instance-id: $(uuidgen || echo i-abcdefg)\" > /var/lib/libvirt/images/tmp/meta-data"
-  register: uuidgen
-
-- name: Print output from uuidgen command
-  tags: create_bastion,bastion
-  debug:
-    var: uuidgen
-
-- name: Use cloud_init.cfg.j2 template to make user-data file
-  tags: create_bastion,bastion
-  template:
-    src: cloud_init.cfg.j2
-    dest: /var/lib/libvirt/images/tmp/user-data
-
-- name: Use network_config_static.cfg.j2 template to make network-config file
-  tags: create_bastion,bastion
-  template:
-    src: network_config_static.cfg.j2
-    dest: /var/lib/libvirt/images/tmp/network-config
-
-- name: Generate iso file
-  tags: create_bastion,bastion
-  command: genisoimage -output /var/lib/libvirt/images/{{env.hostname.bastion}}-seed.img -volid cidata -joliet -rock /var/lib/libvirt/images/tmp/meta-data /var/lib/libvirt/images/tmp/network-config /var/lib/libvirt/images/tmp/user-data
-  register: gen_iso
-
-- name: Set bastion seed image permissions
-  tags: create_bastion,bastion
-  command: chmod 600 /var/lib/libvirt/images/{{env.hostname.bastion}}-seed.img
-
-- name: Set bastion seed image ownership to qemu
-  tags: create_bastion,bastion
-  command: chown qemu:qemu /var/lib/libvirt/images/{{env.hostname.bastion}}-seed.img
-
-- name: Print output from generating iso
-  tags: create_bastion,bastion
-  debug:
-    var: gen_iso
-
-- name: Check if bastion already exists. Expect an ignored error if it doesn't exist.
-  tags: create_bastion,bastion
-  community.libvirt.virt:
-    name: "{{ env.hostname.bastion }}"
-    command: status
-  register: bastion_check
-  ignore_errors: true
-
-- name: Boot bastion
-  tags: create_bastion,bastion
-  command: virt-install 
-    --name {{ env.hostname.bastion }} \
-    --virt-type kvm \
-    --memory {{ env.node_resources.bastion.ram }} \
-    --vcpus {{ env.node_resources.bastion.vcpu }} \
-    --boot hd \
-    --disk path=/var/lib/libvirt/images/{{ env.hostname.bastion }}-seed.img,device=cdrom \
-    --disk path=/var/lib/libvirt/images/{{ env.hostname.bastion }}-snapshot-cloudimg.qcow2,device=disk \
-    --graphics none \
-    --os-type Linux --os-variant rhel{{env.node_resources.bastion.os_variant}} \
+- name: Boot and kickstart bastion
+  tags: create_bastion
+  shell: |
+    virt-install \
+    --name {{ env.bastion.networking.hostname }} \
+    --memory={{ env.bastion.resources.ram }} \
+    --vcpus={{ env.bastion.resources.vcpu }} \
+    --location ftp://{{ env.ftp.user }}:{{ vault.ftp.pass }}@{{ vault.ftp.ip }}/{{ ins_dir[-1] }} \
+    --disk pool=default,size={{ env.bastion.resources.disk_size }}  \
     --network network=macvtap-net \
-    --noautoconsole \
-    --noreboot
-  when: bastion_check.failed == true
+    --graphics=none \
+    --noautoconsole --wait=-1 \
+    --initrd-inject {{ env.z.lpar.storage_group.pool_path }}/bastion-ks.cfg --extra-args "inst.ks=ftp://{{ env.ftp.user }}:{{ vault.ftp.pass }}@{{ vault.ftp.ip }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg ip={{ vault.bastion.networking.ip }}::{{ env.bastion.networking.gateway }}:{{ env.bastion.networking.subnetmask }}:{{ env.bastion.networking.hostname }}:enc1:none"
 
-- name: Restart bastion
-  tags: create_bastion,bastion
-  command: virsh start {{ env.hostname.bastion }}
-  when: bastion_check.failed == true
-
-- name: Waiting 3 minutes for automated bastion installation and configuration to complete. To monitor, use a web browser to go to https://your-kvm-host-ip-address-here:9090, sign in as 'root' and use the password you set for env.access.login.kvm.sudo_pass in env.yaml, then go to the 'Virtual Machines' tab and click on the bastion's hostname.
-  tags: create_bastion,bastion
+- name: Waiting 3 minutes for automated bastion installation and configuration to complete. To monitor, use a web browser to go to https://your-kvm-host-ip-address-here:9090, sign in, then go to the 'Virtual Machines' tab and click on the bastion's hostname.
+  tags: create_bastion
   pause:
     minutes: 3
-  when: bastion_check.failed == true

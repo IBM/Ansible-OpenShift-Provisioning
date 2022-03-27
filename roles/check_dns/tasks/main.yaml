@@ -1,75 +1,60 @@
 ---
 
-- name: Load in variables from env.yaml
-  tags: check_dns,dns
-  include_vars: env.yaml
-
 - name: Check internal cluster DNS resolution for bastion and its services
-  tags: check_dns,dns
+  tags: check_dns
   shell: "dig +short {{ item }} | tail -n1"
   loop:
-    - "{{ env.hostname.bastion }}.{{ env.networking.base_domain }}"
-    - "api.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}"
-    - "api-int.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}"
-    - "test.apps.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}"
+    - "{{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}"
+    - "api.{{ env.cluster.networking.metadata_name }}.{{ env.bastion.networking.base_domain }}"
+    - "api-int.{{ env.cluster.networking.metadata_name }}.{{ env.bastion.networking.base_domain }}"
+    - "test.apps.{{ env.cluster.networking.metadata_name }}.{{ env.bastion.networking.base_domain }}"
   register: bastion_lookup
-  failed_when: env.ip.bastion != bastion_lookup.stdout
+  failed_when: vault.bastion.networking.ip != bastion_lookup.stdout
     
 - name: Check internal cluster DNS resolution for bootstrap
-  tags: check_dns,dns
-  shell: "dig +short {{ env.hostname.bootstrap }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }} | tail -n1"
+  tags: check_dns
+  shell: "dig +short {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1"
   register: bootstrap_lookup
-  failed_when: env.ip.bootstrap != bootstrap_lookup.stdout
+  failed_when: env.cluster.nodes.bootstrap.ip != bootstrap_lookup.stdout
 
 - name: Print results from bootstrap lookup
-  tags: check_dns, dns
+  tags: check_dns
   debug:
     var: bootstrap_lookup.stdout
 
 - name: Check control nodes DNS resolution
-  tags: check_dns,dns
-  shell: "dig +short {{ env.hostname.control[i] }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}  | tail -n1"
+  tags: check_dns
+  shell: "dig +short {{ env.cluster.nodes.control.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}  | tail -n1"
   register: control_lookup
-  failed_when: env.ip.control[i] != control_lookup.stdout
-  with_sequence: start=0 end={{(env.hostname.control | length) - 1}} stride=1
+  failed_when: env.cluster.nodes.control.ip[i] != control_lookup.stdout
+  with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
 
 - name: Check compute nodes DNS resolution
-  tags: check_dns,dns
-  shell: "dig +short {{ env.hostname.compute[i] }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}  | tail -n1"
+  tags: check_dns
+  shell: "dig +short {{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}  | tail -n1"
   register: compute_lookup
-  failed_when: env.ip.compute[i] != compute_lookup.stdout
-  with_sequence: start=0 end={{(env.hostname.compute | length) - 1}} stride=1
+  failed_when: env.cluster.nodes.compute.ip[i] != compute_lookup.stdout
+  with_sequence: start=0 end={{(env.cluster.nodes.compute.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
 
 - name: Check infrastructure nodes DNS resolution
-  tags: check_dns,dns
-  shell: "dig +short {{ env.hostname.infra[i] }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}  | tail -n1"
+  tags: check_dns
+  shell: "dig +short {{ env.cluster.nodes.infra.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}  | tail -n1"
   register: infra_lookup
-  failed_when: env.ip.infra[i] != infra_lookup.stdout
-  with_sequence: start=0 end={{(env.hostname.infra | length) - 1}} stride=1
+  failed_when: env.cluster.nodes.infra.ip[i] != infra_lookup.stdout
+  with_sequence: start=0 end={{(env.cluster.nodes.infra.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
-  when: env.hostname.infra is defined
-
-- name: Check extra RHEL VM apps DNS resolution
-  tags: check_dns,dns
-  shell: "dig +short {{ env.hostname.app[i] }}.{{ env.networking.base_domain }}  | tail -n1"
-  register: app_lookup
-  failed_when: env.ip.app[i] != app_lookup.stdout
-  with_sequence: start=0 end={{(env.hostname.app | length) - 1}} stride=1
-  loop_control:
-    extended: yes
-    index_var: i
-  when: env.hostname.app is defined
+  when: env.cluster.nodes.infra.hostname is defined
 
 - name: Check external DNS resolution from forwarder
-  tags: check_dns,dns
+  tags: check_dns
   register: external_dns_check
   failed_when: '"server can" in external_dns_check.stdout'
   command: "nslookup {{ item }}"

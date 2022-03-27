@@ -1,13 +1,9 @@
 ---
 
-- name: Load in variables from env.yaml
-  tags: create_bootstrap
-  include_vars: env.yaml
-
 - name: Check if bootstrap already exists
   tags: create_bootstrap
   community.libvirt.virt:
-    name: "{{ env.hostname.bootstrap }}"
+    name: "{{ env.cluster.nodes.bootstrap.hostname }}"
     command: status
   register: bootstrap_check
   ignore_errors: true
@@ -21,16 +17,16 @@
   tags: create_bootstrap
   command: |
     virt-install \
-    --name {{env.hostname.bootstrap}} \
-    --disk /var/lib/libvirt/images/{{env.hostname.bootstrap}}-bootstrap.qcow2,size={{ env.node_resources.bootstrap.disk_size }} \
-    --ram {{ env.node_resources.bootstrap.ram }} \
+    --name {{env.cluster.nodes.bootstrap.hostname}} \
+    --disk pool=default,size={{ env.cluster.nodes.bootstrap.disk_size }}  \
+    --ram {{ env.cluster.nodes.bootstrap.ram }} \
     --cpu host \
-    --vcpus {{ env.node_resources.bootstrap.vcpu }} \
+    --vcpus {{ env.cluster.nodes.bootstrap.vcpu }} \
     --os-type linux \
-    --os-variant rhel{{ env.node_resources.bootstrap.os_variant }} \
+    --os-variant rhel{{ env.cluster.nodes.bootstrap.os_variant }} \
     --network network=macvtap-net \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.ip.bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.ip.bootstrap}}::{{env.networking.gateway}}:{{env.networking.netmask}}:{{env.hostname.bootstrap}}::none:1500 nameserver={{env.networking.dns.nameserver}} coreos.inst.ignition_url=http://{{env.ip.bastion}}:8080/ignition/bootstrap.ign" \
+    --location {{ env.z.lpar.storage_group.pool_path }},kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{vault.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.bootstrap.ip}}::{{env.z.lpar.networking.gateway}}:{{env.z.lpar.networking.subnetmask}}:{{env.cluster.nodes.bootstrap.hostname}}::none:1500 nameserver={{env.cluster.networking.nameserver}} coreos.inst.ignition_url=http://{{vault.bastion.networking.ip}}:8080/ignition/bootstrap.ign" \
     --graphics none \
     --wait=-1 \
     --noautoconsole 
@@ -39,9 +35,9 @@
 - name: Set bootstrap qcow2 permissions
   become: true
   tags: create_bootstrap
-  command: chmod 600 /var/lib/libvirt/images/{{env.hostname.bootstrap}}-bootstrap.qcow2
+  command: chmod 600 {{ env.z.lpar.storage_group.pool_path }}/{{env.cluster.nodes.bootstrap.hostname}}.qcow2
 
 - name: Set bootstrap qcow2 ownership to qemu
   become: true
   tags: create_bootstrap
-  command: chown qemu:qemu /var/lib/libvirt/images/{{env.hostname.bootstrap}}-bootstrap.qcow2
+  command: chown qemu:qemu {{ env.z.lpar.storage_group.pool_path }}/{{env.cluster.nodes.bootstrap.hostname}}.qcow2

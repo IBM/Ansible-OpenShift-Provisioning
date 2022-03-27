@@ -1,20 +1,16 @@
 ---
 
-- name: Load in variables from env.yaml
-  tags: prep_kvm_guests
-  include_vars: env.yaml
-
 - name: Check to see if kernel already exists on KVM host
   tags: prep_kvm_guests
   stat:
-    path: /var/lib/libvirt/images/rhcos-live-kernel-s390x
+    path: "{{ env.z.lpar.storage_group.pool_path }}/rhcos-live-kernel-s390x"
   register: kernel_check
 
 - name: Get Red Hat CoreOS kernel
   tags: prep_kvm_guests
   get_url:
     url: "{{ env.coreos.kernel }}"
-    dest: /var/lib/libvirt/images/rhcos-live-kernel-s390x
+    dest: "{{ env.z.lpar.storage_group.pool_path }}/rhcos-live-kernel-s390x"
     mode: '0755'
     force: yes
   when: kernel_check.stat.exists == false
@@ -22,14 +18,14 @@
 - name: Check to see if initramfs already exists on KVM host
   tags: prep_kvm_guests
   stat:
-    path: /var/lib/libvirt/images/rhcos-live-initramfs.s390x.img
+    path: "{{ env.z.lpar.storage_group.pool_path }}/rhcos-live-initramfs.s390x.img"
   register: initramfs_check
 
 - name: Get Red Hat CoreOS initramfs
   tags: prep_kvm_guests
   get_url:
     url: "{{ env.coreos.initramfs }}"
-    dest: /var/lib/libvirt/images/rhcos-live-initramfs.s390x.img
+    dest: "{{ env.z.lpar.storage_group.pool_path }}/rhcos-live-initramfs.s390x.img"
     mode: '0755'
     force: yes
   when: initramfs_check.stat.exists == false
@@ -37,7 +33,7 @@
 - name: Add admin user to qemu and libvirt groups
   tags: prep_kvm_guests
   become: true
-  command: usermod -aG {{item}} {{ env.access.login.kvm.user }}
+  command: usermod -aG {{item}} {{ env.z.lpar.access.user }}
   loop:
     - libvirt
     - qemu

@@ -1,52 +1,47 @@
 ---
 
-- name: Load in variables from env.yaml
-  tags: ssh_ocp_key_gen, ssh
-  include_vars: env.yaml
-
 - name: Check to see if local SSH directory exists
-  tags: ssh_ocp_key_gen, ssh
+  tags: ssh_ocp_key_gen
   stat:
-    path: /home/{{ env.access.login.bastion.user }}/.ssh
+    path: /home/{{ env.bastion.access.user }}/.ssh
   register: ssh_directory_exists_check
 
 - name: Create SSH local directory if it doesn't already exist
-  tags: ssh_ocp_key_gen, ssh
+  tags: ssh_ocp_key_gen
   file:
-    path: /home/{{ env.access.login.bastion.user }}/.ssh
+    path: /home/{{ env.bastion.access.user }}/.ssh
     state: directory
     mode: "0700"
   register: ssh_directory_creation
   when: ssh_directory_exists_check.stat.exists == false
 
-- name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key if it doesn't exist already
-  tags: ssh_ocp_key_gen, ssh
+- name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key.
+  tags: ssh_ocp_key_gen
   community.crypto.openssh_keypair:
-    path: /home/{{ env.access.login.bastion.user }}/.ssh/id_rsa
+    path: "/home/{{ env.bastion.access.user }}/.ssh/id_rsa"
     backend: opensshbin
-    owner: "{{ env.access.login.bastion.user }}"
+    owner: "{{ env.bastion.access.user }}"
     passphrase: ""
-    comment: "{{ env.access.ssh.ocp_key_comment }}"
+    comment: "{{ env.bastion.access.ocp_ssh_key_comment }}"
     regenerate: always
   register: ssh_ocp
 
 - name: Print results of SSH key generation
-  tags: ssh_ocp_key_gen, ssh
+  tags: ssh_ocp_key_gen
   debug:
     var: ssh_ocp.public_key
   when: ssh_ocp.changed == true
 
 - name: Set SSH key permissions
-  tags: ssh_ocp_key_gen, ssh
-  command: chmod 600 /home/{{ env.access.login.bastion.user }}/.ssh/{{item}}
+  tags: ssh_ocp_key_gen
+  command: chmod 600  /home/{{ env.bastion.access.user }}/.ssh/{{ item }}
   loop: 
     - id_rsa
     - id_rsa.pub
 
 - name: Set SSH key ownership
-  tags: ssh_ocp_key_gen, ssh
-  command: chown {{ env.access.login.bastion.user }}:{{ env.access.login.bastion.user }} /home/{{ env.access.login.bastion.user }}/.ssh/{{item}}
+  tags: ssh_ocp_key_gen
+  command: chown {{ env.bastion.access.user }}:{{ env.bastion.access.user }} /home/{{ env.bastion.access.user }}/.ssh/{{item}}
   loop:
     - id_rsa
     - id_rsa.pub
-

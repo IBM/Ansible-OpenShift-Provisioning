@@ -1,26 +1,22 @@
 ---
 
-- name: Load in variables from env.yaml
-  tags: dns
-  include_vars: env.yaml
-
 - name: Enable named
   tags: dns
   ansible.builtin.systemd:
-      name: named
-      enabled: yes
+    name: named
+    enabled: yes
 
 - name: Start named
   tags: dns
   ansible.builtin.systemd:
-      name: named
-      state: started
+    name: named
+    state: started
 
 - name: Split IP addresses for use in templates
   tags: dns
   set_fact: 
-    bastion_split_ip: "{{ env.ip.bastion.split('.') }}"
-    bootstrap_split_ip: "{{ env.ip.bootstrap.split('.') }}"
+    bastion_split_ip: "{{ vault.bastion.networking.ip.split('.') }}"
+    bootstrap_split_ip: "{{ env.cluster.nodes.bootstrap.ip.split('.') }}"
 
 - name: Template named.conf file to bastion
   tags: dns
@@ -36,7 +32,7 @@
   tags: dns
   template:
     src: dns.db.j2
-    dest: /var/named/{{env.networking.metadata_name}}.db
+    dest: /var/named/{{env.cluster.networking.metadata_name}}.db
     owner: named
     group: named
     mode: '0755'
@@ -45,10 +41,10 @@
 - name: Add control nodes to DNS forwarding file on bastion
   tags: dns
   lineinfile:
-    path: /var/named/{{env.networking.metadata_name}}.db
+    path: /var/named/{{env.cluster.networking.metadata_name}}.db
     insertafter: "entries for the control nodes"
-    line: "{{ env.hostname.control[i] }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}. IN A {{ env.ip.control[i] }}"
-  with_sequence: start=0 end={{(env.hostname.control | length) - 1}} stride=1
+    line: "{{ env.cluster.nodes.control.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.cluster.nodes.control.ip[i] }}"
+  with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
@@ -56,10 +52,10 @@
 - name: Add compute nodes to DNS forwarding file on bastion
   tags: dns
   lineinfile:
-    path: /var/named/{{env.networking.metadata_name}}.db
+    path: /var/named/{{env.cluster.networking.metadata_name}}.db
     insertafter: "entries for the compute nodes"
-    line: "{{ env.hostname.compute[i] }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}. IN A {{ env.ip.compute[i] }}"
-  with_sequence: start=0 end={{(env.hostname.compute | length) - 1}} stride=1
+    line: "{{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.cluster.nodes.compute.ip[i] }}"
+  with_sequence: start=0 end={{(env.cluster.nodes.compute.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
@@ -67,32 +63,20 @@
 - name: Add infrastructure nodes to DNS forwarding file on bastion if requested
   tags: dns
   lineinfile:
-    path: /var/named/{{env.networking.metadata_name}}.db
+    path: /var/named/{{env.cluster.networking.metadata_name}}.db
     insertafter: "entries for extra RHEL VMs"
-    line: "{{ env.hostname.infra[i] }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}. IN A {{ env.ip.infra[i] }}"
-  with_sequence: start=0 end={{(env.hostname.infra | length) - 1}} stride=1
+    line: "{{ env.cluster.nodes.infra.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.cluster.nodes.infra.ip[i] }}"
+  with_sequence: start=0 end={{(env.cluster.nodes.infra.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
-  when: env.hostname.infra is defined
-
-- name: Add extra RHEL VM apps to DNS forwarding file on bastion if requested
-  tags: dns
-  lineinfile:
-    path: /var/named/{{env.networking.metadata_name}}.db
-    insertafter: "entries for extra RHEL VMs"
-    line: "{{ env.hostname.app[i] }}.{{ env.networking.base_domain }}. IN A {{ env.ip.app[i] }}"
-  with_sequence: start=0 end={{(env.hostname.app | length) - 1}} stride=1
-  loop_control:
-    extended: yes
-    index_var: i
-  when: env.hostname.app is defined
+  when: env.cluster.nodes.infra.hostname is defined
 
 - name: Template DNS reverse lookup file to bastion
   tags: dns
   template:
     src: dns.rev.j2
-    dest: /var/named/{{env.networking.metadata_name}}.rev
+    dest: /var/named/{{env.cluster.networking.metadata_name}}.rev
     owner: named
     group: named
     mode: '0755'
@@ -101,10 +85,10 @@
 - name: Add control nodes to DNS reverse lookup file on bastion
   tags: dns
   lineinfile:
-    path: /var/named/{{env.networking.metadata_name}}.rev
+    path: /var/named/{{env.cluster.networking.metadata_name}}.rev
     insertafter: "PTR Record IP address to Hostname"
-    line: "{{ env.ip.control[i].split('.').3 }}     IN      PTR     {{ env.hostname.control[i] }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}."
-  with_sequence: start=0 end={{(env.hostname.control | length) - 1}} stride=1
+    line: "{{ env.cluster.nodes.control.ip[i].split('.').3 }}     IN      PTR     {{ env.cluster.nodes.control.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}."
+  with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
@@ -112,10 +96,10 @@
 - name: Add compute nodes to DNS reverse lookup file on bastion
   tags: dns
   lineinfile:
-    path: /var/named/{{env.networking.metadata_name}}.rev
+    path: /var/named/{{env.cluster.networking.metadata_name}}.rev
     insertafter: "PTR Record IP address to Hostname"
-    line: "{{ env.ip.compute[i].split('.').3 }}     IN      PTR     {{ env.hostname.compute[i] }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}."
-  with_sequence: start=0 end={{(env.hostname.compute | length) - 1}} stride=1
+    line: "{{ env.cluster.nodes.compute.ip[i].split('.').3 }}     IN      PTR     {{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}."
+  with_sequence: start=0 end={{(env.cluster.nodes.compute.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
@@ -123,26 +107,21 @@
 - name: Add infrastructure nodes to DNS reverse lookup file on bastion
   tags: dns
   lineinfile:
-    path: /var/named/{{env.networking.metadata_name}}.rev
+    path: /var/named/{{env.cluster.networking.metadata_name}}.rev
     insertafter: "PTR Record IP address to Hostname"
-    line: "{{ env.ip.infra[i].split('.').3 }}     IN      PTR     {{ env.hostname.infra[i] }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}."
-  with_sequence: start=0 end={{(env.hostname.infra | length) - 1}} stride=1
+    line: "{{ env.cluster.nodes.infra.ip[i].split('.').3 }}     IN      PTR     {{ env.cluster.nodes.infra.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}."
+  with_sequence: start=0 end={{(env.cluster.nodes.infra.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
-  when: env.hostname.infra is defined
+  when: env.cluster.nodes.infra.hostname is defined
 
-- name: Add extra RHEL VM apps to DNS reverse lookup file on bastion if requested
+- name: Add cluster nameserver to bastion's resolv.conf file, replacing default
   tags: dns
   lineinfile:
-    path: /var/named/{{env.networking.metadata_name}}.rev
-    insertafter: "PTR Record IP address to Hostname"
-    line: "{{ env.ip.app[i].split('.').3 }}     IN      PTR     {{ env.hostname.app[i] }}.{{ env.networking.base_domain }}."
-  with_sequence: start=0 end={{(env.hostname.app | length) - 1}} stride=1
-  loop_control:
-    extended: yes
-    index_var: i
-  when: env.hostname.app is defined
+    path: /etc/resolv.conf
+    regexp: "nameserver"
+    line: "nameserver {{ env.cluster.networking.nameserver }}"
 
 - name: Restart named to update changes made to DNS
   tags: dns

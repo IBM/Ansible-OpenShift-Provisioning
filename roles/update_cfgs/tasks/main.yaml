@@ -1,0 +1,96 @@
+---
+
+### Setup
+
+- name: Create directory for KVM host's RHEL configuration files for installation.
+  tags: update_cfgs
+  file:
+    path: '{{ env.ftp.cfgs_dir }}/{{ env.z.lpar.name }}'
+    state: directory
+
+- name: Clean-up old cfg files.
+  tags: update_cfgs
+  shell: rm -rf {{ env.ftp.cfgs_dir }}/{{ env.z.lpar.name }}/kvm_host.*
+
+### Templating out RHEL configuration files for the KVM host to pull from the FTP server
+
+- name: Split iso_mount_dir variable on / for use in template
+  tags: update_cfgs
+  set_fact: 
+    ins_dir:  "{{ env.ftp.iso_mount_dir.split('/') }}"
+
+- name: Template RHEL configuration files out to FTP server.
+  tags: update_cfgs
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ env.ftp.cfgs_dir }}/{{ env.z.lpar.name }}/{{ item }}"
+  loop: 
+    - kvm_host.prm
+    - kvm_host.ins
+    - kvm_host.cfg
+
+### Updating additional parameters in RHEL configuration files that are more variable.
+
+- name: Add FCP storage worldwide port numbers to KVM host's RHEL prm configuration file.
+  tags: update_cfgs
+  lineinfile:
+    path: '{{env.ftp.cfgs_dir}}/{{ env.z.lpar.name }}/kvm_host.prm'
+    insertafter: 'inst.repo'
+    line: rd.zfcp=0.0.{{ env.z.lpar.storage_group.dev_num[i] }},0x{{ env.z.lpar.storage_group.storage_wwpn[i] }},0x0000000000000000
+  with_sequence: start=0 end={{(env.z.lpar.storage_group.dev_num | length) - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+
+- name: Create list from nic1 device number, incremented twice for input in KVM host prm file
+  set_fact:
+    nic_child_list:
+      - "{{ '%04x' % ( env.z.lpar.networking.nic.card1.dev_num | int ) }}"
+      - "{{ '%04x' % ( env.z.lpar.networking.nic.card1.dev_num | int + 1 ) }}"
+      - "{{ '%04x' % ( env.z.lpar.networking.nic.card1.dev_num | int + 2 ) }}"
+
+- name: Add network device information to KVM host's RHEL prm file
+  lineinfile:
+    path: "{{env.ftp.cfgs_dir}}/{{ env.z.lpar.name }}/kvm_host.prm"
+    insertafter: "ro ramdisk_size"
+    line: "rd.znet=qeth,0.0.{{nic_child_list[0]}},0.0.{{nic_child_list[1]}},0.0.{{nic_child_list[2]}},layer2=1,portno={{ env.z.lpar.networking.nic.card1.port }}"
+
+- name: Create hash from KVM host root password to input in kickstart file
+  tags: update_cfgs
+  shell: echo "{{ vault.z.lpar.access.root_pass }}" | openssl passwd -6 -in -
+  register: root_pass_hash
+
+- name: Add hashed root password to KVM host's RHEL kickstart config file
+  tags: update_cfgs
+  lineinfile:
+    path: "{{ env.ftp.cfgs_dir }}/{{ env.z.lpar.name }}/kvm_host.cfg"
+    insertafter: "Root password"
+    line: "rootpw --iscrypted {{ root_pass_hash.stdout }}"
+
+- name: Create hash from KVM user password to input in kickstart file
+  tags: update_cfgs
+  shell: echo "{{ vault.z.lpar.access.pass }}" | openssl passwd -6 -in -
+  register: user_pass_hash
+
+- name: Add hashed user password to KVM host's RHEL kickstart config file
+  tags: update_cfgs
+  lineinfile:
+    path: "{{ env.ftp.cfgs_dir }}/{{ env.z.lpar.name }}/kvm_host.cfg"
+    insertafter: "Users and Groups Definitions"
+    line: "user --groups=wheel --name={{ env.z.lpar.access.user }} --password={{ user_pass_hash.stdout }} --iscrypted"
+
+- name: Add network information in KVM hosts's RHEL kickstart file when there is only one network card defined.
+  tags: update_cfgs
+  lineinfile:
+    path: "{{ env.ftp.cfgs_dir }}/{{ env.z.lpar.name }}/kvm_host.cfg"
+    insertafter: "Network information"
+    line: network  --bootproto=static --device={{ env.z.lpar.networking.device1 }} --gateway={{ env.z.lpar.networking.gateway }} --ip={{ vault.z.lpar.networking.ip }} --nameserver={{ env.z.lpar.networking.nameserver }} --netmask={{ env.z.lpar.networking.subnetmask }} --noipv6 --activate --hostname={{ env.z.lpar.networking.hostname }}
+  when: env.z.lpar.networking.nic.card2 is not defined
+
+- name: Add network information in KVM hosts's RHEL kickstart file when there are two network cards defined.
+  tags: update_cfgs
+  lineinfile:
+    path: "{{ env.ftp.cfgs_dir }}/{{ env.z.lpar.name }}/kvm_host.cfg"
+    insertafter: "Network information"
+    line: "network  --bootproto=static --device={{ env.z.lpar.networking.device1 }} --bondslaves={{ env.z.lpar.networking.nic.card1.name }},{{ env.z.lpar.networking.nic.card2.name }}  --bondopts=mode=active-backup;primary={{ env.z.lpar.networking.nic.card1 }} --gateway={{ env.z.lpar.networking.gateway }} --ip={{ vault.z.lpar.networking.ip }} --nameserver={{ env.z.lpar.networking.nameserver }} --netmask={{ env.z.lpar.networking.subnetmask }} --noipv6 --activate --hostname={{ env.z.lpar.networking.hostname }}"
+  when: env.z.lpar.networking.nic.card2.name is defined

@@ -1,0 +1,6 @@
+ro ramdisk_size=40000 cio_ignore=all,!condev
+ip={{vault.z.lpar.networking.ip}}::{{env.z.lpar.networking.gateway}}:{{env.z.lpar.networking.subnet}}:{{env.z.lpar.networking.hostname}}:{{env.z.lpar.networking.device1}}:none 
+nameserver={{ env.z.lpar.networking.nameserver }}
+inst.repo=ftp://{{env.ftp.user}}:{{vault.ftp.pass}}@{{vault.ftp.ip}}/{{ ins_dir[-1] }}
+inst.ks=ftp://{{env.ftp.user}}:{{vault.ftp.pass}}@{{vault.ftp.ip}}/{{ env.z.lpar.name }}/kvm_host.cfg
+inst.cmdline
