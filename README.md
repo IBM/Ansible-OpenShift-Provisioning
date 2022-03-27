@@ -20,7 +20,7 @@
 * MacOS X
 
 ## Installation Instructions
-A step-by-step guide can be found [here](#installation_instructions.md) in the installation_instructions.md file.
+A step-by-step guide can be found [here](installation_instructions.md) in the installation_instructions.md file.
 
 ## Pre-Requisites
 * A Red Hat account ([Sign Up](https://www.redhat.com/wapps/ugc/register.html?_flowId=register-flow&_flowExecutionKey=e1s1))
