@@ -1,7 +1,4 @@
 ---
-- name: Load in variables from env.yaml
-  tags: ssh_key_gen, ssh
-  include_vars: env.yaml
 
 - name: Check to see if local SSH directory exists
   tags: ssh_key_gen, ssh
@@ -23,7 +20,7 @@
   community.crypto.openssh_keypair:
     path: ~/.ssh/ansible
     passphrase: ""
-    comment: "{{ env.access.ssh.ansible_key_comment }}"
+    comment: "Ansible-OpenShift-Provisioning SSH key"
     regenerate: always
   register: ssh_key_creation
 
@@ -32,14 +29,9 @@
   debug:
     var: ssh_key_creation
 
-- name: Create a vars file for path to key
-  tags: ssh_key_gen, ssh
-  file:
-    state: touch
-    path: roles/ssh_copy_id/vars/path_to_key_pair.yaml
-
 - name: Save path to key pair for use in ssh-copy-id role
   tags: ssh_key_gen, ssh
   lineinfile:
     line: "path_to_key_pair: {{ssh_key_creation.filename}}.pub"
-    path: roles/ssh_copy_id/vars/path_to_key_pair.yaml
+    path: "{{inventory_dir}}/group_vars/all.yaml"
+    insertafter: EOF #end of file

@@ -1,17 +1,17 @@
 apiVersion: {{ env.install_config.api_version }}
-baseDomain: {{ env.networking.base_domain }}
+baseDomain: {{ env.cluster.networking.base_domain }}
 compute:
 - hyperthreading: {{ env.install_config.compute.hyperthreading }}
   name: worker
-  replicas: {{(env.ip.compute | length)}}
+  replicas: {{(env.cluster.nodes.compute.ip | length)}}
   architecture: {{ env.install_config.compute.architecture }}
 controlPlane:
   hyperthreading: {{ env.install_config.control.hyperthreading }}
   name: master
-  replicas: {{(env.ip.control | length)}}
+  replicas: {{(env.cluster.nodes.control.ip | length)}}
   architecture: {{ env.install_config.control.architecture }}
 metadata:
-  name: {{ env.networking.metadata_name }}
+  name: {{ env.cluster.networking.metadata_name }}
 networking:
   clusterNetwork:
   - cidr: {{ env.install_config.cluster_network.cidr }}
@@ -22,4 +22,4 @@ networking:
 platform:
   none: {}
 fips: {{ env.install_config.fips }}
-pullSecret: '{{ env.redhat.pull_secret }}'
+pullSecret: '{{ vault.redhat.pull_secret }}'

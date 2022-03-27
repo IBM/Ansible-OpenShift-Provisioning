@@ -1,21 +1,26 @@
 ---
 
-- name: Set up macvtap bridge
+- name: Start and enable libvirt
+  tags: macvtap
+  service:
+    name: libvirtd
+    enabled: yes
+    state: started
+
+- name: Set up macvtap bridge configuration xml from template to KVM host
   tags: macvtap
   community.libvirt.virt_net:
     command: define
     name: macvtap-net
-    autostart: true
     xml: "{{ lookup ('template', 'macvtap.xml.j2') }}"
 
-- name: Start macvtap-net
+- name: Start macvtap-net bridge
   tags: macvtap
   community.libvirt.virt_net:
-    autostart: yes
     command: start
     name: macvtap-net
-      
-- name: Set autostart for macvtap-net
+
+- name: Set macvtap-net bridge to autostart
   tags: macvtap
   community.libvirt.virt_net:
     autostart: yes

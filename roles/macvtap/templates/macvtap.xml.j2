@@ -1,6 +1,6 @@
 <network>
     <name>macvtap-net</name>
-    <forward dev='{{ env.networking.interface_name }}' mode='bridge'>
-        <interface dev='{{ env.networking.interface_name }}'/>
+    <forward dev='{{ env.z.lpar.networking.device1 }}' mode='bridge'>
+        <interface dev='{{ env.z.lpar.networking.device1 }}'/>
     </forward>
 </network>

@@ -5,6 +5,6 @@
   community.general.redhat_subscription:
     state: present
     username: "{{env.redhat.username}}"
-    password: "{{env.redhat.password}}"
+    password: "{{vault.redhat.password}}"
     auto_attach: yes
     force_register: yes

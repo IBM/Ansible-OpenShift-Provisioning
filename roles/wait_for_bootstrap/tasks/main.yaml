@@ -15,7 +15,7 @@
 
 - name: Watch wait-for bootstrap-complete process.
   tags: wait_for_bootstrap 
-  shell: openshift-install wait-for bootstrap-complete --dir=/home/{{ env.access.login.bastion.user }}/ocpinst
+  shell: openshift-install wait-for bootstrap-complete --dir=/home/{{ env.access.bastion.user }}/ocpinst
   async: 3600
   poll: 0
   register: watch_bootstrap
@@ -32,23 +32,23 @@
 - name: Destroy bootstrap. Expect ignored errors if bootstrap is already destroyed.
   tags: wait_for_bootstrap
   community.libvirt.virt:
-    name: "{{ env.hostname.bootstrap }}"
+    name: "{{ env.cluster.nodes.bootstrap.hostname }}"
     command: destroy
   ignore_errors: true
-  delegate_to: "{{ env.ip.kvm }}"
+  delegate_to: "{{ vault.z.lpar.networking.ip }}"
 
 - name: Undefine bootstrap. Expect ignored errors if bootstrap is already undefined.
   tags: wait_for_bootstrap  
   community.libvirt.virt:
-    name: "{{ env.hostname.bootstrap }}"
+    name: "{{ env.cluster.nodes.bootstrap.hostname }}"
     command: undefine
   ignore_errors: true
-  delegate_to: "{{ env.ip.kvm }}"
+  delegate_to: "{{ vault.z.lpar.networking.ip }}"
 
 - name: Remove qcow2
   tags: wait_for_bootstrap
   become: true
   file:
-    path: /var/lib/libvirt/images/{{env.hostname.bootstrap}}-bootstrap.qcow2
+    path: "{{ env.z.lpar.storage_group.pool_path }}/{{env.cluster.nodes.bootstrap.hostname}}-bootstrap.qcow2"
     state: absent
-  delegate_to: "{{ env.ip.kvm }}"
+  delegate_to: "{{ vault.z.lpar.networking.ip }}"
