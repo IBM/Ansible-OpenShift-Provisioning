@@ -1,0 +1,87 @@
+---
+
+#Create LPAR Profile
+- name: Create logical partition
+  ibm.ibm_zhmc.zhmc_partition:
+    hmc_host: "{{ vault.z.hmc.host }}"
+    hmc_auth: 
+      userid: "{{ env.z.hmc.auth.user }}"
+      password: "{{ vault.z.hmc.auth.pass }}"
+      verify: false
+    cpc_name: "{{ vault.z.cpc_name }}"
+    name: "{{ env.z.lpar.name }}"
+    state: stopped
+    properties:
+      description: "{{ env.z.lpar.description }}"
+      ifl_processors: "{{ env.z.lpar.ifl.count }}"
+      initial_memory: "{{ env.z.lpar.ifl.initial_memory }}"
+      maximum_memory: "{{ env.z.lpar.ifl.max_memory }}"
+      minimum_ifl_processing_weight: "{{ env.z.lpar.ifl.min_weight }}"
+      maximum_ifl_processing_weight: "{{ env.z.lpar.ifl.max_weight }}"
+      initial_ifl_processing_weight: "{{ env.z.lpar.ifl.initial_weight }}"
+  register: create_lpar
+
+# Attach storge group
+- name: Ensure storage group is attached to partition.
+  ibm.ibm_zhmc.zhmc_storage_group_attachment:
+    hmc_host: "{{ vault.z.hmc.host }}"
+    hmc_auth: 
+      userid: "{{ env.z.hmc.auth.user }}"
+      password: "{{ vault.z.hmc.auth.pass }}"
+      verify: false
+    cpc_name: "{{ vault.z.cpc_name }}"
+    storage_group_name: "{{ env.z.lpar.storage_group.name }}"
+    partition_name: "{{ env.z.lpar.name  }}"
+    state: attached
+  register: sglparattach
+
+- name: Print the result
+  debug:
+    var: sglparattach
+
+#Attach Network Adapter 
+- name: Ensure NIC1 exists in the partition
+  ibm.ibm_zhmc.zhmc_nic:
+    hmc_host: "{{ vault.z.hmc.host }}"
+    hmc_auth: 
+      userid: "{{ env.z.hmc.auth.user }}"
+      password: "{{ vault.z.hmc.auth.pass }}"
+      verify: false
+    cpc_name: "{{ vault.z.cpc_name }}"
+    partition_name: "{{ env.z.lpar.name }}"
+    name: "{{ env.z.lpar.networking.nic.card1.name }}"
+    state: present 
+    properties:
+      adapter_name: "{{ env.z.lpar.networking.nic.card1.adapter }}"
+      adapter_port: "{{ env.z.lpar.networking.nic.card1.port }}"
+      description: "The port1 to our data network"
+      device_number: "{{ '%04x' % env.z.lpar.networking.nic.card1.dev_num | int }}"
+  register: nic1  
+
+- name: Print the result
+  debug:
+    var: nic1
+
+- name: Ensure NIC2 exists in the partition, if defined.
+  ibm.ibm_zhmc.zhmc_nic:
+    hmc_host: "{{ vault.z.hmc.host }}"
+    hmc_auth: 
+      userid: "{{ env.z.hmc.auth.user }}"
+      password: "{{ vault.z.hmc.auth.pass }}"
+      verify: false
+    cpc_name: "{{ vault.z.cpc_name }}"
+    partition_name: "{{ env.z.lpar.name }}"
+    name: "{{ env.z.lpar.networking.nic.card2.name }}"
+    state: present 
+    properties:
+          adapter_name: "{{ env.z.lpar.networking.nic.card2.adapter }}"
+          adapter_port: "{{ env.z.lpar.networking.nic.card2.port }}"
+          description: "The port2 to our data network"
+          device_number: “{{ '%04x' % ( env.z.lpar.networking.nic.card1.dev_num | int ) }}”
+  register: nic2  
+  when: env.z.lpar.networking.nic.card2 is defined
+
+- name: Print the result
+  debug:
+    var: nic2   
+  when: env.z.lpar.networking.nic.card2 is defined   
