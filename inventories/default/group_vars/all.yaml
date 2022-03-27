@@ -1,0 +1,193 @@
+# Variables with a X need to be filled in. Some are filled in with defaults.
+# A note on YAML syntax: only the lowest level variables in each hierarchicy can be filled out. 
+# For example below, don't put anything after "env" or "z", but do delete the #X and fill in "cpc_name"
+
+env:
+  z:
+    cpc_name: #X
+    hmc:
+      host: #X
+      auth:
+        user: #X
+        pass: #X
+    lpar:
+      name: #X
+      description: #X
+      access: #will be used in kickstart file to create an admin user and set the root password
+        user: #X
+        pass: #X
+        root_pass: #X
+      ifl:
+        count: #X #e.g. 6
+        initial_memory: #X #in MB, e.g. 66000
+        max_memory: #X #in MB, e.g. 96000
+        initial_weight: #X #e.g. 200
+        min_weight: #X #e.g. 50
+        max_weight: #X #e.g. 500
+      networking:
+        hostname: #X
+        ip: #X
+        subnetmask: #X #e.g. 255.255.254
+        subnet: #X #e.g. 23
+        gateway: #X
+        nameserver: #X
+        device1: #X
+        #device2: #uncomment if you have two network devices
+        nic:
+          card1:
+            name: #X
+            adapter: #X
+            port: #X
+            dev_num: #X #hex, e.g. 0x0600
+          #card2: #uncomment this section if you have two NICs
+            #name:
+            #adapter:
+            #port:
+            #dev_num:
+      storage_group:
+        name: #X
+        type: fcp #only 'fcp' supported right now
+        pool_path: #X #e.g. /var/lib/libvirt/images
+        storage_wwpn:
+        - #X #e.g. 500708680235c3f0
+        - #X
+        dev_num:
+        - #'X' #in single quotes, e.g. '0001'
+        - #'X'
+        vg:
+          name: #X #e.g. kvm-vg
+        lv:
+          name: #X #e.g. kvm-lv
+        fs:
+          name: #X #e.g. kvm-fs
+          type: xfs
+        lun_name:
+        - #X #used for boot, e.g. mpatha
+        - #X #e.g. mpathb
+        - #X 
+
+  ftp:
+    ip: #X
+    user: #X
+    pass: #X
+    iso_mount_dir: #X
+    cfgs_dir: #X
+
+  redhat:
+    username: #X
+    password: #X
+    pull_secret: #X #OpenShift pull secret 
+
+  bastion:
+    create: true
+    name: #X
+    resources:
+      disk_size: 30
+      ram: 4096
+      swap: 4096
+      vcpu: 4
+      os_variant: 8.5
+    networking:
+      ip: #X
+      hostname: #X
+      subnetmask: #X e.g. 255.255.254.0
+      gateway: #X
+      nameserver: #X #if DNS on bastion, should be bastion's IP
+      interface: #X #e.g. enc1
+      base_domain: #X #e.g. pbm.ihost.com
+    access:
+      user: #X
+      pass: #X
+      root_pass: #X
+      ocp_ssh_key_comment: #X
+    options: # True or false, would like to have the bastion host these services?
+      loadbalancer: True
+      dns: True
+
+  cluster:
+    networking:
+      metadata_name: #X #e.g. ocpkvm
+      base_domain: #X #e.g. pbm.ihost.com
+      nameserver: #X
+      forwarder: #X #can use 1.1.1.1
+    nodes:
+      bootstrap:
+        disk_size: 120
+        ram: 16384
+        vcpu: 4
+        os_variant: 8.5
+        ip: #X
+        hostname: #X
+      control:
+        disk_size: 120
+        ram: 16384
+        vcpu: 4
+        os_variant: 8.5
+        ip:
+        - #X
+        - #X
+        - #X
+        hostname:
+        - #X
+        - #X
+        - #X
+      compute:
+        disk_size: 120
+        ram: 8192
+        vcpu: 2
+        os_variant: 8.5
+        ip:
+        - #X
+        - #X
+        hostname:
+        - #X
+        - #X
+      infra:
+        disk_size: 120
+        ram: 16384
+        vcpu: 2
+        os_variant: 8.5
+        ip:
+        - #X
+        - #X
+        hostname:
+        - #X
+        - #X
+
+#######################################################################################
+# All variables below this point do not need to be changed for a default installation #
+#######################################################################################
+
+  language: en_US.UTF-8
+  timezone: America/New_York
+  root_access: false
+
+  pkgs:
+    galaxy: [ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt]
+    workstation: [openssh, expect]
+    kvm: ['@virt', cockpit-machines, libvirt-devel, virt-top, qemu-kvm, 'python3-lxml,cockpit',]
+    bastion: [haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils]
+
+  openshift:
+    client: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-client-linux.tar.gz
+    installer: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-install-linux.tar.gz
+  
+  coreos:
+    kernel: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.9/latest/rhcos-4.9.0-s390x-live-kernel-s390x
+    initramfs: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.9/latest/rhcos-4.9.0-s390x-live-initramfs.s390x.img
+    rootfs: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.9/latest/rhcos-4.9.0-s390x-live-rootfs.s390x.img
+  
+  install_config:
+    api_version: v1
+    compute:
+      architecture: s390x
+      hyperthreading: Enabled
+    control:
+      architecture: s390x
+      hyperthreading: Enabled
+    cluster_network:
+      cidr: 10.128.0.0/14
+      host_prefix: 23
+      type: OpenShiftSDN
+    service_network: 172.30.0.0/16
+    fips: 'false'
