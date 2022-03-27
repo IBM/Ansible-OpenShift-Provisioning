@@ -1,0 +1,7 @@
+#Prepare KVM host and create bastion node
+- hosts: kvm_host
+  become: true
+  vars_files: 
+    - ../vault.yaml
+  roles:
+    - { role: create_bastion, when: env.bastion.create == True }

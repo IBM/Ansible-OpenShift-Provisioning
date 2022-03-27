@@ -1,0 +1,9 @@
+# Master playbook. If you want to do everything all in one, use this.
+---
+
+- import_playbook: create_kvm_host.yaml
+- import_playbook: setup_kvm_host.yaml
+- import_playbook: create_bastion.yaml
+- import_playbook: setup_bastion.yaml
+- import_playbook: create_nodes.yaml
+- import_playbook: ocp_verification.yaml

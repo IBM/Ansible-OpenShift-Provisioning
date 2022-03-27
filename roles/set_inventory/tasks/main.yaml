@@ -1,89 +1,33 @@
 ---
 
-- name: Load in variables from env.yaml
-  tags: setup
-  include_vars: env.yaml
-
 - name: Populate inventory with KVM host, bastion and bootstrap IP addresses
-  tags: setup
+  tags: set_inventory
   blockinfile:
-    path: inventory
+    path: "{{ inventory_file }}"
     marker: "#{mark} ansible managed block from set_inventory role"
     marker_begin: "start of"
     marker_end: "end of"
     block: |
+      [ftp]
+      {{ vault.ftp.ip }} ansible_user={{ env.ftp.user }}
+
       [kvm_host]
-      {{env.ip.kvm}} ansible_user={{ env.access.login.kvm.user }} ansible_become_password={{env.access.login.kvm.sudo_pass}}
+      {{ env.z.lpar.networking.hostname }} ansible_host={{vault.z.lpar.networking.ip}} ansible_user={{env.z.lpar.access.user}} ansible_become_password={{vault.z.lpar.access.pass}}
 
       [bastion]
-      {{env.ip.bastion}} ansible_user={{ env.access.login.bastion.user }} ansible_become_password={{env.access.login.bastion.sudo_pass}}
-
-      [bootstrap]
-      {{env.ip.bootstrap}}
-
-      [control_nodes]
-
-      [compute_nodes]
+      {{env.bastion.networking.hostname}} ansible_host={{vault.bastion.networking.ip}} ansible_user={{env.bastion.access.user}} ansible_become_password={{vault.bastion.access.pass}}
     state: present
 
-- name: Add control nodes' IP addresses to inventory
-  tags: setup
-  lineinfile:
-    path: inventory
-    insertafter: "control_nodes"
-    line: "{{ item }}"
-  loop: "{{env.ip.control}}"
-
-- name: Add compute nodes' IP addresses to inventory
-  tags: setup
-  lineinfile:
-    path: inventory
-    insertafter: "compute_nodes"
-    line: "{{ item }}"
-  loop: "{{env.ip.compute}}"
-
-- name: Add infrastructure nodes group to inventory if set
-  tags: setup
-  lineinfile:
-    path: inventory
-    line: "[infra]"
-  when: env.ip.infra is defined
-
-- name: Add infrastructure nodes' IP addresses to inventory
-  tags: setup
-  lineinfile:
-    path: inventory
-    insertafter: "infra"
-    line: "{{ item }}"
-  loop: "{{env.ip.infra}}"
-  when: env.ip.infra is defined
-
-- name: Add extra RHEL VM apps group to inventory if set
-  tags: setup
-  lineinfile:
-    path: inventory
-    line: "[app]"
-  when: env.ip.app is defined
-
-- name: Add extra RHEL VM apps' IP addresses to inventory
-  tags: setup
-  lineinfile:
-    path: inventory
-    insertafter: "app"
-    line: "{{ item }} ansible_become_password={{env.access.login.app.sudo_pass}}"
-  loop: "{{env.ip.app}}"
-  when: env.ip.app is defined
-
 - name: check inventory setup
-  tags: setup
+  tags: set_inventory
   command: ansible-inventory --list
   register: inv_check
   failed_when: inv_check.rc != 0
 
 - name: Gather facts to re-read inventory after changes made to inventory
-  tags: setup
+  tags: set_inventory
   ansible.builtin.gather_facts:
 
 - name: Refresh inventory
-  tags: setup
+  tags: set_inventory
   meta: refresh_inventory

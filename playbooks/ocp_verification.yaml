@@ -1,0 +1,16 @@
+---
+
+#Complete OpenShift verification
+- hosts: bastion
+  become: false
+  environment:
+    KUBECONFIG: "/home/{{ env.bastion.access.user }}/ocpinst/auth/kubeconfig"
+  gather_facts: true
+  vars_files: 
+    - ../vault.yaml
+  roles:
+    - wait_for_bootstrap
+    - approve_certs
+    - check_nodes
+    - wait_for_cluster_operators
+    - wait_for_install_complete

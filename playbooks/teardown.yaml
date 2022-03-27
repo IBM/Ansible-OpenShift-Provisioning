@@ -1,0 +1,85 @@
+---
+
+# Use the "full" tag when running this playbook to reset your installation back to the point where no VMs were running on the KVM host. Extra RHEL apps will not be torn down.
+# After you run this playbook, run the main playbook from the beginning with no tags ("ansible-playbook main.yaml")
+
+- hosts: kvm_host
+  tags: full
+  become: true
+  gather_facts: false
+  vars:
+    bastion_teardown: true
+  vars_files: 
+    - ../vault.yaml
+  post_tasks:
+    - name: Capture files to delete
+      find:
+        paths: "{{ env.z.lpar.storage_group.pool_path }}"
+        file_type: file
+        excludes: 
+          - "lost+found"
+      register: found_files
+
+    - name: delete files in storage pool path except for lost+found
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ found_files['files'] }}"
+
+    - name: remove local workstation from KVM hosts' authorized_keys file
+      file:
+        path: "~/.ssh/authorized_keys"
+        state: absent
+
+  roles:
+    - teardown_vms
+
+- hosts: workstation
+  tags: full
+  connection: local
+  become: false
+  gather_facts: false
+  vars:
+    files_to_reset: ['~/.ssh/ansible','~/.ssh/ansible.pub'] # feel free to add as needed
+  vars_files:
+    - ../vault.yaml
+  pre_tasks:
+    - name: remove bastion from workstation's known_hosts file
+      lineinfile:
+        path: "~/.ssh/known_hosts"
+        regexp: "{{ vault.bastion.networking.ip}}"
+        state: absent
+
+    - name: remove KVM host from workstation's known_hosts file
+      lineinfile:
+        path: "~/.ssh/known_hosts"
+        regexp: "{{ vault.z.lpar.networking.ip}}"
+        state: absent
+        
+  roles:
+  - reset_files
+
+# Use the "partial" tag when running this playbook to reset your installation back to the point where just the bastion node was running on the KVM host. If extra RHEL VM apps were created, they will not be torn down.
+# After you run this playbook, to start back up from that point, run the main.yaml playbook with "--tags 'get_ocp,create_nodes,verification'"
+
+- hosts: bastion
+  tags: partial
+  become: true
+  gather_facts: false
+  vars:
+    files_to_reset: ['/home/{{ env.bastion.access.user }}/ocpinst'] # feel free to add as needed
+  vars_files:
+    - ../vault.yaml
+  roles:
+    - reset_files
+
+- hosts: kvm_host
+  tags: partial
+  become: true
+  gather_facts: false
+  vars:
+    bastion_teardown: no
+  vars_files:
+    - ../vault.yaml
+  roles:
+    - teardown_vms

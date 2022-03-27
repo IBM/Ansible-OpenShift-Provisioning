@@ -1,27 +1,23 @@
 ---
 
-- name: Load in variables from env.yaml
-  tags: create_control_nodes
-  include_vars: env.yaml
-
 - name: Install CoreOS on control nodes
   tags: create_control_nodes
   command: |
     virt-install \
-    --name {{env.hostname.control[i]}} \
-    --disk size={{env.node_resources.control.disk_size}} \
-    --ram {{env.node_resources.control.ram}} \
+    --name {{env.cluster.nodes.control.hostname[i]}} \
+    --disk pool=default,size={{ env.cluster.nodes.control.disk_size }}  \
+    --ram {{env.cluster.nodes.control.ram}} \
     --cpu host \
-    --vcpus {{env.node_resources.control.vcpu}} \
+    --vcpus {{env.cluster.nodes.control.vcpu}} \
     --os-type linux \
-    --os-variant rhel{{env.node_resources.control.os_variant}} \
+    --os-variant rhel{{env.cluster.nodes.control.os_variant}} \
     --network network=macvtap-net \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.ip.bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.ip.control[i]}}::{{env.networking.gateway}}:{{env.networking.netmask}}:{{env.hostname.control[i]}}::none:1500 nameserver={{env.networking.dns.nameserver}} coreos.inst.ignition_url=http://{{env.ip.bastion}}:8080/ignition/master.ign" \
+    --location {{ env.z.lpar.storage_group.pool_path }},kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{vault.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.control.ip[i]}}::{{env.z.lpar.networking.gateway}}:{{env.z.lpar.networking.subnetmask}}:{{env.cluster.nodes.control.hostname[i]}}::none:1500 nameserver={{env.cluster.networking.nameserver}} coreos.inst.ignition_url=http://{{vault.bastion.networking.ip}}:8080/ignition/master.ign" \
     --graphics none \
     --wait=-1 \
     --noautoconsole 
-  with_sequence: start=0 end={{(env.hostname.control | length) - 1}} stride=1
+  with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i

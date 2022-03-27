@@ -1,9 +1,5 @@
 ---
 
-- name: Load in variables from env.yaml
-  tags: haproxy
-  include_vars: env.yaml
-
 - name: Change permissive domain for haproxy
   tags: selinux,haproxy
   selinux_permissive:
@@ -21,10 +17,10 @@
 - name: Add control node information to 6443 section in haproxy config
   tags: haproxy
   lineinfile:
-    line: "  server {{ env.hostname.control[i] }} {{env.ip.control[i]}}:6443 check inter 1s"
+    line: "  server {{ env.cluster.nodes.control.hostname[i] }} {{env.cluster.nodes.control.ip[i]}}:6443 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
     insertafter: "6443 section"
-  with_sequence: start=0 end={{(env.hostname.control | length) - 1}} stride=1
+  with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
@@ -32,10 +28,10 @@
 - name: Add control node information to 22623 section in haproxy config
   tags: haproxy
   lineinfile:
-    line: "  server {{ env.hostname.control[i] }} {{env.ip.control[i]}}:22623 check inter 1s"
+    line: "  server {{ env.cluster.nodes.control.hostname[i] }} {{env.cluster.nodes.control.ip[i]}}:22623 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
     insertafter: "22623 section"
-  with_sequence: start=0 end={{(env.hostname.control | length) - 1}} stride=1
+  with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
@@ -43,10 +39,10 @@
 - name: Add compute node information to 443 section in haproxy config
   tags: haproxy
   lineinfile:
-    line: "  server {{ env.hostname.compute[i] }} {{ env.ip.compute[i] }}:443 check inter 1s"
+    line: "  server {{ env.cluster.nodes.compute.hostname[i] }} {{ env.cluster.nodes.compute.ip[i] }}:443 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
     insertafter: "443 section"
-  with_sequence: start=0 end={{(env.hostname.compute | length) - 1}} stride=1
+  with_sequence: start=0 end={{(env.cluster.nodes.compute.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
@@ -54,21 +50,21 @@
 - name: Add infrastructure node information to 443 section in haproxy config
   tags: haproxy
   lineinfile:
-    line: "  server {{ env.hostname.infra[i] }} {{ env.ip.infra[i] }}:443 check inter 1s"
+    line: "  server {{ env.cluster.nodes.infra.hostname[i] }} {{ env.cluster.nodes.infra.ip[i] }}:443 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
     insertafter: "443 section"
-  with_sequence: start=0 end={{(env.hostname.infra | length) - 1}} stride=1
+  with_sequence: start=0 end={{(env.cluster.nodes.infra.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
-  when: env.hostname.infra is defined
+  when: env.cluster.nodes.infra.hostname is defined
 
 - name: Add compute node information to 80 section in haproxy config
   tags: haproxy
   lineinfile:
-    line: "  server {{ env.hostname.compute[i] }} {{ env.ip.compute[i] }}:80 check inter 1s"
+    line: "  server {{ env.cluster.nodes.compute.hostname[i] }} {{ env.cluster.nodes.compute.ip[i] }}:80 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
-  with_sequence: start=0 end={{(env.hostname.compute | length) - 1}} stride=1
+  with_sequence: start=0 end={{(env.cluster.nodes.compute.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
@@ -76,20 +72,20 @@
 - name: Add infrastructure node information to 80 section in haproxy config
   tags: haproxy
   lineinfile:
-    line: "  server {{ env.hostname.infra[i] }} {{ env.ip.infra[i] }}:80 check inter 1s"
+    line: "  server {{ env.cluster.nodes.infra.hostname[i] }} {{ env.cluster.nodes.infra.ip[i] }}:80 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
-  with_sequence: start=0 end={{(env.hostname.infra | length) - 1}} stride=1
+  with_sequence: start=0 end={{(env.cluster.nodes.infra.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
-  when: env.hostname.infra is defined
+  when: env.cluster.nodes.infra.hostname is defined
 
 - name: Set haproxy boolean to enable connections
   tags: haproxy
   command: setsebool -P haproxy_connect_any 1
 
 - name: Enable haproxy
-  tags: dns
+  tags: haproxy
   ansible.builtin.systemd:
       name: haproxy
       enabled: yes

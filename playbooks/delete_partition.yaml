@@ -1,0 +1,23 @@
+---
+# Sample module-level playbook of the IBM Z HMC Collection
+
+- hosts: workstation
+  gather_facts: false
+  vars_files: 
+    - ../vault.yaml
+  tasks:
+    - name: Ensure partition does not exist
+      ibm.ibm_zhmc.zhmc_partition:
+        hmc_host: "{{ vault.z.hmc.host }}"
+        hmc_auth: 
+          userid: "{{ env.z.hmc.auth.user }}"
+          password: "{{ vault.z.hmc.auth.pass }}"
+          verify: false
+        cpc_name: "{{ vault.z.cpc_name }}"
+        name: "{{ env.z.lpar.name }}"
+        state: absent
+      register: lpar_delete
+
+    - name: Print result
+      debug:
+        var: lpar_delete
