@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## Table of Contents
 * [Roadmap](#<u>Roadmap</u>)
+* [Automated KVM Host Provisioning](#<u>Automated-KVM-Host-Provisioning</u>)
 * [Infrastructure Nodes and Extra Apps](#<u>Infrastructure-Nodes-and-Extra-Apps</u>)
 * [Scaling](#Scaling)
 * [Automated OCP Verification](#<u>Automated-OCP-Verification</u>)
@@ -11,14 +12,29 @@ All notable changes to this project will be documented in this file.
 * [Initial Commit](#<u>Initial-Commit</u>)
 
 ## <u>Roadmap</u>
-* Mark infrastructure nodes for specific operators
+* Add option to use a VPN to reduce # of IPs needed
+* Add the ability to provision multiple LPARs for high availability
+* Tag infrastructure nodes for specific operators
 * Add air-gapped (disconnected) install option
-* Add option to have load balancer on bastion or not
 * Add option for OpenShift to use a proxy server
 * Add picture of finished infrastructure to README
 * Add README’s for each role
 * Make ssh-copy-id role idempotent
-* Add an option to automte the creation of an LPAR and install RHEL on KVM host
+
+## #<u>Automated KVM Host Provisioning</u>
+Version 1.4.0 \
+Released: 2022-03-26
+* ### Summary
+    * Now able to provision the KVM host via Ansible.
+    * Changed the structure of playbooks, variables, and inventories to use Ansible best practices.
+* ### Added
+    * Support for using IBM's zHMC Ansible modules to automate the creation of a logical partition (LPAR) profile, connect storage group and network card, boot from an FTP server, and then kickstart the installation of RHEL to serve as the KVM hypervisor for the cluster.
+    * Usage of Ansible vault to encrypt sensitive data. Playbooks must now be run with --ask-vault-pass, e.g. 'ansible-playbook playbooks/site.yaml --ask-vault-pass'
+* ### Modified 
+    * Bastion boot method from cloud-init to FTP and kickstart.
+    * The structure of playbooks. The setup.yaml playbook still must be run before anything else, but now there is a master playbook - site.yaml which imports all other playbooks. This was done to be more user-friendly and in-line with best practices. Previously, everything was all in one playbook and relied on tags to start back from a given point. Relying solely on tags proved tedious.
+    * The structure for inventories, which allows for more flexibility with deployments and is more in-line with best practices. Now you can have multiple inventories and specify which you would like to use for a given run in the ansible.cfg file.
+    * The structure of variables, to allow for the separation of the bastion node from the rest of the cluster. This opens up many more possibilities for more complex deployments where, for example, the bastion node is already created.
 
 ## <u>Infrastructure Nodes, Extra Apps, Security</u>
 Version: 1.3.0 \
