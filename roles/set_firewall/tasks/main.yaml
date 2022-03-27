@@ -1,5 +1,11 @@
 ---
 
+- name: start firewalld service
+  service:
+    name: firewalld
+    state: started
+    enabled: true
+
 - name: Add ports to firewall
   tags: set_firewall
   firewalld:

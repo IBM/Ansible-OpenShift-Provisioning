@@ -1,26 +1,22 @@
 ---
 
-- name: Load in variables from env.yaml
-  tags: create_compute_nodes
-  include_vars: env.yaml
-
 - name: Install CoreOS on compute nodes
   tags: create_compute_nodes
   command: |
     virt-install \
-    --name {{env.hostname.compute[i]}} \
-    --disk size={{env.node_resources.compute.disk_size}} \
-    --ram {{env.node_resources.compute.ram}} \
+    --name {{env.cluster.nodes.compute.hostname[i]}} \
+    --disk pool=default,size={{ env.cluster.nodes.compute.disk_size }}  \
+    --ram {{env.cluster.nodes.compute.ram}} \
     --cpu host \
-    --vcpus {{env.node_resources.compute.vcpu}} \
+    --vcpus {{env.cluster.nodes.compute.vcpu}} \
     --os-type linux \
-    --os-variant rhel{{env.node_resources.compute.os_variant}} \
+    --os-variant rhel{{env.cluster.nodes.compute.os_variant}} \
     --network network=macvtap-net \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.ip.bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.ip.compute[i]}}::{{env.networking.gateway}}:{{env.networking.netmask}}:{{env.hostname.compute[i]}}::none:1500 nameserver={{env.networking.dns.nameserver}} coreos.inst.ignition_url=http://{{env.ip.bastion}}:8080/ignition/worker.ign" \
+    --location {{ env.z.lpar.storage_group.pool_path }},kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{vault.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.compute.ip[i]}}::{{env.z.lpar.networking.gateway}}:{{env.z.lpar.networking.subnetmask}}:{{env.cluster.nodes.compute.hostname[i]}}::none:1500 nameserver={{env.cluster.networking.nameserver}} coreos.inst.ignition_url=http://{{vault.bastion.networking.ip}}:8080/ignition/worker.ign" \
     --wait=-1 \
     --noautoconsole
-  with_sequence: start=0 end={{(env.hostname.compute | length) - 1}} stride=1
+  with_sequence: start=0 end={{(env.cluster.nodes.compute.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
@@ -29,21 +25,21 @@
   tags: create_compute_nodes
   command: |
     virt-install \
-    --name {{env.hostname.infra[i]}} \
-    --disk size={{env.node_resources.infra.disk_size}} \
-    --ram {{env.node_resources.infra.ram}} \
+    --name {{env.cluster.nodes.infra.hostname[i]}} \
+    --disk pool=default,size={{ env.cluster.nodes.infra.disk_size }}  \
+    --ram {{env.cluster.nodes.infra.ram}} \
     --cpu host \
-    --vcpus {{env.node_resources.infra.vcpu}} \
+    --vcpus {{env.cluster.nodes.infra.vcpu}} \
     --os-type linux \
-    --os-variant rhel{{env.node_resources.infra.os_variant}} \
+    --os-variant rhel{{env.cluster.nodes.infra.os_variant}} \
     --network network=macvtap-net \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.ip.bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.ip.infra[i]}}::{{env.networking.gateway}}:{{env.networking.netmask}}:{{env.hostname.infra[i]}}::none:1500 nameserver={{env.networking.dns.nameserver}} coreos.inst.ignition_url=http://{{env.ip.bastion}}:8080/ignition/worker.ign" \
+    --location {{ env.z.lpar.storage_group.pool_path }},kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{vault.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.infra.ip[i]}}::{{env.z.lpar.networking.gateway}}:{{env.z.lpar.networking.subnetmask}}:{{env.cluster.nodes.infra.hostname[i]}}::none:1500 nameserver={{env.cluster.networking.nameserver}} coreos.inst.ignition_url=http://{{vault.bastion.networking.ip}}:8080/ignition/worker.ign" \
     --wait=-1 \
     --noautoconsole
-  with_sequence: start=0 end={{(env.hostname.infra | length) - 1}} stride=1
+  with_sequence: start=0 end={{(env.cluster.nodes.infra.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
-  when: env.hostname.infra is defined
+  when: env.cluster.nodes.infra.hostname is defined
 

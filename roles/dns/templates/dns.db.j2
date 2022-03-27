@@ -1,5 +1,5 @@
 $TTL 86400
-@ IN SOA {{ env.hostname.bastion }}.{{ env.networking.base_domain }}. admin.{{ env.networking.base_domain }}.(
+@ IN SOA {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}. admin.{{ env.bastion.networking.base_domain }}.(
                                                 2020021821 ;Serial
                                                 3600 ;Refresh
                                                 1800 ;Retry
@@ -8,25 +8,24 @@ $TTL 86400
 )
 
 ;Name Server / Bastion Information
-@ IN NS {{ env.hostname.bastion }}.{{ env.networking.base_domain }}.
+@ IN NS {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}.
 
 ;IP Address for Name Server
-{{ env.hostname.bastion }} IN A {{ env.ip.bastion }}
+{{ env.bastion.networking.hostname }} IN A {{ vault.bastion.networking.ip }}
 
 ;entry for bootstrap host.
-{{ env.hostname.bootstrap }}.{{ env.networking.metadata_name }}.{{ env.networking.base_domain }}. IN A {{ env.ip.bootstrap }}
+{{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.cluster.nodes.bootstrap.ip }}
 
 ;entries for the control nodes
 
 ;entries for the compute nodes
 
-;entries for extra RHEL VMs (if requested)
-
 ;The api identifies the IP of your load balancer.
-api.{{ env.networking.metadata_name }}     IN    CNAME {{ env.hostname.bastion }}.{{ env.networking.base_domain }}.
-api-int.{{ env.networking.metadata_name }} IN    CNAME {{ env.hostname.bastion }}.{{ env.networking.base_domain }}.
+api.{{ env.cluster.networking.metadata_name }}     IN    CNAME {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}.
+api-int.{{ env.cluster.networking.metadata_name }} IN    CNAME {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}.
 
 ;The wildcard also identifies the load balancer.
-*.apps.{{ env.networking.metadata_name }}  IN    CNAME {{ env.hostname.bastion }}.{{ env.networking.base_domain }}.
+apps.{{ env.cluster.networking.metadata_name }}  IN    CNAME {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}.
+*.apps.{{ env.cluster.networking.metadata_name }}  IN    CNAME {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}.
 
 ;EOF

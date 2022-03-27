@@ -1,6 +1,4 @@
-
-- name: Load in variables from env.yaml
-  include_vars: env.yaml
+---
 
 - name: Delete files_to_reset from teardown.yaml
   file: 
