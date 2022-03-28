@@ -76,7 +76,7 @@ env:
   redhat:
     username: #X
     password: #X
-    pull_secret: #X #OpenShift pull secret 
+    pull_secret: #'X' #OpenShift pull secret, in single quotes
 
   bastion:
     create: true
