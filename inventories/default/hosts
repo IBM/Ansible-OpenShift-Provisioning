@@ -5,13 +5,3 @@
 
 [workstation:vars]
 ansible_python_interpreter=/usr/local/bin/python3
-#start of ansible managed block from set_inventory role
-[ftp]
-9.60.86.17 ansible_user=zemery
-
-[kvm_host]
-bnsf1test ansible_host=9.60.87.132 ansible_user=admin ansible_become_password=ibmzrocks
-
-[bastion]
-bastion ansible_host=9.60.87.139 ansible_user=admin ansible_become_password=ibmzrocks
-#end of ansible managed block from set_inventory role
