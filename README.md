@@ -31,7 +31,7 @@ A step-by-step guide can be found [here](installation_instructions.md) in the in
 * For a minimum installation, at least:
   * 6 Integrated Facilities for Linux (IFLs) with SMT2 enabled
   * 85 GB of RAM
-  * A storage group created with 1 TB of disk space
+  * An FCP storage group created with 1 TB of disk space
   * 8 IPv4 addresses
 * If you are using MacOS for your workstation running Ansible, you also need to have: 
     * [Homebrew](https://brew.sh/) package manager installed:
