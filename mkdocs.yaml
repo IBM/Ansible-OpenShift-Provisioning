@@ -1,0 +1,45 @@
+site_name: Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE
+repo_url: https://github.com/IBM/Ansible-OpenShift-Provisioning
+site_url: https://ibm.github.io/Ansible-OpenShift-Provisioning/
+edit_uri: edit/main/docs
+
+nav: 
+  - Home: 'index.md'
+  - Read Me:
+    - Before You Begin: 'before-you-begin.md'
+    - Prerequisites: 'prerequisites.md'
+    - Vault and Tags: 'vault-and-tags.md'
+  - Installation Instructions:
+    - 1 Get the repository: 'get-the-repository.md'
+    - 2 Get Pull Secret: 'get-pull-secret.md'
+    - 3 Set Variables: 'set-variables.md'
+    - 4 Run Setup Playbook: 'run-setup-playbook.md'
+    - 5 Run the Playbooks: 'run-the-playbooks.md'
+    - 6 First-Time Login: 'first-time-login.md'
+  - Misc:
+    - Troubleshooting and Teardown:
+      - Troubleshooting: 'troubleshooting.md'
+      - Teardown: 'teardown.md'
+    - Change Log: 'CHANGELOG.md'
+    - Acknowledgements: 'acknowledgements.md'
+
+theme:
+  name: readthedocs
+  palette:
+    scheme: default
+    primary: black
+    font:
+      text: IBM Plex Sans
+      code: IBM Plex Mono
+  favicon: images/ansible-logo.png
+  logo: images/ansible-logo.png
+
+copyright: Copyright © 2022 IBM zSystems Washington Systems Center
+
+markdown_extensions:
+  - fenced_code
+  - codehilite
+  - toc:
+      permalink: "#"
+  - attr_list
+      
