@@ -17,9 +17,8 @@ nav:
     - 5 Run the Playbooks: 'run-the-playbooks.md'
     - 6 First-Time Login: 'first-time-login.md'
   - Misc:
-    - Troubleshooting and Teardown:
-      - Troubleshooting: 'troubleshooting.md'
-      - Teardown: 'teardown.md'
+    - Troubleshooting: 'troubleshooting.md'
+    - Teardown: 'teardown.md'
     - Change Log: 'CHANGELOG.md'
     - Acknowledgements: 'acknowledgements.md'
 
