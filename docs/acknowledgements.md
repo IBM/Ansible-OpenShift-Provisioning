@@ -1,6 +1,9 @@
 Phillip Wilson  
 Filipe Miranda  
 Patrick Fruth  
-Wasif Mohammad   
+Wasif Mohammad  
 Stuart Tener  
+Fred Bader  
+Ken Morse  
+Matt Mondics  
 Miao Zhang-Cohen  
