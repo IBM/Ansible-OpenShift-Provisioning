@@ -1,6 +1,6 @@
 Phillip Wilson  
 Filipe Miranda  
 Patrick Fruth  
-Wasif Mohammad
+Wasif Mohammad  
 Stuart Tener 
-Miao Zhang-Cohen
+Miao Zhang-Cohen  
