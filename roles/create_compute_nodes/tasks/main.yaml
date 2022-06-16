@@ -9,8 +9,6 @@
     --ram {{env.cluster.nodes.compute.ram}} \
     --cpu host \
     --vcpus {{env.cluster.nodes.compute.vcpu}} \
-    --os-type linux \
-    --os-variant rhel{{env.cluster.nodes.compute.os_variant}} \
     --network network=macvtap-net \
     --location {{ env.z.lpar.storage_group.pool_path }},kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{vault.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.compute.ip[i]}}::{{env.z.lpar.networking.gateway}}:{{env.z.lpar.networking.subnetmask}}:{{env.cluster.nodes.compute.hostname[i]}}::none:1500 nameserver={{env.cluster.networking.nameserver}} coreos.inst.ignition_url=http://{{vault.bastion.networking.ip}}:8080/ignition/worker.ign" \
@@ -30,8 +28,6 @@
     --ram {{env.cluster.nodes.infra.ram}} \
     --cpu host \
     --vcpus {{env.cluster.nodes.infra.vcpu}} \
-    --os-type linux \
-    --os-variant rhel{{env.cluster.nodes.infra.os_variant}} \
     --network network=macvtap-net \
     --location {{ env.z.lpar.storage_group.pool_path }},kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{vault.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.infra.ip[i]}}::{{env.z.lpar.networking.gateway}}:{{env.z.lpar.networking.subnetmask}}:{{env.cluster.nodes.infra.hostname[i]}}::none:1500 nameserver={{env.cluster.networking.nameserver}} coreos.inst.ignition_url=http://{{vault.bastion.networking.ip}}:8080/ignition/worker.ign" \

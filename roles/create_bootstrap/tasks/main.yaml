@@ -22,8 +22,6 @@
     --ram {{ env.cluster.nodes.bootstrap.ram }} \
     --cpu host \
     --vcpus {{ env.cluster.nodes.bootstrap.vcpu }} \
-    --os-type linux \
-    --os-variant rhel{{ env.cluster.nodes.bootstrap.os_variant }} \
     --network network=macvtap-net \
     --location {{ env.z.lpar.storage_group.pool_path }},kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{vault.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.bootstrap.ip}}::{{env.z.lpar.networking.gateway}}:{{env.z.lpar.networking.subnetmask}}:{{env.cluster.nodes.bootstrap.hostname}}::none:1500 nameserver={{env.cluster.networking.nameserver}} coreos.inst.ignition_url=http://{{vault.bastion.networking.ip}}:8080/ignition/bootstrap.ign" \
