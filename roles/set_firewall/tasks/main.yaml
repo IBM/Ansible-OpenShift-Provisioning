@@ -34,10 +34,10 @@
 
 - name: Ensure the default Apache port is 8080
   tags: set_firewall
-  lineinfile:
+  replace:
     path: /etc/httpd/conf/httpd.conf
-    search_string: 'Listen 80'
-    line: 'Listen 8080'
+    regexp: '^Listen 80'
+    replace: 'Listen 8080'
     backup: yes
 
 - name: Ensure the SSL default port is 4443
