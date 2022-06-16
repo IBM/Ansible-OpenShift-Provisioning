@@ -34,16 +34,16 @@
 **env.z.lpar.networking.nic.card1.name** | The logical name of the Network Interface Card (NIC) within the HMC. An arbitrary value that is human-readable that points to the NIC. | SYS-NIC-01
 **env.z.lpar.networking.nic.card1.adapter** | The physical adapter name reference to the logical adapter for the LPAR. | 10Gb-A
 **env.z.lpar.networking.nic.card1.port** | The port number for the NIC. | 0
-**env.z.lpar.networking.nic.card1.dev_num** | The logical device number for the NIC. | C100
-**env.z.lpar.networking.nic.card2.name** | (Optional) The logical name of a second Network Interface Card (NIC) within the HMC. An arbitrary value that is human-readable that points to the NIC. | SYS-NIC-02
-**env.z.lpar.networking.nic.card2.adapter** | (Optional) The physical adapter name of a second NIC. | 10Gb-B
-**env.z.lpar.networking.nic.card2.port** | (Optional) The port number for a second NIC. | 1
-**env.z.lpar.networking.nic.card2.dev_num** | (Optional) The logical device number for a second NIC. | C001
+**env.z.lpar.networking.nic.card1.dev_num** | The logical device number for the NIC. In hex format. | 0x0100
+**env.z.lpar.networking.nic.card2.name** | (Optional, uncomment and fill-in if you want to attach a second storage group) The logical name of a second Network Interface Card (NIC) within the HMC. An arbitrary value that is human-readable that points to the NIC. | SYS-NIC-02
+**env.z.lpar.networking.nic.card2.adapter** | (Optional, uncomment and fill-in if you want to attach a second storage group) The physical adapter name of a second NIC. | 10Gb-B
+**env.z.lpar.networking.nic.card2.port** | (Optional, uncomment and fill-in if you want to attach a second storage group) The port number for a second NIC. | 1
+**env.z.lpar.networking.nic.card2.dev_num** | (Optional, uncomment and fill-in if you want to attach a second storage group) The logical device number for a second NIC. In hex format. | 0x0001
 **env.z.lpar.storage_group.name** | The name of the storage group that will be attached to the LPAR. | OCP-storage-01
 **env.z.lpar.storage_group.type** | Storage type. FCP is the only tested type as of now. | fcp
 **env.z.lpar.storage_group.pool_path** | Set the absolute path to the storage pool within Linux. Recommended /var/lib/libvirt/images | /var/lib/libvirt/images
 **env.z.lpar.storage_group.storage_wwpn** | World-wide port numbers for storage group. Use provided list formatting. | 500708680235c3f0<br />500708680235c3f1<br />500708680235c3f2<br />500708680235c3f3
-**env.z.lpar.storage_group.dev_num** | The logical device number of the Host Bus Adapter (HBA) for the storage group. | 0001
+**env.z.lpar.storage_group.dev_num** | The logical device numbers of the Host Bus Adapter (HBA) for the storage group. In single quotes. | '0001'
 **env.z.lpar.storage_group.vg.name** | Storage volume group name. No hyphens allowed. | kvm_lg
 **env.z.lpar.storage_group.lv.name** | Storage group logical volume name. No hyphens allowed. | kvm_lv
 **env.z.lpar.storage_group.fs.name** | Filesystem name. No hyphens allowed. | kvm_fs
