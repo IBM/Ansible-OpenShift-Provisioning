@@ -33,10 +33,10 @@
   become: false
   gather_facts: false
   vars_files:
-    ../vault.yaml
+    - ../vault.yaml
   vars:
     - packages: "{{ env.pkgs.workstation }}"
-    - ssh_target: ["{{ vault.ftp.ip }}","{{ env.ftp.user }}","{{ vault.ftp.pass }}"]
+    - ssh_target: [ "{{ vault.ftp.ip }}", "{{ env.ftp.user }}", "{{ vault.ftp.pass }}" ]
   roles:
     - install_packages
     - set_inventory
