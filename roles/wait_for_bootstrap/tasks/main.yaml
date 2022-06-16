@@ -15,7 +15,7 @@
 
 - name: Watch wait-for bootstrap-complete process.
   tags: wait_for_bootstrap 
-  shell: openshift-install wait-for bootstrap-complete --dir=/home/{{ env.access.bastion.user }}/ocpinst
+  shell: openshift-install wait-for bootstrap-complete --dir=/home/{{ env.bastion.access.user }}/ocpinst
   async: 3600
   poll: 0
   register: watch_bootstrap
@@ -35,7 +35,7 @@
     name: "{{ env.cluster.nodes.bootstrap.hostname }}"
     command: destroy
   ignore_errors: true
-  delegate_to: "{{ vault.z.lpar.networking.ip }}"
+  delegate_to: "{{ env.z.lpar.networking.hostname }}"
 
 - name: Undefine bootstrap. Expect ignored errors if bootstrap is already undefined.
   tags: wait_for_bootstrap  
@@ -43,7 +43,7 @@
     name: "{{ env.cluster.nodes.bootstrap.hostname }}"
     command: undefine
   ignore_errors: true
-  delegate_to: "{{ vault.z.lpar.networking.ip }}"
+  delegate_to: "{{ env.z.lpar.networking.hostname }}"
 
 - name: Remove qcow2
   tags: wait_for_bootstrap
@@ -51,4 +51,4 @@
   file:
     path: "{{ env.z.lpar.storage_group.pool_path }}/{{env.cluster.nodes.bootstrap.hostname}}-bootstrap.qcow2"
     state: absent
-  delegate_to: "{{ vault.z.lpar.networking.ip }}"
+  delegate_to: "{{ env.z.lpar.networking.hostname }}"
