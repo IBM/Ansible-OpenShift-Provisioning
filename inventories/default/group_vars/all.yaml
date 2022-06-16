@@ -1,6 +1,5 @@
-# Variables with a X need to be filled in. Some are filled in with defaults.
-# A note on YAML syntax: only the lowest level variables in each hierarchicy can be filled out. 
-# For example below, don't put anything after "env" or "z", but do delete the #X and fill in "cpc_name"
+#For a comprehensive description of each variable, please see documentation here:
+#https://ibm.github.io/Ansible-OpenShift-Provisioning/set-variables/ 
 
 env:
   z:
@@ -13,57 +12,57 @@ env:
     lpar:
       name: #X
       description: #X
-      access: #will be used in kickstart file to create an admin user and set the root password
+      access: 
         user: #X
         pass: #X
         root_pass: #X
       ifl:
-        count: #X #e.g. 6
-        initial_memory: #X #in MB, e.g. 66000
-        max_memory: #X #in MB, e.g. 96000
-        initial_weight: #X #e.g. 200
-        min_weight: #X #e.g. 50
-        max_weight: #X #e.g. 500
+        count: #X
+        initial_memory: #X
+        max_memory: #X
+        initial_weight: #X
+        min_weight: #X
+        max_weight: #X
       networking:
         hostname: #X
         ip: #X
-        subnetmask: #X #e.g. 255.255.254
-        subnet: #X #e.g. 23
+        subnetmask: #X
+        subnet: #X
         gateway: #X
         nameserver: #X
         device1: #X
-        #device2: #uncomment if you have two network devices
+#        device2: 
         nic:
           card1:
             name: #X
             adapter: #X
             port: #X
-            dev_num: #X #hex, e.g. 0x0600
-          #card2: #uncomment this section if you have two NICs
-            #name:
-            #adapter:
-            #port:
-            #dev_num:
+            dev_num: #X
+#          card2: 
+#            name:
+#            adapter:
+#            port:
+#            dev_num:
       storage_group:
         name: #X
-        type: fcp #only 'fcp' supported right now
-        pool_path: #X #e.g. /var/lib/libvirt/images
+        type: fcp 
+        pool_path: #X
         storage_wwpn:
-        - #X #e.g. 500708680235c3f0
+        - #X
         - #X
         dev_num:
-        - #'X' #in single quotes, e.g. '0001'
+        - #'X'
         - #'X'
         vg:
-          name: #X #e.g. kvm-vg
+          name: #X
         lv:
-          name: #X #e.g. kvm-lv
+          name: #X
         fs:
-          name: #X #e.g. kvm-fs
+          name: #X
           type: xfs
         lun_name:
-        - #X #used for boot, e.g. mpatha
-        - #X #e.g. mpathb
+        - #X
+        - #X
         - #X 
 
   ftp:
@@ -76,7 +75,7 @@ env:
   redhat:
     username: #X
     password: #X
-    pull_secret: #'X' #OpenShift pull secret, in single quotes
+    pull_secret: #'X'
 
   bastion:
     create: true
@@ -90,39 +89,37 @@ env:
     networking:
       ip: #X
       hostname: #X
-      subnetmask: #X e.g. 255.255.254.0
+      subnetmask: #X
       gateway: #X
-      nameserver: #X #if DNS on bastion, should be bastion's IP
-      interface: #X #e.g. enc1
-      base_domain: #X #e.g. pbm.ihost.com
+      nameserver: #X
+      interface: #X
+      base_domain: #X
     access:
       user: #X
       pass: #X
       root_pass: #X
       ocp_ssh_key_comment: #X
-    options: # True or false, would like to have the bastion host these services?
+    options: 
       loadbalancer: True
       dns: True
 
   cluster:
     networking:
-      metadata_name: #X #e.g. ocpkvm
-      base_domain: #X #e.g. pbm.ihost.com
+      metadata_name: #X
+      base_domain: #X
       nameserver: #X
-      forwarder: #X #can use 1.1.1.1
+      forwarder: #X
     nodes:
       bootstrap:
         disk_size: 120
         ram: 16384
         vcpu: 4
-        os_variant: 8.5
         ip: #X
         hostname: #X
       control:
         disk_size: 120
         ram: 16384
         vcpu: 4
-        os_variant: 8.5
         ip:
         - #X
         - #X
@@ -135,7 +132,6 @@ env:
         disk_size: 120
         ram: 8192
         vcpu: 2
-        os_variant: 8.5
         ip:
         - #X
         - #X
@@ -146,7 +142,6 @@ env:
         disk_size: 120
         ram: 16384
         vcpu: 2
-        os_variant: 8.5
         ip:
         - #X
         - #X
