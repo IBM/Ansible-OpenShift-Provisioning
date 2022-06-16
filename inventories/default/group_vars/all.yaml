@@ -158,9 +158,9 @@ env:
   root_access: false
 
   pkgs:
-    galaxy: [ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt]
+    galaxy: [ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt, kwoodson.yedit]
     workstation: [openssh, expect]
-    kvm: ['@virt', cockpit-machines, libvirt-devel, virt-top, qemu-kvm, 'python3-lxml,cockpit',]
+    kvm: ['@virt', cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit]
     bastion: [haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils]
 
   openshift:
