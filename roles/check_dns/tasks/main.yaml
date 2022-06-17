@@ -14,7 +14,7 @@
     - "api-int.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
     - "test.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
   register: services_lookup
-  failed_when: env.cluster.networking.nameserver != bastion_lookup.stdout
+  failed_when: env.cluster.networking.nameserver != services_lookup.stdout
 
 - name: Check internal cluster DNS resolution for bootstrap
   tags: check_dns, dns
