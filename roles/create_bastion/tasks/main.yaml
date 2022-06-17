@@ -61,35 +61,6 @@
     line: "user --groups=wheel --name={{env.bastion.access.user}} --password={{user_pass_hash.stdout}} --iscrypted"
   delegate_to: "{{vault.ftp.ip}}"
 
-- name: Create tmp folder
-  tags: create_bastion
-  file:
-    path: "{{ role_path }}/tmp"
-    state: directory
-
-- name: Fetch completed kickstart file from FTP server
-  tags: create_bastion
-  become: false
-  fetch:
-    src: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
-    dest: "{{ role_path }}/tmp/bastion-ks.cfg"   
-    flat: yes
-  delegate_to: "{{ vault.ftp.ip }}"
-
-- name: Copy kickstart to KVM host libvirt images directory
-  tags: create_bastion
-  copy:
-    src: "{{ role_path }}/tmp/bastion-ks.cfg"
-    dest: "{{ env.z.lpar.storage_group.pool_path }}/bastion-ks.cfg"
-    owner: "{{ env.z.lpar.access.user }}"
-    mode: '0755'
-
-- name: Remove tmp folder
-  tags: create_bastion, test23
-  file:
-    path: "{{ role_path }}/tmp"
-    state: absent
-
 - name: Split iso_mount_dir variable on / for use in virt-install location parameter
   tags: create_bastion
   set_fact: 
