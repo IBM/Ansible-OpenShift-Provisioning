@@ -2,9 +2,7 @@
 
 - name: Check internal cluster DNS resolution for the bastion
   tags: check_dns, dns
-  shell: "dig +short {{ item }} | tail -n1"
-  loop:
-    - "{{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}"
+  shell: "dig +short {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }} | tail -n1"
   register: bastion_lookup
   failed_when: vault.bastion.networking.ip != bastion_lookup.stdout
 
