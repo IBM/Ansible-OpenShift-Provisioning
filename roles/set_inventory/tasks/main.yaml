@@ -22,6 +22,7 @@
   tags: set_inventory
   lineinfile:
     line: "private_key_file=~/.ssh/{{ env.ansible_key_name }}"
+    path: "{{ ansible_config_file }}"
     regexp: "private_key_file"
     state: present
 
