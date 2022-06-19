@@ -30,7 +30,7 @@
   lineinfile:
     path: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
     regexp: "Network information"
-    line: "network --bootproto=static --ip={{vault.bastion.networking.ip}} --gateway={{env.bastion.networking.gateway}}  --netmask={{env.bastion.networking.subnetmask}}  --noipv6 --nameserver={{env.bastion.networking.nameserver}} --activate --hostname={{env.bastion.networking.hostname}}"
+    line: "network --bootproto=static --ip={{vault.bastion.networking.ip}} --gateway={{env.bastion.networking.gateway}}  --netmask={{env.bastion.networking.subnetmask}}  --noipv6 --nameserver={{env.bastion.networking.nameserver1}} {{ ('--nameserver=' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} --activate --hostname={{env.bastion.networking.hostname}}"
   delegate_to: "{{vault.ftp.ip}}"
 
 - name: Create hash from bastion's root password to input in kickstart file.
@@ -75,7 +75,7 @@
     --vcpus={{ env.bastion.resources.vcpu }} \
     --location ftp://{{ env.ftp.user }}:{{ vault.ftp.pass }}@{{ vault.ftp.ip }}/{{ ins_dir[-1] }} \
     --disk pool=default,size={{ env.bastion.resources.disk_size }}  \
-    --network network=macvtap-net \
+    --network network={{env.bridge_name}} \
     --graphics=none \
     --noautoconsole --wait=-1 \
     --initrd-inject {{ env.z.lpar.storage_group.pool_path }}/bastion-ks.cfg --extra-args "inst.ks=ftp://{{ env.ftp.user }}:{{ vault.ftp.pass }}@{{ vault.ftp.ip }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg ip={{ vault.bastion.networking.ip }}::{{ env.bastion.networking.gateway }}:{{ env.bastion.networking.subnetmask }}:{{ env.bastion.networking.hostname }}:enc1:none"
