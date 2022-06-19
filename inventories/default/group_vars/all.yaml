@@ -135,16 +135,16 @@ env:
         hostname:
         - #X
         - #X
-      infra:
-        disk_size: 120
-        ram: 16384
-        vcpu: 2
-        ip:
-        - #X
-        - #X
-        hostname:
-        - #X
-        - #X
+#      infra:
+#        disk_size: 120
+#        ram: 16384
+#        vcpu: 2
+#        ip:
+#        - 
+#        - 
+#        hostname:
+#        - 
+#        - 
 
 #######################################################################################
 # All variables below this point do not need to be changed for a default installation #
