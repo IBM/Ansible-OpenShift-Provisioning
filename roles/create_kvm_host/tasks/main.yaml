@@ -14,7 +14,7 @@
       boot_ftp_host: "{{ vault.ftp.ip }}"
       boot_ftp_username: "{{ env.ftp.user }}"
       boot_ftp_password: "{{ vault.ftp.pass }}"
-      boot_ftp_insfile: "{{ env.z.lpar.name }}/kvm_host.ins"
+      boot_ftp_insfile: "{{ env.ftp.cfgs_dir }}/{{ env.z.lpar.name }}/kvm_host.ins"
       boot_device: "ftp"
     state: active
   register: _create_instances 
