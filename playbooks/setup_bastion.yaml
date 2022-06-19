@@ -26,6 +26,6 @@
     - set_firewall
     - {role: dns, when: env.bastion.options.dns }
     - check_dns
-    - { role: haproxy, when: env.bastion.options.loadbalancer }
+    - { role: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
     - httpd
     - {role: get_ocp, become: false }
