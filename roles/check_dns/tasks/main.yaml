@@ -26,7 +26,6 @@
     - ((env.bastion.options.loadbalancer.on_bastion is True) and (vault.bastion.networking.ip != api_int_lookup.stdout)) or
     - ((env.bastion.options.loadbalancer.on_bastion is False) and (env.bastion.options.loadbalancer.private_ip != api_int_lookup.stdout) )
 
-
 - name: Check internal cluster DNS resolution for bootstrap
   tags: check_dns, dns
   shell: "dig +short {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1"
