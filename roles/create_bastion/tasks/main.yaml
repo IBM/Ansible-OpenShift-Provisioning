@@ -73,7 +73,7 @@
     --name {{ env.bastion.networking.hostname }} \
     --memory={{ env.bastion.resources.ram }} \
     --vcpus={{ env.bastion.resources.vcpu }} \
-    --location ftp://{{ env.ftp.user }}:{{ vault.ftp.pass }}@{{ vault.ftp.ip }}/{{ ins_dir[-1] }} \
+    --location ftp://{{ env.ftp.user }}:{{ vault.ftp.pass }}@{{ vault.ftp.ip }}/{{ env.ftp.iso_mount_dir }} \
     --disk pool=default,size={{ env.bastion.resources.disk_size }}  \
     --network network={{env.bridge_name}} \
     --graphics=none \
