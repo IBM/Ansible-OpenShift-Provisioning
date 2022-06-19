@@ -18,7 +18,7 @@
 - name: Generate an OpenSSH keypair with the default values (4096 bits, RSA)
   tags: ssh_key_gen, ssh
   community.crypto.openssh_keypair:
-    path: ~/.ssh/ansible
+    path: "~/.ssh/{{ env.ansible_key_name }}"
     passphrase: ""
     comment: "Ansible-OpenShift-Provisioning SSH key"
     regenerate: always

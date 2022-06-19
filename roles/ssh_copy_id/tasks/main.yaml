@@ -7,7 +7,7 @@
 - name: Get ansible.pub key for check in next task
   tags: ssh_copy_id, ssh
   set_fact:
-    ans_pub_key: "{{ lookup('file', '~/.ssh/ansible.pub') }}"
+    ans_pub_key: "{{ lookup('file', '~/.ssh/{{ env.ansible_key_name }}.pub') }}"
 
 - name: Print Ansible public key
   tags: ssh_copy_id, ssh
