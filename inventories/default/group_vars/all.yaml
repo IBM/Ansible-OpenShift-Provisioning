@@ -29,7 +29,8 @@ env:
         subnetmask: #X
         subnet: #X
         gateway: #X
-        nameserver: #X
+        nameserver1: #X
+#        nameserver2:
         device1: #X
 #        device2: 
         nic:
@@ -50,9 +51,7 @@ env:
         storage_wwpn:
         - #X
         - #X
-        dev_num:
-        - #'X'
-        - #'X'
+        dev_num: #'X'
         vg:
           name: #X
         lv:
@@ -91,7 +90,8 @@ env:
       hostname: #X
       subnetmask: #X
       gateway: #X
-      nameserver: #X
+      nameserver1: #X
+#      nameserver2:
       interface: #X
       base_domain: #X
     access:
@@ -100,14 +100,18 @@ env:
       root_pass: #X
       ocp_ssh_key_comment: #X
     options: 
-      loadbalancer: True
       dns: True
-
+      loadbalancer:
+        on_bastion: True
+#        public_ip:
+#        private_ip:  
+    
   cluster:
     networking:
       metadata_name: #X
       base_domain: #X
-      nameserver: #X
+      nameserver1: #X
+#      nameserver2:
       forwarder: #X
     nodes:
       bootstrap:
@@ -156,6 +160,8 @@ env:
   language: en_US.UTF-8
   timezone: America/New_York
   root_access: false
+  ansible_key_name: ansible-ocpz
+  bridge_name: macvtap-net
 
   pkgs:
     galaxy: [ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt, kwoodson.yedit]
@@ -186,3 +192,8 @@ env:
       type: OpenShiftSDN
     service_network: 172.30.0.0/16
     fips: 'false'
+
+#proxy_env:
+#  http_proxy: 
+#  https_proxy: 
+#  no_proxy: 
