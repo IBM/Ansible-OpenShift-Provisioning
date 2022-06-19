@@ -15,7 +15,7 @@ dd if=/dev/zero of=/dev/mapper/mpathh bs=512 count=10
 reboot
 
 # Use network installation
-url --url=ftp://{{env.ftp.user}}:{{vault.ftp.pass}}@{{vault.ftp.ip}}/{{ ins_dir[-1] }}
+url --url=ftp://{{env.ftp.user}}:{{vault.ftp.pass}}@{{vault.ftp.ip}}/{{ env.ftp.iso_mount_dir }}
 
 # Use text mode install
 text
@@ -52,7 +52,7 @@ bootloader --append="crashkernel=auto" --location=mbr --boot-drive={{ env.z.lpar
 clearpart --all --initlabel --drives={{ env.z.lpar.storage_group.lun_name[0] }}
 
 # Disk partitioning information
-autopart --type=lvm
+autopart --type=lvm --fstype=xfs --nohome
 
 # packages selection
 %packages --multilib --ignoremissing
