@@ -52,13 +52,6 @@ env:
         - #X
         - #X
         dev_num: #'X'
-        vg:
-          name: #X
-        lv:
-          name: #X
-        fs:
-          name: #X
-          type: xfs
         lun_name:
         - #X
         - #X

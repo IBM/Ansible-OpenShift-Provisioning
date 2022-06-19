@@ -46,10 +46,6 @@
 **env.z.lpar.storage_group.pool_path** | Set the absolute path to the storage pool within Linux. Recommended /var/lib/libvirt/images | /var/lib/libvirt/images
 **env.z.lpar.storage_group.storage_wwpn** | World-wide port numbers for storage group. Use provided list formatting. | 500708680235c3f0<br />500708680235c3f1<br />500708680235c3f2<br />500708680235c3f3
 **env.z.lpar.storage_group.dev_num** | The logical device number of the Host Bus Adapter (HBA) for the storage group. In single quotes. | '0001'
-**env.z.lpar.storage_group.vg.name** | Storage volume group name. No hyphens allowed. | kvm_lg
-**env.z.lpar.storage_group.lv.name** | Storage group logical volume name. No hyphens allowed. | kvm_lv
-**env.z.lpar.storage_group.fs.name** | Filesystem name. No hyphens allowed. | kvm_fs
-**env.z.lpar.storage_group.fs.type** | Filesystem type. Recommended xfs, only type tested at this time. | xfs
 **env.z.lpar.storage_group.lun_name** | A list of Logical Unit Numbers (LUN) that point to specific virtual disk behind the WWPN. First in<br /> list will be used for boot. | mpatha<br />mpathb<br />mpathc<br />mpathd
 **<u>Section 2 - FTP</u>**
 **env.ftp.ip** | IP address for the FTP server that will be used to pass config files and iso to KVM host LPAR and bastion<br /> VM during their first boot. Will be moved to vault.yaml and redacted during encrypt_vars<br /> role of setup.yaml playbook. | 192.168.10.201
