@@ -8,17 +8,28 @@
   retries: 120
   delay: 30
 
-- name: Set OCP URL
+- name: Almost there! You may be prompted for your password. Add host info to /etc/hosts so you can login to the cluster via web browser.
+  tags: wait_for_install_complete
+  become: True
+  lineinfile: 
+    path: /etc/hosts
+    line: "{{ item }}"
+  with_items:
+    - "{{ vault.bastion.networking.ip }} oauth-openshift.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
+    - "{{ vault.bastion.networking.ip }} console-openshift-console.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
+  delegate_to: 127.0.0.1
+
+- name: Get OCP URL
   tags: wait_for_install_complete
   set_fact:
     ocp_url: https://console-openshift-console.apps.{{env.cluster.networking.metadata_name}}.{{env.cluster.networking.base_domain}}
 
-- name: Set OCP password
+- name: Get OCP temporary password
   tags: wait_for_install_complete
   command: "cat /home/{{ env.bastion.access.user }}/ocpinst/auth/kubeadmin-password"
   register: ocp_passwd
 
-- name: Congratulations! OpenShift installation complete. Use the information below for first-time login.
+- name: Congratulations! OpenShift installation complete. Use the information below for first-time login via web browser.  
   tags: wait_for_install_complete
   command: "echo {{ item }}"
   loop: 
