@@ -31,7 +31,7 @@
 
 ### Updating additional parameters in RHEL configuration files that are more variable.
 
-- name: Add FCP storage worldwide port numbers to KVM host's RHEL prm configuration file.
+- name: Add FCP storage boot drive  triplet info to KVM host's RHEL prm configuration file.
   tags: update_cfgs
   lineinfile:
     path: '{{env.ftp.cfgs_dir}}/{{ env.z.lpar.name }}/kvm_host.prm'
@@ -42,14 +42,14 @@
     extended: yes
     index_var: i
 
-- name: Create list from nic1 device number, incremented twice for input in KVM host prm file
+- name: Create list from nic1 device number, incremented twice for input in KVM host prm file for boot
   set_fact:
     nic_child_list:
       - "{{ '%04x' % ( env.z.lpar.networking.nic.card1.dev_num | int ) }}"
       - "{{ '%04x' % ( env.z.lpar.networking.nic.card1.dev_num | int + 1 ) }}"
       - "{{ '%04x' % ( env.z.lpar.networking.nic.card1.dev_num | int + 2 ) }}"
 
-- name: Add network device information to KVM host's RHEL prm file
+- name: Add network device information to KVM host's RHEL prm file for boot
   lineinfile:
     path: "{{env.ftp.cfgs_dir}}/{{ env.z.lpar.name }}/kvm_host.prm"
     insertafter: "ro ramdisk_size"
@@ -84,7 +84,7 @@
   lineinfile:
     path: "{{ env.ftp.cfgs_dir }}/{{ env.z.lpar.name }}/kvm_host.cfg"
     insertafter: "Network information"
-    line: network  --bootproto=static --device={{ env.z.lpar.networking.device1 }} --gateway={{ env.z.lpar.networking.gateway }} --ip={{ vault.z.lpar.networking.ip }} --nameserver={{ env.z.lpar.networking.nameserver }} --netmask={{ env.z.lpar.networking.subnetmask }} --noipv6 --activate --hostname={{ env.z.lpar.networking.hostname }}
+    line: network  --bootproto=static --device={{ env.z.lpar.networking.device1 }} --gateway={{ env.z.lpar.networking.gateway }} --ip={{ vault.z.lpar.networking.ip }} --nameserver={{ env.z.lpar.networking.nameserver1 }} {{ ('--nameserver=' + env.z.lpar.networking.nameserver2) if env.z.lpar.networking.nameserver2 is defined else '' }} --netmask={{ env.z.lpar.networking.subnetmask }} --noipv6 --activate --hostname={{ env.z.lpar.networking.hostname }}
   when: env.z.lpar.networking.nic.card2 is not defined
 
 - name: Add network information in KVM hosts's RHEL kickstart file when there are two network cards defined.
@@ -92,5 +92,5 @@
   lineinfile:
     path: "{{ env.ftp.cfgs_dir }}/{{ env.z.lpar.name }}/kvm_host.cfg"
     insertafter: "Network information"
-    line: "network  --bootproto=static --device={{ env.z.lpar.networking.device1 }} --bondslaves={{ env.z.lpar.networking.nic.card1.name }},{{ env.z.lpar.networking.nic.card2.name }}  --bondopts=mode=active-backup;primary={{ env.z.lpar.networking.nic.card1 }} --gateway={{ env.z.lpar.networking.gateway }} --ip={{ vault.z.lpar.networking.ip }} --nameserver={{ env.z.lpar.networking.nameserver }} --netmask={{ env.z.lpar.networking.subnetmask }} --noipv6 --activate --hostname={{ env.z.lpar.networking.hostname }}"
+    line: "network  --bootproto=static --device={{ env.z.lpar.networking.device1 }} --bondslaves={{ env.z.lpar.networking.nic.card1.name }},{{ env.z.lpar.networking.nic.card2.name }}  --bondopts=mode=active-backup;primary={{ env.z.lpar.networking.nic.card1 }} --gateway={{ env.z.lpar.networking.gateway }} --ip={{ vault.z.lpar.networking.ip }} --nameserver={{ env.z.lpar.networking.nameserver1 }} {{ ('--nameserver=' + env.z.lpar.networking.nameserver2) if env.z.lpar.networking.nameserver2 is defined else '' }} --netmask={{ env.z.lpar.networking.subnetmask }} --noipv6 --activate --hostname={{ env.z.lpar.networking.hostname }}"
   when: env.z.lpar.networking.nic.card2.name is defined
