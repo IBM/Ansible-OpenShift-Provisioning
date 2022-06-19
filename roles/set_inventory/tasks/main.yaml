@@ -18,6 +18,13 @@
       {{env.bastion.networking.hostname}} ansible_host={{vault.bastion.networking.ip}} ansible_user={{env.bastion.access.user}} ansible_become_password={{vault.bastion.access.pass}}
     state: present
 
+- name: Add path to Ansible private key
+  tags: set_inventory
+  lineinfile:
+    line: "private_key_file=~/.ssh/{{ env.ansible_key_name }}"
+    regexp: "private_key_file"
+    state: present
+
 - name: check inventory setup
   tags: set_inventory
   command: ansible-inventory --list
