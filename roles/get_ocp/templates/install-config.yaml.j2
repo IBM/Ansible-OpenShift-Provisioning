@@ -1,5 +1,9 @@
 apiVersion: {{ env.install_config.api_version }}
 baseDomain: {{ env.cluster.networking.base_domain }}
+{{ ('proxy: ' + proxy_env.http_proxy) if proxy_env.http_proxy is defined or env.install_config.proxy.https_proxy is defined else '' }}
+{{ ('  httpProxy: ' + proxy_env.http_proxy) if proxy_env.http_proxy is defined else '' }}
+{{ ('  httpsProxy: ' + proxy_env.https_proxy) if proxy_env.https_proxy is defined else '' }}
+{{ ('  noProxy: ' + proxy_env.no_proxy) if proxy_env.no_proxy is defined else '' }}
 compute:
 - hyperthreading: {{ env.install_config.compute.hyperthreading }}
   name: worker
