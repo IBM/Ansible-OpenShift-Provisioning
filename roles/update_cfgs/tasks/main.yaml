@@ -36,8 +36,8 @@
   lineinfile:
     path: '{{env.ftp.cfgs_dir}}/{{ env.z.lpar.name }}/kvm_host.prm'
     insertafter: 'inst.repo'
-    line: rd.zfcp=0.0.{{ env.z.lpar.storage_group.dev_num[i] }},0x{{ env.z.lpar.storage_group.storage_wwpn[i] }},0x0000000000000000
-  with_sequence: start=0 end={{(env.z.lpar.storage_group.dev_num | length) - 1}} stride=1
+    line: rd.zfcp=0.0.{{ env.z.lpar.storage_group.dev_num }},0x{{ env.z.lpar.storage_group.storage_wwpn[i] }},0x0000000000000000
+  with_sequence: start=0 end={{(env.z.lpar.storage_group.storage_wwpn | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
