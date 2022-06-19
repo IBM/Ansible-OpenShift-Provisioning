@@ -40,7 +40,7 @@
   become: false
   gather_facts: false
   vars:
-    files_to_reset: ['~/.ssh/ansible','~/.ssh/ansible.pub'] # feel free to add as needed
+    files_to_reset: ['~/.ssh/{{ env.ansible_key_name }}','~/.ssh/{{ env.ansible_key_name }}.pub'] # feel free to add as needed
   vars_files:
     - ../vault.yaml
   pre_tasks:
