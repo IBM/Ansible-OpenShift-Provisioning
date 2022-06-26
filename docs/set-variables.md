@@ -30,7 +30,7 @@
 **env.z.lpar.networking.subnet** | The same value as the above variable but in Classless Inter-Domain Routing (CIDR) notation. | 23
 **env.z.lpar.networking.gateway** | The IPv4 address of the gateway to the network where the KVM host resides. | 192.168.10.0
 **env.z.lpar.networking.nameserver1** | The IPv4 address from which the KVM host gets its hostname resolved. | 192.168.10.200
-**env.z.lpar.networking.nameserver2** | (Optional) A second IPv4 address from which the KVM host can get its hostname resolved. Used for high availability. | 192.168.10.200
+**env.z.lpar.networking.nameserver2** | (Optional) A second IPv4 address from which the KVM host can get its hostname<br /> resolved. Used for high availability. | 192.168.10.200
 **env.z.lpar.networking.device1** | The network interface card from Linux's perspective. Usually enc and then a number that comes<br /> from the dev_num of the network adapter. | enc100
 **env.z.lpar.networking.device2** | (Optional) Another Linux network interface card. Usually enc and then a number that comes<br /> from the dev_num of the second network adapter. | enc1
 **env.z.lpar.networking.nic.card1.name** | The logical name of the Network Interface Card (NIC) within the HMC. An arbitrary value<br /> that is human-readable<br /> that points to the NIC. | SYS-NIC-01
@@ -51,7 +51,7 @@
 **env.ftp.ip** | IP address for the FTP server that will be used to pass config files and iso to KVM host LPAR and bastion<br /> VM during their first boot. | 192.168.10.201
 **env.ftp.user** | Username to connect to the FTP server. | ftp-user
 **env.ftp.pass** | Password to connect to the FTP server as above user. | FTPpa$s!
-**env.ftp.iso_mount_dir** | Directory path relative to FTP root where RHEL ISO is mounted. If FTP root is /var/ftp/pub<br /> and the ISO is mounted at /var/ftp/pub/RHEL/8.5 then this variable would be RHEL/8.5. No slash before or after. | RHEL/8.5
+**env.ftp.iso_mount_dir** | Directory path relative to FTP root where RHEL ISO is mounted. If FTP root is /var/ftp/pub<br /> and the ISO is mounted at /var/ftp/pub/RHEL/8.5 then this variable would be<br /> RHEL/8.5. No slash before or after. | RHEL/8.5
 **env.ftp.iso_mount_dir** | Directory path relative to FTP root where configuration files can be stored. If FTP root is /var/ftp/pub<br /> and you would like to store the configs at /var/ftp/pub/ocpz-config then this variable would be<br /> ocpz-config. No slash before or after. | ocpz-config
 **<u>Section 3 - RedHat</u>**
 **env.redhat.username** | Red Hat username with a valid license or free trial to Red Hat OpenShift Container Platform (RHOCP),<br /> which comes with necessary licenses for Red Hat Enterprise Linux (RHEL) and Red Hat CoreOS (RHCOS). | redhat.user
@@ -59,7 +59,7 @@
 **env.redhat.pull_secret** | Pull secret for OpenShift, comes from Red Hat's [Hybrid Cloud Console](https://console.redhat.com/openshift/install/ibmz/user-provisioned). Make sure to enclose in 'single quotes'.<br />  | '{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}' 
 **<u>Section 4 - Bastion</u>**
 **env.bastion.create** | Would you like to create a bastion KVM guest to host essential infrastructure services like DNS,<br /> load balancer, firewall, etc? Highly recommended. Can de-select certain services with the env.bastion.options<br /> variables below. True or False (boolean). | True
-**env.bastion.name** | Name of the bastion KVM guest. Arbitrary value, not the hostname. | bastion
+**env.bastion.vm_name** | Name of the bastion VM. Arbitrary value. | bastion
 **env.bastion.resources.disk_size** | How much of the storage pool would you like to allocate to the bastion (in<br /> Gigabytes)? Recommended 30 or more. | 30
 **env.bastion.resources.ram** | How much memory would you like to allocate the bastion (in<br /> megabytes)? Recommended 4096 or more | 4096
 **env.bastion.resources.swap** | How much swap storage would you like to allocate the bastion (in<br /> megabytes)? Recommended 4096 or more. | 4096
@@ -90,21 +90,25 @@
 **env.cluster.nodes.bootstrap.disk_size** | How much disk space do you want to allocate to the bootstrap node (in Gigabytes)? Bootstrap node<br /> is temporary and will be brought down automatically when its job completes. 120 or more recommended. | 120
 **env.cluster.nodes.bootstrap.ram** | How much memory would you like to allocate to the temporary bootstrap node (in<br /> megabytes)? Recommended 16384 or more. | 16384
 **env.cluster.nodes.bootstrap.vcpu** | How many virtual CPUs would you like to allocate to the temporary bootstrap node?<br /> Recommended 4 or more. | 4
+**env.cluster.nodes.bootstrap.vm_name** | Name of the temporary bootstrap node VM. Arbitrary value. | bootstrap
 **env.cluster.nodes.bootstrap.ip** | IPv4 address of the temporary bootstrap node. | 192.168.10.4
-**env.cluster.nodes.bootstrap.hostname** | Hostname of the temporary boostrap node. If DNS is hosted on the bastion, this can be anything.<br /> If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the<br /> metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN). | bootstrap
+**env.cluster.nodes.bootstrap.hostname** | Hostname of the temporary boostrap node. If DNS is hosted on the bastion, this can be anything.<br /> If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the<br /> metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN). | bootstrap-ocpz
 **env.cluster.nodes.control.disk_size** | How much disk space do you want to allocate to each control node (in Gigabytes)? 120 or more recommended. | 120
 **env.cluster.nodes.control.ram** | How much memory would you like to allocate to the each control<br /> node (in megabytes)? Recommended 16384 or more. | 16384
 **env.cluster.nodes.control.vcpu** | How many virtual CPUs would you like to allocate to each control node? Recommended 4 or more. | 4
-**env.cluster.nodes.control.ip** | IPv4 address of the control nodes. Usually no more or less than 3 are used. Use provided<br /> list formatting. | 192.168.10.5<br />192.168.10.6<br />192.168.10.7
+**env.cluster.nodes.control.vm_name** | Name of the control node VMs. Arbitrary values. Usually no more or less than 3 are used. Must match<br /> the total number of IP addresses and hostnames for control nodes. Use provided list format. | control-1<br />control-2<br />control-3
+**env.cluster.nodes.control.ip** | IPv4 address of the control nodes. Use provided<br /> list formatting. | 192.168.10.5<br />192.168.10.6<br />192.168.10.7
 **env.cluster.nodes.control.hostname** | Hostnames for control nodes. Must match the total number of IP addresses for control nodes<br /> (usually 3). If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere,<br /> this must match DNS definition. This will be combined with the metadata_name and<br /> base_domain to create a Fully Qualififed Domain Name (FQDN). | control-01<br />control-02<br />control-03
 **env.cluster.nodes.compute.disk_size** | How much disk space do you want to allocate to each compute<br /> node (in Gigabytes)? 120 or more recommended. | 120
 **env.cluster.nodes.compute.ram** | How much memory would you like to allocate to the each compute<br /> node (in megabytes)? Recommended 16384 or more. | 16384
 **env.cluster.nodes.compute.vcpu** | How many virtual CPUs would you like to allocate to each compute node? Recommended 2 or more. | 2
-**env.cluster.nodes.compute.ip** | IPv4 address of the compute nodes. This list can be expanded to any number of nodes,<br /> minimum 2. Use provided list formatting. | 192.168.10.8<br />192.168.10.9
-**env.cluster.nodes.compute.hostname** | Hostnames for compute nodes. Must match the total number of IP addresses for compute nodes.<br /> If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match<br /> DNS definition. This will be combined with the metadata_name and base_domain to create<br /> a Fully Qualififed Domain Name (FQDN). | compute-01<br />compute-02
+**env.cluster.nodes.compute.vm_name** | Name of the compute node VMs. Arbitrary values. This list can be expanded to any<br /> number of nodes, minimum 2. Must match the total number of IP<br /> addresses and hostnames for compute nodes. Use provided list format. | compute-1<br />compute-2
+**env.cluster.nodes.compute.ip** | IPv4 address of the compute nodes. Must match the total number of VM names and<br /> hostnames for compute nodes. Use provided list formatting. | 192.168.10.8<br />192.168.10.9
+**env.cluster.nodes.compute.hostname** | Hostnames for compute nodes. Must match the total number of IP addresses and<br /> VM names for compute nodes. If DNS is hosted on the bastion, this can be anything.<br /> If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the<br /> metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN). | compute-01<br />compute-02
 **env.cluster.nodes.infra.disk_size** | (Optional) Set up compute nodes that are made for infrastructure workloads (ingress,<br /> monitoring, logging)? How much disk space do you want to allocate to each infra node (in Gigabytes)?<br /> 120 or more recommended. | 120
 **env.cluster.nodes.infra.ram** | (Optional) How much memory would you like to allocate to the each infra node (in<br /> megabytes)? Recommended 16384 or more. | 16384
 **env.cluster.nodes.infra.vcpu** | (Optional) How many virtual CPUs would you like to allocate to each infra node?<br /> Recommended 2 or more. | 2
+**env.cluster.nodes.infra.vm_name** | (Optional) Name of additional infra node VMs. Arbitrary values. This list can be<br /> expanded to any number of nodes, minimum 2. Must match the total<br /> number of IP addresses and hostnames for infra nodes. Use provided list format. | infra-1<br />infra-2
 **env.cluster.nodes.infra.ip** | (Optional) IPv4 address of the infra nodes. This list can be expanded to any number of nodes,<br /> minimum 2. Use provided list formatting. | 192.168.10.8<br />192.168.10.9
 **env.cluster.nodes.infra.hostname** | (Optional) Hostnames for infra nodes. Must match the total number of IP addresses for infra nodes.<br /> If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match<br /> DNS definition. This will be combined with the metadata_name and base_domain<br /> to create a Fully Qualififed Domain Name (FQDN). | infra-01<br />infra-02
 **<u>Section 6 - Misc Optional Settings</u>**

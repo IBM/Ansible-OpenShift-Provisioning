@@ -12,7 +12,7 @@ env:
     lpar:
       name: #X
       description: #X
-      access: 
+      access:
         user: #X
         pass: #X
         root_pass: #X
@@ -30,9 +30,9 @@ env:
         subnet: #X
         gateway: #X
         nameserver1: #X
-#        nameserver2:
+#        nameserver2: #X
         device1: #X
-#        device2: 
+#        device2:
         nic:
           card1:
             name: #X
@@ -46,16 +46,19 @@ env:
 #            dev_num:
       storage_group:
         name: #X
-        type: fcp 
+        type: #X
         pool_path: #X
         storage_wwpn:
         - #X
         - #X
-        dev_num: #'X'
+        - #X
+        - #X
+        dev_num: #X
         lun_name:
         - #X
         - #X
-        - #X 
+        - #X
+        - #X
 
   ftp:
     ip: #X
@@ -67,11 +70,11 @@ env:
   redhat:
     username: #X
     password: #X
-    pull_secret: #'X'
+    pull_secret: #X  
 
   bastion:
-    create: true
-    name: #X
+    create: True
+    vm_name: #X
     resources:
       disk_size: 30
       ram: 4096
@@ -84,7 +87,7 @@ env:
       subnetmask: #X
       gateway: #X
       nameserver1: #X
-#      nameserver2:
+      nameserver2: #X
       interface: #X
       base_domain: #X
     access:
@@ -92,7 +95,7 @@ env:
       pass: #X
       root_pass: #X
       ocp_ssh_key_comment: #X
-    options: 
+    options:
       dns: True
       loadbalancer:
         on_bastion: True
@@ -111,12 +114,16 @@ env:
         disk_size: 120
         ram: 16384
         vcpu: 4
+        vm_name: #X
         ip: #X
         hostname: #X
       control:
         disk_size: 120
         ram: 16384
         vcpu: 4
+        vm_name:
+        - #X
+        - #X
         ip:
         - #X
         - #X
@@ -129,22 +136,28 @@ env:
         disk_size: 120
         ram: 8192
         vcpu: 2
+        vm_name:
+        - #X
+        - #X
         ip:
         - #X
         - #X
         hostname:
         - #X
         - #X
-      infra:
-        disk_size: 120
-        ram: 16384
-        vcpu: 2
-        ip:
-        - #X
-        - #X
-        hostname:
-        - #X
-        - #X
+#      infra:
+#        disk_size: 120
+#        ram: 16384
+#        vcpu: 2
+#        vm_name:
+#        - 
+#        - 
+#        ip:
+#        - 
+#        - 
+#        hostname:
+#        - 
+#        - 
 
 #######################################################################################
 # All variables below this point do not need to be changed for a default installation #
@@ -154,14 +167,15 @@ env:
   timezone: America/New_York
   root_access: false
   ansible_key_name: ansible-ocpz
-  bridge_name: macvtap-net
-
+  bridge_name: macvtap
+  
   pkgs:
-    galaxy: [ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt, kwoodson.yedit]
+    galaxy: [ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt]
     workstation: [openssh, expect]
-    kvm: ['@virt', cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit]
+    kvm: ['@virt', cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml,
+      cockpit]
     bastion: [haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils]
-
+  
   openshift:
     client: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-client-linux.tar.gz
     installer: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-install-linux.tar.gz
