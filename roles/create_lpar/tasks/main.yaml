@@ -3,12 +3,12 @@
 #Create LPAR Profile
 - name: Create logical partition
   ibm.ibm_zhmc.zhmc_partition:
-    hmc_host: "{{ vault.z.hmc.host }}"
+    hmc_host: "{{ env.z.hmc.host }}"
     hmc_auth: 
       userid: "{{ env.z.hmc.auth.user }}"
-      password: "{{ vault.z.hmc.auth.pass }}"
+      password: "{{ env.z.hmc.auth.pass }}"
       verify: false
-    cpc_name: "{{ vault.z.cpc_name }}"
+    cpc_name: "{{ env.z.cpc_name }}"
     name: "{{ env.z.lpar.name }}"
     state: stopped
     properties:
@@ -24,12 +24,12 @@
 # Attach storge group
 - name: Ensure storage group is attached to partition.
   ibm.ibm_zhmc.zhmc_storage_group_attachment:
-    hmc_host: "{{ vault.z.hmc.host }}"
+    hmc_host: "{{ env.z.hmc.host }}"
     hmc_auth: 
       userid: "{{ env.z.hmc.auth.user }}"
-      password: "{{ vault.z.hmc.auth.pass }}"
+      password: "{{ env.z.hmc.auth.pass }}"
       verify: false
-    cpc_name: "{{ vault.z.cpc_name }}"
+    cpc_name: "{{ env.z.cpc_name }}"
     storage_group_name: "{{ env.z.lpar.storage_group.name }}"
     partition_name: "{{ env.z.lpar.name  }}"
     state: attached
@@ -42,12 +42,12 @@
 #Attach Network Adapter 
 - name: Ensure NIC1 exists in the partition
   ibm.ibm_zhmc.zhmc_nic:
-    hmc_host: "{{ vault.z.hmc.host }}"
+    hmc_host: "{{ env.z.hmc.host }}"
     hmc_auth: 
       userid: "{{ env.z.hmc.auth.user }}"
-      password: "{{ vault.z.hmc.auth.pass }}"
+      password: "{{ env.z.hmc.auth.pass }}"
       verify: false
-    cpc_name: "{{ vault.z.cpc_name }}"
+    cpc_name: "{{ env.z.cpc_name }}"
     partition_name: "{{ env.z.lpar.name }}"
     name: "{{ env.z.lpar.networking.nic.card1.name }}"
     state: present 
@@ -64,12 +64,12 @@
 
 - name: Ensure NIC2 exists in the partition, if defined.
   ibm.ibm_zhmc.zhmc_nic:
-    hmc_host: "{{ vault.z.hmc.host }}"
+    hmc_host: "{{ env.z.hmc.host }}"
     hmc_auth: 
       userid: "{{ env.z.hmc.auth.user }}"
-      password: "{{ vault.z.hmc.auth.pass }}"
+      password: "{{ env.z.hmc.auth.pass }}"
       verify: false
-    cpc_name: "{{ vault.z.cpc_name }}"
+    cpc_name: "{{ env.z.cpc_name }}"
     partition_name: "{{ env.z.lpar.name }}"
     name: "{{ env.z.lpar.networking.nic.card2.name }}"
     state: present 

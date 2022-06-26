@@ -7,7 +7,7 @@
     KUBECONFIG: "/home/{{ env.bastion.access.user }}/ocpinst/auth/kubeconfig"
   gather_facts: true
   vars_files: 
-    - ../vault.yaml
+    - ../env.yaml
   roles:
     - wait_for_bootstrap
     - approve_certs

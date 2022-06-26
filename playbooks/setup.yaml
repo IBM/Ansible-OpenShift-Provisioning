@@ -24,19 +24,15 @@
         executable: pip3
         extra_args: --upgrade
 
-  roles:
-    - kwoodson.yedit
-    - encrypt_vars
-
 - hosts: workstation
   connection: local
   become: false
   gather_facts: false
   vars_files:
-    - ../vault.yaml
+    - ../env.yaml
   vars:
     - packages: "{{ env.pkgs.workstation }}"
-    - ssh_target: [ "{{ vault.ftp.ip }}", "{{ env.ftp.user }}", "{{ vault.ftp.pass }}" ]
+    - ssh_target: [ "{{ env.ftp.ip }}", "{{ env.ftp.user }}", "{{ env.ftp.pass }}" ]
   roles:
     - install_packages
     - set_inventory

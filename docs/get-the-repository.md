@@ -30,7 +30,7 @@ Ansible-OpenShift-Provisioning
 $ cd Ansible-OpenShift-Provisioning/
 $ ls
 CHANGELOG.md	README.md	docs		mkdocs.yaml	roles
-LICENSE		ansible.cfg	inventories	playbooks	vault.yaml
+LICENSE		ansible.cfg	inventories	playbooks	
 ```
 * All you need to run Ansible is a terminal and a text editor.
 * However, an IDE like [VS Code](https://code.visualstudio.com/download) is highly recommended for an integrated, user-friendly experience with helpful extensions like [YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml).

@@ -4,16 +4,16 @@
 - hosts: workstation
   gather_facts: false
   vars_files: 
-    - ../vault.yaml
+    - ../env.yaml
   tasks:
     - name: Ensure partition does not exist
       ibm.ibm_zhmc.zhmc_partition:
-        hmc_host: "{{ vault.z.hmc.host }}"
+        hmc_host: "{{ env.z.hmc.host }}"
         hmc_auth: 
           userid: "{{ env.z.hmc.auth.user }}"
-          password: "{{ vault.z.hmc.auth.pass }}"
+          password: "{{ env.z.hmc.auth.pass }}"
           verify: false
-        cpc_name: "{{ vault.z.cpc_name }}"
+        cpc_name: "{{ env.z.cpc_name }}"
         name: "{{ env.z.lpar.name }}"
         state: absent
       register: lpar_delete

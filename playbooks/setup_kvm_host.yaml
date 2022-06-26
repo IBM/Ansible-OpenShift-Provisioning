@@ -6,9 +6,9 @@
   become: false
   gather_facts: true
   vars:
-    ssh_target: ["{{ vault.z.lpar.networking.ip }}","{{ env.z.lpar.access.user }}","{{ vault.z.lpar.access.pass }}"]
+    ssh_target: ["{{ env.z.lpar.networking.ip }}","{{ env.z.lpar.access.user }}","{{ env.z.lpar.access.pass }}"]
   vars_files: 
-    - ../vault.yaml
+    - ../env.yaml
   roles:
     - ssh_copy_id
 
@@ -18,9 +18,9 @@
   vars: 
     packages: "{{ env.pkgs.kvm}}"
   vars_files: 
-    - ../vault.yaml
+    - ../env.yaml
   roles:
-    - {role: attach_subscription, when: env.redhat.username is defined and vault.redhat.password is defined}
+    - {role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined}
     - install_packages
   post_tasks:
     - name: Enable cockpit console
@@ -34,7 +34,7 @@
 - hosts: kvm_host
   become: true
   vars_files: 
-    - ../vault.yaml
+    - ../env.yaml
   roles:
     - configure_storage
     - macvtap

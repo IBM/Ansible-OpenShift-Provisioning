@@ -3,17 +3,17 @@
 - name: Start LPAR
   tags: create_kvm_host
   ibm.ibm_zhmc.zhmc_partition:
-    hmc_host: "{{ vault.z.hmc.host }}"
+    hmc_host: "{{ env.z.hmc.host }}"
     hmc_auth: 
       userid: "{{ env.z.hmc.auth.user }}"
-      password: "{{ vault.z.hmc.auth.pass }}"
+      password: "{{ env.z.hmc.auth.pass }}"
       verify: false
-    cpc_name: "{{ vault.z.cpc_name }}"
+    cpc_name: "{{ env.z.cpc_name }}"
     name: "{{ env.z.lpar.name }}"
     properties:
-      boot_ftp_host: "{{ vault.ftp.ip }}"
+      boot_ftp_host: "{{ env.ftp.ip }}"
       boot_ftp_username: "{{ env.ftp.user }}"
-      boot_ftp_password: "{{ vault.ftp.pass }}"
+      boot_ftp_password: "{{ env.ftp.pass }}"
       boot_ftp_insfile: "{{ env.ftp.cfgs_dir }}/{{ env.z.lpar.name }}/kvm_host.ins"
       boot_device: "ftp"
     state: active
@@ -55,12 +55,12 @@
 #- name: Change LPAR's boot source to storage adapter instead of FTP for future booting
 #  tags: create_kvm_host
 #  ibm.ibm_zhmc.zhmc_partition:
-#    hmc_host: "{{ vault.z.hmc.host }}"
+#    hmc_host: "{{ env.z.hmc.host }}"
 #    hmc_auth: 
 #      userid: "{{ env.z.hmc.auth.user }}"
-#      password: "{{ vault.z.hmc.auth.pass }}"
+#      password: "{{ env.z.hmc.auth.pass }}"
 #      verify: false
-#    cpc_name: "{{ vault.z.cpc_name }}"
+#    cpc_name: "{{ env.z.cpc_name }}"
 #    name: "{{ env.z.lpar.name }}"
 #    properties:
 #      boot_device: "storage-adapter"
