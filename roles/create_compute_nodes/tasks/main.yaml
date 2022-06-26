@@ -11,7 +11,7 @@
     --vcpus {{env.cluster.nodes.compute.vcpu}} \
     --network network={{env.bridge_name}} \
     --location {{ env.z.lpar.storage_group.pool_path }},kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{vault.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.compute.ip[i]}}::{{env.z.lpar.networking.gateway}}:{{env.z.lpar.networking.subnetmask}}:{{env.cluster.nodes.compute.hostname[i]}}::none:1500 nameserver={{env.cluster.networking.nameserver}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{vault.bastion.networking.ip}}:8080/ignition/worker.ign" \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.compute.ip[i]}}::{{env.z.lpar.networking.gateway}}:{{env.z.lpar.networking.subnetmask}}:{{env.cluster.nodes.compute.hostname[i]}}::none:1500 nameserver={{env.cluster.networking.nameserver}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/worker.ign" \
     --wait=-1 \
     --noautoconsole
   with_sequence: start=0 end={{(env.cluster.nodes.compute.hostname | length) - 1}} stride=1
@@ -30,7 +30,7 @@
     --vcpus {{env.cluster.nodes.infra.vcpu}} \
     --network network={{env.bridge_name}} \
     --location {{ env.z.lpar.storage_group.pool_path }},kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{vault.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.infra.ip[i]}}::{{env.z.lpar.networking.gateway}}:{{env.z.lpar.networking.subnetmask}}:{{env.cluster.nodes.infra.hostname[i]}}::none:1500 nameserver={{env.cluster.networking.nameserver}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{vault.bastion.networking.ip}}:8080/ignition/worker.ign" \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.infra.ip[i]}}::{{env.z.lpar.networking.gateway}}:{{env.z.lpar.networking.subnetmask}}:{{env.cluster.nodes.infra.hostname[i]}}::none:1500 nameserver={{env.cluster.networking.nameserver}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/worker.ign" \
     --wait=-1 \
     --noautoconsole
   with_sequence: start=0 end={{(env.cluster.nodes.infra.hostname | length) - 1}} stride=1

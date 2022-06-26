@@ -4,7 +4,7 @@
   tags: check_dns, dns
   shell: "dig +short {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }} | tail -n1"
   register: bastion_lookup
-  failed_when: vault.bastion.networking.ip != bastion_lookup.stdout
+  failed_when: env.bastion.networking.ip != bastion_lookup.stdout
 
 - name: Check internal cluster DNS resolution for external API and apps services
   tags: check_dns, dns
@@ -15,7 +15,7 @@
     - "test.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
   register: services_lookup
   failed_when: 
-    - ((env.bastion.options.loadbalancer.on_bastion is True) and (vault.bastion.networking.ip != services_lookup.stdout)) or
+    - ((env.bastion.options.loadbalancer.on_bastion is True) and (env.bastion.networking.ip != services_lookup.stdout)) or
     - ((env.bastion.options.loadbalancer.on_bastion is False) and (env.bastion.options.loadbalancer.public_ip != services_lookup.stdout) )
 
 - name: Check internal cluster DNS resolution for internal API services
@@ -23,7 +23,7 @@
   shell: "dig +short api-int.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1"
   register: api_int_lookup
   failed_when: 
-    - ((env.bastion.options.loadbalancer.on_bastion is True) and (vault.bastion.networking.ip != api_int_lookup.stdout)) or
+    - ((env.bastion.options.loadbalancer.on_bastion is True) and (env.bastion.networking.ip != api_int_lookup.stdout)) or
     - ((env.bastion.options.loadbalancer.on_bastion is False) and (env.bastion.options.loadbalancer.private_ip != api_int_lookup.stdout) )
 
 - name: Check internal cluster DNS resolution for bootstrap

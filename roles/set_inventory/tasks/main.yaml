@@ -9,19 +9,20 @@
     marker_end: "end of"
     block: |
       [ftp]
-      {{ vault.ftp.ip }} ansible_user={{ env.ftp.user }}
+      {{ env.ftp.ip }} ansible_user={{ env.ftp.user }}
 
       [kvm_host]
-      {{ env.z.lpar.networking.hostname }} ansible_host={{vault.z.lpar.networking.ip}} ansible_user={{env.z.lpar.access.user}} ansible_become_password={{vault.z.lpar.access.pass}}
+      {{ env.z.lpar.networking.hostname }} ansible_host={{env.z.lpar.networking.ip}} ansible_user={{env.z.lpar.access.user}} ansible_become_password={{env.z.lpar.access.pass}}
 
       [bastion]
-      {{env.bastion.networking.hostname}} ansible_host={{vault.bastion.networking.ip}} ansible_user={{env.bastion.access.user}} ansible_become_password={{vault.bastion.access.pass}}
+      {{env.bastion.networking.hostname}} ansible_host={{env.bastion.networking.ip}} ansible_user={{env.bastion.access.user}} ansible_become_password={{env.bastion.access.pass}}
     state: present
 
 - name: Add path to Ansible private key
   tags: set_inventory
   lineinfile:
     line: "private_key_file=~/.ssh/{{ env.ansible_key_name }}"
+    path: "{{ ansible_config_file }}"
     regexp: "private_key_file"
     state: present
 

@@ -10,7 +10,7 @@
   vars:
     bastion_teardown: true
   vars_files: 
-    - ../vault.yaml
+    - ../env.yaml
   post_tasks:
     - name: Capture files to delete
       find:
@@ -42,18 +42,18 @@
   vars:
     files_to_reset: ['~/.ssh/{{ env.ansible_key_name }}','~/.ssh/{{ env.ansible_key_name }}.pub'] # feel free to add as needed
   vars_files:
-    - ../vault.yaml
+    - ../env.yaml
   pre_tasks:
     - name: remove bastion from workstation's known_hosts file
       lineinfile:
         path: "~/.ssh/known_hosts"
-        regexp: "{{ vault.bastion.networking.ip}}"
+        regexp: "{{ env.bastion.networking.ip}}"
         state: absent
 
     - name: remove KVM host from workstation's known_hosts file
       lineinfile:
         path: "~/.ssh/known_hosts"
-        regexp: "{{ vault.z.lpar.networking.ip}}"
+        regexp: "{{ env.z.lpar.networking.ip}}"
         state: absent
         
   roles:
@@ -69,7 +69,7 @@
   vars:
     files_to_reset: ['/home/{{ env.bastion.access.user }}/ocpinst'] # feel free to add as needed
   vars_files:
-    - ../vault.yaml
+    - ../env.yaml
   roles:
     - reset_files
 
@@ -80,6 +80,6 @@
   vars:
     bastion_teardown: no
   vars_files:
-    - ../vault.yaml
+    - ../env.yaml
   roles:
     - teardown_vms

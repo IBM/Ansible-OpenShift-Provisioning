@@ -1,19 +1,19 @@
 examples:
    api_version:
-      hmc: {{ vault.z.lpar.networking.ip }}
+      hmc: {{ env.z.lpar.networking.ip }}
       verify_cert: false
    show_os_messages:
-      hmc: {{ vault.z.lpar.networking.ip }}
-      cpcname: {{ vault.z.cpc_name }}
+      hmc: {{ env.z.lpar.networking.ip }}
+      cpcname: {{ env.z.cpc_name }}
       partname: {{ env.z.lpar.name }}
       verify_cert: false
-"{{ vault.z.lpar.networking.ip }}":
+"{{ env.z.lpar.networking.ip }}":
    userid: {{ env.z.hmc.auth.user }}
-   password: {{ vault.z.hmc.auth.pass }}
+   password: {{ env.z.hmc.auth.pass }}
    verify_cert: false
 cpcs:
-   {{ vault.z.cpc_name }}:
-      hmc_host: {{ vault.z.lpar.networking.ip }}
+   {{ env.z.cpc_name }}:
+      hmc_host: {{ env.z.lpar.networking.ip }}
       hmc_userid: {{ env.z.hmc.auth.user }}
-      hmc_password: {{ vault.z.hmc.auth.pass }}
+      hmc_password: {{ env.z.hmc.auth.pass }}
       verify_cert: false 

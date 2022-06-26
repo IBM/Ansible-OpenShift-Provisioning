@@ -8,7 +8,7 @@ $TTL 86400
 )
 ;Name Server Information
 @ IN NS {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.
-{{ env.bastion.networking.hostname }}     IN      A       {{ vault.bastion.networking.ip }}
+{{ env.bastion.networking.hostname }}     IN      A       {{ env.bastion.networking.ip }}
 
 ;Reverse lookup for Name Server
 {{ bastion_split_ip.3 }} IN PTR {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.

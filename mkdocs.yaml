@@ -8,7 +8,6 @@ nav:
   - Read Me:
     - Before You Begin: 'before-you-begin.md'
     - Prerequisites: 'prerequisites.md'
-    - Vault and Tags: 'vault-and-tags.md'
   - Installation Instructions:
     - 1 Get the repository: 'get-the-repository.md'
     - 2 Get Pull Secret: 'get-pull-secret.md'

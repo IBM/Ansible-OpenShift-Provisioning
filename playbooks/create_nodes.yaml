@@ -5,7 +5,7 @@
   become: true
   gather_facts: false
   vars_files: 
-    - ../vault.yaml
+    - ../env.yaml
   roles:
     - prep_kvm_guests
     - create_bootstrap

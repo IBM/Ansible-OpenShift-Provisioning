@@ -15,7 +15,7 @@
 - name: Split IP addresses for use in templates
   tags: dns
   set_fact: 
-    bastion_split_ip: "{{ vault.bastion.networking.ip.split('.') }}"
+    bastion_split_ip: "{{ env.bastion.networking.ip.split('.') }}"
     bootstrap_split_ip: "{{ env.cluster.nodes.bootstrap.ip.split('.') }}"
 
 - name: Template named.conf file to bastion

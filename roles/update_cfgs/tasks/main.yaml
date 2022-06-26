@@ -36,8 +36,8 @@
   lineinfile:
     path: '{{env.ftp.cfgs_dir}}/{{ env.z.lpar.name }}/kvm_host.prm'
     insertafter: 'inst.repo'
-    line: rd.zfcp=0.0.{{ env.z.lpar.storage_group.dev_num[i] }},0x{{ env.z.lpar.storage_group.storage_wwpn[i] }},0x0000000000000000
-  with_sequence: start=0 end={{(env.z.lpar.storage_group.dev_num | length) - 1}} stride=1
+    line: rd.zfcp=0.0.{{ env.z.lpar.storage_group.dev_num }},0x{{ env.z.lpar.storage_group.storage_wwpn[i] }},0x0000000000000000
+  with_sequence: start=0 end={{(env.z.lpar.storage_group.storage_wwpn | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
@@ -57,7 +57,7 @@
 
 - name: Create hash from KVM host root password to input in kickstart file
   tags: update_cfgs
-  shell: echo "{{ vault.z.lpar.access.root_pass }}" | openssl passwd -6 -in -
+  shell: echo "{{ env.z.lpar.access.root_pass }}" | openssl passwd -6 -in -
   register: root_pass_hash
 
 - name: Add hashed root password to KVM host's RHEL kickstart config file
@@ -69,7 +69,7 @@
 
 - name: Create hash from KVM user password to input in kickstart file
   tags: update_cfgs
-  shell: echo "{{ vault.z.lpar.access.pass }}" | openssl passwd -6 -in -
+  shell: echo "{{ env.z.lpar.access.pass }}" | openssl passwd -6 -in -
   register: user_pass_hash
 
 - name: Add hashed user password to KVM host's RHEL kickstart config file
@@ -84,7 +84,7 @@
   lineinfile:
     path: "{{ env.ftp.cfgs_dir }}/{{ env.z.lpar.name }}/kvm_host.cfg"
     insertafter: "Network information"
-    line: network  --bootproto=static --device={{ env.z.lpar.networking.device1 }} --gateway={{ env.z.lpar.networking.gateway }} --ip={{ vault.z.lpar.networking.ip }} --nameserver={{ env.z.lpar.networking.nameserver1 }} {{ ('--nameserver=' + env.z.lpar.networking.nameserver2) if env.z.lpar.networking.nameserver2 is defined else '' }} --netmask={{ env.z.lpar.networking.subnetmask }} --noipv6 --activate --hostname={{ env.z.lpar.networking.hostname }}
+    line: network  --bootproto=static --device={{ env.z.lpar.networking.device1 }} --gateway={{ env.z.lpar.networking.gateway }} --ip={{ env.z.lpar.networking.ip }} --nameserver={{ env.z.lpar.networking.nameserver1 }} {{ ('--nameserver=' + env.z.lpar.networking.nameserver2) if env.z.lpar.networking.nameserver2 is defined else '' }} --netmask={{ env.z.lpar.networking.subnetmask }} --noipv6 --activate --hostname={{ env.z.lpar.networking.hostname }}
   when: env.z.lpar.networking.nic.card2 is not defined
 
 - name: Add network information in KVM hosts's RHEL kickstart file when there are two network cards defined.
@@ -92,5 +92,5 @@
   lineinfile:
     path: "{{ env.ftp.cfgs_dir }}/{{ env.z.lpar.name }}/kvm_host.cfg"
     insertafter: "Network information"
-    line: "network  --bootproto=static --device={{ env.z.lpar.networking.device1 }} --bondslaves={{ env.z.lpar.networking.nic.card1.name }},{{ env.z.lpar.networking.nic.card2.name }}  --bondopts=mode=active-backup;primary={{ env.z.lpar.networking.nic.card1 }} --gateway={{ env.z.lpar.networking.gateway }} --ip={{ vault.z.lpar.networking.ip }} --nameserver={{ env.z.lpar.networking.nameserver1 }} {{ ('--nameserver=' + env.z.lpar.networking.nameserver2) if env.z.lpar.networking.nameserver2 is defined else '' }} --netmask={{ env.z.lpar.networking.subnetmask }} --noipv6 --activate --hostname={{ env.z.lpar.networking.hostname }}"
+    line: "network  --bootproto=static --device={{ env.z.lpar.networking.device1 }} --bondslaves={{ env.z.lpar.networking.nic.card1.name }},{{ env.z.lpar.networking.nic.card2.name }}  --bondopts=mode=active-backup;primary={{ env.z.lpar.networking.nic.card1 }} --gateway={{ env.z.lpar.networking.gateway }} --ip={{ env.z.lpar.networking.ip }} --nameserver={{ env.z.lpar.networking.nameserver1 }} {{ ('--nameserver=' + env.z.lpar.networking.nameserver2) if env.z.lpar.networking.nameserver2 is defined else '' }} --netmask={{ env.z.lpar.networking.subnetmask }} --noipv6 --activate --hostname={{ env.z.lpar.networking.hostname }}"
   when: env.z.lpar.networking.nic.card2.name is defined

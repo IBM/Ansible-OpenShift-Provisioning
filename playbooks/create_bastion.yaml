@@ -2,6 +2,6 @@
 - hosts: kvm_host
   become: true
   vars_files: 
-    - ../vault.yaml
+    - ../env.yaml
   roles:
     - { role: create_bastion, when: env.bastion.create == True }

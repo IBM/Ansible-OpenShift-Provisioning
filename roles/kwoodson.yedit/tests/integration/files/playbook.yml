@@ -1,5 +1,0 @@
-- hosts: master
-  tasks:
-  - debug: var=foo
-  vars:
-    foo: bar
