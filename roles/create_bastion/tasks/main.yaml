@@ -70,7 +70,7 @@
   tags: create_bastion
   shell: |
     virt-install \
-    --name {{ env.bastion.networking.hostname }} \
+    --name {{ env.bastion.vm_name }} \
     --memory={{ env.bastion.resources.ram }} \
     --vcpus={{ env.bastion.resources.vcpu }} \
     --location ftp://{{ env.ftp.user }}:{{ env.ftp.pass }}@{{ env.ftp.ip }}/{{ env.ftp.iso_mount_dir }} \

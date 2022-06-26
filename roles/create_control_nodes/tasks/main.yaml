@@ -4,7 +4,7 @@
   tags: create_control_nodes
   command: |
     virt-install \
-    --name {{env.cluster.nodes.control.hostname[i]}} \
+    --name {{env.cluster.nodes.control.vm_name[i]}} \
     --disk pool=default,size={{ env.cluster.nodes.control.disk_size }}  \
     --ram {{env.cluster.nodes.control.ram}} \
     --cpu host \
