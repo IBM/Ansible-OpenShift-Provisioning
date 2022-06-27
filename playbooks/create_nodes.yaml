@@ -1,6 +1,6 @@
 ---
 
-#Create KVM guests
+#Prepare and then create the temporary bootstrap node and the control nodes.
 - hosts: kvm_host
   become: true
   gather_facts: false
@@ -10,4 +10,23 @@
     - prep_kvm_guests
     - create_bootstrap
     - create_control_nodes
+
+#Wait for bootstrap to connect control plane.
+- hosts: bastion
+  become: false
+  environment:
+    KUBECONFIG: "/home/{{ env.bastion.access.user }}/ocpinst/auth/kubeconfig"
+  gather_facts: true
+  vars_files: 
+    - ../env.yaml
+  roles:
+    - wait_for_bootstrap
+
+#Once bootstrapping is complete, create compute nodes.
+- hosts: kvm_host
+  become: true
+  gather_facts: false
+  vars_files: 
+    - ../env.yaml
+  roles:
     - create_compute_nodes
