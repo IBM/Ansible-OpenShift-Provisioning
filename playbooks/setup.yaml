@@ -6,13 +6,10 @@
   become: false
   gather_facts: true
   pre_tasks:
-
+  
     - name: Install required Ansible Galaxy collections.
       command: ansible-galaxy collection install {{ item }}
       loop: "{{ env.pkgs.galaxy }}"
-    
-    - name: Install YAML edit custom module
-      command: ansible-galaxy install kwoodson.yedit
 
     - name: Get ibm_zhmc collection install location
       shell: ansible-galaxy collection list ibm.ibm_zhmc | grep -i ansible | cut -c 3-
