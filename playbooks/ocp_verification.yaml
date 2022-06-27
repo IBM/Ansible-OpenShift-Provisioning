@@ -9,7 +9,6 @@
   vars_files: 
     - ../env.yaml
   roles:
-    - wait_for_bootstrap
     - approve_certs
     - check_nodes
     - wait_for_cluster_operators
