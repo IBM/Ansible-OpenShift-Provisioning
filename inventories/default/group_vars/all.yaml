@@ -124,6 +124,7 @@ env:
         vm_name:
         - #X
         - #X
+        - #X
         ip:
         - #X
         - #X
