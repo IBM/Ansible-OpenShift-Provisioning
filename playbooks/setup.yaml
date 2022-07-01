@@ -26,7 +26,7 @@
   become: false
   gather_facts: false
   vars_files:
-    - ../env.yaml
+    - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
     - packages: "{{ env.pkgs.workstation }}"
     - ssh_target: [ "{{ env.ftp.ip }}", "{{ env.ftp.user }}", "{{ env.ftp.pass }}" ]

@@ -2,6 +2,6 @@
 - hosts: kvm_host
   become: true
   vars_files: 
-    - ../env.yaml
+    - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - { role: create_bastion, when: env.bastion.create == True }

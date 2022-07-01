@@ -6,7 +6,7 @@
   become: false
   gather_facts: false
   vars_files: 
-    - ../env.yaml
+    - "{{ inventory_dir }}/group_vars/all.yaml"
   vars: 
     ssh_target: ["{{ env.bastion.networking.ip }}","{{ env.bastion.access.user }}","{{ env.bastion.access.pass }}"]
   roles:
@@ -18,7 +18,7 @@
   vars:
     packages: "{{ env.pkgs.bastion }}"
   vars_files: 
-    - ../env.yaml
+    - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - {role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined}
     - install_packages

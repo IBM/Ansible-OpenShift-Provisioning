@@ -5,7 +5,7 @@
   become: true
   gather_facts: false
   vars_files: 
-    - ../env.yaml
+    - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - prep_kvm_guests
     - create_bootstrap
@@ -18,7 +18,7 @@
     KUBECONFIG: "/home/{{ env.bastion.access.user }}/ocpinst/auth/kubeconfig"
   gather_facts: true
   vars_files: 
-    - ../env.yaml
+    - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - wait_for_bootstrap
 
@@ -27,6 +27,6 @@
   become: true
   gather_facts: false
   vars_files: 
-    - ../env.yaml
+    - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - create_compute_nodes
