@@ -5,7 +5,7 @@
   tags: create_lpar
   connection: local
   vars_files: 
-    - ../env.yaml
+    - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - create_lpar
 
@@ -15,7 +15,7 @@
   become: false
   gather_facts: false
   vars_files: 
-    - ../env.yaml
+    - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - update_cfgs
 
@@ -24,6 +24,6 @@
   tags: create
   connection: local
   vars_files: 
-    - ../env.yaml
+    - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - create_kvm_host
