@@ -3,12 +3,47 @@ All notable changes to this project will be documented in this file.
 
 ## Roadmap
 * Add option to use a VPN to reduce # of IPs needed
-* Add the ability to provision multiple LPARs for high availability
 * Tag infrastructure nodes for specific operators
 * Add air-gapped (disconnected) install option
-* Add option for OpenShift to use a proxy server
 * Add README’s for each role
-* Make ssh-copy-id role idempotent
+
+## High Availability Deployments
+Version 0.4.0  
+Released 2022-07-12
+### Summary
+* Added support for deploying across multiple Logical Partitions, for the sake of making the cluster more resilient and highly available.
+
+### Added
+* Tasks to create_nodes playbook to support multi-LPAR deployment options. Single LPAR deployments are still possible.
+* Pre-existing LPAR deployments have been clarified in terms of what variables are needed and not needed.
+* Setup of OpenVPN server on bastion and clients on KVM hosts when it's a highly available deployment. This is so that the KVM hosts can communicate with each other.
+* Ability to use custom names for each VM.
+* Task that add a line to user's /etc/hosts file for easier first-time login.
+* Support for using a proxy server for the Ansible environment and OCP install-config.
+* Support for multiple nameservers.
+* Support for using a load balancer off the bastion, asking for public and private IP of the LB.
+* Detailed descriptions of what each playbook accomplishes (Thanks Trevor!)
+* Tarballs of Ansible-Galaxy collections in anticipation of disconnected installs update.
+* Separate set-variables documentation page for host_vars, new to high availability update.
+* Workstation packages and Ansible-Galaxy collections as pre-reqs, instead of waiting until setup playbook, which caused errors.
+* Example KVM host host_vars files.
+* Check to make sure host_vars are set properly for KVM host(s)
+* Support for attaching 2 storage groups that then later are combined into one logical volume.
+### Modified
+* API/apps DNS checks separated from bastion check, separated api-int check as well.
+* Wait_for bootstrap complete tasks moved to create_nodes playbook so that compute nodes don't start coming up until control nodes are done bootstrapping.
+* HAProxy config to use FQDNs instead of IPs (Thanks Wasif!)
+* SSH copy id role to be idempotent (Thanks Nico!)
+* Names of playbooks to include step-by-step numbering.
+* Bastion kickstart to use HTTP instead of FTP because virt-install's use of FTP is inconsistent.
+* Set_inventory role to use a template instead of tasks to creat the inventory to be cleaner and more consistent.
+* OCP install directory from bastion admin user's home ~/ocpinst to /root/ocpinst
+### Removed
+* Usage of Ansible Vault.
+* Teardown playbook.
+* Removed unnecessary task that add bastion admin user to libvirt and qemu groups.
+* Option to store disks/storage pool for libvirt anywhere other than the default location (/var/lib/libvirt/images)
+
 
 ## Documentation Overhaul
 Version 0.3.1  
