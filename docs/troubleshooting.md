@@ -8,7 +8,6 @@ If you encounter errors while running the main playbook, there are a few things 
 ```
 ansible-playbook playbooks/setup_bastion.yaml -vvv
 ```
-* Teardown the KVM host with the delete_partition.yaml playbook or teardown troublesome KVM guests with the [teardown](teardown.md) playbooks.
 * Use tags
   * To be more selective with what parts of a playbook are run, use tags. 
   * To determine what part of a playbook you would like to run, open the playbook you'd like to run and find the roles parameter. Each [role](https://github.com/IBM/Ansible-OpenShift-Provisioning/tree/main/roles) has a corresponding tag.
@@ -18,7 +17,7 @@ ansible-playbook playbooks/setup_bastion.yaml -vvv
 ```
 ansible-playbook playbooks/setup_kvm_host.yaml --tags "section_2,section_3"
 ```
-  * This runs only the parts of the [setup_kvm_host playbook](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/setup_kvm_host.yaml) marked with tags section_2 and section_3. To use more than one tag, they must be quoted (single or double) and comma-separated (with or without spaces between).
+  * This runs only the parts of the [setup_kvm_host playbook](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml) marked with tags section_2 and section_3. To use more than one tag, they must be quoted (single or double) and comma-separated (with or without spaces between).
 * E-mail Jacob Emery at jacob.emery@ibm.com
 * If it's a problem with an OpenShift verification step: 
     * Open the cockpit to monitor the VMs. 
@@ -27,5 +26,5 @@ ansible-playbook playbooks/setup_kvm_host.yaml --tags "section_2,section_3"
       * Enable administrative access in the top right.
       * Open the 'Virtual Machines' tab from the left side toolbar.
     * Sometimes it just takes a while, especially if it's lacking resources. Give it some time and then re-reun the playbook/role with tags.
-    * If that doesn't work, SSH into the bastion as root ("ssh root@\<bastion-ip-address-here\>") and then run, "export KUBECONFIG=~/ocpinst/auth/kubeconfig" and then "oc whoami" and make sure it ouputs "system:admin". Then run the shell command from the role you would like to check on manually: i.e. 'oc get nodes', 'oc get co', etc.
+    * If that doesn't work, SSH into the bastion as root ("ssh root@\<bastion-ip-address-here\>") and then run, "export KUBECONFIG=/root/ocpinst/auth/kubeconfig" and then "oc whoami" and make sure it ouputs "system:admin". Then run the shell command from the role you would like to check on manually: i.e. 'oc get nodes', 'oc get co', etc.
     * Open the .openshift_install.log file for information on what happened and try to debug the issue.
