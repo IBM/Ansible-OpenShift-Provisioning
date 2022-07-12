@@ -3,13 +3,13 @@
 - name: Check to see if local SSH directory exists
   tags: ssh_ocp_key_gen
   stat:
-    path: /home/{{ env.bastion.access.user }}/.ssh
+    path: /root/.ssh
   register: ssh_directory_exists_check
 
 - name: Create SSH local directory if it doesn't already exist
   tags: ssh_ocp_key_gen
   file:
-    path: /home/{{ env.bastion.access.user }}/.ssh
+    path: /root/.ssh
     state: directory
     mode: "0700"
   register: ssh_directory_creation
@@ -18,11 +18,11 @@
 - name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key.
   tags: ssh_ocp_key_gen
   community.crypto.openssh_keypair:
-    path: "/home/{{ env.bastion.access.user }}/.ssh/id_rsa"
+    path: "/root/.ssh/id_rsa"
     backend: opensshbin
-    owner: "{{ env.bastion.access.user }}"
+    owner: root
     passphrase: ""
-    comment: "{{ env.bastion.access.ocp_ssh_key_comment }}"
+    comment: "{{ env.ocp_key_name }}"
     regenerate: always
   register: ssh_ocp
 
@@ -34,14 +34,14 @@
 
 - name: Set SSH key permissions
   tags: ssh_ocp_key_gen
-  command: chmod 600  /home/{{ env.bastion.access.user }}/.ssh/{{ item }}
+  command: chmod 600  /root/.ssh/{{ item }}
   loop: 
     - id_rsa
     - id_rsa.pub
 
 - name: Set SSH key ownership
   tags: ssh_ocp_key_gen
-  command: chown {{ env.bastion.access.user }}:{{ env.bastion.access.user }} /home/{{ env.bastion.access.user }}/.ssh/{{item}}
+  command: chown root:root /root/.ssh/{{item}}
   loop:
     - id_rsa
     - id_rsa.pub
