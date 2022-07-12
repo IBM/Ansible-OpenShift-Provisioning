@@ -69,7 +69,7 @@ Configures the RHEL server(s) installed natively on the LPAR(s) to act as virtua
 * Logical volume group that was created during kickstart is extended to fill all available space.
 * A macvtap bridge has been created on the host's networking interface.
 #### Notes
-* If you're using a pre-existing LPAR, take a look at roles/configure_storage/tasks/main.yaml to make sure that the commands that will be run to extend the logical volume will work. Storage configurations can vary widely. The values there are the defaults from using autopart during kickstart.
+* If you're using a pre-existing LPAR, take a look at roles/configure_storage/tasks/main.yaml to make sure that the commands that will be run to extend the logical volume will work. Storage configurations can vary widely. The values there are the defaults from using autopart during kickstart. Also be aware that if lpar.storage_group_2.auto_config is True, the role roles/configure_storage/tasks/main.yaml will be non-idempotent. Meaning, it will fail if you run it twice.
 ## 4 Create Bastion Playbook
 #### Overview
 Creates the bastion KVM guest on the first KVM host. The bastion hosts essential services for the cluster. If you already have a bastion server, that can be used instead of running this playbook.
