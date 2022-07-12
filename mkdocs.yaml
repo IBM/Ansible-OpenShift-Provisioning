@@ -9,15 +9,12 @@ nav:
     - Before You Begin: 'before-you-begin.md'
     - Prerequisites: 'prerequisites.md'
   - Installation Instructions:
-    - 1 Get the repository: 'get-the-repository.md'
-    - 2 Get Pull Secret: 'get-pull-secret.md'
-    - 3 Set Variables: 'set-variables.md'
-    - 4 Run Setup Playbook: 'run-setup-playbook.md'
-    - 5 Run the Playbooks: 'run-the-playbooks.md'
-    - 6 First-Time Login: 'first-time-login.md'
+    - 1 Get Info: 'get-info.md'
+    - 2 Set Variables (group_vars): 'set-variables-group-vars.md'
+    - 3 Set Variables (host_vars): 'set-variables-host-vars.md'
+    - 4 Run the Playbooks: 'run-the-playbooks.md'
   - Misc:
     - Troubleshooting: 'troubleshooting.md'
-    - Teardown: 'teardown.md'
     - Change Log: 'CHANGELOG.md'
     - Acknowledgements: 'acknowledgements.md'
 
