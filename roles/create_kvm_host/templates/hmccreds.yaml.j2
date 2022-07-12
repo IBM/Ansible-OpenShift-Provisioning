@@ -1,19 +1,19 @@
 examples:
    api_version:
-      hmc: {{ env.z.lpar.networking.ip }}
+      hmc: {{ networking.ip }}
       verify_cert: false
    show_os_messages:
-      hmc: {{ env.z.lpar.networking.ip }}
-      cpcname: {{ env.z.cpc_name }}
-      partname: {{ env.z.lpar.name }}
+      hmc: {{ networking.ip }}
+      cpcname: {{ cpc_name }}
+      partname: {{ lpar.name }}
       verify_cert: false
-"{{ env.z.lpar.networking.ip }}":
-   userid: {{ env.z.hmc.auth.user }}
-   password: {{ env.z.hmc.auth.pass }}
+"{{ networking.ip }}":
+   userid: {{ hmc.auth.user }}
+   password: {{ hmc.auth.pass }}
    verify_cert: false
 cpcs:
-   {{ env.z.cpc_name }}:
-      hmc_host: {{ env.z.lpar.networking.ip }}
-      hmc_userid: {{ env.z.hmc.auth.user }}
-      hmc_password: {{ env.z.hmc.auth.pass }}
+   {{ cpc_name }}:
+      hmc_host: {{ networking.ip }}
+      hmc_userid: {{ hmc.auth.user }}
+      hmc_password: {{ hmc.auth.pass }}
       verify_cert: false 
