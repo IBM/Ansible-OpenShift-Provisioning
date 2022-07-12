@@ -6,5 +6,6 @@ Stuart Tener
 Fred Bader  
 Ken Morse  
 Nico Boehr
+Trevor Vardeman
 Matt Mondics  
 Miao Zhang-Cohen  
