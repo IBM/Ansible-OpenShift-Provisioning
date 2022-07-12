@@ -1,15 +1,14 @@
 ---
 
-- name: Load in variables from env.yaml
-  tags: get_ocp
-  include_vars: env.yaml
-
 - name: Create directory bin for mirrors
   tags: get_ocp
+  become: true
   file:
     path: /var/www/html/bin
     state: directory
     mode: '0755'
+    owner: "root"
+    group: "root"
  
 - name: Check to see if rootfs already exists on bastion
   tags: get_ocp
@@ -17,7 +16,7 @@
     path: /var/www/html/bin/rhcos-live-rootfs.s390x.img
   register: rootfs_check
 
-- name: Get Red Hat CoreOS rootfs file
+- name: Get Red Hat CoreOS rootfs file if it's not there already.
   tags: get_ocp
   get_url:
     url: "{{ env.coreos.rootfs }}"
@@ -28,94 +27,170 @@
 
 - name: Delete OCP download directory for idempotency, because ignition files deprecate after 24 hours.
   tags: get_ocp
+  become: true
   file: 
-    path: /ocpinst
+    path: /root/ocpinst
     state: absent
 
 - name: Create OCP download directory
   tags: get_ocp
   file: 
-    path: /ocpinst/
+    path: /root/ocpinst
     state: directory
 
 - name: Unzip OCP client and installer
   tags: get_ocp
   ansible.builtin.unarchive:
     src: "{{ item }}"
-    dest: /ocpinst/
+    dest: /root/ocpinst/
     remote_src: yes
   loop:
     - "{{ env.openshift.client }}"
     - "{{ env.openshift.installer }}"
 
-- name: Copy kubectl and oc files to bastion
+- name: Copy kubectl, oc, and openshift-install binaries to /usr/local/sbin
   tags: get_ocp
+  become: true
   ansible.builtin.copy:
-    src: /ocpinst/{{item}}
-    dest: /usr/local/bin/{{item}}
-    remote_src: yes
+    src: /root/ocpinst/{{item}}
+    dest: /usr/sbin/{{item}}
     owner: root
     group: root
-    mode: '0755'
-  loop:
+    mode: '755'
+    remote_src: yes
+  loop: 
     - kubectl
     - oc
-
-- name: Copy openshift-install file to bastion
-  tags: get_ocp
-  ansible.builtin.copy:
-    src: /ocpinst/openshift-install
-    dest: /usr/local/bin/openshift-install
-    remote_src: yes
-    owner: root
-    group: root
-    mode: '0755'
-
-- name: Fetch SSH key from bastion for use in template
-  tags: getocp,bastion
-  ansible.builtin.fetch:
-    src: ~/.ssh/id_rsa.pub
-    dest: roles/get_ocp/files/ocp_ssh_pub.yaml
-    flat: yes
+    - openshift-install
 
 - name: Use template file to create install-config
   tags: get_ocp
   template:
     src: install-config.yaml.j2
-    dest: /ocpinst/install-config.yaml
+    dest: "{{ item }}"
     force: yes
-    backup: yes
+  loop: 
+    - /root/ocpinst/install-config.yaml
+    - /root/ocpinst/install-config-backup.yaml
+
+- name: Capture OCP public key
+  tags: get_ocp
+  command: cat /root/.ssh/id_rsa.pub
+  register: ocp_pub_key
+
+- name: Place SSH key in install-config
+  tags: get_ocp
+  lineinfile:
+    line: "sshKey: '{{ ocp_pub_key.stdout }}'"
+    path: "{{ item }}"
+  loop:
+    - /root/ocpinst/install-config.yaml
+    - /root/ocpinst/install-config-backup.yaml
 
 - name: Create manifests
   tags: get_ocp
-  command: /ocpinst/openshift-install create manifests --dir=/ocpinst/
-  become: yes
+  command: /root/ocpinst/openshift-install create manifests --dir=/root/ocpinst/
+  become: true
   
 - name: Set masters schedulable parameter to false
   tags: get_ocp
+  become: true
   replace:
-    path: /ocpinst/manifests/cluster-scheduler-02-config.yml
+    path: /root/ocpinst/manifests/cluster-scheduler-02-config.yml
     regexp: ': true'
     replace: ': false'
 
+- name: Set permissions for ocpinst directory contents to root
+  tags: get_ocp
+  become: true
+  command: chmod 0755 /root/ocpinst/{{item}}
+  loop:
+    - manifests
+    - openshift
+    - .openshift_install.log
+    - .openshift_install_state.json
+
+- name: Set ownership of ocpinst directory contents to root
+  tags: get_ocp
+  become: true
+  command: chown root:root /root/ocpinst/{{item}}
+  loop:
+    - manifests
+    - openshift
+    - .openshift_install.log
+    - .openshift_install_state.json
+
 - name: Create ignition files
   tags: get_ocp
-  command: /ocpinst/openshift-install create ignition-configs --dir=/ocpinst/
-  become: yes
+  become: true
+  command: /root/ocpinst/openshift-install create ignition-configs  --dir=/root/ocpinst/
 
-- name: create ignition directory on webserver
+- name: Set ownership to root and permissions of ignitions and related files.
   tags: get_ocp
+  file:
+    state: "{{ item.state }}"
+    path: /root/ocpinst/{{ item.path }}
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop:
+    - { state: file, path: bootstrap.ign, mode: '755' }
+    - { state: file, path: master.ign, mode: '755' }
+    - { state: file, path: worker.ign, mode: '755' }
+    - { state: directory, path: auth, mode: '755' }
+    - { state: file, path: metadata.json, mode: '755' }
+    - { state: file, path: auth/kubeconfig, mode: '644' }
+    - { state: file, path: auth/kubeadmin-password, mode: '644' }
+
+- name: Create directory in admin user's home for default kubeconfig.
+  tags: get_ocp, config
+  become: False
+  file:
+    state: directory
+    path: ~/.kube
+
+- name: Create directory in root's home for default kubeconfig.
+  tags: get_ocp, config
+  become: True
+  file:
+    state: directory
+    path: ~/.kube
+
+- name: Make kubeconfig admin user's default.
+  tags: get_ocp, config
+  copy:
+    src: /root/ocpinst/auth/kubeconfig
+    dest: /home/{{ env.bastion.access.user }}/.kube/config
+    owner: "{{ env.bastion.access.user }}"
+    group: "{{ env.bastion.access.user }}"
+    remote_src: yes
+
+- name: Make kubeconfig root user's default.
+  tags: get_ocp, config
+  copy:
+    src: /root/ocpinst/auth/kubeconfig
+    dest: /root/.kube/config
+    owner: root
+    group: root
+    remote_src: yes
+
+- name: Create ignition directory in HTTP-accessible directory.
+  tags: get_ocp
+  become: true
   file: 
     path: /var/www/html/ignition
     state: directory
 
-- name: Copy ignition files to web server
+- name: Copy ignition files to HTTP-accessible directory.
   tags: get_ocp
+  become: true
   copy:
-    src: /ocpinst/{{ item }}.ign
+    src: /root/ocpinst/{{ item }}.ign
     dest: /var/www/html/ignition
     remote_src: yes
     mode: '775'
+    group: root
+    owner: root
   loop:
     - bootstrap
     - master

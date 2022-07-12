@@ -1,0 +1,6 @@
+ro ramdisk_size=40000 cio_ignore=all,!condev
+ip={{ networking.ip }}::{{ networking.gateway }}:{{ lpar.networking.subnet_cidr }}:{{ networking.hostname}}:{{ networking.device1 }}:none 
+nameserver={{ networking.nameserver1 }} {{ ( 'nameserver=' + networking.nameserver2 ) if networking.nameserver2 is defined else '' }}
+inst.repo=ftp://{{ env.ftp.user }}:{{ env.ftp.pass }}@{{ env.ftp.ip }}/{{ env.ftp.iso_mount_dir }}
+inst.ks=ftp://{{ env.ftp.user }}:{{ env.ftp.pass }}@{{ env.ftp.ip }}/{{ env.ftp.cfgs_dir }}/{{ networking.hostname }}/kvm_host.cfg
+inst.cmdline

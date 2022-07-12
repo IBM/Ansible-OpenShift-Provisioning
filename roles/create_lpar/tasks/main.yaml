@@ -1,0 +1,121 @@
+---
+
+#Create LPAR Profile
+- name: Create logical partition.
+  tags: create_lpar, lpar
+  ibm.ibm_zhmc.zhmc_partition:
+    hmc_host: "{{ hmc.host }}"
+    hmc_auth: 
+      userid: "{{ hmc.auth.user }}"
+      password: "{{ hmc.auth.pass }}"
+      verify: false
+    cpc_name: "{{ cpc_name }}"
+    name: "{{ lpar.name }}"
+    state: stopped
+    properties:
+      description: "{{ lpar.description }}"
+      ifl_processors: "{{ lpar.ifl.count }}"
+      initial_memory: "{{ lpar.ifl.initial_memory }}"
+      maximum_memory: "{{ lpar.ifl.max_memory }}"
+      minimum_ifl_processing_weight: "{{ lpar.ifl.min_weight }}"
+      maximum_ifl_processing_weight: "{{ lpar.ifl.max_weight }}"
+      initial_ifl_processing_weight: "{{ lpar.ifl.initial_weight }}"
+  register: create_lpar
+
+- name: Print the result
+  tags: create_lpar, lpar
+  debug:
+    var: create_lpar
+
+# Attach storge group
+- name: Ensure storage group is attached to partition.
+  tags: create_lpar, storage_group, storage_group_1
+  ibm.ibm_zhmc.zhmc_storage_group_attachment:
+    hmc_host: "{{ hmc.host }}"
+    hmc_auth: 
+      userid: "{{ hmc.auth.user }}"
+      password: "{{ hmc.auth.pass }}"
+      verify: false
+    cpc_name: "{{ cpc_name }}"
+    storage_group_name: "{{ lpar.storage_group_1.name }}"
+    partition_name: "{{ lpar.name  }}"
+    state: attached
+  register: sglparattach
+
+- name: Print the result.
+  tags: create_lpar, storage_group, storage_group_1
+  debug:
+    var: sglparattach
+
+# Attach second storge group, if defined
+- name: Ensure second storage group is attached to partition, if defined.
+  tags: create_lpar, storage_group, storage_group_2
+  ibm.ibm_zhmc.zhmc_storage_group_attachment:
+    hmc_host: "{{ hmc.host }}"
+    hmc_auth: 
+      userid: "{{ hmc.auth.user }}"
+      password: "{{ hmc.auth.pass }}"
+      verify: false
+    cpc_name: "{{ cpc_name }}"
+    storage_group_name: "{{ lpar.storage_group_2.name }}"
+    partition_name: "{{ lpar.name  }}"
+    state: attached
+  register: sglparattach
+  when: lpar.storage_group_2.name is defined
+
+- name: Print the result.
+  tags: create_lpar, storage_group, storage_group_2
+  debug:
+    var: sglparattach
+  when: lpar.storage_group_2.name is defined
+
+#Attach Network Adapter 
+- name: Ensure NIC1 exists in the partition.
+  tags: create_lpar, nic, nic1
+  ibm.ibm_zhmc.zhmc_nic:
+    hmc_host: "{{ hmc.host }}"
+    hmc_auth: 
+      userid: "{{ hmc.auth.user }}"
+      password: "{{ hmc.auth.pass }}"
+      verify: false
+    cpc_name: "{{ cpc_name }}"
+    partition_name: "{{ lpar.name }}"
+    name: "{{ lpar.networking.nic.card1.name }}"
+    state: present 
+    properties:
+      adapter_name: "{{ lpar.networking.nic.card1.adapter }}"
+      adapter_port: "{{ lpar.networking.nic.card1.port }}"
+      description: "NIC1"
+      device_number: "{{ '%04x' % lpar.networking.nic.card1.dev_num | int }}"
+  register: nic1  
+
+- name: Print the result.
+  tags: create_lpar, nic, nic1
+  debug:
+    var: nic1
+
+- name: Ensure NIC2 exists in the partition, if defined.
+  tags: create_lpar, nic, nic2
+  ibm.ibm_zhmc.zhmc_nic:
+    hmc_host: "{{ hmc.host }}"
+    hmc_auth: 
+      userid: "{{ hmc.auth.user }}"
+      password: "{{ hmc.auth.pass }}"
+      verify: false
+    cpc_name: "{{ cpc_name }}"
+    partition_name: "{{ lpar.name }}"
+    name: "{{ lpar.networking.nic.card2.name }}"
+    state: present 
+    properties:
+          adapter_name: "{{ lpar.networking.nic.card2.adapter }}"
+          adapter_port: "{{ lpar.networking.nic.card2.port }}"
+          description: "NIC2"
+          device_number: “{{ '%04x' % ( lpar.networking.nic.card1.dev_num | int ) }}”
+  register: nic2  
+  when: lpar.networking.nic.card2 is defined
+
+- name: Print the result.
+  tags: create_lpar, nic, nic2
+  debug:
+    var: nic2   
+  when: lpar.networking.nic.card2 is defined   

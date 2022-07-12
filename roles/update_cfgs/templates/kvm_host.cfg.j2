@@ -1,0 +1,68 @@
+# Template for KVM host kickstart config file. Some parts come from the update_cfgs role.
+
+%pre --log=/root/pre.log
+dd if=/dev/zero of=/dev/mapper/mpatha bs=512 count=10
+dd if=/dev/zero of=/dev/mapper/mpathb bs=512 count=10
+dd if=/dev/zero of=/dev/mapper/mpathc bs=512 count=10
+dd if=/dev/zero of=/dev/mapper/mpathd bs=512 count=10
+dd if=/dev/zero of=/dev/mapper/mpathe bs=512 count=10
+dd if=/dev/zero of=/dev/mapper/mpathf bs=512 count=10
+dd if=/dev/zero of=/dev/mapper/mpathg bs=512 count=10
+dd if=/dev/zero of=/dev/mapper/mpathh bs=512 count=10
+%end
+
+# Reboot after installation
+reboot
+
+# Use network installation
+url --url=ftp://{{env.ftp.user}}:{{env.ftp.pass}}@{{env.ftp.ip}}/{{ env.ftp.iso_mount_dir }}
+
+# Use text mode install
+text
+
+# Run the Setup Agent on first boot
+firstboot --enable
+
+# Keyboard layouts
+keyboard --vckeymap=us --xlayouts='us'
+
+# System language
+lang {{ env.language }}
+
+# Network information (will fill in during update_cfgs role)
+
+# Firewall and SELinux
+firewall --enabled --http --ftp --smtp --ssh --port=443,9090,123
+selinux --enforcing
+
+# Root password (will fill in during update_cfgs role)
+
+# System timezone
+timezone {{ env.timezone }}
+
+#Users and Groups Definitions (will fill in during update_cfgs role)
+
+# The following is the partition information you requested
+ignoredisk --only-use=mpatha
+
+# System bootloader configuration
+bootloader --append="crashkernel=auto" --location=mbr --boot-drive=mpatha
+
+# Partition clearing information
+zerombr
+clearpart --all --initlabel --drives=mpatha
+
+# Disk partitioning information
+autopart --type=lvm --fstype=xfs --nohome
+#if modifying partitioning, double-check roles/configure_storage to make it will work smoothly
+
+# packages selection
+%packages --multilib --ignoremissing
+@^minimal
+%end
+
+%addon com_redhat_kdump --disable
+%end
+
+%post --log=/root/post.log
+%end

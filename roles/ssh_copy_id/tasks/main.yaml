@@ -2,15 +2,12 @@
 
 - name: Load in variables
   tags: ssh_copy_id, ssh
-  include_vars: "{{item}}"
-  with_items:
-    - env.yaml
-    - roles/ssh_copy_id/vars/path_to_key_pair.yaml
+  include_vars: "{{inventory_dir}}/group_vars/all.yaml"
 
-- name: Get ansible.pub key for check in next task
+- name: Get ansible public key for check in next task
   tags: ssh_copy_id, ssh
   set_fact:
-    ans_pub_key: "{{ lookup('file', '~/.ssh/ansible.pub') }}"
+    ans_pub_key: "{{ lookup('file', '~/.ssh/{{ env.ansible_key_name }}.pub') }}"
 
 - name: Print Ansible public key
   tags: ssh_copy_id, ssh
@@ -21,20 +18,19 @@
   tags: ssh_copy_id, ssh
   lineinfile:
     path: "~/.ssh/known_hosts"
-    line: "{{ ssh_target_ip }}"
+    search_string: "{{ ssh_target[0] }}"
     state: absent
-  delegate_to: localhost
 
 - name: Use template file to create expect script
   tags: ssh_copy_id, ssh
   template:
     src: ssh-copy-id.exp.j2
-    dest: roles/ssh_copy_id/files/ssh-copy-id-expect-pass.exp
+    dest: "{{ role_path }}/files/ssh-copy-id-expect-pass.exp"
     force: yes
 
 - name: Copy SSH ID to remote host with pre-provided password
   tags: ssh_copy_id, ssh
-  command: "expect roles/ssh_copy_id/files/ssh-copy-id-expect-pass.exp"
+  command: "expect {{ role_path }}/files/ssh-copy-id-expect-pass.exp"
   register: ssh_copy
 
 - name: Print results of copying ssh id to remote host.
@@ -45,11 +41,11 @@
 - name: Delete templated expect script
   tags: ssh_copy_id, ssh
   file:
-    path: roles/ssh_copy_id/files/ssh-copy-id-expect-pass.exp
+    path: "{{ role_path }}/files/ssh-copy-id-expect-pass.exp"
     state: absent
 
 - name: Re-create ssh-copy-id files folder
   tags: ssh_copy_id, ssh
   file:
-    path: roles/ssh_copy_id/files/
+    path: "{{ role_path }}/files/"
     state: directory
