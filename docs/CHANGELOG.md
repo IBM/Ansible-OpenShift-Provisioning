@@ -2,10 +2,11 @@
 All notable changes to this project will be documented in this file.  
 
 ## Roadmap
+* Add air-gapped (disconnected) deployment option
+* Create podman container image to use as the Ansible Controller for consistency of deployment
+* Automated setup of persistent storage
+* Tag and assign infrastructure nodes to specific operators
 * Add option to use a VPN to reduce # of IPs needed
-* Tag infrastructure nodes for specific operators
-* Add air-gapped (disconnected) install option
-* Add README’s for each role
 
 ## High Availability Deployments
 Version 0.4.0  
