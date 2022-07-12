@@ -1,22 +1,11 @@
 ---
 
-- name: Populate inventory with KVM host, bastion and bootstrap IP addresses
+- name: Template out inventory with workstation, FTP, KVM host, and bastion information
   tags: set_inventory
-  blockinfile:
-    path: "{{ inventory_file }}"
-    marker: "#{mark} ansible managed block from set_inventory role"
-    marker_begin: "start of"
-    marker_end: "end of"
-    block: |
-      [ftp]
-      {{ env.ftp.ip }} ansible_user={{ env.ftp.user }}
-
-      [kvm_host]
-      {{ env.z.lpar.networking.hostname }} ansible_host={{env.z.lpar.networking.ip}} ansible_user={{env.z.lpar.access.user}} ansible_become_password={{env.z.lpar.access.pass}}
-
-      [bastion]
-      {{env.bastion.networking.hostname}} ansible_host={{env.bastion.networking.ip}} ansible_user={{env.bastion.access.user}} ansible_become_password={{env.bastion.access.pass}}
-    state: present
+  template:
+    src: hosts.j2
+    dest: "{{ inventory_dir }}/hosts"
+    force: yes
 
 - name: Add path to Ansible private key
   tags: set_inventory
