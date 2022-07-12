@@ -2,13 +2,13 @@
 
 - name: Wait for OpenShift install to complete
   tags: wait_for_install_complete
-  shell: /home/{{ env.bastion.access.user }}/ocpinst/openshift-install --dir=/home/{{ env.bastion.access.user }}/ocpinst wait-for install-complete
+  shell: openshift-install wait-for install-complete --dir /root/ocpinst
   register: wait_install_complete
   until: ("Install complete!" in wait_install_complete.stderr)
   retries: 120
   delay: 30
 
-- name: Almost there! You may be prompted for your password. Add host info to /etc/hosts so you can login to the cluster via web browser.
+- name: Almost there! Add host info to /etc/hosts so you can login to the cluster via web browser. Workstation sudo password required.
   tags: wait_for_install_complete
   become: True
   lineinfile: 
@@ -26,7 +26,7 @@
 
 - name: Get OCP temporary password
   tags: wait_for_install_complete
-  command: "cat /home/{{ env.bastion.access.user }}/ocpinst/auth/kubeadmin-password"
+  command: "cat /root/ocpinst/auth/kubeadmin-password"
   register: ocp_passwd
 
 - name: Congratulations! OpenShift installation complete. Use the information below for first-time login via web browser.  
