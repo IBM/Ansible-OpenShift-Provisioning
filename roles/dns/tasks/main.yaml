@@ -116,15 +116,17 @@
     index_var: i
   when: env.cluster.nodes.infra.hostname is defined
 
-- name: Add cluster nameserver to bastion's resolv.conf file, replacing default
-  tags: dns
-  lineinfile:
-    path: /etc/resolv.conf
-    regexp: "nameserver"
-    line: "nameserver {{ env.cluster.networking.nameserver }}"
+- name: Template out bastion's resolv.conf file, replacing default
+  tags: dns, resolv
+  template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: '644'
 
 - name: Restart named to update changes made to DNS
-  tags: dns
+  tags: dns, resolv
   ansible.builtin.systemd:
       name: named
       state: restarted
