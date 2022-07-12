@@ -4,7 +4,7 @@
   tags: ssh_copy_id, ssh
   include_vars: "{{inventory_dir}}/group_vars/all.yaml"
 
-- name: Get ansible.pub key for check in next task
+- name: Get ansible public key for check in next task
   tags: ssh_copy_id, ssh
   set_fact:
     ans_pub_key: "{{ lookup('file', '~/.ssh/{{ env.ansible_key_name }}.pub') }}"
@@ -18,7 +18,7 @@
   tags: ssh_copy_id, ssh
   lineinfile:
     path: "~/.ssh/known_hosts"
-    line: "{{ ssh_target[0] }}"
+    search_string: "{{ ssh_target[0] }}"
     state: absent
 
 - name: Use template file to create expect script
