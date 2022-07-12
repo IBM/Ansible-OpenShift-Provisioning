@@ -7,3 +7,4 @@
   - name: Test variables or anything here
     debug:
       msg: "{{ test_var }}"
+      
