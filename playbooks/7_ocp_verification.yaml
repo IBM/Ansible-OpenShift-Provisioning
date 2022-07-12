@@ -1,0 +1,15 @@
+---
+
+#Complete OpenShift verification
+- hosts: bastion
+  become: True
+  environment:
+    KUBECONFIG: "/home/{{ env.bastion.access.user }}/.kube/config"
+  gather_facts: true
+  vars_files: 
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - approve_certs
+    - check_nodes
+    - wait_for_cluster_operators
+    - wait_for_install_complete
