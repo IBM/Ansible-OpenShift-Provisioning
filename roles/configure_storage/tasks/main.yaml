@@ -1,73 +1,62 @@
----    
-#- name: create empty list for lun names
-#  tags: configure_storage
-#  set_fact:
-#    lun_list: []
+---
 
-#- name: Fill list of lun names
-#  tags: configure_storage
-#  set_fact:
-#    lun_list: "{{lun_list}} + [ '/dev/mapper/{{ item }}' ]"
-#    cacheable: yes
-#  loop: "{{ env.z.lpar.storage_group_1.lun_name[1:] }}"
+- name: Create a new partition.
+  tags: configure_storage, storage_group_2, part
+  community.general.parted:
+    device: /dev/mapper/mpathb
+    number: 1
+    label: gpt
+    state: present
+    part_start: 2048MB
+    part_end: 100%
+    fs_type: xfs
+  register: partition_status
+  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
 
-#- name: Create a volume group.
-#  tags: configure_storage
-#  community.general.lvg:
-#    pvs: "{{ lun_list }}"
-#    state: present
-#    vg: "{{ env.z.lpar.storage_group_1.vg.name }}"   
+- name: Print partition status.
+  tags: configure_storage, storage_group_2, part
+  debug: 
+    var: partition_status 
+  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
 
-#- name: Create a logical volume.
-#  tags: configure_storage
-#  community.general.lvol:
-#    vg: "{{ env.z.lpar.storage_group_1.vg.name }}"
-#    lv: "{{ env.z.lpar.storage_group_1.lv.name }}" 
-#    size: 100%VG
+- name: Reload partition table
+  tags: configure_storage, storage_group_2, part
+  command: partprobe
+  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
 
-#- name: Create directory for filesystem, if does not exist.
-#  tags: configure_storage
-#  file:
-#    path: "{{ env.z.lpar.storage_group_1.pool_path }}" 
-#    state: directory
-#    mode: '0755'
+- name: Add storage_group_2 disk to existing volume group.
+  tags: configure_storage, storage_group_2, pvcreate
+  command: pvcreate /dev/mapper/mpathb1
+  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
 
-#- name: Format the filesystem.
-#  tags: configure_storage
-#  community.general.filesystem:
-#    fstype: "{{env.z.lpar.storage_group_1.fs.type}}"
-#    dev: /dev/{{ env.z.lpar.storage_group_1.vg.name }}/{{ env.z.lpar.storage_group_1.lv.name }}
-
-#- name: Mount the logical volume on the filesystem.
-#  tags: configure_storage
-#  mount:
-#    path: "{{ env.z.lpar.storage_group_1.pool_path }}"
-#    src: /dev/{{ env.z.lpar.storage_group_1.vg.name }}/{{ env.z.lpar.storage_group_1.lv.name }}
-#    fstype: "{{ env.z.lpar.storage_group_1.fs.type }}"
-#    state: mounted
+- name: Extend logical volume group with new PV 
+  tags: configure_storage, storage_group_2, vgextend
+  command: vgextend rhel_aoznode1 /dev/mapper/mpathb1 and lpar.storage_group_2.auto_config == True
+  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
 
 - name: Extend the root logical volume to consume all remaining space in the volume group.
-  tags: configure_storage
+  tags: configure_storage, lvextend
   community.general.lvol:
-    vg: rhel_{{env.z.lpar.networking.hostname | lower}}
+    vg: "rhel_{{ networking.hostname | lower }}"
     lv: root
     size: +100%FREE
+    resizefs: true
 
 - name: Define a new storage pool
-  tags: configure_storage
+  tags: configure_storage, pool
   community.libvirt.virt_pool:
     command: define
-    name: "{{ env.z.lpar.storage_group.name }}-vdisk"
-    xml: '{{ lookup("template", "vdisk.xml.j2") }}'
+    name: "{{ env.cluster.networking.metadata_name }}-vdisk"
+    xml: '{{ lookup ( "template", "vdisk.xml.j2" ) }}'
 
 - name: Set storage pool to active.
-  tags: configure_storage
+  tags: configure_storage, pool
   community.libvirt.virt_pool:
-    name: "{{ env.z.lpar.storage_group.name }}-vdisk"
+    name: "{{ env.cluster.networking.metadata_name }}-vdisk"
     state: active
 
 - name: Set storage pool to autostart.
-  tags: configure_storage
+  tags: configure_storage, pool
   community.libvirt.virt_pool:
-    name: "{{ env.z.lpar.storage_group.name }}-vdisk"
+    name: "{{ env.cluster.networking.metadata_name }}-vdisk"
     autostart: yes
