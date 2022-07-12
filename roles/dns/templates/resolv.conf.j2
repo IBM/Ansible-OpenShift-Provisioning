@@ -1,0 +1,2 @@
+nameserver {{ env.cluster.networking.nameserver1 }}
+{{ ('nameserver ' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }}
