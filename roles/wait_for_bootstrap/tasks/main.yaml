@@ -1,26 +1,13 @@
 ---
 
-- name: Make sure kubeconfig works properly.
-  tags: wait_for_bootstrap
-  shell: oc whoami
-  register: oc_whoami
-  until: oc_whoami.stdout == "system:admin"
-  retries: 120
-  delay: 30
-  
-- name: Print output of oc whoami, should be "system:admin" if previous task worked.
-  tags: wait_for_bootstrap
-  debug:
-    var: oc_whoami.stdout
-
 - name: Watch wait-for bootstrap-complete process.
   tags: wait_for_bootstrap 
-  shell: openshift-install wait-for bootstrap-complete --dir=/home/{{ env.bastion.access.user }}/ocpinst
+  shell: openshift-install wait-for bootstrap-complete --dir=/root/ocpinst
   async: 3600
   poll: 0
   register: watch_bootstrap
 
-- name: Retry wait-for bootstrap-complete job ID check until it's finished. This may take some time.
+- name: Retry wait-for bootstrap-complete job ID check until it's finished. This may take some time... To watch progress, SSH to bastion, switch to root, from there, SSH to core@bootstrap-ip and run 'journalctl -b -f -u release-image.service -u bootkube.service'
   tags: wait_for_bootstrap
   async_status:
     jid: "{{ watch_bootstrap.ansible_job_id }}"
@@ -29,26 +16,15 @@
   retries: 120
   delay: 30
 
-- name: Destroy bootstrap. Expect ignored errors if bootstrap is already destroyed.
+- name: Make sure kubeconfig works properly. This 
   tags: wait_for_bootstrap
-  community.libvirt.virt:
-    name: "{{ env.cluster.nodes.bootstrap.hostname }}"
-    command: destroy
-  ignore_errors: true
-  delegate_to: "{{ env.z.lpar.networking.hostname }}"
-
-- name: Undefine bootstrap. Expect ignored errors if bootstrap is already undefined.
-  tags: wait_for_bootstrap  
-  community.libvirt.virt:
-    name: "{{ env.cluster.nodes.bootstrap.hostname }}"
-    command: undefine
-  ignore_errors: true
-  delegate_to: "{{ env.z.lpar.networking.hostname }}"
-
-- name: Remove qcow2
+  shell: oc whoami
+  register: oc_whoami
+  until: oc_whoami.stdout == "system:admin"
+  retries: 120
+  delay: 10
+  
+- name: Print output of oc whoami, should be "system:admin" if previous task worked.
   tags: wait_for_bootstrap
-  become: true
-  file:
-    path: "{{ env.z.lpar.storage_group.pool_path }}/{{env.cluster.nodes.bootstrap.hostname}}-bootstrap.qcow2"
-    state: absent
-  delegate_to: "{{ env.z.lpar.networking.hostname }}"
+  debug:
+    var: oc_whoami.stdout
