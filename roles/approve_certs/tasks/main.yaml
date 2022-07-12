@@ -3,7 +3,7 @@
 - name: Approving all pending certificates
   tags: approve_certs
   shell: |
-    /home/{{ env.bastion.access.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.bastion.access.user }}/ocpinst/oc adm certificate approve
+    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
   register: csr_approved
   ignore_errors: true
 
@@ -20,7 +20,7 @@
 - name: Approving all pending certificates
   tags: approve_certs
   shell: |
-    /home/{{ env.bastion.access.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.bastion.access.user }}/ocpinst/oc adm certificate approve
+    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
   register: csr_approved
   ignore_errors: true
 
@@ -37,7 +37,7 @@
 - name: Approving all pending certificates
   tags: approve_certs
   shell: |
-    /home/{{ env.bastion.access.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.bastion.access.user }}/ocpinst/oc adm certificate approve
+    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
   register: csr_approved
   ignore_errors: true
 
@@ -54,7 +54,7 @@
 - name: Approving all pending certificates
   tags: approve_certs
   shell: |
-    /home/{{ env.bastion.access.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.bastion.access.user }}/ocpinst/oc adm certificate approve
+    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
   register: csr_approved
   ignore_errors: true
 
@@ -71,7 +71,7 @@
 - name: Approving all pending certificates
   tags: approve_certs
   shell: |
-    /home/{{ env.bastion.access.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.bastion.access.user }}/ocpinst/oc adm certificate approve
+    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
   register: csr_approved
   ignore_errors: true
 
@@ -88,7 +88,7 @@
 - name: Approving all pending certificates
   tags: approve_certs
   shell: |
-    /home/{{ env.bastion.access.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.bastion.access.user }}/ocpinst/oc adm certificate approve
+    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
   register: csr_approved
   ignore_errors: true
 
@@ -105,7 +105,7 @@
 - name: Approving all pending certificates
   tags: approve_certs
   shell: |
-    /home/{{ env.bastion.access.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.bastion.access.user }}/ocpinst/oc adm certificate approve
+    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
   register: csr_approved
   ignore_errors: true
 
@@ -122,7 +122,7 @@
 - name: Approving all pending certificates
   tags: approve_certs
   shell: |
-    /home/{{ env.bastion.access.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.bastion.access.user }}/ocpinst/oc adm certificate approve
+    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
   register: csr_approved
   ignore_errors: true
 
@@ -139,7 +139,7 @@
 - name: Approving all pending certificates
   tags: approve_certs
   shell: |
-    /home/{{ env.bastion.access.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.bastion.access.user }}/ocpinst/oc adm certificate approve
+    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
   register: csr_approved
   ignore_errors: true
 
@@ -156,7 +156,7 @@
 - name: Approving all pending certificates
   tags: approve_certs
   shell: |
-    /home/{{ env.bastion.access.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.bastion.access.user }}/ocpinst/oc adm certificate approve
+    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
   register: csr_approved
   ignore_errors: true
 
@@ -173,7 +173,7 @@
 - name: Approving all pending certificates
   tags: approve_certs
   shell: |
-    /home/{{ env.bastion.access.user }}/ocpinst/oc get csr | awk '{print $1'} | grep -v NAME | xargs /home/{{ env.bastion.access.user }}/ocpinst/oc adm certificate approve
+    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
   register: csr_approved
   ignore_errors: true
 
