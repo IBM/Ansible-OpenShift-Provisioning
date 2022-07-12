@@ -1,27 +1,73 @@
 ---
 
-- name: Load in variables from env.yaml
-  tags: create_control_nodes
-  include_vars: env.yaml
-
-- name: Install CoreOS on control nodes
+- name: Create CoreOS control nodes on the the KVM host.
   tags: create_control_nodes
   command: |
     virt-install \
-    --name {{env.hostname.control[i]}} \
-    --disk size={{env.node_resources.control.disk_size}} \
-    --ram {{env.node_resources.control.ram}} \
+    --name {{env.cluster.nodes.control.vm_name[i]}} \
+    --disk pool=default,size={{ env.cluster.nodes.control.disk_size }}  \
+    --ram {{env.cluster.nodes.control.ram}} \
     --cpu host \
-    --vcpus {{env.node_resources.control.vcpu}} \
-    --os-type linux \
-    --os-variant rhel{{env.node_resources.control.os_variant}} \
-    --network network=macvtap-net \
+    --vcpus {{env.cluster.nodes.control.vcpu}} \
+    --network network={{env.bridge_name}} \
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.ip.bastion}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.ip.control[i]}}::{{env.networking.gateway}}:{{env.networking.netmask}}:{{env.hostname.control[i]}}::none:1500 nameserver={{env.networking.dns.nameserver}} coreos.inst.ignition_url=http://{{env.ip.bastion}}:8080/ignition/master.ign" \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.control.ip[i]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[i]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
     --graphics none \
     --wait=-1 \
     --noautoconsole 
-  with_sequence: start=0 end={{env.install_config.control.replicas - 1}} stride=1
+  with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
+  when: env.z.high_availability == False
+
+- name: Create the first CoreOS control node on the first KVM host, if cluster is to be highly available. 
+  tags: create_control_nodes
+  command: |
+    virt-install \
+    --name {{env.cluster.nodes.control.vm_name[0]}} \
+    --disk pool=default,size={{ env.cluster.nodes.control.disk_size }}  \
+    --ram {{env.cluster.nodes.control.ram}} \
+    --cpu host \
+    --vcpus {{env.cluster.nodes.control.vcpu}} \
+    --network network={{env.bridge_name}} \
+    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.control.ip[0]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[0]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
+    --graphics none \
+    --wait=-1 \
+    --noautoconsole 
+  when: env.z.high_availability == True and inventory_hostname == env.z.lpar1.hostname
+
+- name: Create the second CoreOS control node on the second KVM host, if cluster is to be highly available. 
+  tags: create_control_nodes
+  command: |
+    virt-install \
+    --name {{env.cluster.nodes.control.vm_name[1]}} \
+    --disk pool=default,size={{ env.cluster.nodes.control.disk_size }}  \
+    --ram {{env.cluster.nodes.control.ram}} \
+    --cpu host \
+    --vcpus {{env.cluster.nodes.control.vcpu}} \
+    --network network={{env.bridge_name}} \
+    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.control.ip[1]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[1]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
+    --graphics none \
+    --wait=-1 \
+    --noautoconsole 
+  when: env.z.high_availability == True and inventory_hostname == env.z.lpar2.hostname
+
+- name: Create the third CoreOS control node on the third KVM host, if cluster is to be highly available. 
+  tags: create_control_nodes
+  command: |
+    virt-install \
+    --name {{env.cluster.nodes.control.vm_name[2]}} \
+    --disk pool=default,size={{ env.cluster.nodes.control.disk_size }}  \
+    --ram {{env.cluster.nodes.control.ram}} \
+    --cpu host \
+    --vcpus {{env.cluster.nodes.control.vcpu}} \
+    --network network={{env.bridge_name}} \
+    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.control.ip[2]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[2]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
+    --graphics none \
+    --wait=-1 \
+    --noautoconsole 
+  when: env.z.high_availability == True and inventory_hostname == env.z.lpar3.hostname

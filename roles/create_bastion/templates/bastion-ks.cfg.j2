@@ -1,0 +1,62 @@
+# Template for bastion kickstart configuration file. Some parts come from the create_bastion role.
+
+#version=DEVEL
+%pre --log=/root/pre.log
+%end
+
+# Reboot after installation
+reboot
+
+# Use text mode install
+text
+
+# Run the Setup Agent on first boot
+firstboot --enable
+
+# Keyboard layouts
+keyboard --vckeymap=us --xlayouts='us'
+
+# System language
+lang {{ env.language }}
+
+# Network information (will fill in during create_bastion role)
+#network  --bootproto=dhcp --activate --hostname=
+network --bootproto=static --ip={{env.bastion.networking.ip}} --gateway={{env.bastion.networking.gateway}}  --netmask={{env.bastion.networking.subnetmask}}  --noipv6 --nameserver={{env.bastion.networking.nameserver1}} {{ ('--nameserver=' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} --activate --hostname={{env.bastion.networking.hostname}}
+
+# Firewall and SELinux
+firewall --enabled --http --ftp --smtp --ssh --port=443,9090
+selinux --enforcing
+
+# Root password
+
+# System timezone
+timezone {{ env.timezone }}
+
+#Users and Groups Definitions (will fill in during create_bastion role)
+
+# The following is the partition information you requested
+ignoredisk --only-use=vda
+
+# System bootloader configuration
+bootloader --append="crashkernel=auto" --location=mbr --boot-drive=vda
+
+# Partition clearing information
+clearpart --all --initlabel --drives=vda
+
+# Disk partitioning information
+part /boot --fstype="xfs" --asprimary --ondisk=vda --size=1024
+part pv.01 --fstype="lvmpv" --grow --size=1 --ondisk=vda
+volgroup vgsystem --pesize=4096 pv.01
+logvol swap --fstype=swap --name=swap --vgname=vgsystem --size={{env.bastion.resources.swap}}
+logvol / --fstype=xfs --name=root --vgname=vgsystem --size=1 --grow
+
+#packages selection
+%packages --multilib --ignoremissing
+@^minimal
+%end
+
+%addon com_redhat_kdump --disable
+%end
+
+%post --log=/root/post.log
+%end

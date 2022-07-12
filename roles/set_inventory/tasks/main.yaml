@@ -1,97 +1,30 @@
 ---
 
-- name: Load in variables from env.yaml
-  tags: setup
-  include_vars: env.yaml
+- name: Template out inventory with workstation, FTP, KVM host, and bastion information
+  tags: set_inventory
+  template:
+    src: hosts.j2
+    dest: "{{ inventory_dir }}/hosts"
+    force: yes
 
-- name: Populate inventory with KVM host, bastion and bootstrap IP addresses
-  tags: setup
-  blockinfile:
-    path: inventory
-    block: |
-      [kvm_host]
-      {{env.ip.kvm}}
-
-      [bastion]
-      {{env.ip.bastion}}
-
-      [bootstrap]
-      {{env.ip.bootstrap}}
-
-      [control_nodes]
-
-      [compute_nodes]
+- name: Add path to Ansible private key
+  tags: set_inventory
+  lineinfile:
+    line: "private_key_file=~/.ssh/{{ env.ansible_key_name }}"
+    path: "{{ ansible_config_file }}"
+    regexp: "private_key_file"
     state: present
 
-- name: Add control nodes' IP addresses to inventory
-  tags: setup
-  lineinfile:
-    path: inventory
-    insertafter: "control_nodes"
-    line: "{{ item }}"
-  loop: "{{env.ip.control}}"
-
-- name: Add compute nodes' IP addresses to inventory
-  tags: setup
-  lineinfile:
-    path: inventory
-    insertafter: "compute_nodes"
-    line: "{{ item }}"
-  loop: "{{env.ip.compute}}"
-
 - name: check inventory setup
-  tags: setup
+  tags: set_inventory
   command: ansible-inventory --list
   register: inv_check
   failed_when: inv_check.rc != 0
 
 - name: Gather facts to re-read inventory after changes made to inventory
-  tags: setup
+  tags: set_inventory
   ansible.builtin.gather_facts:
 
 - name: Refresh inventory
-  tags: setup
+  tags: set_inventory
   meta: refresh_inventory
-
-- name: fill ansible.cfg with default ansible password
-  tags: setup
-  ansible.builtin.lineinfile:
-    path: ansible.cfg
-    insertafter: '\[defaults\]'
-    line: ansible_password={{env.access.login.kvm.root_password}}
-
-- name: fill ansible.cfg with default ansible user
-  tags: setup
-  ansible.builtin.lineinfile:
-    path: ansible.cfg
-    insertafter: '\[defaults\]'
-    line: remote_user=root
-
-- name: delete ocp_ssh_pub file if it exists already to ensure idempotence
-  tags: setup
-  file:
-    state: absent
-    path: roles/get_ocp/files/ocp_ssh_pub
-
-- name: create ocp_ssh_pub if it needs to be
-  tags: setup
-  file:
-    path: roles/get_ocp/files/ocp_ssh_pub
-    mode: '0755'
-    state: touch
-
-- name: comment out auto-attach RHEL subscription role calls in main.yaml if requested
-  tags: setup
-  replace:
-    path: main.yaml
-    regexp: "- attach_subscription"
-    replace: "#- attach_subscription"
-  when: not env.redhat.attach_subscription
-
-- name: Comment out DNS setup on bastion role calls in main.yaml if requested
-  tags: setup
-  replace:
-    regexp: "- dns"
-    path: main.yaml
-    replace: "#- dns"
-  when: not env.networking.dns.setup_on_bastion

@@ -6,6 +6,15 @@
     name: httpd_t
     permissive: true
 
+- name: Allow httpd to listen on tcp port 4443
+  tags: httpd
+  community.general.seport:
+    ports: 4443
+    proto: tcp
+    setype: http_port_t
+    state: present
+    reload: yes
+
 - name: enable httpd
   tags: httpd
   systemd:

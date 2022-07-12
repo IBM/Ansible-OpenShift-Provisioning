@@ -2,25 +2,34 @@
 
 - name: Wait for OpenShift install to complete
   tags: wait_for_install_complete
-  environment:
-    KUBECONFIG: "/ocpinst/auth/kubeconfig"
-  shell: /ocpinst/openshift-install --dir=/ocpinst wait-for install-complete
+  shell: openshift-install wait-for install-complete --dir /root/ocpinst
   register: wait_install_complete
   until: ("Install complete!" in wait_install_complete.stderr)
   retries: 120
   delay: 30
 
-- name: Set OCP URL
+- name: Almost there! Add host info to /etc/hosts so you can login to the cluster via web browser. Workstation sudo password required.
+  tags: wait_for_install_complete
+  become: True
+  lineinfile: 
+    path: /etc/hosts
+    line: "{{ item }}"
+  with_items:
+    - "{{ env.bastion.networking.ip }} oauth-openshift.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
+    - "{{ env.bastion.networking.ip }} console-openshift-console.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
+  delegate_to: 127.0.0.1
+
+- name: Get OCP URL
   tags: wait_for_install_complete
   set_fact:
-    ocp_url: https://console-openshift-console.apps.{{env.install_config.metadata_name}}.{{env.install_config.base_domain}}
+    ocp_url: https://console-openshift-console.apps.{{env.cluster.networking.metadata_name}}.{{env.cluster.networking.base_domain}}
 
-- name: Set OCP password
+- name: Get OCP temporary password
   tags: wait_for_install_complete
-  command: "cat /ocpinst/auth/kubeadmin-password"
+  command: "cat /root/ocpinst/auth/kubeadmin-password"
   register: ocp_passwd
 
-- name: Congratulations! OpenShift installation complete. Use the information below for first-time login.
+- name: Congratulations! OpenShift installation complete. Use the information below for first-time login via web browser.  
   tags: wait_for_install_complete
   command: "echo {{ item }}"
   loop: 

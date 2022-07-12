@@ -1,62 +1,47 @@
 ---
 
-- name: Load in variables from env.yaml
-  tags: ssh_ocp_key_gen, ssh
-  include_vars: env.yaml
-
 - name: Check to see if local SSH directory exists
-  tags: ssh_ocp_key_gen, ssh
+  tags: ssh_ocp_key_gen
   stat:
-    path: ~/.ssh
+    path: /root/.ssh
   register: ssh_directory_exists_check
 
-- name: Print results of SSH directory check
-  tags: ssh_ocp_key_gen, ssh
-  debug:
-    var: ssh_directory_exists_check
-
 - name: Create SSH local directory if it doesn't already exist
-  tags: ssh_ocp_key_gen, ssh
+  tags: ssh_ocp_key_gen
   file:
-    path: ~/.ssh
+    path: /root/.ssh
     state: directory
     mode: "0700"
   register: ssh_directory_creation
-  when: ssh_directory_exists_check is defined and ssh_directory_exists_check.stat.exists == false
+  when: ssh_directory_exists_check.stat.exists == false
 
-- name: Print results of SSH directory creation
-  tags: ssh_ocp_key_gen, ssh
-  debug:
-    var: ssh_directory_creation
-
-- name: Check SSH key pair files exist
-  tags: ssh_ocp_key_gen, ssh
-  stat:
-    path: ~/.ssh/{{item}}
-  register: ssh_key_file_exists_check
-  with_items:
-    - "id_rsa"
-    - "id_rsa.pub"
-
-- name: Print results of SSH key pair files check
-  tags: ssh_ocp_key_gen, ssh
-  debug:
-    var: ssh_key_file_exists_check.results[1].stat.exists
-
-- name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key if it doesn't exist already
-  tags: ssh_ocp_key_gen, ssh
+- name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key.
+  tags: ssh_ocp_key_gen
   community.crypto.openssh_keypair:
-    path: ~/.ssh/id_rsa
+    path: "/root/.ssh/id_rsa"
     backend: opensshbin
     owner: root
     passphrase: ""
-    comment: "{{ env.access.ssh.ocp.comment }}"
-    regenerate: full_idempotence
+    comment: "{{ env.ocp_key_name }}"
+    regenerate: always
   register: ssh_ocp
-  when: ssh_key_file_exists_check is defined and ssh_key_file_exists_check.results[0].stat.exists == false and ssh_key_file_exists_check.results[1].stat.exists == false 
 
 - name: Print results of SSH key generation
-  tags: ssh_ocp_key_gen, ssh
+  tags: ssh_ocp_key_gen
   debug:
     var: ssh_ocp.public_key
   when: ssh_ocp.changed == true
+
+- name: Set SSH key permissions
+  tags: ssh_ocp_key_gen
+  command: chmod 600  /root/.ssh/{{ item }}
+  loop: 
+    - id_rsa
+    - id_rsa.pub
+
+- name: Set SSH key ownership
+  tags: ssh_ocp_key_gen
+  command: chown root:root /root/.ssh/{{item}}
+  loop:
+    - id_rsa
+    - id_rsa.pub

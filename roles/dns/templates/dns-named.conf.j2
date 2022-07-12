@@ -18,7 +18,7 @@ options {
 	secroots-file	"/var/named/data/named.secroots";
 	recursing-file	"/var/named/data/named.recursing";
 	allow-query     { any; };
-	forwarders { {{ env.networking.dns.forwarder }}; };
+	forwarders { {{ env.cluster.networking.forwarder }}; };
         
 	/* 
 	 - If you are building an AUTHORITATIVE DNS server, do NOT enable recursion.
@@ -60,9 +60,9 @@ include "/etc/named.rfc1912.zones";
 include "/etc/named.root.key";
 
 //forward zone
-zone "{{ env.install_config.base_domain }}" IN {
+zone "{{ env.cluster.networking.base_domain }}" IN {
      type master;
-     file "/var/named/{{ env.install_config.metadata_name }}.db";
+     file "/var/named/{{ env.cluster.networking.metadata_name }}.db";
      allow-update { any; };
      allow-query { any; };
 };
@@ -70,7 +70,7 @@ zone "{{ env.install_config.base_domain }}" IN {
 //backward zone
 zone "{{ bastion_split_ip.2 }}.{{ bastion_split_ip.1 }}.{{ bastion_split_ip.0 }}.in-addr.arpa" IN {
      type master;
-     file "/var/named/{{ env.install_config.metadata_name }}.rev";
+     file "/var/named/{{ env.cluster.networking.metadata_name }}.rev";
      allow-update { any; };
      allow-query { any; };
 };

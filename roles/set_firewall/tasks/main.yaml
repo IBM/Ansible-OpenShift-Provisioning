@@ -1,6 +1,12 @@
 ---
 
-- name: Add ports to firewalld
+- name: start firewalld service
+  service:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Add ports to firewall
   tags: set_firewall
   firewalld:
     port: "{{ item }}"
@@ -13,6 +19,7 @@
     - 4443/tcp
     - 6443/tcp
     - 22623/tcp
+    - 53/tcp
     - 53/udp
 
 - name: Permit traffic in default zone for http and https
@@ -27,10 +34,10 @@
 
 - name: Ensure the default Apache port is 8080
   tags: set_firewall
-  lineinfile:
+  replace:
     path: /etc/httpd/conf/httpd.conf
-    search_string: 'Listen 80'
-    line: 'Listen 8080'
+    regexp: '^Listen 80'
+    replace: 'Listen 8080'
     backup: yes
 
 - name: Ensure the SSL default port is 4443
@@ -46,9 +53,3 @@
   systemd:
     name: firewalld
     state: reloaded
-
-- name: restart httpd
-  tags: set_firewall
-  service:
-    name: httpd
-    state: restarted
