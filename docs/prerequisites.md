@@ -20,12 +20,14 @@
     * Double-check it's for version 8 and for s390x architecture
     * Then scroll down to Red Hat Enterprise Linux 8.x Binary DVD and click on the 'Download Now' button.
 * A folder to store config files (e.g. /home/ftpuser/ocp-config)
+* A user with sudo and SSH access.
 ## Workstation
 * A computer/virtual machine with MacOS or Linux operating system
 * Network access to your IBM zSystems / LinuxONE hardware
+* All you need to run Ansible is a terminal and a text editor. However, an IDE like [VS Code](https://code.visualstudio.com/download) is highly recommended for an integrated, user-friendly experience with helpful extensions like [YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml).
 * [Python3](https://realpython.com/installing-python/) installed:
 ```
-brew install python3 #MacOS, see note below
+brew install python3 #MacOS
 ```
 ```
 sudo dnf install python3 #Fedora
@@ -33,11 +35,22 @@ sudo dnf install python3 #Fedora
 ```
 sudo apt install python3 #Debian
 ```
-* Once Python3 is installed, you also need [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html):
+* Once Python3 is installed, you also need [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) version 2.9 or above:
 ```
 pip3 install ansible
 ```
-* Note: If you are using MacOS, you also need to have [Homebrew](https://brew.sh/) package manager installed:
+* Once Ansible is installed, you will need a few collections from Ansible Galaxy. Use this template to install them via the terminal:
+```
+ansible-galaxy collection install community.general community.crypto ansible.posix community.libvirt
+```
+* If you will be using these playbooks to automate the creation of the LPAR(s) that will act as KVM host(s) for the cluster, you will also need:
+```
+pip3 install zhmcclient cryptography packaging PyYAML
+```
+```
+ansible-galaxy collection install ibm.ibm_zhmc 
+```
+* If you are using MacOS, you also need to have [Homebrew](https://brew.sh/) package manager installed:
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
