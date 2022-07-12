@@ -1,2 +1,0 @@
-# Step 2: Get Pull Secret
-* In a web browser, navigate to Red Hat's [Hybrid Cloud Console](https://console.redhat.com/openshift/install/ibmz/user-provisioned), click the text that says 'Copy pull secret' and save it for the next step.
