@@ -1,0 +1,122 @@
+---
+
+#Copy SSH key to access bastion
+- hosts: workstation
+  tags: ssh, ssh_copy_id, section_1
+  connection: local
+  become: false
+  gather_facts: false
+  vars_files: 
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  vars: 
+    ssh_target: ["{{ env.bastion.networking.ip }}","{{ env.bastion.access.user }}","{{ env.bastion.access.pass }}"]
+  roles:
+    - ssh_copy_id
+
+#Configure bastion node with essential services
+- hosts: bastion
+  tags: services, section_2
+  become: True
+  vars:
+    packages: "{{ env.pkgs.bastion }}"
+  vars_files: 
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - {role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined}
+    - install_packages
+    - ssh_ocp_key_gen
+    - set_firewall
+    - {role: dns, when: env.bastion.options.dns }
+    - check_dns
+    - { role: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
+    - httpd
+
+- hosts: bastion
+  tags: services, section_2, openvpn
+  become: True
+  vars:
+    openvpn_role: "server"
+  roles:
+    #- { role: robertdebock.bootstrap, tags: openvpn, when: env.z.high_availability == True }
+    - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True }
+    - { role: robertdebock.openvpn, tags: openvpn, when: env.z.high_availability == True }
+
+- hosts: workstation
+  tags: services, section_2, openvpn
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Create landing directories on workstation for certificates and keys.
+      tags: openvpn
+      file:
+        state: directory
+        path: tmp
+
+- hosts: bastion
+  tags: services, section_2, openvpn
+  become: true
+  tasks:
+    - name: Fetch certificates and keys from bastion.
+      tags: openvpn
+      fetch:
+        src: /etc/openvpn/easy-rsa/pki/{{ item }}
+        dest: tmp/
+        flat: yes
+      loop:
+        - ca.crt
+        - issued/client.crt
+        - private/client.key
+        - ta.key
+      when: env.z.high_availability == True
+
+- hosts: kvm_host
+  tags: services, section_2, openvpn
+  become: True
+  vars:
+    openvpn_role: "client"
+    openvpn_client_server: "{{ env.bastion.networking.ip }}"
+  pre_tasks:
+    - name: Create landing directories for certificates and keys on KVM hosts.
+      tags: openvpn
+      file:
+        state: directory
+        path: /etc/openvpn/client/{{ item }}
+        mode: '700'
+      loop:
+        - issued
+        - private
+
+    - name: Copy certificates and keys from workstation to KVM hosts.
+      tags: openvpn
+      copy:
+        src: tmp/{{ item }}
+        dest: /etc/openvpn/client/{{ item }}
+        mode: '600'
+      loop:
+        - ca.crt
+        - client.crt
+        - client.key
+        - ta.key
+      when: env.z.high_availability == True
+  roles:
+    - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True }
+    - { role: robertdebock.openvpn, tags: openvpn, when: env.z.high_availability == True }
+  
+- hosts: workstation
+  tags: services, section_2, openvpn
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Clean up tmp directories on workstation for certificates and keys.
+      tags: openvpn
+      file:
+        state: absent
+        path: tmp
+
+- hosts: bastion
+  tags: get_ocp, section_3
+  become: True
+  vars_files: 
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - get_ocp
