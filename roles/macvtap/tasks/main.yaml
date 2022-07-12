@@ -1,6 +1,6 @@
 ---
 
-- name: Start and enable libvirt
+- name: Ensure libvirt is started and enabled
   tags: macvtap
   service:
     name: libvirtd
@@ -11,17 +11,17 @@
   tags: macvtap
   community.libvirt.virt_net:
     command: define
-    name: "{{env.bridge_name}}"
+    name: "{{ env.bridge_name }}"
     xml: "{{ lookup ('template', 'macvtap.xml.j2') }}"
 
 - name: Start macvtap bridge
   tags: macvtap
   community.libvirt.virt_net:
     command: start
-    name: "{{env.bridge_name}}"
+    name: "{{ env.bridge_name }}"
 
 - name: Set macvtap bridge to autostart
   tags: macvtap
   community.libvirt.virt_net:
     autostart: yes
-    name: "{{env.bridge_name}}"
+    name: "{{ env.bridge_name }}"
