@@ -21,7 +21,7 @@
     path: "~/.ssh/{{ env.ansible_key_name }}"
     passphrase: ""
     comment: "Ansible-OpenShift-Provisioning SSH key"
-    regenerate: always
+    regenerate: full_idempotence
   register: ssh_key_creation
 
 - name: Print results of ssh key pair creation
