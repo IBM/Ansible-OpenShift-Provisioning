@@ -3,7 +3,7 @@
 - name: Check if bootstrap already exists
   tags: create_bootstrap
   community.libvirt.virt:
-    name: "{{ env.cluster.nodes.bootstrap.hostname }}"
+    name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
     command: status
   register: bootstrap_check
   ignore_errors: true
@@ -23,8 +23,8 @@
     --cpu host \
     --vcpus {{ env.cluster.nodes.bootstrap.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location {{ env.z.lpar.storage_group.pool_path }},kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.bootstrap.ip}}::{{env.z.lpar.networking.gateway}}:{{env.z.lpar.networking.subnetmask}}:{{env.cluster.nodes.bootstrap.hostname}}::none:1500 nameserver={{env.cluster.networking.nameserver}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/bootstrap.ign" \
+    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.bootstrap.ip}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.bootstrap.hostname}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/bootstrap.ign" \
     --graphics none \
     --wait=-1 \
     --noautoconsole 
@@ -33,9 +33,9 @@
 - name: Set bootstrap qcow2 permissions
   become: true
   tags: create_bootstrap
-  command: chmod 600 {{ env.z.lpar.storage_group.pool_path }}/{{env.cluster.nodes.bootstrap.hostname}}.qcow2
+  command: chmod 600 /var/lib/libvirt/images/{{env.cluster.nodes.bootstrap.vm_name}}.qcow2
 
 - name: Set bootstrap qcow2 ownership to qemu
   become: true
   tags: create_bootstrap
-  command: chown qemu:qemu {{ env.z.lpar.storage_group.pool_path }}/{{env.cluster.nodes.bootstrap.hostname}}.qcow2
+  command: chown qemu:qemu /var/lib/libvirt/images/{{env.cluster.nodes.bootstrap.vm_name}}.qcow2
