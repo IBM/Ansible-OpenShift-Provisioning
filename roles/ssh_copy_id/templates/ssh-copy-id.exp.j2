@@ -11,6 +11,10 @@ if {$force_conservative} {
 
 set timeout -1
 spawn ssh-copy-id -o StrictHostKeyChecking=no -i {{path_to_key_pair}} {{ ssh_target[1] }}@{{ ssh_target[0] }}
-expect "*assword: "
-send -- "{{ ssh_target[2] }}\r"
-expect eof
+expect {
+	"*assword: " {
+		send -- "{{ ssh_target[2] }}\r"
+		expect eof
+	}
+	"Number of key(s) added:" {}
+}
