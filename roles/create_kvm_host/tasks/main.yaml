@@ -3,18 +3,18 @@
 - name: Start LPAR
   tags: create_kvm_host
   ibm.ibm_zhmc.zhmc_partition:
-    hmc_host: "{{ env.z.hmc.host }}"
+    hmc_host: "{{ hmc.host }}"
     hmc_auth: 
-      userid: "{{ env.z.hmc.auth.user }}"
-      password: "{{ env.z.hmc.auth.pass }}"
+      userid: "{{ hmc.auth.user }}"
+      password: "{{ hmc.auth.pass }}"
       verify: false
-    cpc_name: "{{ env.z.cpc_name }}"
-    name: "{{ env.z.lpar.name }}"
+    cpc_name: "{{ cpc_name }}"
+    name: "{{ lpar.name }}"
     properties:
       boot_ftp_host: "{{ env.ftp.ip }}"
       boot_ftp_username: "{{ env.ftp.user }}"
       boot_ftp_password: "{{ env.ftp.pass }}"
-      boot_ftp_insfile: "{{ env.ftp.cfgs_dir }}/{{ env.z.lpar.name }}/kvm_host.ins"
+      boot_ftp_insfile: "{{ env.ftp.cfgs_dir }}/{{ lpar.name }}/kvm_host.ins"
       boot_device: "ftp"
     state: active
   register: _create_instances 
@@ -47,7 +47,7 @@
 #    msg: "{{ os_messages_output }}"
 #  until: "'login:' in os_messages_output"
 
-- name: Wait 7 minutes for automated KVM installation and configuration to complete. 
+- name: Wait 7 minutes for automated RHEL installation and configuration to complete. 
   tags: create_kvm_host
   pause:
     minutes: 7
@@ -55,13 +55,13 @@
 #- name: Change LPAR's boot source to storage adapter instead of FTP for future booting
 #  tags: create_kvm_host
 #  ibm.ibm_zhmc.zhmc_partition:
-#    hmc_host: "{{ env.z.hmc.host }}"
+#    hmc_host: "{{ hmc.host }}"
 #    hmc_auth: 
-#      userid: "{{ env.z.hmc.auth.user }}"
-#      password: "{{ env.z.hmc.auth.pass }}"
+#      userid: "{{ hmc.auth.user }}"
+#      password: "{{ hmc.auth.pass }}"
 #      verify: false
-#    cpc_name: "{{ env.z.cpc_name }}"
-#    name: "{{ env.z.lpar.name }}"
+#    cpc_name: "{{ cpc_name }}"
+#    name: "{{ lpar.name }}"
 #    properties:
 #      boot_device: "storage-adapter"
 #    state: active
