@@ -21,6 +21,7 @@ lang {{ env.language }}
 
 # Network information (will fill in during create_bastion role)
 #network  --bootproto=dhcp --activate --hostname=
+network --bootproto=static --ip={{env.bastion.networking.ip}} --gateway={{env.bastion.networking.gateway}}  --netmask={{env.bastion.networking.subnetmask}}  --noipv6 --nameserver={{env.bastion.networking.nameserver1}} {{ ('--nameserver=' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} --activate --hostname={{env.bastion.networking.hostname}}
 
 # Firewall and SELinux
 firewall --enabled --http --ftp --smtp --ssh --port=443,9090
