@@ -24,15 +24,6 @@
     dest: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
   delegate_to: "{{env.ftp.ip}}"
 
-- name: Update bastion kickstart config file with network parameters
-  tags: create_bastion
-  become: false
-  lineinfile:
-    path: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
-    regexp: "Network information"
-    line: "network --bootproto=static --ip={{env.bastion.networking.ip}} --gateway={{env.bastion.networking.gateway}}  --netmask={{env.bastion.networking.subnetmask}}  --noipv6 --nameserver={{env.bastion.networking.nameserver1}} {{ ('--nameserver=' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} --activate --hostname={{env.bastion.networking.hostname}}"
-  delegate_to: "{{env.ftp.ip}}"
-
 - name: Create hash from bastion's root password to input in kickstart file.
   tags: create_bastion
   shell: echo "{{ env.bastion.access.root_pass }}" | openssl passwd -6 -in -
@@ -62,25 +53,31 @@
   delegate_to: "{{env.ftp.ip}}"
 
 - name: Split iso_mount_dir variable on / for use in virt-install location parameter
-  tags: create_bastion
+  tags: create_bastion, virt-install
   set_fact: 
     ins_dir: "{{ env.ftp.iso_mount_dir.split('/') }}"
 
+- name: Find FTP home for use in next step
+  tags: create_bastion, virt-isntall
+  become: false
+  command: echo $HOME
+  register: ftp_home
+
 - name: Boot and kickstart bastion
-  tags: create_bastion
+  tags: create_bastion, virt-install
   shell: |
     virt-install \
     --name {{ env.bastion.vm_name }} \
     --memory={{ env.bastion.resources.ram }} \
     --vcpus={{ env.bastion.resources.vcpu }} \
-    --location ftp://{{ env.ftp.user }}:{{ env.ftp.pass }}@{{ env.ftp.ip }}/{{ env.ftp.iso_mount_dir }} \
-    --disk pool=default,size={{ env.bastion.resources.disk_size }}  \
+    --location http://{{ env.ftp.ip }}/{{ env.ftp.iso_mount_dir }} \
+    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.bastion.resources.disk_size }}  \
     --network network={{env.bridge_name}} \
     --graphics=none \
     --noautoconsole --wait=-1 \
-    --initrd-inject {{ env.z.lpar.storage_group.pool_path }}/bastion-ks.cfg --extra-args "inst.ks=ftp://{{ env.ftp.user }}:{{ env.ftp.pass }}@{{ env.ftp.ip }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg ip={{ env.bastion.networking.ip }}::{{ env.bastion.networking.gateway }}:{{ env.bastion.networking.subnetmask }}:{{ env.bastion.networking.hostname }}:enc1:none"
+    --extra-args "inst.ks=ftp://{{ env.ftp.user }}:{{ env.ftp.pass }}@{{ env.ftp.ip }}/{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg ip={{ env.bastion.networking.ip }}::{{ env.bastion.networking.gateway }}:{{ env.bastion.networking.subnetmask }}:{{ env.bastion.networking.hostname }}:enc1:none"
 
 - name: Waiting 3 minutes for automated bastion installation and configuration to complete. To monitor, use a web browser to go to https://your-kvm-host-ip-address-here:9090, sign in, then go to the 'Virtual Machines' tab and click on the bastion's hostname.
-  tags: create_bastion
+  tags: create_bastion, virt-install
   pause:
     minutes: 3
