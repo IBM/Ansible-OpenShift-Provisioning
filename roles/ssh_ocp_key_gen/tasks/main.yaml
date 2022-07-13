@@ -22,7 +22,7 @@
     backend: opensshbin
     owner: root
     passphrase: ""
-    comment: "{{ env.ocp_key_name }}"
+    comment: "{{ ocp_ssh_key_comment }}"
     regenerate: always
   register: ssh_ocp
 
