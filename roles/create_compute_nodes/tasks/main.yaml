@@ -78,7 +78,7 @@
     index_var: i
   when: env.z.high_availability == True and compute_hostname[i] is defined
 
-- name: Create CoreOS compute nodes on KVM hosts, if cluster is to be highly available.
+- name: Create CoreOS infra nodes on KVM hosts, if cluster is to be highly available.
   tags: create_compute_nodes
   command: |
     virt-install \
