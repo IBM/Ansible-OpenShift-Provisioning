@@ -40,7 +40,7 @@ env:
   redhat:
     username: #X
     password: #X
-    pull_secret: #X
+    pull_secret: #'X'
 
 # Section 5 - Bastion
   bastion:
