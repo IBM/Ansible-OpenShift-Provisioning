@@ -34,13 +34,13 @@
   command: vgextend rhel_aoznode1 /dev/mapper/mpathb1 and lpar.storage_group_2.auto_config == True
   when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
 
-- name: Extend the root logical volume to consume all remaining space in the volume group.
-  tags: configure_storage, lvextend
-  community.general.lvol:
-    vg: "rhel_{{ networking.hostname | lower }}"
-    lv: root
-    size: +100%FREE
-    resizefs: true
+#- name: Extend the root logical volume to consume all remaining space in the volume group.
+#  tags: configure_storage, lvextend
+#  community.general.lvol:
+#    vg: "rhel_{{ networking.hostname | lower }}"
+#    lv: root
+#    size: +100%FREE
+#    resizefs: true
 
 - name: Define a new storage pool
   tags: configure_storage, pool
