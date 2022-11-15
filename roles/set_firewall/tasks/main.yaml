@@ -36,7 +36,7 @@
   tags: set_firewall
   replace:
     path: /etc/httpd/conf/httpd.conf
-    regexp: '^Listen 80'
+    regexp: '^Listen 80$'
     replace: 'Listen 8080'
     backup: yes
 
