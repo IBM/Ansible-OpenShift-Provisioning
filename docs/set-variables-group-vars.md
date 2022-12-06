@@ -19,14 +19,17 @@
 **env.z.lpar1.create** | To have Ansible create an LPAR and install RHEL on it for the KVM<br /> host, mark True. If using a pre-existing LPAR with RHEL already<br /> installed, mark False. | True
 **env.z.lpar1.hostname** | The hostname of the KVM host. | kvm-host-01
 **env.z.lpar1.ip** | The IPv4 address of the KVM host. | 192.168.10.1
+**env.z.lpar1.user** | Username for Linux admin on KVM host 1. Recommended to run as a non-root user with sudo access. | admin
 **env.z.lpar1.pass** | The password for the user that will be created or exists on the KVM host.  | ch4ngeMe!
 **env.z.lpar2.create** | To create a second LPAR and install RHEL on it to act as<br /> another KVM host, mark True. If using pre-existing LPAR(s) with RHEL<br /> already installed, mark False. | True
 **env.z.lpar2.hostname** | <b>(Optional)</b> The hostname of the second KVM host. | kvm-host-02
 **env.z.lpar2.ip** | <b>(Optional)</b> The IPv4 address of the second KVM host. | 192.168.10.2
+**env.z.lpar2.user** | Username for Linux admin on KVM host 2. Recommended to run as a non-root user with sudo access. | admin
 **env.z.lpar2.pass** | <b>(Optional)</b> The password for the admin user on the second KVM host. | ch4ngeMe!
 **env.z.lpar3.create** | To create a third LPAR and install RHEL on it to act as<br /> another KVM host, mark True. If using pre-existing LPAR(s) with RHEL<br /> already installed, mark False. | True
 **env.z.lpar3.hostname** | <b>(Optional)</b> The hostname of the third KVM host. | kvm-host-03
 **env.z.lpar3.ip** | <b>(Optional)</b> The IPv4 address of the third KVM host. | 192.168.10.3
+**env.z.lpar3.user** | Username for Linux admin on KVM host 3. Recommended to run as a non-root user with sudo access. | admin
 **env.z.lpar3.pass** | <b>(Optional)</b> The password for the admin user on the third KVM host. | ch4ngeMe!
 
 ## 3 - FTP Server
