@@ -156,7 +156,7 @@
     state: directory
     path: ~/.kube
 
-- name: Make kubeconfig admin user's default (none root).
+- name: Make kubeconfig admin user's default (for non-root user).
   tags: get_ocp, config
   copy:
     src: /root/ocpinst/auth/kubeconfig
