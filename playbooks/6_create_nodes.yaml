@@ -25,7 +25,7 @@
   roles:
     - create_control_nodes
 
-#Wait for bootstrap to connect control plane (for users other than root).
+#Wait for bootstrap to connect control plane (for non-root user).
 - hosts: bastion
   become: True
   environment:
