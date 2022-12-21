@@ -5,7 +5,7 @@
   command: |
     virt-install \
     --name {{env.cluster.nodes.compute.vm_name[i]}} \
-    --disk pool=default,size={{ env.cluster.nodes.compute.disk_size }}  \
+    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }}  \
     --ram {{env.cluster.nodes.compute.ram}} \
     --cpu host \
     --vcpus {{env.cluster.nodes.compute.vcpu}} \
@@ -25,7 +25,7 @@
   command: |
     virt-install \
     --name {{env.cluster.nodes.infra.vm_name[i]}} \
-    --disk pool=default,size={{ env.cluster.nodes.infra.disk_size }}  \
+    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.infra.disk_size }}  \
     --ram {{env.cluster.nodes.infra.ram}} \
     --cpu host \
     --vcpus {{env.cluster.nodes.infra.vcpu}} \
@@ -63,7 +63,7 @@
   command: |
     virt-install \
     --name {{compute_name[i]}} \
-    --disk pool=default,size={{ env.cluster.nodes.compute.disk_size }}  \
+    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }}  \
     --ram {{env.cluster.nodes.compute.ram}} \
     --cpu host \
     --vcpus {{env.cluster.nodes.compute.vcpu}} \
@@ -83,7 +83,7 @@
   command: |
     virt-install \
     --name {{infra_name[i]}} \
-    --disk pool=default,size={{ env.cluster.nodes.infra.disk_size }}  \
+    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.infra.disk_size }}  \
     --ram {{env.cluster.nodes.infra.ram}} \
     --cpu host \
     --vcpus {{env.cluster.nodes.infra.vcpu}} \

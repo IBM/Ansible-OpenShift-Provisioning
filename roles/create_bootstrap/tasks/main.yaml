@@ -18,7 +18,7 @@
   command: |
     virt-install \
     --name {{ env.cluster.nodes.bootstrap.vm_name }} \
-    --disk pool=default,size={{ env.cluster.nodes.bootstrap.disk_size }}  \
+    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.bootstrap.disk_size }}  \
     --ram {{ env.cluster.nodes.bootstrap.ram }} \
     --cpu host \
     --vcpus {{ env.cluster.nodes.bootstrap.vcpu }} \
