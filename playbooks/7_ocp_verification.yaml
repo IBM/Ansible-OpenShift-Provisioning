@@ -1,6 +1,6 @@
 ---
 
-#Complete OpenShift verification (for none root users)
+#Complete OpenShift verification (for non-root users)
 - hosts: bastion
   become: True
   environment:
