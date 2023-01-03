@@ -159,7 +159,7 @@
 :--- | :--- | :---
 **proxy_env.http_proxy** | (Optional) A proxy URL to use for creating HTTP connections outside the cluster. Will be<br /> used in the install-config and applied to other Ansible hosts unless set otherwise in<br /> no_proxy below. Must follow this pattern: http://usernamepswd>@ip:port | http://ocp-admin:Pa$sw0rd@9.72.10.1:80
 **proxy_env.https_proxy** | (Optional) A proxy URL to use for creating HTTPS connections outside the cluster. Will be<br /> used in the install-config and applied to other Ansible hosts unless set otherwise in<br /> no_proxy below. Must follow this pattern: https://username:pswd@ip:port | https://ocp-admin:Pa$sw0rd@9.72.10.1:80  
-**proxy_env.no_proxy** | (Optional) A comma-separated list of destination domain names, IP addresses, or other<br /> network CIDRs to exclude from proxying. Preface a domain with . to match subdomains only.<br /> For example, .y.com matches x.y.com, but not y.com. Use * to bypass the proxy for all listed destinations. | example.com, 192.168.10.1
+**proxy_env.no_proxy** | (Optional) A comma-separated list (no spaces) of destination domain names, IP<br /> addresses, or other network CIDRs to exclude from proxying. When using a proxy, all necessary IPs and domains for your cluster will be added automatically. See roles/get_ocp/templates/install-config.yaml.j2 for more details on the template. Preface a domain with . to match subdomains only.<br /> For example, .y.com matches x.y.com, but not y.com. Use * to bypass the proxy for all listed destinations. | example.com,192.168.10.1
 
 ## 15 - (Optional) Misc
 **Variable Name** | **Description** | **Example**
