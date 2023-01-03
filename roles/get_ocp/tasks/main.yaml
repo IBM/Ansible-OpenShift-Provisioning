@@ -63,7 +63,16 @@
     - oc
     - openshift-install
 
-- name: Use template file to create install-config
+- name: Determine whether proxy info is needed in the install-config.
+  tags: get_ocp
+  set_fact:
+    use_proxy: True
+  when: 
+    - proxy_env.http_proxy is defined or 
+    - proxy_env.https_proxy is defined or 
+    - proxy_env.no_proxy is defined
+
+- name: Use template file to create install-config and backup.
   tags: get_ocp
   template:
     src: install-config.yaml.j2
