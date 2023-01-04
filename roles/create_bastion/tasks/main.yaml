@@ -58,7 +58,7 @@
     ins_dir: "{{ env.ftp.iso_mount_dir.split('/') }}"
 
 - name: Find FTP home for use in next step
-  tags: create_bastion, virt-isntall
+  tags: create_bastion, virt-install
   become: false
   command: echo $HOME
   register: ftp_home
