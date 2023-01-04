@@ -1,7 +1,7 @@
 apiVersion: {{ env.install_config.api_version }}
 baseDomain: {{ env.cluster.networking.base_domain }}
 {%- if use_proxy == true %}
-{{ 'proxy: ' + proxy_env.http_proxy }}
+{{ 'proxy: ' }}
 {{ '  httpProxy: ' + proxy_env.http_proxy }}
 {{ '  httpsProxy: ' + proxy_env.https_proxy }}
 {{ '  noProxy: ' + proxy_env.no_proxy|join(',') + ',' + '127.0.0.1,' + 'localhost,' + 
