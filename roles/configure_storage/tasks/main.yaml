@@ -1,39 +1,39 @@
 ---
 
-- name: Create a new partition.
-  tags: configure_storage, storage_group_2, part
-  community.general.parted:
-    device: /dev/mapper/mpathb
-    number: 1
-    label: gpt
-    state: present
-    part_start: 2048MB
-    part_end: 100%
-    fs_type: xfs
-  register: partition_status
-  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
-
-- name: Print partition status.
-  tags: configure_storage, storage_group_2, part
-  debug: 
-    var: partition_status 
-  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
-
-- name: Reload partition table
-  tags: configure_storage, storage_group_2, part
-  command: partprobe
-  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
-
-- name: Add storage_group_2 disk to existing volume group.
-  tags: configure_storage, storage_group_2, pvcreate
-  command: pvcreate /dev/mapper/mpathb1
-  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
-
-- name: Extend logical volume group with new PV 
-  tags: configure_storage, storage_group_2, vgextend
-  command: vgextend rhel_aoznode1 /dev/mapper/mpathb1 and lpar.storage_group_2.auto_config == True
-  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
-
+#- name: Create a new partition.
+#  tags: configure_storage, storage_group_2, part
+#  community.general.parted:
+#    device: /dev/mapper/mpathb
+#    number: 1
+#    label: gpt
+#    state: present
+#    part_start: 2048MB
+#    part_end: 100%
+#    fs_type: xfs
+#  register: partition_status
+#  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
+#
+#- name: Print partition status.
+#  tags: configure_storage, storage_group_2, part
+#  debug: 
+#    var: partition_status 
+#  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
+#
+#- name: Reload partition table
+#  tags: configure_storage, storage_group_2, part
+#  command: partprobe
+#  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
+#
+#- name: Add storage_group_2 disk to existing volume group.
+#  tags: configure_storage, storage_group_2, pvcreate
+#  command: pvcreate /dev/mapper/mpathb1
+#  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
+#
+#- name: Extend logical volume group with new PV 
+#  tags: configure_storage, storage_group_2, vgextend
+#  command: vgextend rhel_aoznode1 /dev/mapper/mpathb1 and lpar.storage_group_2.auto_config == True
+#  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
+#
 #- name: Extend the root logical volume to consume all remaining space in the volume group.
 #  tags: configure_storage, lvextend
 #  community.general.lvol:
