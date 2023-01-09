@@ -1,29 +1,18 @@
 ---
 
-#Complete OpenShift verification (for non-root users)
-- hosts: bastion
-  become: True
+# Complete OpenShift verification
+- name: 7 OCP verification
+  hosts: bastion
+  become: true
   environment:
-    KUBECONFIG: "/home/{{ env.bastion.access.user }}/.kube/config"
+    KUBECONFIG: "{{ '/home/' if (env.bastion.access.user != 'root') else '/'}}{{ env.bastion.access.user }}/.kube/config"
   gather_facts: true
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
-    - {role: approve_certs, when: env.bastion.access.user != "root"}
-    - {role: check_nodes, when: env.bastion.access.user != "root"}
-    - {role: wait_for_cluster_operators, when: env.bastion.access.user != "root"}
-    - {role: wait_for_install_complete, when: env.bastion.access.user != "root"}
-
-#Complete OpenShift verification (for root user)
-- hosts: bastion
-  become: True
-  environment:
-    KUBECONFIG: "/{{ env.bastion.access.user }}/.kube/config"
-  gather_facts: true
-  vars_files: 
-    - "{{ inventory_dir }}/group_vars/all.yaml"
-  roles:
-    - {role: approve_certs, when: env.bastion.access.user == "root"}
-    - {role: check_nodes, when: env.bastion.access.user == "root"}
-    - {role: wait_for_cluster_operators, when: env.bastion.access.user == "root"}
-    - {role: wait_for_install_complete, when: env.bastion.access.user == "root"}
+    - approve_certs
+    - check_nodes
+    - role: approve_certs
+      approve_certs_cleanup: true
+    - wait_for_cluster_operators
+    - wait_for_install_complete
