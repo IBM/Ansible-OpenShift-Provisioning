@@ -1,188 +1,25 @@
 ---
 
-- name: Approving all pending certificates
+- name: Cancel async 'approve_certs_task', if exists
   tags: approve_certs
-  shell: |
-    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
-  register: csr_approved
-  ignore_errors: true
+  ansible.builtin.async_status:
+    jid: "{{ approve_certs_task.ansible_job_id }}"
+    mode: cleanup
+  failed_when: false
+  when: approve_certs_task is defined and approve_certs_cleanup
 
-- name: Viewing approved certificates
+- name: Approve all pending CSRs in the next 15 min (async task)
   tags: approve_certs
-  debug:
-    msg: "{{csr_approved.stdout_lines}}"
-
-- name: Pause to let new certificates needing approval to generate
-  tags: approve_certs
-  pause:
-    seconds: 30
-
-- name: Approving all pending certificates
-  tags: approve_certs
-  shell: |
-    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
-  register: csr_approved
-  ignore_errors: true
-
-- name: Viewing approved certificates
-  tags: approve_certs
-  debug:
-    msg: "{{csr_approved.stdout_lines}}"
-
-- name: Pause to let new certificates needing approval to generate
-  tags: approve_certs
-  pause:
-    seconds: 30
-
-- name: Approving all pending certificates
-  tags: approve_certs
-  shell: |
-    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
-  register: csr_approved
-  ignore_errors: true
-
-- name: Viewing approved certificates
-  tags: approve_certs
-  debug:
-    msg: "{{csr_approved.stdout_lines}}"
-
-- name: Pause to let new certificates needing approval to generate
-  tags: approve_certs
-  pause:
-    seconds: 30
-
-- name: Approving all pending certificates
-  tags: approve_certs
-  shell: |
-    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
-  register: csr_approved
-  ignore_errors: true
-
-- name: Viewing approved certificates
-  tags: approve_certs
-  debug:
-    msg: "{{csr_approved.stdout_lines}}"
-
-- name: Pause to let new certificates needing approval to generate
-  tags: approve_certs
-  pause:
-    seconds: 30
-
-- name: Approving all pending certificates
-  tags: approve_certs
-  shell: |
-    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
-  register: csr_approved
-  ignore_errors: true
-
-- name: Viewing approved certificates
-  tags: approve_certs
-  debug:
-    msg: "{{csr_approved.stdout_lines}}"
-
-- name: Pause to let new certificates needing approval to generate
-  tags: approve_certs
-  pause:
-    seconds: 30
-
-- name: Approving all pending certificates
-  tags: approve_certs
-  shell: |
-    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
-  register: csr_approved
-  ignore_errors: true
-
-- name: Viewing approved certificates
-  tags: approve_certs
-  debug:
-    msg: "{{csr_approved.stdout_lines}}"
-
-- name: Pause to let new certificates needing approval to generate
-  tags: approve_certs
-  pause:
-    seconds: 30
-
-- name: Approving all pending certificates
-  tags: approve_certs
-  shell: |
-    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
-  register: csr_approved
-  ignore_errors: true
-
-- name: Viewing approved certificates
-  tags: approve_certs
-  debug:
-    msg: "{{csr_approved.stdout_lines}}"
-
-- name: Pause to let new certificates needing approval to generate
-  tags: approve_certs
-  pause:
-    seconds: 30
-
-- name: Approving all pending certificates
-  tags: approve_certs
-  shell: |
-    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
-  register: csr_approved
-  ignore_errors: true
-
-- name: Viewing approved certificates
-  tags: approve_certs
-  debug:
-    msg: "{{csr_approved.stdout_lines}}"
-
-- name: Pause to let new certificates needing approval to generate
-  tags: approve_certs
-  pause:
-    seconds: 30
-
-- name: Approving all pending certificates
-  tags: approve_certs
-  shell: |
-    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
-  register: csr_approved
-  ignore_errors: true
-
-- name: Viewing approved certificates
-  tags: approve_certs
-  debug:
-    msg: "{{csr_approved.stdout_lines}}"
-
-- name: Pause to let new certificates needing approval to generate
-  tags: approve_certs
-  pause:
-    seconds: 30
-
-- name: Approving all pending certificates
-  tags: approve_certs
-  shell: |
-    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
-  register: csr_approved
-  ignore_errors: true
-
-- name: Viewing approved certificates
-  tags: approve_certs
-  debug:
-    msg: "{{csr_approved.stdout_lines}}"
-
-- name: Pause to let new certificates needing approval to generate
-  tags: approve_certs
-  pause:
-    seconds: 30
-
-- name: Approving all pending certificates
-  tags: approve_certs
-  shell: |
-    oc get csr | awk '{print $1'} | grep -v NAME | xargs oc adm certificate approve
-  register: csr_approved
-  ignore_errors: true
-
-- name: Viewing approved certificates
-  tags: approve_certs
-  debug:
-    msg: "{{csr_approved.stdout_lines}}"
-
-- name: Pause to let new certificates needing approval to generate
-  tags: approve_certs
-  pause:
-    seconds: 30
+  ansible.builtin.shell: |
+    set -o pipefail
+    for i in {1..60} ; do
+        # Approve all pending requests
+        LIST=$(oc get csr 2> /dev/null | grep -i pending | awk '{print $1}')
+        [ ! -z "${LIST}" ] && echo "${LIST}" | xargs oc adm certificate approve || true
+        sleep 15
+    done
+  # Run for 15 min
+  async: 900
+  poll: 0
+  register: approve_certs_task
+  when: not approve_certs_cleanup
