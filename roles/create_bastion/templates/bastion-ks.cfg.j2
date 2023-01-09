@@ -1,6 +1,6 @@
 # Template for bastion kickstart configuration file. Some parts come from the create_bastion role.
+# This kickstart file was tested with RHEL 8.7
 
-#version=DEVEL
 %pre --log=/root/pre.log
 %end
 
@@ -8,10 +8,17 @@
 reboot
 
 # Use text mode install
-text
+text --non-interactive
 
 # Run the Setup Agent on first boot
 firstboot --enable
+
+# Use network installation
+url --url=http://{{ env.ftp.ip }}/{{ env.ftp.iso_mount_dir }}
+
+# Add yum repositories
+repo --install --name="AppStream" --baseurl=http://{{ env.ftp.ip }}/{{ env.ftp.iso_mount_dir }}/AppStream/
+repo --install --name="BaseOS" --baseurl=http://{{ env.ftp.ip }}/{{ env.ftp.iso_mount_dir }}/BaseOS/
 
 # Keyboard layouts
 keyboard --vckeymap=us --xlayouts='us'
@@ -19,20 +26,23 @@ keyboard --vckeymap=us --xlayouts='us'
 # System language
 lang {{ env.language }}
 
+# System timezone
+timezone {{ env.timezone }}
+
+# Mark the End-User License Agreement (EULA) as agreed
+eula --agreed
+
 # Network information (will fill in during create_bastion role)
-#network  --bootproto=dhcp --activate --hostname=
-network --bootproto=static --ip={{env.bastion.networking.ip}} --gateway={{env.bastion.networking.gateway}}  --netmask={{env.bastion.networking.subnetmask}}  --noipv6 --nameserver={{env.bastion.networking.nameserver1}} {{ ('--nameserver=' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} --activate --hostname={{env.bastion.networking.hostname}}
+network --bootproto=static --device={{ env.bastion.networking.interface }} --ip={{ env.bastion.networking.ip }} --gateway={{env.bastion.networking.gateway}}  --netmask={{env.bastion.networking.subnetmask}}  --noipv6 --nameserver={{env.bastion.networking.nameserver1}} {{ ('--nameserver=' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} --activate
+network --hostname={{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}
 
 # Firewall and SELinux
 firewall --enabled --http --ftp --smtp --ssh --port=443,9090
 selinux --enforcing
 
-# Root password
+# Root password (will fill in during create_bastion role)
 
-# System timezone
-timezone {{ env.timezone }}
-
-#Users and Groups Definitions (will fill in during create_bastion role)
+# Users and Groups Definitions (will fill in during create_bastion role)
 
 # The following is the partition information you requested
 ignoredisk --only-use=vda
@@ -47,16 +57,37 @@ clearpart --all --initlabel --drives=vda
 part /boot --fstype="xfs" --asprimary --ondisk=vda --size=1024
 part pv.01 --fstype="lvmpv" --grow --size=1 --ondisk=vda
 volgroup vgsystem --pesize=4096 pv.01
-logvol swap --fstype=swap --name=swap --vgname=vgsystem --size={{env.bastion.resources.swap}}
+logvol swap --fstype=swap --name=swap --vgname=vgsystem --size={{ env.bastion.resources.swap }}
 logvol / --fstype=xfs --name=root --vgname=vgsystem --size=1 --grow
 
-#packages selection
+# Packages selection
 %packages --multilib --ignoremissing
-@^minimal
+@^minimal-environment
+bind-utils
+curl
+jq
+mc
+net-tools
+# TODO: python3.6 is not supported anymore on RHEL8
+python3
+python3-pip
+rsync
+vim
+wget
 %end
 
 %addon com_redhat_kdump --disable
 %end
 
 %post --log=/root/post.log
+#!/usr/bin/env bash
+#
+# Install and update pip packages
+pip3 install --upgrade pip setuptools wheel
+#
+# Yum repository configuration adjustments
+echo "gpgcheck=0" >> /etc/yum.repos.d/AppStream.repo
+echo "skip_if_unavailable=True" >> /etc/yum.repos.d/AppStream.repo
+echo "gpgcheck=0" >> /etc/yum.repos.d/BaseOS.repo
+echo "skip_if_unavailable=True" >> /etc/yum.repos.d/BaseOS.repo
 %end
