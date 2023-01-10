@@ -1,4 +1,4 @@
-# Copy this file to 'all.yaml' and add your required values there !
+# Copy this file to 'all.yaml' in the same folder and add your required values there !
 #
 # For a comprehensive description of each variable, please see documentation here:
 # https://ibm.github.io/Ansible-OpenShift-Provisioning/set-variables-group-vars/ 
