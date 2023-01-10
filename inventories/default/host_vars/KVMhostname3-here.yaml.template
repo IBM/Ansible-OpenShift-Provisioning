@@ -1,0 +1,81 @@
+# Section 1 - KVM Host
+networking:
+  hostname: #X
+  ip: #X
+  subnetmask: #X
+  gateway: #X
+  nameserver1: #X
+#  nameserver2: 
+  device1: #X
+#  device2: 
+
+##############################################################
+# Variables below this point only need to be filled out if   #
+# env.z.lpar3.create is True. Meaning, if the LPARs you will #
+# be using as KVM host(s) already exist and have RHEL        #   
+# installed, the variables below are not required.           #
+##############################################################
+
+# Section 2 - CPC & HMC
+cpc_name: #X
+hmc:
+  host: #X
+  auth:
+    user: #X
+    pass: #X
+
+# Section 3 - LPAR
+lpar:
+  name: #X
+  description: #X
+  access:
+    user: #X
+    pass: #X
+    root_pass: #X
+
+# Section 4 - IFL & Memory
+  ifl:
+    count: #X
+    initial_memory: #X
+    max_memory: #X
+    initial_weight: #X
+    min_weight: #X
+    max_weight: #X
+
+# Section 5 - Networking
+  networking:
+    subnet_cidr: #X
+    nic:
+      card1:
+        name: #X
+        adapter: #X
+        port: #X
+        dev_num: #X
+#      card2:
+#        name: 
+#        adapter: 
+#        port: 
+#        dev_num: 
+
+# Section 6 - Storage
+  storage_group_1:
+    name: #X
+    type: fcp
+    storage_wwpn:
+      - #X
+      - #X
+      - #X
+      - #X
+    dev_num: #X
+    lun_name: #X
+#  storage_group_2:
+#    auto_config: True
+#    name: 
+#    type: fcp
+#    storage_wwpn:
+#      - 
+#      - 
+#      - 
+#      - 
+#    dev_num: 
+#    lun_name: 
