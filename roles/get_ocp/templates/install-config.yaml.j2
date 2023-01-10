@@ -4,7 +4,7 @@ baseDomain: {{ env.cluster.networking.base_domain }}
 {{ 'proxy: ' }}
 {{ '  httpProxy: ' + proxy_env.http_proxy }}
 {{ '  httpsProxy: ' + proxy_env.https_proxy }}
-{{ '  noProxy: ' + proxy_env.no_proxy|join(',') + ',' + '127.0.0.1,' + 'localhost,' +
+{{ '  noProxy: ' + proxy_env.no_proxy + ',' + '127.0.0.1,' + 'localhost,' +
 env.bastion.networking.ip + ',' +
 env.cluster.nodes.bootstrap.ip + ',' +
 env.cluster.nodes.control.ip|join(',') + ',' +
