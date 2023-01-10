@@ -35,7 +35,7 @@
 - name: Set SSH key permissions
   tags: ssh_ocp_key_gen
   command: chmod 600  /root/.ssh/{{ item }}
-  loop: 
+  loop:
     - id_rsa
     - id_rsa.pub
 
