@@ -54,7 +54,7 @@
 
 - name: Split iso_mount_dir variable on / for use in virt-install location parameter
   tags: create_bastion, virt-install
-  set_fact: 
+  set_fact:
     ins_dir: "{{ env.ftp.iso_mount_dir.split('/') }}"
 
 - name: Find FTP home for use in next step
