@@ -2,6 +2,3 @@
 
 [workstation]
 127.0.0.1 ansible_connection=local
-
-[workstation:vars]
-ansible_python_interpreter=/usr/local/bin/python3
