@@ -1,7 +1,7 @@
 ---
 
 - name: Delete files_to_reset from teardown.yaml
-  file: 
+  file:
     path: "{{ item }}"
     state: absent
   loop: "{{files_to_reset}}"
