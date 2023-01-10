@@ -2,7 +2,7 @@
 127.0.0.1 ansible_connection=local ansible_become_password={{ env.workstation.sudo_pass }}
 
 [workstation:vars]
-ansible_python_interpreter=/usr/local/bin/python3
+ansible_python_interpreter={{ interpreter_python }}
 
 [ftp]
 {{ env.ftp.ip }} ansible_user={{ env.ftp.user }} ansible_become_password={{ env.ftp.pass }}
