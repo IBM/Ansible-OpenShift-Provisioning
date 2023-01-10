@@ -4,12 +4,12 @@ baseDomain: {{ env.cluster.networking.base_domain }}
 {{ 'proxy: ' }}
 {{ '  httpProxy: ' + proxy_env.http_proxy }}
 {{ '  httpsProxy: ' + proxy_env.https_proxy }}
-{{ '  noProxy: ' + proxy_env.no_proxy|join(',') + ',' + '127.0.0.1,' + 'localhost,' + 
-env.bastion.networking.ip + ',' + 
-env.cluster.nodes.bootstrap.ip + ',' + 
-env.cluster.nodes.control.ip|join(',') + ',' + 
-env.cluster.nodes.compute.ip|join(',') + ',' + 
-env.cluster.nodes.infra.ip|join(',')+ ',' + 
+{{ '  noProxy: ' + proxy_env.no_proxy|join(',') + ',' + '127.0.0.1,' + 'localhost,' +
+env.bastion.networking.ip + ',' +
+env.cluster.nodes.bootstrap.ip + ',' +
+env.cluster.nodes.control.ip|join(',') + ',' +
+env.cluster.nodes.compute.ip|join(',') + ',' +
+env.cluster.nodes.infra.ip|join(',')+ ',' +
 'etcd-0.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' +
 ('etcd-1.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' if env.cluster.nodes.control.ip[1] is defined else '' ) +
 ('etcd-2.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' if env.cluster.nodes.control.ip[2] is defined else '' ) +

@@ -15,8 +15,8 @@
 #
 #- name: Print partition status.
 #  tags: configure_storage, storage_group_2, part
-#  debug: 
-#    var: partition_status 
+#  debug:
+#    var: partition_status
 #  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
 #
 #- name: Reload partition table
@@ -29,7 +29,7 @@
 #  command: pvcreate /dev/mapper/mpathb1
 #  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
 #
-#- name: Extend logical volume group with new PV 
+#- name: Extend logical volume group with new PV
 #  tags: configure_storage, storage_group_2, vgextend
 #  command: vgextend rhel_aoznode1 /dev/mapper/mpathb1 and lpar.storage_group_2.auto_config == True
 #  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True

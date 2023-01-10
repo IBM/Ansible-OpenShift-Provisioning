@@ -9,7 +9,7 @@
     mode: '0755'
     owner: "root"
     group: "root"
- 
+
 - name: Check to see if rootfs already exists on bastion
   tags: get_ocp
   stat:
@@ -28,13 +28,13 @@
 - name: Delete OCP download directory for idempotency, because ignition files deprecate after 24 hours.
   tags: get_ocp
   become: true
-  file: 
+  file:
     path: /root/ocpinst
     state: absent
 
 - name: Create OCP download directory
   tags: get_ocp
-  file: 
+  file:
     path: /root/ocpinst
     state: directory
 
@@ -58,7 +58,7 @@
     group: root
     mode: '755'
     remote_src: yes
-  loop: 
+  loop:
     - kubectl
     - oc
     - openshift-install
@@ -67,9 +67,9 @@
   tags: get_ocp
   set_fact:
     use_proxy: True
-  when: 
-    - proxy_env.http_proxy is defined or 
-    - proxy_env.https_proxy is defined or 
+  when:
+    - proxy_env.http_proxy is defined or
+    - proxy_env.https_proxy is defined or
     - proxy_env.no_proxy is defined
 
 - name: Use template file to create install-config and backup.
@@ -78,7 +78,7 @@
     src: install-config.yaml.j2
     dest: "{{ item }}"
     force: yes
-  loop: 
+  loop:
     - /root/ocpinst/install-config.yaml
     - /root/ocpinst/install-config-backup.yaml
 
@@ -100,7 +100,7 @@
   tags: get_ocp
   command: /root/ocpinst/openshift-install create manifests --dir=/root/ocpinst/
   become: true
-  
+
 - name: Set masters schedulable parameter to false
   tags: get_ocp
   become: true
@@ -197,7 +197,7 @@
 - name: Create ignition directory in HTTP-accessible directory.
   tags: get_ocp
   become: true
-  file: 
+  file:
     path: /var/www/html/ignition
     state: directory
 

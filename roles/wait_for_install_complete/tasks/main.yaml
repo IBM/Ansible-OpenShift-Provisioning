@@ -11,7 +11,7 @@
 - name: Almost there! Add host info to /etc/hosts so you can login to the cluster via web browser. Workstation sudo password required.
   tags: wait_for_install_complete
   become: True
-  lineinfile: 
+  lineinfile:
     path: /etc/hosts
     line: "{{ item }}"
   with_items:
@@ -29,10 +29,10 @@
   command: "cat /root/ocpinst/auth/kubeadmin-password"
   register: ocp_passwd
 
-- name: Congratulations! OpenShift installation complete. Use the information below for first-time login via web browser.  
+- name: Congratulations! OpenShift installation complete. Use the information below for first-time login via web browser.
   tags: wait_for_install_complete
   command: "echo {{ item }}"
-  loop: 
+  loop:
     - " URL: {{ocp_url}} "
     - " Username: kubeadmin "
     - " Password: {{ocp_passwd.stdout}} "
