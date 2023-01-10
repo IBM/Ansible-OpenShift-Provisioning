@@ -27,25 +27,25 @@ frontend stats
   stats hide-version
   stats refresh 30s
   stats show-node
-  stats show-desc Stats for {{env.cluster.networking.metadata_name}} cluster 
+  stats show-desc Stats for {{env.cluster.networking.metadata_name}} cluster
   stats auth admin:{{env.cluster.networking.metadata_name}}
   stats uri /stats
-listen api-server-6443 
+listen api-server-6443
   bind *:6443
   mode tcp
   #6443 section
-  server {{ env.cluster.nodes.bootstrap.hostname }} {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:6443 check inter 1s backup 
-listen machine-config-server-22623 
+  server {{ env.cluster.nodes.bootstrap.hostname }} {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:6443 check inter 1s backup
+listen machine-config-server-22623
   bind *:22623
   mode tcp
   #22623 section
-  server {{ env.cluster.nodes.bootstrap.hostname }} {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:22623 check inter 1s backup 
-listen ingress-router-443 
+  server {{ env.cluster.nodes.bootstrap.hostname }} {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:22623 check inter 1s backup
+listen ingress-router-443
   bind *:443
   mode tcp
   balance source
   #443 section
-listen ingress-router-80 
+listen ingress-router-80
   bind *:80
   mode tcp
   balance source
