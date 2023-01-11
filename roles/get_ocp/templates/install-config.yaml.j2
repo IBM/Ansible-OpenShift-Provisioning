@@ -1,6 +1,6 @@
 apiVersion: {{ env.install_config.api_version }}
 baseDomain: {{ env.cluster.networking.base_domain }}
-{%- if use_proxy == true %}
+{% if use_proxy == true %}
 {{ 'proxy: ' }}
 {{ '  httpProxy: ' + proxy_env.http_proxy }}
 {{ '  httpsProxy: ' + proxy_env.https_proxy }}
@@ -16,7 +16,7 @@ env.cluster.nodes.infra.ip|join(',')+ ',' +
 'api-int.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' +
 'api.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' +
 '.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain }}
-{%- endif %}
+{% endif %}
 compute:
 - hyperthreading: {{ env.install_config.compute.hyperthreading }}
   name: worker
