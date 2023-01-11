@@ -1,10 +1,18 @@
 ---
 
-- name: Auto attach RHEL subscription
+- name: Register server with Red Hat
   tags: attach_subscription
   community.general.redhat_subscription:
     state: present
     username: "{{env.redhat.username}}"
     password: "{{env.redhat.password}}"
-    auto_attach: yes
     force_register: yes
+    auto_attach: yes
+
+- name: Ensure necessary repositories are enabled.
+  tags: attach_subscription
+  community.general.rhsm_repository:
+    name: "{{ item }}"
+  loop:
+    - rhel-8-for-s390x-baseos-rpms
+    - rhel-8-for-s390x-appstream-rpms
