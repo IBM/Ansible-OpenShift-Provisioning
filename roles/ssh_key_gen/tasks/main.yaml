@@ -32,6 +32,6 @@
 - name: Save path to key pair for use in ssh-copy-id role
   tags: ssh_key_gen, ssh
   lineinfile:
-    line: "path_to_key_pair: {{ssh_key_creation.filename}}.pub"
-    path: "{{inventory_dir}}/group_vars/all.yaml"
-    insertafter: EOF #end of file
+    search_string: "path_to_key_pair:"
+    line: "path_to_key_pair: {{ ssh_key_creation.filename }}.pub"
+    path: "{{ inventory_dir }}/group_vars/all.yaml"
