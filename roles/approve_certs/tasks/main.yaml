@@ -14,7 +14,7 @@
 
 - name: Pause to let new certificates needing approval to generate
   tags: approve_certs
-  pause: 
+  pause:
     seconds: 30
 
 - name: Approving all pending certificates
@@ -31,7 +31,7 @@
 
 - name: Pause to let new certificates needing approval to generate
   tags: approve_certs
-  pause: 
+  pause:
     seconds: 30
 
 - name: Approving all pending certificates
@@ -48,7 +48,7 @@
 
 - name: Pause to let new certificates needing approval to generate
   tags: approve_certs
-  pause: 
+  pause:
     seconds: 30
 
 - name: Approving all pending certificates
@@ -65,7 +65,7 @@
 
 - name: Pause to let new certificates needing approval to generate
   tags: approve_certs
-  pause: 
+  pause:
     seconds: 30
 
 - name: Approving all pending certificates
@@ -82,7 +82,7 @@
 
 - name: Pause to let new certificates needing approval to generate
   tags: approve_certs
-  pause: 
+  pause:
     seconds: 30
 
 - name: Approving all pending certificates
@@ -99,7 +99,7 @@
 
 - name: Pause to let new certificates needing approval to generate
   tags: approve_certs
-  pause: 
+  pause:
     seconds: 30
 
 - name: Approving all pending certificates
@@ -116,7 +116,7 @@
 
 - name: Pause to let new certificates needing approval to generate
   tags: approve_certs
-  pause: 
+  pause:
     seconds: 30
 
 - name: Approving all pending certificates
@@ -133,7 +133,7 @@
 
 - name: Pause to let new certificates needing approval to generate
   tags: approve_certs
-  pause: 
+  pause:
     seconds: 30
 
 - name: Approving all pending certificates
@@ -150,7 +150,7 @@
 
 - name: Pause to let new certificates needing approval to generate
   tags: approve_certs
-  pause: 
+  pause:
     seconds: 30
 
 - name: Approving all pending certificates
@@ -167,7 +167,7 @@
 
 - name: Pause to let new certificates needing approval to generate
   tags: approve_certs
-  pause: 
+  pause:
     seconds: 30
 
 - name: Approving all pending certificates
@@ -184,5 +184,5 @@
 
 - name: Pause to let new certificates needing approval to generate
   tags: approve_certs
-  pause: 
+  pause:
     seconds: 30

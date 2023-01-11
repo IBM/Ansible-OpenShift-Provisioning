@@ -1,5 +1,15 @@
 # Step 3: Set Variables (host_vars)
 
+## Overview
+* Similar to the group_vars file, the host_vars files for each LPAR (KVM host) must be filled in. 
+* For each KVM host to be acted upon with Ansible, you must have a corresponding host_vars file named `<kvm-hostname>.yaml` (i.e. ocpz1.yaml, ocpz2.yaml, ocpz3.yaml), so you must copy and rename the templates found in the [host_vars folder](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/host_vars) accordingly.
+* The variables marked with an `X` are required to be filled in. Many values are pre-filled or are optional. 
+* Optional values are commented out; in order to use them, remove the `#` and fill them in.
+* Many of the variables in these host_vars files are only required if you are NOT using pre-existing LPARs with RHEL installed. See the `Important Note` below this first section for more details.
+* This is the most important step in the process. Take the time to make sure everything here is correct.
+* <u>Note on YAML syntax</u>: Only the lowest value in each hierarchicy needs to be filled in. For example, at the top of the variables file networking does not need to be filled in, but the hostname does. There are X's where input is required to help you with this.
+* Scroll the table to the right to see examples for each variable.
+
 ## 1 - KVM Host
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
@@ -16,7 +26,6 @@
 * You can skip the rest of the variables on this page IF you are using existing LPAR(s) that has RHEL already installed.
     * Since this is how most production deployments on-prem are done on IBM zSystems, these variables have been marked as optional. 
     * With pre-existing LPARs with RHEL installed, you can also skip [1_create_lpar.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/1_create_lpar.yaml) and [2_create_kvm_host.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/2_create_kvm_host.yaml) playbooks. Make sure to still do [0_setup.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/0_setup.yaml) first though, then skip to [3_setup_kvm_host.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml)
-* Each KVM host that exists (or will be created) must have a corresponding file in the host_vars folder of your inventory, and the name of the files must match the KVM host's hostname plus the .yaml extension (e.g. KVMHOST01.yaml, KVMHOST2.yaml, and KVMHOST3.yaml for a highly available cluster).
 
 ## 2 - (Optional) CPC & HMC
 **Variable Name** | **Description** | **Example**

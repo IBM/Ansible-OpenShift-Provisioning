@@ -4,7 +4,7 @@
     tags: check_nodes
     shell: oc get nodes | awk '{print $1, $2}'
     register: oc_get_nodes
-  
+
   - name: Print nodes status
     tags: check_nodes
     debug:
