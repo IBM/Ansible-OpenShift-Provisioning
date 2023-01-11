@@ -4,7 +4,9 @@
   tags: attach_subscription
   community.general.redhat_subscription:
     state: present
-    username: "{{env.redhat.username}}"
-    password: "{{env.redhat.password}}"
-    auto_attach: yes
-    force_register: yes
+    username: "{{ env.redhat.username }}"
+    password: "{{ env.redhat.password }}"
+    auto_attach: true
+  # Retry twice, in case server is not available for few seconds
+  retries: 2
+  delay: 30
