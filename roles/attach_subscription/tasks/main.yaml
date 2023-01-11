@@ -1,12 +1,19 @@
 ---
 
-- name: Auto attach RHEL subscription
+- name: Register server with Red Hat
   tags: attach_subscription
   community.general.redhat_subscription:
     state: present
     username: "{{ env.redhat.username }}"
     password: "{{ env.redhat.password }}"
     auto_attach: true
-  # Retry twice, in case server is not available for few seconds
   retries: 2
   delay: 30
+
+- name: Ensure necessary repositories are enabled.
+  tags: attach_subscription, test
+  community.general.rhsm_repository:
+    name: "{{ item }}"
+  loop:
+    - "rhel-{{ ansible_distribution_major_version }}-for-{{ ansible_architecture }}-baseos-rpms"
+    - "rhel-{{ ansible_distribution_major_version }}-for-{{ ansible_architecture }}-appstream-rpms"
