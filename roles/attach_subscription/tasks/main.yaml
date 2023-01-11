@@ -1,12 +1,13 @@
 ---
 
-- name: Auto attach RHEL subscription
+- name: Register server with Red Hat
   tags: attach_subscription
   community.general.redhat_subscription:
     state: present
     username: "{{ env.redhat.username }}"
     password: "{{ env.redhat.password }}"
     auto_attach: true
-  # Retry twice, in case server is not available for few seconds
+  register: registration
   retries: 2
   delay: 30
+  until: registration is not failed
