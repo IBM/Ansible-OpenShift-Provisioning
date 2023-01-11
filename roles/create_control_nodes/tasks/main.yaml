@@ -14,14 +14,14 @@
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.control.ip[i]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[i]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
     --graphics none \
     --wait=-1 \
-    --noautoconsole 
+    --noautoconsole
   with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
   loop_control:
     extended: yes
     index_var: i
   when: env.z.high_availability == False
 
-- name: Create the first CoreOS control node on the first KVM host, if cluster is to be highly available. 
+- name: Create the first CoreOS control node on the first KVM host, if cluster is to be highly available.
   tags: create_control_nodes
   command: |
     virt-install \
@@ -35,10 +35,10 @@
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.control.ip[0]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[0]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
     --graphics none \
     --wait=-1 \
-    --noautoconsole 
+    --noautoconsole
   when: env.z.high_availability == True and inventory_hostname == env.z.lpar1.hostname
 
-- name: Create the second CoreOS control node on the second KVM host, if cluster is to be highly available. 
+- name: Create the second CoreOS control node on the second KVM host, if cluster is to be highly available.
   tags: create_control_nodes
   command: |
     virt-install \
@@ -52,10 +52,10 @@
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.control.ip[1]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[1]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
     --graphics none \
     --wait=-1 \
-    --noautoconsole 
+    --noautoconsole
   when: env.z.high_availability == True and inventory_hostname == env.z.lpar2.hostname
 
-- name: Create the third CoreOS control node on the third KVM host, if cluster is to be highly available. 
+- name: Create the third CoreOS control node on the third KVM host, if cluster is to be highly available.
   tags: create_control_nodes
   command: |
     virt-install \
@@ -69,5 +69,5 @@
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.control.ip[2]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[2]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
     --graphics none \
     --wait=-1 \
-    --noautoconsole 
+    --noautoconsole
   when: env.z.high_availability == True and inventory_hostname == env.z.lpar3.hostname
