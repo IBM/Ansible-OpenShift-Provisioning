@@ -10,7 +10,7 @@
   register: registration
   retries: 2
   delay: 30
-  until: registration.rc == 0
+  until: registration is not failed
 
 - name: Ensure necessary repositories are enabled.
   tags: attach_subscription, test
