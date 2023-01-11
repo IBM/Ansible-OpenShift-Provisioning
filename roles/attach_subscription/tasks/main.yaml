@@ -7,8 +7,10 @@
     username: "{{ env.redhat.username }}"
     password: "{{ env.redhat.password }}"
     auto_attach: true
+  register: registration
   retries: 2
   delay: 30
+  until: registration.rc == 0
 
 - name: Ensure necessary repositories are enabled.
   tags: attach_subscription, test
