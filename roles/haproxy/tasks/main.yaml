@@ -4,9 +4,9 @@
   tags: selinux,haproxy
   selinux_permissive:
     name: haproxy_t
-    permissive: true 
+    permissive: true
 
-- name: Use template to create haproxy config file 
+- name: Use template to create haproxy config file
   tags: haproxy
   template:
     src: haproxy.cfg.j2

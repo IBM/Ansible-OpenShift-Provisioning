@@ -1,83 +1,81 @@
 ---
 
-- name: Clean up old kickstart for idempotency
-  tags: create_bastion
-  become: false
-  file:
-    path: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
-    state: absent
-  delegate_to: "{{env.ftp.ip}}"
-
-- name: Create a directory on the FTP server for bastion configuration files.
+- name: Create a directory on the KVM host server for bastion configuration files
   become: false
   tags: create_bastion
-  file:
+  ansible.builtin.file:
     path: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}"
+    mode: "0755"
     state: directory
-  delegate_to: "{{env.ftp.ip}}"
 
-- name: Template kickstart file to FTP server.
+- name: Copy template kickstart file to KVM host server
   tags: create_bastion
   become: false
-  template:
+  ansible.builtin.template:
     src: "bastion-ks.cfg.j2"
     dest: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
-  delegate_to: "{{env.ftp.ip}}"
+    mode: "0644"
+    force: true
 
-- name: Create hash from bastion's root password to input in kickstart file.
+- name: Create hash from bastion's root password to input in kickstart file
   tags: create_bastion
-  shell: echo "{{ env.bastion.access.root_pass }}" | openssl passwd -6 -in -
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo "{{ env.bastion.access.root_pass }}" | openssl passwd -6 -in -
   register: root_pass_hash
 
-- name: Add hashed root password to bastion's RHEL kickstart config file.
+- name: Add hashed root password to bastion's RHEL kickstart config file
   tags: create_bastion
   become: false
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
     insertafter: "Root password"
     line: "rootpw --iscrypted {{ root_pass_hash.stdout }}"
-  delegate_to: "{{env.ftp.ip}}"
 
-- name: Create hash from bastion user password to input in kickstart file.
+- name: Create hash from bastion user password to input in kickstart file
   tags: create_bastion
-  shell: echo "{{ env.bastion.access.pass }}" | openssl passwd -6 -in -
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo "{{ env.bastion.access.pass }}" | openssl passwd -6 -in -
   register: user_pass_hash
 
-- name: Add hashed user password to bastion's RHEL kickstart config file.
+- name: Add hashed user password to bastion's RHEL kickstart config file
   tags: create_bastion
   become: false
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
     insertafter: "Users and Groups Definitions"
-    line: "user --groups=wheel --name={{env.bastion.access.user}} --password={{user_pass_hash.stdout}} --iscrypted"
-  delegate_to: "{{env.ftp.ip}}"
+    line: "user --groups=wheel --name={{ env.bastion.access.user }} --password={{ user_pass_hash.stdout }} --iscrypted"
 
-- name: Split iso_mount_dir variable on / for use in virt-install location parameter
-  tags: create_bastion, virt-install
-  set_fact: 
-    ins_dir: "{{ env.ftp.iso_mount_dir.split('/') }}"
-
-- name: Find FTP home for use in next step
+- name: Get KVM host home for use in next step
   tags: create_bastion, virt-install
   become: false
-  command: echo $HOME
-  register: ftp_home
+  ansible.builtin.command: pwd
+  register: kvm_host_home
 
-- name: Boot and kickstart bastion
+- name: Boot and kickstart bastion (up to 3 min). To monitor, login to your KVM host and run 'virsh console <bastion VM name>'
   tags: create_bastion, virt-install
-  shell: |
+  ansible.builtin.shell: |
+    set -o pipefail
+    virsh destroy {{ env.bastion.vm_name }} || true
+    virsh undefine {{ env.bastion.vm_name }} --remove-all-storage || true
     virt-install \
     --name {{ env.bastion.vm_name }} \
+    --autostart \
     --memory={{ env.bastion.resources.ram }} \
     --vcpus={{ env.bastion.resources.vcpu }} \
+    --os-type linux \
+    --os-variant rhel{{ env.bastion.resources.os_variant }} \
     --location http://{{ env.ftp.ip }}/{{ env.ftp.iso_mount_dir }} \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.bastion.resources.disk_size }}  \
-    --network network={{env.bridge_name}} \
+    --network network={{ env.bridge_name }} \
     --graphics=none \
     --noautoconsole --wait=-1 \
-    --extra-args "inst.ks=ftp://{{ env.ftp.user }}:{{ env.ftp.pass }}@{{ env.ftp.ip }}/{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg ip={{ env.bastion.networking.ip }}::{{ env.bastion.networking.gateway }}:{{ env.bastion.networking.subnetmask }}:{{ env.bastion.networking.hostname }}:enc1:none"
+    --initrd-inject "/{{ kvm_host_home.stdout }}/{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg" \
+    --extra-args "inst.ks=file:/bastion-ks.cfg ip={{ env.bastion.networking.ip }}::{{ env.bastion.networking.gateway }}\
+    :{{ env.bastion.networking.subnetmask }}:{{ env.bastion.networking.hostname }}:enc1:none console=ttysclp0"
 
-- name: Waiting 3 minutes for automated bastion installation and configuration to complete. To monitor, use a web browser to go to https://your-kvm-host-ip-address-here:9090, sign in, then go to the 'Virtual Machines' tab and click on the bastion's hostname.
+- name: Waiting 1 minute for automated bastion installation and configuration to complete
   tags: create_bastion, virt-install
-  pause:
-    minutes: 3
+  ansible.builtin.pause:
+    minutes: 1

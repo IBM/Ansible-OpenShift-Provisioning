@@ -1,44 +1,8 @@
-#Prepare KVM host and create bastion node
-- hosts: ftp
-  tags: ftp
+# Assume we have an existing ftp/http server already
+- name: 4 create bastion
+  hosts: kvm_host[0]
   become: true
-  gather_facts: true
   vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
-  vars: 
-    packages: [ httpd ]
-  roles:
-    - install_packages
-  post_tasks:
-
-    - name: Start httpd
-      tags: httpd
-      service:
-        name: httpd
-        state: started
-
-    - name: Create directory for mounting iso to HTTP accessible directory, because virt-install's FTP usage is inconsistent.
-      file:
-        path: "/var/www/html/{{ env.ftp.iso_mount_dir }}"
-        state: directory
-        mode: '777'
-
-    - name: Find FTP home for use in next step
-      become: false
-      command: echo $HOME
-      register: ftp_home
-
-    - name: Mount iso_mount_dir to HTTP accessible directory
-      ansible.posix.mount:
-        path: "/var/www/html/{{ env.ftp.iso_mount_dir }}"
-        src: "{{ ftp_home.stdout }}/{{ env.ftp.iso_mount_dir }}"
-        fstype: iso9660
-        opts: ro,noauto
-        state: present
-      
-- hosts: kvm_host[0]
-  become: true
-  vars_files: 
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
   roles:

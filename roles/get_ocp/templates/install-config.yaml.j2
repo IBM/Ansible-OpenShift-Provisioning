@@ -1,22 +1,22 @@
 apiVersion: {{ env.install_config.api_version }}
 baseDomain: {{ env.cluster.networking.base_domain }}
-{%- if use_proxy == true %}
+{% if use_proxy == true %}
 {{ 'proxy: ' }}
 {{ '  httpProxy: ' + proxy_env.http_proxy }}
 {{ '  httpsProxy: ' + proxy_env.https_proxy }}
-{{ '  noProxy: ' + proxy_env.no_proxy|join(',') + ',' + '127.0.0.1,' + 'localhost,' + 
-env.bastion.networking.ip + ',' + 
-env.cluster.nodes.bootstrap.ip + ',' + 
-env.cluster.nodes.control.ip|join(',') + ',' + 
-env.cluster.nodes.compute.ip|join(',') + ',' + 
-env.cluster.nodes.infra.ip|join(',')+ ',' + 
+{{ '  noProxy: ' + proxy_env.no_proxy + ',' + '127.0.0.1,' + 'localhost,' +
+env.bastion.networking.ip + ',' +
+env.cluster.nodes.bootstrap.ip + ',' +
+env.cluster.nodes.control.ip|join(',') + ',' +
+env.cluster.nodes.compute.ip|join(',') + ',' +
+env.cluster.nodes.infra.ip|join(',')+ ',' +
 'etcd-0.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' +
 ('etcd-1.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' if env.cluster.nodes.control.ip[1] is defined else '' ) +
 ('etcd-2.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' if env.cluster.nodes.control.ip[2] is defined else '' ) +
 'api-int.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' +
 'api.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' +
 '.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain }}
-{%- endif %}
+{% endif %}
 compute:
 - hyperthreading: {{ env.install_config.compute.hyperthreading }}
   name: worker

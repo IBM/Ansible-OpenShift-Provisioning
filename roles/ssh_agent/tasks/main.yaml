@@ -2,7 +2,7 @@
 
 - name: Add ansible SSH key to ssh-agent
   tags: ssh_agent, ssh
-  lineinfile: 
+  lineinfile:
     line: "eval $(ssh-agent) && ssh-add ~/.ssh/{{ env.ansible_key_name }}"
     path: ~/.bash_profile
   register: ssh_agent_setup
