@@ -10,9 +10,9 @@
     auto_attach: yes
 
 - name: Ensure necessary repositories are enabled.
-  tags: attach_subscription
+  tags: attach_subscription, test
   community.general.rhsm_repository:
     name: "{{ item }}"
   loop:
-    - rhel-8-for-s390x-baseos-rpms
-    - rhel-8-for-s390x-appstream-rpms
+    - "rhel-{{ ansible_distribution_major_version }}-for-{{ ansible_architecture }}-baseos-rpms"
+    - "rhel-{{ ansible_distribution_major_version }}-for-{{ ansible_architecture }}-appstream-rpms"
