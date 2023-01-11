@@ -23,7 +23,7 @@
     owner: root
     passphrase: ""
     comment: "{{ env.ocp_ssh_key_comment }}"
-    regenerate: always
+    regenerate: full_idempotence
   register: ssh_ocp
 
 - name: Print results of SSH key generation
@@ -35,13 +35,13 @@
 - name: Set SSH key permissions
   tags: ssh_ocp_key_gen
   command: chmod 600  /root/.ssh/{{ item }}
-  loop: 
+  loop:
     - id_rsa
     - id_rsa.pub
 
 - name: Set SSH key ownership
   tags: ssh_ocp_key_gen
-  command: chown root:root /root/.ssh/{{item}}
+  command: chown root:root /root/.ssh/{{ item }}
   loop:
     - id_rsa
     - id_rsa.pub
