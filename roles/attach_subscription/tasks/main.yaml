@@ -4,10 +4,11 @@
   tags: attach_subscription
   community.general.redhat_subscription:
     state: present
-    username: "{{env.redhat.username}}"
-    password: "{{env.redhat.password}}"
-    force_register: yes
-    auto_attach: yes
+    username: "{{ env.redhat.username }}"
+    password: "{{ env.redhat.password }}"
+    auto_attach: true
+  retries: 2
+  delay: 30
 
 - name: Ensure necessary repositories are enabled.
   tags: attach_subscription, test
