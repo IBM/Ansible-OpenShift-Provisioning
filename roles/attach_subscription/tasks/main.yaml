@@ -7,7 +7,7 @@
     username: "{{ env.redhat.username }}"
     password: "{{ env.redhat.password }}"
     auto_attach: true
-  retries: 2
-  # Retry twice, in case server is not available for few seconds
+  register: registration
   retries: 2
   delay: 30
+  until: registration is not failed
