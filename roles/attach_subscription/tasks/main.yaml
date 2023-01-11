@@ -13,7 +13,7 @@
   until: registration is not failed
 
 - name: Ensure necessary repositories are enabled.
-  tags: attach_subscription, test
+  tags: attach_subscription
   community.general.rhsm_repository:
     name: "{{ item }}"
   loop:
