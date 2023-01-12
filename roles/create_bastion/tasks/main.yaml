@@ -70,8 +70,8 @@
     --graphics=none \
     --noautoconsole --wait=-1 \
     --initrd-inject "/{{ kvm_host_home.stdout }}/{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg" \
-    --extra-args "inst.ks=file:/bastion-ks.cfg ip={{ env.bastion.networking.ip }}::{{ env.bastion.networking.gateway }}\
-    :{{ env.bastion.networking.subnetmask }}:{{ env.bastion.networking.hostname }}:enc1:none console=ttysclp0"
+    nameserver={{env.bastion.networking.nameserver1}} {{ ('nameserver=' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} \
+    console=ttysclp0"
 
 - name: Waiting 1 minute for automated bastion installation and configuration to complete
   tags: create_bastion, virt-install
