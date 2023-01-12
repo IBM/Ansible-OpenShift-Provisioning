@@ -1,4 +1,0 @@
-# Will be replaced during playbooks/0_setup.yaml. Templated from file found at roles/set_inventory/templates/hosts.j2
-
-[workstation]
-127.0.0.1 ansible_connection=local
