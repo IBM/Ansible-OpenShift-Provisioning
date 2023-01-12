@@ -64,8 +64,6 @@
     --autostart \
     --memory={{ env.bastion.resources.ram }} \
     --vcpus={{ env.bastion.resources.vcpu }} \
-    --os-type linux \
-    --os-variant rhel{{ env.bastion.resources.os_variant }} \
     --location http://{{ env.ftp.ip }}/{{ env.ftp.iso_mount_dir }} \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.bastion.resources.disk_size }}  \
     --network network={{ env.bridge_name }} \
