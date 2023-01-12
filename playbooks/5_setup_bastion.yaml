@@ -123,7 +123,11 @@
   roles:
     - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True }
     - { role: robertdebock.openvpn, tags: openvpn, when: env.z.high_availability == True }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 7f29c28 (gitignore hosts file in inventory)
 - hosts: localhost
   tags: services, section_2, openvpn
   become: false
