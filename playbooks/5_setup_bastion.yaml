@@ -1,32 +1,32 @@
 ---
 
-#Copy SSH key to access bastion
-- hosts: localhost
+- name: 5 setup bastion - copy SSH key to access bastion
+  hosts: workstation
   tags: ssh, ssh_copy_id, section_1
   connection: local
   become: false
   gather_facts: false
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
-  vars: 
-    ssh_target: ["{{ env.bastion.networking.ip }}","{{ env.bastion.access.user }}","{{ env.bastion.access.pass }}"]
+  vars:
+    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}"]
   roles:
     - ssh_copy_id
 
-#Configure bastion node with essential services
-- hosts: bastion
+- name: 5 setup bastion - configure bastion node with essential services
+  hosts: bastion
   tags: services, section_2
   become: True
   vars:
     packages: "{{ env.pkgs.bastion }}"
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
-    - {role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined}
+    - { role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined }
     - install_packages
     - ssh_ocp_key_gen
     - set_firewall
-    - {role: dns, when: env.bastion.options.dns }
+    - { role: dns, when: env.bastion.options.dns }
     - check_dns
     - { role: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
     - httpd
@@ -41,12 +41,12 @@
     - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True }
     - { role: robertdebock.openvpn, tags: openvpn, when: env.z.high_availability == True }
 
-- hosts: localhost
+- hosts: workstation
   tags: services, section_2, openvpn
   become: false
   gather_facts: false
   tasks:
-    - name: Create landing directories on controller for certificates and keys.
+    - name: Create landing directories on workstation for certificates and keys.
       tags: openvpn
       file:
         state: directory
@@ -86,7 +86,7 @@
         - issued
         - private
 
-    - name: Copy certificates and keys from controller to KVM hosts.
+    - name: Copy certificates and keys from workstation to KVM hosts.
       tags: openvpn
       copy:
         src: tmp/{{ item }}
@@ -101,13 +101,13 @@
   roles:
     - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True }
     - { role: robertdebock.openvpn, tags: openvpn, when: env.z.high_availability == True }
-  
-- hosts: localhost
+
+- hosts: workstation
   tags: services, section_2, openvpn
   become: false
   gather_facts: false
   tasks:
-    - name: Clean up tmp directories on controller for certificates and keys.
+    - name: Clean up tmp directories on workstation for certificates and keys.
       tags: openvpn
       file:
         state: absent
@@ -116,7 +116,7 @@
 - hosts: bastion
   tags: get_ocp, section_3
   become: True
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - get_ocp
