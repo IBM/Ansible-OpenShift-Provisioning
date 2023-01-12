@@ -1,0 +1,22 @@
+---
+
+- name: Delete control, compute and infra nodes, if exists
+  tags: delete_nodes
+  ansible.builtin.shell: |
+    set -o pipefail
+    virsh destroy {{ item }} || true
+    virsh undefine {{ item }} --remove-all-storage || true
+  loop: "{{ env.cluster.nodes.control.vm_name + env.cluster.nodes.compute.vm_name \
+    if env.cluster.nodes.infra.vm_name is not defined \
+    else env.cluster.nodes.control.vm_name + env.cluster.nodes.compute.vm_name + env.cluster.nodes.infra.vm_name }}"
+
+- name: Get and print virsh list
+  tags: delete_nodes
+  block:
+    - name: Get virsh list
+      ansible.builtin.command: virsh list
+      register: cmd_virsh_list
+
+    - name: Print virsh list
+      ansible.builtin.debug:
+        var: cmd_virsh_list.stdout_lines
