@@ -27,18 +27,16 @@ ansible-playbook playbooks/site.yaml
 
 ## 0 Setup Playbook
 #### Overview
-First-time setup of the workstation (AKA the Ansible Controller).
+First-time setup of the Ansible Controller, the machine running Ansible.
 #### Outcomes
 * Packages and Ansible Galaxy collections are confirmed to be installed properly.
 * host_vars files are confirmed to match KVM host(s) hostnames.
 * Ansible inventory is templated out and working properly.
 * SSH key generated for Ansible passwordless authentication.
-* SSH agent is setup on the workstation.
+* SSH agent is setup on the Ansible Controller.
 * Ansible SSH key is copied to the FTP server.
 #### Notes
-* Recommended to stop here and ensure that the inventory/hosts file is set up as you wish.
-* You may need to change the Python interpreter. To change it for the workstation, go to the ansible.cfg file found in the project's root directory and change the default parameter to the result of the 'which --python3' command on your workstation.
-* You can use an existing SSH key as your Ansible key, but it is highly recommended to use one without a passphrase.
+* You can use an existing SSH key as your Ansible key, or have Ansible create one for you. It is highly recommended to use one without a passphrase.
 ## 1 Create LPAR Playbook
 #### Overview
 Creation of one to three Logical Partitions (LPARs), depending on your configuration. Uses the Hardware Management Console (HMC) API, so your system must be in Dynamic Partition Manager (DPM) mode.

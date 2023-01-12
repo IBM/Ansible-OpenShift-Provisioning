@@ -54,7 +54,7 @@
       when: env.z.lpar3.create == True
 
 #Boot KVM host on LPAR
-- hosts: workstation
+- hosts: localhost
   tags: create_kvm_host, boot, kvm_host_1
   connection: local
   vars_files: 
@@ -71,7 +71,7 @@
       when: env.z.lpar1.create == True
 
 #Boot KVM host on LPAR
-- hosts: workstation
+- hosts: localhost
   tags: create_kvm_host, boot, kvm_host_2
   connection: local
   vars_files: 
@@ -88,7 +88,7 @@
       when: env.z.lpar2.create == True
 
 #Boot KVM host on LPAR
-- hosts: workstation
+- hosts: localhost
   tags: create_kvm_host, boot, kvm_host_3
   connection: local
   vars_files: 

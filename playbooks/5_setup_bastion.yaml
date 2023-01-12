@@ -1,7 +1,7 @@
 ---
 
 #Copy SSH key to access bastion
-- hosts: workstation
+- hosts: localhost
   tags: ssh, ssh_copy_id, section_1
   connection: local
   become: false
@@ -41,12 +41,12 @@
     - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True }
     - { role: robertdebock.openvpn, tags: openvpn, when: env.z.high_availability == True }
 
-- hosts: workstation
+- hosts: localhost
   tags: services, section_2, openvpn
   become: false
   gather_facts: false
   tasks:
-    - name: Create landing directories on workstation for certificates and keys.
+    - name: Create landing directories on controller for certificates and keys.
       tags: openvpn
       file:
         state: directory
@@ -86,7 +86,7 @@
         - issued
         - private
 
-    - name: Copy certificates and keys from workstation to KVM hosts.
+    - name: Copy certificates and keys from controller to KVM hosts.
       tags: openvpn
       copy:
         src: tmp/{{ item }}
@@ -102,12 +102,12 @@
     - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True }
     - { role: robertdebock.openvpn, tags: openvpn, when: env.z.high_availability == True }
   
-- hosts: workstation
+- hosts: localhost
   tags: services, section_2, openvpn
   become: false
   gather_facts: false
   tasks:
-    - name: Clean up tmp directories on workstation for certificates and keys.
+    - name: Clean up tmp directories on controller for certificates and keys.
       tags: openvpn
       file:
         state: absent

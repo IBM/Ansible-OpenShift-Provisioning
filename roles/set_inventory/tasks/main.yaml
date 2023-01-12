@@ -1,11 +1,26 @@
 ---
 
-- name: Template out inventory with workstation, FTP, KVM host, and bastion information
+- name: Find inventory directory from ansible.cfg
+  tags: set_inventory
+  shell: cat {{ ansible_config_file }} | grep 'inventory=' | cut -f2 -d"="
+  register: find_inventory
+
+- name: Find absolute path to project.
+  tags: set_inventory
+  shell: |
+    set -o pipefail
+    ansible_config="{{ ansible_config_file }}"
+    echo "${ansible_config%/*}/"
+  register: find_project
+
+- name: Template out inventory with localhost, FTP, KVM host, and bastion information
   tags: set_inventory
   template:
     src: hosts.j2
-    dest: "{{ inventory_dir }}/hosts"
+    dest: "{{ find_project.stdout }}{{ find_inventory.stdout }}/hosts"
     force: yes
+
+- meta: refresh_inventory
 
 - name: Add path to Ansible private key
   tags: set_inventory
