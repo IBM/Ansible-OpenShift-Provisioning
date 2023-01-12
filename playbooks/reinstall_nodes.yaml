@@ -1,0 +1,5 @@
+# Use this if you want to re-install nodes with a new OCP version
+---
+
+- import_playbook: 6_create_nodes.yaml
+- import_playbook: 7_ocp_verification.yaml
