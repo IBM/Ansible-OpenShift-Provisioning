@@ -57,7 +57,6 @@
 **env.bastion.resources.ram** | How much memory would you like to allocate the bastion (in<br /> megabytes)? Recommended 4096 or more | 4096
 **env.bastion.resources.swap** | How much swap storage would you like to allocate the bastion (in<br /> megabytes)? Recommended 4096 or more. | 4096
 **env.bastion.resources.vcpu** | How many virtual CPUs would you like to allocate to the bastion? Recommended 4 or more. | 4
-**env.bastion.resources.os_variant** | Version of Red Hat Enterprise Linux to use for the bastion's operating system.<br /> Recommended 8.4 and above. Must match version of mounted ISO on the FTP server. | 8.5
 **env.bastion.networking.ip** | IPv4 address for the bastion. | 192.168.10.3
 **env.bastion.networking.hostname** | Hostname of the bastion. Will be combined with<br /> env.bastion.networking.base_domain to create a Fully Qualified Domain Name (FQDN). | ocpz-bastion
 **env.bastion.networking.<br />subnetmask** | Subnet of the bastion. | 255.255.255.0
