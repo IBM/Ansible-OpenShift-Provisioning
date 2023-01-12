@@ -8,7 +8,7 @@
   retries: 120
   delay: 30
 
-- name: Almost there! Add host info to /etc/hosts so you can login to the cluster via web browser. Workstation sudo password required.
+- name: Almost there! Add host info to /etc/hosts so you can login to the cluster via web browser. Ansible Controller sudo password required.
   tags: wait_for_install_complete
   become: True
   lineinfile:

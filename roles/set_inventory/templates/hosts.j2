@@ -1,5 +1,5 @@
-[workstation]
-127.0.0.1 ansible_connection=local ansible_become_password={{ env.workstation.sudo_pass }}
+[localhost]
+127.0.0.1 ansible_connection=local ansible_become_password={{ env.controller.sudo_pass }}
 
 [ftp]
 {{ env.ftp.ip }} ansible_user={{ env.ftp.user }} ansible_become_password={{ env.ftp.pass }}

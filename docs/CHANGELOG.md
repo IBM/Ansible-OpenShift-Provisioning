@@ -26,7 +26,7 @@ Released 2022-07-12
 * Detailed descriptions of what each playbook accomplishes (Thanks Trevor!)
 * Tarballs of Ansible-Galaxy collections in anticipation of disconnected installs update.
 * Separate set-variables documentation page for host_vars, new to high availability update.
-* Workstation packages and Ansible-Galaxy collections as pre-reqs, instead of waiting until setup playbook, which caused errors.
+* Controller packages and Ansible-Galaxy collections as pre-reqs, instead of waiting until setup playbook, which caused errors.
 * Example KVM host host_vars files.
 * Check to make sure host_vars are set properly for KVM host(s)
 * Support for attaching 2 storage groups that then later are combined into one logical volume.

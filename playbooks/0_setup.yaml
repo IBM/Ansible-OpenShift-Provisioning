@@ -1,12 +1,13 @@
 ---
 
-- hosts: workstation
-  tags: workstation
+- hosts: localhost
+  tags: localhost
   connection: local
   become: False
   gather_facts: True
-  pre_tasks:
-  
+  roles:
+    - set_inventory
+  post_tasks:
     - name: Ensure Ansible Galaxy collections have been installed.
       tags: galaxy
       command: ansible-galaxy collection install {{ item }}
@@ -50,18 +51,17 @@
       register: lpar_host_vars
       failed_when: lpar_host_vars.stat.exists == False
 
-- hosts: workstation
+- hosts: localhost
   connection: local
   become: False
-  gather_facts: False
+  gather_facts: True
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
-    packages: "{{ env.pkgs.workstation }}"
+    packages: "{{ env.pkgs.controller }}"
     ssh_target: [ "{{ env.ftp.ip }}", "{{ env.ftp.user }}", "{{ env.ftp.pass }}" ]
   roles:
     - install_packages
-    - set_inventory
     - ssh_key_gen
     - ssh_agent
     - ssh_copy_id #to FTP server

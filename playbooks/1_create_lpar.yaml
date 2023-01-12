@@ -1,6 +1,6 @@
 ---
 #Create logical partition
-- hosts: workstation
+- hosts: localhost
   tags: create_lpar, create, kvm_host_1
   connection: local
   vars_files: 
@@ -16,7 +16,7 @@
         name: create_lpar
       when: env.z.lpar1.create == True
           
-- hosts: workstation
+- hosts: localhost
   tags: create_lpar, create, kvm_host_2
   connection: local
   vars_files: 
@@ -32,7 +32,7 @@
         name: create_lpar
       when: env.z.lpar2.create == True
 
-- hosts: workstation
+- hosts: localhost
   tags: create_lpar, create, kvm_host_3
   connection: local
   vars_files: 
