@@ -53,7 +53,6 @@ env:
       ram: 4096
       swap: 4096
       vcpu: 4
-      os_variant: 8.5
     networking:
       ip: #X
       hostname: #X
