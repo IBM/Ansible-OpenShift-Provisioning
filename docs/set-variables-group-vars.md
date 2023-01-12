@@ -7,10 +7,10 @@
 * <u>Note on YAML syntax</u>: Only the lowest value in each hierarchicy needs to be filled in. For example, at the top of the variables file env and z don't need to be filled in, but the cpc_name does. There are X's where input is required to help you with this.
 * Scroll the table to the right to see examples for each variable.
 
-## 1 - Workstation
+## 1 - Controller
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**env.workstation.sudo_pass** | The password to your workstation running Ansible.<br /> This will only be used for two things. To ensure you've installed the<br /> pre-requisite packages if you're on Linux, and to add the login URL<br /> to your /etc/hosts file. | Pas$w0rd!
+**env.controller.sudo_pass** | The password to the machine running Ansible (localhost).<br /> This will only be used for two things. To ensure you've installed the<br /> pre-requisite packages if you're on Linux, and to add the login URL<br /> to your /etc/hosts file. | Pas$w0rd!
 
 ## 2 - LPAR(s)
 **Variable Name** | **Description** | **Example**
@@ -127,7 +127,7 @@
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **env.pkgs.galaxy** | A list of Ansible Galaxy collections that will be installed during the setup playbook. The<br /> collections listed are required. Feel free to add more as needed, just make sure to follow the same list format. | community.general
-**env.pkgs.workstation** | A list of packages that will be installed on the workstation running Ansible during the setup<br /> playbook. Feel free to add more as needed, just make sure to follow the same list format. | openssh
+**env.pkgs.controller** | A list of packages that will be installed on the machine running Ansible during the setup<br /> playbook. Feel free to add more as needed, just make sure to follow the same list format. | openssh
 **env.pkgs.kvm** | A list of packages that will be installed on the KVM Host during the setup_kvm_host playbook.<br /> Feel free to add more as needed, just make sure to follow the same list format. | qemu-kvm
 **env.pkgs.bastion** | A list of packages that will be installed on the bastion during the setup_bastion playbook.<br /> Feel free to add more as needed, just make sure to follow the same list format. | haproxy
 

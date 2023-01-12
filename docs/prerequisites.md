@@ -21,8 +21,9 @@
     * Then scroll down to Red Hat Enterprise Linux 8.x Binary DVD and click on the 'Download Now' button.
 * A folder to store config files (e.g. /home/ftpuser/ocp-config)
 * A user with sudo and SSH access.
-## Workstation
-* A computer/virtual machine with MacOS or Linux operating system
+## Ansible Controller
+* The computer/virtual machine running Ansible, sometimes referred to as localhost.
+* Must be running on with MacOS or Linux operating systems.
 * Network access to your IBM zSystems / LinuxONE hardware
 * All you need to run Ansible is a terminal and a text editor. However, an IDE like [VS Code](https://code.visualstudio.com/download) is highly recommended for an integrated, user-friendly experience with helpful extensions like [YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml).
 * [Python3](https://realpython.com/installing-python/) installed:

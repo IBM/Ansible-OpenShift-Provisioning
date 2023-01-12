@@ -1,7 +1,7 @@
 ---
 
 #Copy SSH key to access KVM host
-- hosts: workstation
+- hosts: localhost
   tags: ssh, ssh_copy_id, section_1, kvm_host_1
   connection: local
   become: false
@@ -19,7 +19,7 @@
       import_role:
         name: ssh_copy_id
 
-- hosts: workstation
+- hosts: localhost
   tags: ssh, ssh_copy_id, section_1, kvm_host_2
   connection: local
   become: false
@@ -40,7 +40,7 @@
         name: ssh_copy_id
       when: env.z.lpar2.hostname is defined
 
-- hosts: workstation
+- hosts: localhost
   tags: ssh, ssh_copy_id, section_1, kvm_host_3
   connection: local
   become: false
