@@ -1,21 +1,12 @@
 ---
 
-- name: Check if bootstrap already exists
-  tags: create_bootstrap
-  community.libvirt.virt:
-    name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
-    command: status
-  register: bootstrap_check
-  ignore_errors: true
-
-- name: Print status of bootstrap
-  tags: create_bootstrap
-  debug: 
-    var: bootstrap_check.msg
-
+# We create always a new bootstrap VM
 - name: Start bootstrap installation
   tags: create_bootstrap
-  command: |
+  ansible.builtin.shell: |
+    set -o pipefail
+    virsh destroy {{ env.cluster.nodes.bootstrap.vm_name }} || true
+    virsh undefine {{ env.cluster.nodes.bootstrap.vm_name }} --remove-all-storage || true
     virt-install \
     --name {{ env.cluster.nodes.bootstrap.vm_name }} \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.bootstrap.disk_size }}  \
@@ -24,11 +15,14 @@
     --vcpus {{ env.cluster.nodes.bootstrap.vcpu }} \
     --network network={{ env.bridge_name }} \
     --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.bootstrap.ip}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.bootstrap.hostname}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/bootstrap.ign" \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda \
+    coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs.s390x.img \
+    ip={{ env.cluster.nodes.bootstrap.ip }}::{{ networking.gateway }}:{{ networking.subnetmask }}:{{ env.cluster.nodes.bootstrap.hostname }}::none:1500 \
+    nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} \
+    coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/bootstrap.ign" \
     --graphics none \
     --wait=-1 \
-    --noautoconsole 
-  when: bootstrap_check.failed == true
+    --noautoconsole
 
 - name: Set bootstrap qcow2 permissions
   become: true
