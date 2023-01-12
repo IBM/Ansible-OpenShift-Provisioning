@@ -1,10 +1,11 @@
 ---
 
-#Prepare and then create the temporary bootstrap node and the control nodes.
-- hosts: kvm_host
+# Prepare and then create the temporary bootstrap node and the control nodes
+- name: 6 create nodes - prepare KVM guests
+  hosts: kvm_host
   become: true
   gather_facts: false
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - prep_kvm_guests
@@ -12,7 +13,7 @@
 - hosts: kvm_host[-1]
   become: true
   gather_facts: false
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - create_bootstrap
@@ -20,24 +21,24 @@
 - hosts: kvm_host
   become: true
   gather_facts: false
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - create_control_nodes
 
-#Wait for bootstrap to connect control plane (for non-root user).
-- hosts: bastion
+- name: 6 create nodes - wait for bootstrap to connect control plane (for non-root user)
+  hosts: bastion
   become: True
   environment:
     KUBECONFIG: "/home/{{ env.bastion.access.user }}/.kube/config"
   gather_facts: true
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - {role: wait_for_bootstrap, when: env.bastion.access.user != "root"}
 
-#Wait for bootstrap to connect to control plane (for root user)
-- hosts: bastion
+- name: 6 create nodes - wait for bootstrap to connect to control plane (for root user)
+  hosts: bastion
   become: True
   environment:
     KUBECONFIG: "/{{ env.bastion.access.user }}/.kube/config"
@@ -47,14 +48,14 @@
   roles:
     - {role: wait_for_bootstrap, when: env.bastion.access.user == "root"}
 
-#Once bootstrapping is complete, tear down bootstrap.
-- hosts: kvm_host[-1]
+- name: 6 create nodes - once bootstrapping is complete, tear down bootstrap.
+  hosts: kvm_host[-1]
   tags: create_nodes, teardown_bootstrap
   become: True
   gather_facts: False
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
-  tasks: 
+  tasks:
     - name: Destroy bootstrap. Expect ignored errors if bootstrap is already destroyed.
       tags: create_nodes, teardown_bootstrap
       community.libvirt.virt:
@@ -73,15 +74,15 @@
       tags: create_nodes, teardown_bootstrap
       become: true
       file:
-        path: "/var/lib/libvirt/images/{{env.cluster.nodes.bootstrap.vm_name}}-bootstrap.qcow2"
+        path: "/var/lib/libvirt/images/{{ env.cluster.nodes.bootstrap.vm_name }}.qcow2"
         state: absent
 
-#Once bootstrapping is complete, create compute nodes.
-- hosts: kvm_host
+- name: 6 create nodes - once bootstrapping is complete, create compute nodes.
+  hosts: kvm_host
   tags: create_compute_nodes
   become: true
   gather_facts: false
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - create_compute_nodes
