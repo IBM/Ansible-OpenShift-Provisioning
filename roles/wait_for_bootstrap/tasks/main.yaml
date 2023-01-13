@@ -27,7 +27,7 @@
   tags: wait_for_bootstrap
   ansible.builtin.shell: |
     set -o pipefail
-    oc get csr | awk '{print $4}' | grep "^system:node:{{ item }}"
+    oc get csr | awk '{print $4}' | grep "^system:node:{{ item|lower }}"
   register: cmd_output
   until: ("system:node:" in cmd_output.stdout)
   loop: "{{ env.cluster.nodes.control.hostname }}"
