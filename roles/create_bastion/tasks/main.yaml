@@ -69,7 +69,7 @@
     --network network={{ env.bridge_name }} \
     --graphics=none \
     --noautoconsole --wait=-1 \
-    --initrd-inject "/{{ kvm_host_home.stdout }}/{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg \
+    --initrd-inject "/{{ kvm_host_home.stdout }}/{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg" \
     nameserver={{env.bastion.networking.nameserver1}} {{ ('nameserver=' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} \
     console=ttysclp0"
 
