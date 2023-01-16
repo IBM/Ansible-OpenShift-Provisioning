@@ -3,9 +3,9 @@
 # For a comprehensive description of each variable, please see documentation here:
 # https://ibm.github.io/Ansible-OpenShift-Provisioning/set-variables-group-vars/ 
 
-# Section 1 - Workstation
+# Section 1 - Ansible Controller
 env:
-  workstation:
+  controller:
     sudo_pass: #X
 
 # Section 2 - LPAR(s)
@@ -147,7 +147,7 @@ env:
 # Section 11 - (Optional) Packages
   pkgs:
     galaxy: [ ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt ]
-    workstation: [ openssh, expect ]
+    controller: [ openssh, expect ]
     kvm: [ '@virt', cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
     bastion: [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
 
