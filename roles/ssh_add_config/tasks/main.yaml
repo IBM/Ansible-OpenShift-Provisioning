@@ -1,0 +1,25 @@
+---
+
+- name: Load in variables
+  tags: ssh_copy_id, ssh
+  include_vars: "{{inventory_dir}}/group_vars/all.yaml"
+
+- name: Create ssh config file if network mode is NAT
+  tags: ssh_copy_id, ssh
+  ansible.builtin.template:
+    src: templates/config.j2
+    dest: ~/.ssh/config
+
+- name: Copy SSH ID to bastion host with pre-provided password
+  tags: ssh_copy_id, ssh
+  ansible.builtin.shell: |
+    sshpass -p {{ env.jumphost.pass }} ssh {{ env.jumphost.user }}@{{ env.jumphost.name }} "sshpass -p {{ env.bastion.access.pass }} ssh-copy-id -i ~/.ssh/id_rsa {{ env.bastion.access.user }}@{{ env.bastion.networking.ip }}"
+    exit 0
+  register: ssh_copy
+
+- name: Copy SSH ID from jumphost to bastion 
+  tags: ssh_copy_id, ssh
+  ansible.builtin.shell: |
+    sshpass -p {{ env.bastion.access.pass }} ssh-copy-id -i {{path_to_key_pair}} {{ env.bastion.access.user }}@{{ env.bastion.networking.ip }}
+    exit 0
+  register: ssh_copy
