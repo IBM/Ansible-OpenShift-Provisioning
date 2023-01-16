@@ -169,3 +169,7 @@
 **env.ansible_key_name** | (Optional) Name of the SSH key that Ansible will use to connect to hosts. | ansible-ocpz
 **env.ocp_key_name** | Comment to describe the SSH key used for OCP. Arbitrary value. | OCPZ-01 key
 **env.bridge_name** | (Optional) Name of the macvtap bridge that will be created on the KVM host. | macvtap-net
+**env.network_mode: | (Optional) In case the network mode will be NAT and the installation will be executed from remote (e.g. your laptop), a jumphost needs to be defined to let the installation access the bastion host. If macvtap for networking is being used this variable should be empty.
+**env.jumphost.name: | (Optional) If env.network.mode is set to 'NAT' the name or IP of the jumphost (e.g. the KVM host) should be specified.
+**env.jumphost.user: | (Optional) The user name to login to the jumphost.
+**env.jumphost.pass: | (Optional) The password of the login user.

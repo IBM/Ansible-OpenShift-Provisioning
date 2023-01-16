@@ -169,21 +169,10 @@
   tags: get_ocp, config
   copy:
     src: /root/ocpinst/auth/kubeconfig
-    dest: /home/{{ env.bastion.access.user }}/.kube/config
+    dest: "{{ '/home/' if (env.bastion.access.user != 'root') else '/'}}{{ env.bastion.access.user }}/.kube/config"
     owner: "{{ env.bastion.access.user }}"
     group: "{{ env.bastion.access.user }}"
     remote_src: yes
-  when: env.bastion.access.user != "root"
-
-- name: Make kubeconfig admin user's default (for root user).
-  tags: get_ocp, config
-  copy:
-    src: /root/ocpinst/auth/kubeconfig
-    dest: /{{ env.bastion.access.user }}/.kube/config
-    owner: "{{ env.bastion.access.user }}"
-    group: "{{ env.bastion.access.user }}"
-    remote_src: yes
-  when: env.bastion.access.user == "root"
 
 - name: Make kubeconfig root user's default.
   tags: get_ocp, config

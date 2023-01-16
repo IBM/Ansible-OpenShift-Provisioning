@@ -25,27 +25,16 @@
   roles:
     - create_control_nodes
 
-#Wait for bootstrap to connect control plane (for non-root user).
+#Wait for bootstrap to connect control plane.
 - hosts: bastion
   become: True
   environment:
-    KUBECONFIG: "/home/{{ env.bastion.access.user }}/.kube/config"
+    KUBECONFIG: "{{ '/home/' if (env.bastion.access.user != 'root') else '/'}}{{ env.bastion.access.user }}/.kube/config"
   gather_facts: true
   vars_files: 
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
-    - {role: wait_for_bootstrap, when: env.bastion.access.user != "root"}
-
-#Wait for bootstrap to connect to control plane (for root user)
-- hosts: bastion
-  become: True
-  environment:
-    KUBECONFIG: "/{{ env.bastion.access.user }}/.kube/config"
-  gather_facts: true
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
-  roles:
-    - {role: wait_for_bootstrap, when: env.bastion.access.user == "root"}
+    - wait_for_bootstrap
 
 #Once bootstrapping is complete, tear down bootstrap.
 - hosts: kvm_host[-1]
