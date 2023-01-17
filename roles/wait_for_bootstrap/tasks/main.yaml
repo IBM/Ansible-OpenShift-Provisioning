@@ -7,8 +7,8 @@
   poll: 0
   register: watch_bootstrap
 
-- name: Wait for first node-bootstrapper request, should be started within 6 min (retry every 30s)...To watch progress, SSH to root@bastion, \
-        SSH to core@bootstrap-ip and run 'journalctl -b -f -u release-image.service -u bootkube.service'
+- name: "Wait for first node-bootstrapper request, should be started within 6 min (retry every 30s)...To watch progress, \
+SSH to root@bastion, SSH to core@bootstrap-ip and run 'journalctl -b -f -u release-image.service -u bootkube.service'"
   tags: wait_for_bootstrap
   ansible.builtin.shell: |
     set -o pipefail
@@ -27,15 +27,15 @@
   tags: wait_for_bootstrap
   ansible.builtin.shell: |
     set -o pipefail
-    oc get csr | awk '{print $4}' | grep "^system:node:{{ item|lower }}"
+    oc get csr | awk '{print $4}' | grep "^system:node:{{ item | lower }}"
   register: cmd_output
   until: ("system:node:" in cmd_output.stdout)
   loop: "{{ env.cluster.nodes.control.hostname }}"
   retries: 20
   delay: 30
 
-- name: Retry wait-for bootstrap-complete job ID check until it's finished. This may take some time... To watch progress, \
-        SSH to bastion, switch to root, from there, SSH to core@bootstrap-ip and run 'journalctl -b -f -u release-image.service -u bootkube.service'
+- name: "Retry wait-for bootstrap-complete job ID check until it's finished. This may take some time... To watch progress, \
+SSH to bastion, switch to root, from there, SSH to core@bootstrap-ip and run 'journalctl -b -f -u release-image.service -u bootkube.service'"
   tags: wait_for_bootstrap
   ansible.builtin.async_status:
     jid: "{{ watch_bootstrap.ansible_job_id }}"
