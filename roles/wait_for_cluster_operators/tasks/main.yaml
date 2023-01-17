@@ -1,133 +1,25 @@
 ---
 
-- name: First round of checking cluster operators
+- name: Wait for cluster operators
   tags: wait_for_cluster_operators
-  shell: oc get co
-  register: oc_get_co
+  ansible.builtin.include_tasks: check_co.yaml
+  with_items:
+    - "First"
+    - "Second"
+    - "Third"
+    - "Fourth"
+    - "Fifth and last"
+  loop_control:
+    loop_var: loop_count
 
-- name: View first round cluster operator status check
+- name: Get and print final cluster operator status
   tags: wait_for_cluster_operators
-  debug:
-    var: oc_get_co.stdout_lines
+  block:
+    - name: Get final cluster operators
+      ansible.builtin.command: oc get co
+      register: oc_get_co
+      changed_when: false
 
-- name: First round of waiting for cluster operators. Trying 5 times before printing status again.
-  tags: wait_for_cluster_operators
-  shell: oc get co | awk '{print $3}'
-  register: co_check
-  until: ("False" not in co_check.stdout)
-  retries: 5
-  delay: 30
-  ignore_errors: true
-
-- name: Second round of checking cluster operators
-  tags: wait_for_cluster_operators
-  shell: oc get co
-  register: oc_get_co
-
-- name: View second round cluster operator status check
-  tags: wait_for_cluster_operators
-  debug:
-    var: oc_get_co.stdout_lines
-
-- name: Second round of waiting for cluster operators. Trying 5 times before printing status again.
-  tags: wait_for_cluster_operators
-  shell: oc get co | awk '{print $3}'
-  register: co_check
-  until: ("False" not in co_check.stdout)
-  retries: 5
-  delay: 30
-  ignore_errors: true
-
-- name: Third round of checking cluster operators
-  tags: wait_for_cluster_operators
-  shell: oc get co
-  register: oc_get_co
-
-- name: View third round cluster operator status check
-  tags: wait_for_cluster_operators
-  debug:
-    var: oc_get_co.stdout_lines
-
-- name: Third round of waiting for cluster operators. Trying 5 times before printing status again.
-  tags: wait_for_cluster_operators
-  shell: oc get co | awk '{print $3}'
-  register: co_check
-  until: ("False" not in co_check.stdout)
-  retries: 5
-  delay: 30
-  ignore_errors: true
-
-- name: Fourth round of checking cluster operators
-  tags: wait_for_cluster_operators
-  shell: oc get co
-  register: oc_get_co
-
-- name: View fourth round cluster operator status check
-  tags: wait_for_cluster_operators
-  debug:
-    var: oc_get_co.stdout_lines
-
-- name: Fourth round of waiting for cluster operators. Trying 5 times before printing status again.
-  tags: wait_for_cluster_operators
-  shell: oc get co | awk '{print $3}'
-  register: co_check
-  until: ("False" not in co_check.stdout)
-  retries: 5
-  delay: 30
-  ignore_errors: true
-
-- name: Fifth round of checking cluster operators
-  tags: wait_for_cluster_operators
-  shell: oc get co
-  register: oc_get_co
-
-- name: View fifth round cluster operator status check
-  tags: wait_for_cluster_operators
-  debug:
-    var: oc_get_co.stdout_lines
-
-- name: Fifth round of waiting for cluster operators. Trying 5 times before printing status again.
-  tags: wait_for_cluster_operators
-  shell: oc get co | awk '{print $3}'
-  register: co_check
-  until: ("False" not in co_check.stdout)
-  retries: 5
-  delay: 30
-  ignore_errors: true
-
-- name: Sixth round of checking cluster operators
-  tags: wait_for_cluster_operators
-  shell: oc get co
-  register: oc_get_co
-
-- name: View sixth round cluster operator status check
-  tags: wait_for_cluster_operators
-  debug:
-    var: oc_get_co.stdout_lines
-
-- name: Sixth round of waiting for cluster operators. Trying 5 times before printing status again.
-  tags: wait_for_cluster_operators
-  shell: oc get co | awk '{print $3}'
-  register: co_check
-  until: ("False" not in co_check.stdout)
-  retries: 5
-  delay: 30
-  ignore_errors: true
-
-- name: Seventh round of checking cluster operators
-  tags: wait_for_cluster_operators
-  shell: oc get co
-  register: oc_get_co
-
-- name: View seventh round clusteroperator status check
-  tags: wait_for_cluster_operators
-  debug:
-    var: oc_get_co.stdout_lines
-
-- name: Seventh and final round of waiting for cluster operators. Trying 10 times before failing.
-  tags: wait_for_cluster_operators
-  shell: oc get co | awk '{print $3}'
-  register: co_check
-  until: ("False" not in co_check.stdout)
-  retries: 10
-  delay: 30
+    - name: Print final cluster operators
+      ansible.builtin.debug:
+        var: oc_get_co.stdout_lines
