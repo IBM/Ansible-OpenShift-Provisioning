@@ -1,0 +1,36 @@
+---
+- name: "{{ loop_count }} round of checking cluster operators"
+  tags: wait_for_cluster_operators
+  ansible.builtin.shell: |
+    set -o pipefail
+    # Get and print only cluster operators which are only in 'PROGRESSING' state
+    oc get co 2> /dev/null | grep '       True' || true
+  register: oc_get_co
+  when: not cluster_operators_ok
+
+- name: Print cluster operators which are only in 'PROGRESSING' state
+  tags: wait_for_cluster_operators
+  ansible.builtin.debug:
+    var: oc_get_co.stdout_lines
+  when: not cluster_operators_ok
+
+- name: "{{ loop_count }} round of waiting for cluster operators. Trying 10 times before printing status again"
+  tags: wait_for_cluster_operators
+  ansible.builtin.shell: |
+    set -o pipefail
+    # Check for 'AVAILABLE' state
+    oc get co 2> /dev/null | awk '{print $3}'
+  register: co_check
+  # Check for "True" and "False", in case output was empty for any reason
+  until: ("False" not in co_check.stdout) and ("True" in co_check.stdout)
+  retries: 10
+  delay: 30
+  ignore_errors: true
+  when: not cluster_operators_ok
+
+- name: Update local variable, if required
+  tags: wait_for_cluster_operators
+  ansible.builtin.set_fact:
+    cluster_operators_ok: true
+  # Check for "True" and "False", in case output was empty for any reason
+  when: not cluster_operators_ok and ("False" not in co_check.stdout) and ("True" in co_check.stdout)
