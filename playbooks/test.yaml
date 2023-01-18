@@ -1,5 +1,5 @@
 ---
-- hosts: controller
+- hosts: localhost
   gather_facts: False
   vars: 
     test_var: test
