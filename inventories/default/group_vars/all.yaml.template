@@ -153,12 +153,12 @@ env:
 
 # Section 12 - (Optional) OCP Mirror Links
   openshift:
-    client: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-client-linux.tar.gz
-    installer: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-install-linux.tar.gz
+    client: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/4.12.0/openshift-client-linux.tar.gz
+    installer: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/4.12.0/openshift-install-linux.tar.gz
   coreos:
-    kernel: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.9/4.9.0/rhcos-4.9.0-s390x-live-kernel-s390x
-    initramfs: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.9/4.9.0/rhcos-4.9.0-s390x-live-initramfs.s390x.img
-    rootfs: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.9/4.9.0/rhcos-4.9.0-s390x-live-rootfs.s390x.img
+    kernel: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/latest/rhcos-4.12.0-s390x-live-kernel-s390x
+    initramfs: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/latest/rhcos-4.12.0-s390x-live-initramfs.s390x.img
+    rootfs: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/latest/rhcos-4.12.0-s390x-live-rootfs.s390x.img
 
 # Section 13 - (Optional) OCP Install Config
   install_config:
