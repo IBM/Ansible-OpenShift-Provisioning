@@ -11,11 +11,12 @@ ansible-playbook playbooks/0_setup.yaml
     * 0_setup.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/0_setup.yaml))
     * 1_create_lpar.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/1_create_lpar.yaml))
     * 2_create_kvm_host.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/2_create_kvm_host.yaml))
-    * 3_setup_kvm_host.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/setup_kvm_host.yaml))
-    * 4_create_bastion.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_bastion.yaml))
-    * 5_setup_bastion.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/setup_bastion.yaml))
-    * 6_create_nodes.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_nodes.yaml))
-    * 7_ocp_verification.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/ocp_verification.yaml))
+    * 3_setup_kvm_host.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml))
+    * 4_create_bastion.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/4_create_bastion.yaml))
+    * 5_setup_bastion.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/5_setup_bastion.yaml))
+    * 5.1_update_ocp_rhcos_version.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/5.1_update_ocp_rhcos_version.yaml))
+    * 6_create_nodes.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/6_create_nodes.yaml))
+    * 7_ocp_verification.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/7_ocp_verification.yaml))
 * Watch Ansible as it completes the installation, correcting errors if they arise. 
 * To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml
 * Alternatively, to run all the playbooks at once, start the master playbook by running this shell command: 
@@ -100,7 +101,19 @@ Configuration of the bastion to host essential infrastructure services for the c
 * OCP install directory found at /root/ocpinst/ is created and populated with necessary files.
 * Ignition files for the bootstrap, control, and compute nodes are transferred to HTTP-accessible directory for booting nodes.
 #### Notes
-* The stickiest part is DNS setup and get_ocp role at the end. 
+* The stickiest part is DNS setup and get_ocp role at the end.
+## 5.1 Update OCP and RHCOS version 
+##### Overview
+In case that only a new version (OCP and rhcos) should be installed but the bastion should stay as it is (of course the LPAR/KVM, too), this playbooks updates the OCP version and rhcos version taken from all.yaml. After destroying the cluster just execute this playbook to update the OCP and rhcos version and than proceed with '6 Create Nodes Playbook' and '7 OCP Verification Playbook'.
+#### Outcome
+* Delete the folders /var/www/html/bin and /var/www/html/ignition.
+* CoreOS roofts is pulled to the bastion.
+* OCP client and installer are pulled down.
+* oc, kubectl and openshift-install binaries are installed.
+* OCP install-config is created from scratch, templated and backed up.
+* Manfifests are created.
+* OCP install directory found at /root/ocpinst/ is deleted, re-created and populated with necessary files.
+* Ignition files for the bootstrap, control, and compute nodes are transferred to HTTP-accessible directory for booting nodes.
 ## 6 Create Nodes Playbook
 #### Overview
 OCP cluster's nodes are created and the control plane is bootstrapped.
