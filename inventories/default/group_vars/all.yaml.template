@@ -3,9 +3,9 @@
 # For a comprehensive description of each variable, please see documentation here:
 # https://ibm.github.io/Ansible-OpenShift-Provisioning/set-variables-group-vars/ 
 
-# Section 1 - Workstation
+# Section 1 - Ansible Controller
 env:
-  workstation:
+  controller:
     sudo_pass: #X
 
 # Section 2 - LPAR(s)
@@ -147,18 +147,18 @@ env:
 # Section 11 - (Optional) Packages
   pkgs:
     galaxy: [ ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt ]
-    workstation: [ openssh, expect ]
+    controller: [ openssh, expect ]
     kvm: [ '@virt', cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
     bastion: [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
 
 # Section 12 - (Optional) OCP Mirror Links
   openshift:
-    client: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-client-linux.tar.gz
-    installer: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/openshift-install-linux.tar.gz
+    client: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/4.12.0/openshift-client-linux.tar.gz
+    installer: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/4.12.0/openshift-install-linux.tar.gz
   coreos:
-    kernel: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.9/4.9.0/rhcos-4.9.0-s390x-live-kernel-s390x
-    initramfs: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.9/4.9.0/rhcos-4.9.0-s390x-live-initramfs.s390x.img
-    rootfs: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.9/4.9.0/rhcos-4.9.0-s390x-live-rootfs.s390x.img
+    kernel: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/latest/rhcos-4.12.0-s390x-live-kernel-s390x
+    initramfs: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/latest/rhcos-4.12.0-s390x-live-initramfs.s390x.img
+    rootfs: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/latest/rhcos-4.12.0-s390x-live-rootfs.s390x.img
 
 # Section 13 - (Optional) OCP Install Config
   install_config:
