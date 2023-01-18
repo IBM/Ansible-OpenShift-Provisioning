@@ -33,7 +33,7 @@ timezone {{ env.timezone }}
 eula --agreed
 
 # Network information (will fill in during create_bastion role)
-network --bootproto=static --device={{ env.bastion.networking.interface }} --ip={{ env.bastion.networking.ip }} --gateway={{env.bastion.networking.gateway}}  --netmask={{env.bastion.networking.subnetmask}}  --noipv6 --nameserver={{env.bastion.networking.nameserver1}}{{ (',' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} --activate
+network --bootproto=static --device={{ env.bastion.networking.interface }} --ip={{ env.bastion.networking.ip }} --gateway={{env.bastion.networking.gateway}}  --netmask={{env.bastion.networking.subnetmask}}  --noipv6 --nameserver={{env.bastion.networking.nameserver1}} {{ ('--nameserver=' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} --activate
 network --hostname={{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}
 
 # Firewall and SELinux
