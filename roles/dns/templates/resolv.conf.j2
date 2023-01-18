@@ -1,2 +1,3 @@
+search {{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
 nameserver {{ env.cluster.networking.nameserver1 }}
 {{ ('nameserver ' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }}
