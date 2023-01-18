@@ -1,0 +1,15 @@
+---
+#Delete all files and folders recreate them and download OCP and rhcos again.
+- name: Delete bin folder
+  tags: update_ocp_rhcos
+  become: true
+  file:
+    path: /var/www/html/bin
+    state: absent
+
+- name: Delete ignition folder
+  tags: update_ocp_rhcos
+  become: true
+  file:
+    path: /var/www/html/ignition
+    state: absent
