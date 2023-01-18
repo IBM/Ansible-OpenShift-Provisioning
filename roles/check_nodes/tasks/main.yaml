@@ -16,7 +16,7 @@
   tags: check_nodes
   ansible.builtin.shell: |
     set -o pipefail
-    oc get nodes | grep "^{{ node }}" | awk '{print $2}'
+    oc get nodes | grep "^{{ node | lower }}" | awk '{print $2}'
   loop: "{{ env.cluster.nodes.control.hostname + env.cluster.nodes.compute.hostname }}"
   loop_control:
     loop_var: node
