@@ -20,7 +20,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: env.z.high_availability == False
+  when: env.z.high_availability == False and inventory_hostname == env.z.lpar1.hostname
 
 - name: Create the first CoreOS control node on the first KVM host, if cluster is to be highly available.
   tags: create_control_nodes
