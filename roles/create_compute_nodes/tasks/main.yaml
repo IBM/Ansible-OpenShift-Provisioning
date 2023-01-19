@@ -40,7 +40,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: env.cluster.nodes.infra.hostname is defined and env.z.high_availability == False
+  when: env.cluster.nodes.infra.hostname is defined and env.z.high_availability == False and inventory_hostname == env.z.lpar1.hostname
 
 #If cluster is to be highly available, split control and infra nodes into lists corresponding to their future KVM hosts.
 
