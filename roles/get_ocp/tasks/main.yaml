@@ -1,5 +1,17 @@
 ---
 
+- name: Delete bin and ignition folders when refresh_ocp_version has been passed as True to command-line via extra-vars.
+  tags: get_ocp, refresh_ocp_version
+  vars:
+    refresh_ocp_version: 'False'
+  file:
+    path: /var/www/html/{{ item }}
+    state: absent
+  loop:
+    - ignition
+    - bin
+  when: refresh_ocp_version == 'True'
+
 - name: Create directory bin for mirrors
   tags: get_ocp
   become: true
