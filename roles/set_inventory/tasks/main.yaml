@@ -22,7 +22,7 @@
 
 - meta: refresh_inventory
 
-- name: Add path to Ansible private key
+- name: Add path to Ansible private key in ansible.cfg
   tags: set_inventory
   lineinfile:
     line: "private_key_file=~/.ssh/{{ env.ansible_key_name }}"
