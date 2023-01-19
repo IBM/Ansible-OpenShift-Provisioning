@@ -24,6 +24,17 @@
   roles:
     - { role: ssh_add_config, tags: ssh_copy_id, ssh, when: env.network_mode == "NAT" }
 
+#Create ssh config and add jumphost for network mode = 'NAT'
+- hosts: workstation
+  tags: ssh, ssh_copy_id, section_1
+  connection: local
+  become: false
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - { role: ssh_add_config, tags: ssh_copy_id, ssh, when: env.network_mode == "NAT" }
+
 - name: 5 setup bastion - configure bastion node with essential services
   hosts: bastion
   tags: services, section_2
