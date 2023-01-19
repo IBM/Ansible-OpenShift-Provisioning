@@ -112,15 +112,7 @@
   roles:
     - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True }
     - { role: robertdebock.openvpn, tags: openvpn, when: env.z.high_availability == True }
-<<<<<<< HEAD
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 7f29c28 (gitignore hosts file in inventory)
-=======
-
->>>>>>> d37fb31 (fix(bootstrap): Deletion of existing VM image (#59))
 - hosts: localhost
   tags: services, section_2, openvpn
   become: false

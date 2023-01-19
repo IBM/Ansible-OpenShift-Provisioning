@@ -192,9 +192,8 @@ env:
   bridge_name: macvtap
   network_mode: 
 
-#jumphost if network mode is NAT
+  #jumphost if network mode is NAT
   jumphost:     
     name: 
     user: 
     pass: 
-  
