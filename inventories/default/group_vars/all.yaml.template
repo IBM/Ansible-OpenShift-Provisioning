@@ -190,4 +190,10 @@ env:
   ansible_key_name: ansible-ocpz
   ocp_ssh_key_comment: OpenShift key
   bridge_name: macvtap
-  
+  network_mode: 
+
+#jumphost if network mode is NAT
+  jumphost:     
+    name: 
+    user: 
+    pass:  

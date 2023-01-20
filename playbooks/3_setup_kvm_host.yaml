@@ -86,4 +86,4 @@
   become: true
   roles:
     - configure_storage
-    - macvtap
+    - { role: macvtap, when: env.network_mode != 'NAT' }

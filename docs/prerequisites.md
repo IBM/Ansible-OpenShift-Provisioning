@@ -55,7 +55,11 @@ ansible-galaxy collection install ibm.ibm_zhmc
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
-  * and [Xcode](https://apps.apple.com/us/app/xcode/id497799835?mt=12):
+  * [Xcode](https://apps.apple.com/us/app/xcode/id497799835?mt=12):
 ```
 xcode-select --install
+```
+  * and [sshpass](https://github.com/hudochenkov/homebrew-sshpass) if NAT instead of macvtap should be used (needed to configure the ssh tunnel):
+```
+brew install https://raw.githubusercontent.com/hudochenkov/homebrew-sshpass/master/sshpass.rb
 ```
