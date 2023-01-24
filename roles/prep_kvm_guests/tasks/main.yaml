@@ -1,31 +1,15 @@
 ---
 
-- name: Check to see if kernel already exists on KVM host
+- name: Get Red Hat CoreOS kernel and initramfs from URL to /var/lib/libvirt/images
   tags: prep_kvm_guests
-  stat:
-    path: "/var/lib/libvirt/images/rhcos-live-kernel-s390x"
-  register: kernel_check
-
-- name: Get Red Hat CoreOS kernel
-  tags: prep_kvm_guests
+  vars:
+    version: "{{ env.openshift.version }}"
+    arch: "{{ env.install_config.control.architecture }}"
+    major: "{{ env.openshift.version | string | first }}"
   get_url:
-    url: "{{ env.coreos.kernel }}"
-    dest: "/var/lib/libvirt/images/rhcos-live-kernel-s390x"
+    url: "{{ item.url }}"
+    dest: "{{ item.dest }}"
     mode: '0755'
-    force: yes
-  when: kernel_check.stat.exists == false
-
-- name: Check to see if initramfs already exists on KVM host
-  tags: prep_kvm_guests
-  stat:
-    path: "/var/lib/libvirt/images/rhcos-live-initramfs.s390x.img"
-  register: initramfs_check
-
-- name: Get Red Hat CoreOS initramfs
-  tags: prep_kvm_guests
-  get_url:
-    url: "{{ env.coreos.initramfs }}"
-    dest: "/var/lib/libvirt/images/rhcos-live-initramfs.s390x.img"
-    mode: '0755'
-    force: yes
-  when: initramfs_check.stat.exists == false
+  loop:
+    - { url: "https://mirror.openshift.com/pub/openshift-v{{ major }}/{{ arch }}/dependencies/rhcos/{{ version }}/latest/rhcos-live-kernel-{{ arch }}", dest: "/var/lib/libvirt/images/rhcos-live-kernel-{{ version }}-{{ arch }}" }
+    - { url: "https://mirror.openshift.com/pub/openshift-v{{ version | string | first }}/{{ arch }}/dependencies/rhcos/{{ version }}/latest/rhcos-live-initramfs.{{ arch }}.img", dest: "/var/lib/libvirt/images/rhcos-live-initramfs-{{ version }}-{{ arch }}.img" }
