@@ -177,11 +177,10 @@ env:
     fips: 'false'
 
 # Section 14 - (Optional) Proxy
-
-#proxy_env:
-#  http_proxy: 
-#  https_proxy: 
-#  no_proxy: 
+#  proxy:
+#    http: 
+#    https: 
+#    no: 
 
 # Section 15 - (Optional) Misc
   language: en_US.UTF-8
