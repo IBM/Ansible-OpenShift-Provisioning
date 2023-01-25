@@ -16,7 +16,6 @@
         HostName {{ env.jumphost.name }}
         User {{ env.jumphost.user }}
         IdentityFile ~/.ssh/id_rsa
-      #Host bastion-{{ env.jumphost.name }}
       Host {{ env.bastion.networking.ip }}
         HostName {{ env.bastion.networking.ip }} 
         User {{ env.bastion.access.user }}
