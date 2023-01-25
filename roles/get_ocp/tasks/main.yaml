@@ -1,13 +1,10 @@
 ---
 
-- name: Delete bin and ignition folders for idempotency.
+- name: Delete ignition folder for idempotency
   tags: get_ocp
   file:
-    path: /var/www/html/{{ item }}
+    path: /var/www/html/ignition
     state: absent
-  loop:
-    - ignition
-    - bin
 
 - name: Create directory bin for mirrors
   tags: get_ocp
