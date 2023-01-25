@@ -1,6 +1,6 @@
 # Use this if you want to re-install nodes with a new OCP version
 ---
-- name: Refresh initramfs and kernel.
+- name: Update initramfs and kernel.
   hosts: kvm_host
   become: True
   gather_facts: False
@@ -9,7 +9,7 @@
   roles:
     - prep_kvm_guests
 
-- name: Refresh ignitions and other install files.
+- name: Update ignitions and other install files.
   hosts: bastion
   become: True
   vars_files: 
