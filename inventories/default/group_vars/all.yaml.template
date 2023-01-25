@@ -1,7 +1,7 @@
 # Copy this file to 'all.yaml' in the same folder and add your required values there !
 #
 # For a comprehensive description of each variable, please see documentation here:
-# https://ibm.github.io/Ansible-OpenShift-Provisioning/set-variables-group-vars/ 
+# https://ibm.github.io/Ansible-OpenShift-Provisioning/set-variables-group-vars/
 
 # Section 1 - Ansible Controller
 env:
@@ -19,16 +19,16 @@ env:
       pass: #X
     lpar2:
       create: False
-#      hostname: 
-#      ip: 
-#      user: 
-#      pass: 
+#      hostname:
+#      ip:
+#      user:
+#      pass:
     lpar3:
       create: False
-#      hostname: 
-#      ip: 
-#      user: 
-#      pass: 
+#      hostname:
+#      ip:
+#      user:
+#      pass:
 
 # Section 3 - FTP Server
   ftp:
@@ -42,6 +42,7 @@ env:
   redhat:
     username: #X
     password: #X
+    # Make sure to enclose pull_request in 'single quotes'
     pull_secret: #'X'
 
 # Section 5 - Bastion
@@ -71,7 +72,7 @@ env:
       loadbalancer:
         on_bastion: True
 #        public_ip:
-#        private_ip:  
+#        private_ip:
 
 # Section 6 - Cluster Networking
   cluster:
@@ -79,7 +80,7 @@ env:
       metadata_name: #X
       base_domain: #X
       nameserver1: #X
-#      nameserver2: 
+#      nameserver2:
       forwarder: 1.1.1.1
 
 # Section 7 - Bootstrap Node
@@ -92,7 +93,7 @@ env:
         ip: #X
         hostname: #X
 
-# Section 8 - Control Nodes        
+# Section 8 - Control Nodes
       control:
         disk_size: 120
         ram: 16384
@@ -148,7 +149,7 @@ env:
   pkgs:
     galaxy: [ ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt ]
     controller: [ openssh, expect ]
-    kvm: [ '@virt', cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
+    kvm: [ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
     bastion: [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
 
 # Section 12 - OpenShift Settings
