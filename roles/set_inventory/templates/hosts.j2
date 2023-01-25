@@ -11,3 +11,6 @@
 
 [bastion]
 {{ env.bastion.networking.hostname }} ansible_host={{ env.bastion.networking.ip }} ansible_user={{ env.bastion.access.user }} ansible_become_password={{ env.bastion.access.pass }}
+
+[jumphost]
+{{ env.jumphost.name }} ansible_host={{ env.jumphost.ip }} ansible_user={{ env.jumphost.user }} ansible_become_password=i{{ env.jumphost.pass }}

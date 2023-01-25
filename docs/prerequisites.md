@@ -59,7 +59,8 @@ ansible-galaxy collection install ibm.ibm_zhmc
 ```
 xcode-select --install
 ```
-  * and [sshpass](https://github.com/hudochenkov/homebrew-sshpass) if NAT instead of macvtap should be used (needed to configure the ssh tunnel):
+## Jumphost for NAT network
+* If for KVM network NAT is used, instead of macvtap, a ssh tunnel using a jumphost is required to access the OCP cluster.  To configure the ssh tunnel expect is required on the jumphost. Expect can be installed by adding it to the Section 11 of the all.yaml file if the jumphost is equal to the KVMi host. Otherwise install it manually on the jumphost:
 ```
-brew install https://raw.githubusercontent.com/hudochenkov/homebrew-sshpass/master/sshpass.rb
+yum install expect 
 ```

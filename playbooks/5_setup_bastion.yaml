@@ -1,5 +1,17 @@
 ---
 
+- name: Configure ssh config file and configure ssh tunnel in case of network mode == 'NAT'
+  hosts: jumphost
+  tags: ssh, ssh_copy_id, section_1
+  become: true
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  vars:
+    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}", "{{ env.jumphost.path_to_keypair }}", "{{ env.jumphost.ip }}"]
+  roles:
+    - { role: ssh_add_config, tags: ssh_copy_id, ssh, when: env.network_mode == "NAT" }
+
 - name: 5 setup bastion - copy SSH key to access bastion
   hosts: localhost
   tags: ssh, ssh_copy_id, section_1
@@ -12,17 +24,6 @@
     ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}"]
   roles:
     - ssh_copy_id
-
-#Create ssh config and add jumphost for network mode = 'NAT'
-- hosts: workstation
-  tags: ssh, ssh_copy_id, section_1
-  connection: local
-  become: false
-  gather_facts: false
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
-  roles:
-    - { role: ssh_add_config, tags: ssh_copy_id, ssh, when: env.network_mode == "NAT" }
 
 - name: 5 setup bastion - configure bastion node with essential services
   hosts: bastion

@@ -195,5 +195,7 @@ env:
 #jumphost if network mode is NAT
   jumphost:     
     name: 
+    ip:
     user: 
     pass:  
+    path_to_keypair:
