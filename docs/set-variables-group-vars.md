@@ -133,7 +133,7 @@
 ## 12 - OpenShift Settings
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**env.openshift.version** | Version of OpenShift you would like to download and install. Use major.minor (i.e. 4.12), it<br /> will pull the latest patch from that minor version. | 4.12 
+**env.openshift.version** | Version of OpenShift you would like to download and install. Use major.minor.patch conventions (i.e. 4.12.0) | 4.12.0
 **env.install_config.api_version** | Kubernetes API version for the cluster. These install_config variables will be passed to the OCP<br /> install_config file. This file is templated in the get_ocp role during the setup_bastion playbook.<br /> To make more fine-tuned adjustments to the install_config, you can find it at<br /> roles/get_ocp/templates/install-config.yaml.j2 | v1
 **env.install_config.compute.architecture** | Computing architecture for the compute nodes. Must be s390x for clusters on IBM zSystems. | s390x
 **env.install_config.compute.hyperthreading** | Enable or disable hyperthreading on compute nodes. Recommended enabled. | Enabled

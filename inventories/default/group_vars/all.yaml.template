@@ -153,7 +153,7 @@ env:
 
 # Section 12 - OpenShift Settings
   openshift:
-    version: 4.12
+    version: 4.12.0
   install_config:
     api_version: v1
     compute:

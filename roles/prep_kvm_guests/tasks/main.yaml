@@ -3,13 +3,14 @@
 - name: Get Red Hat CoreOS kernel and initramfs from URL to /var/lib/libvirt/images
   tags: prep_kvm_guests
   vars:
-    version: "{{ env.openshift.version }}"
+    major_minor_patch: "{{ env.openshift.version }}"
+    major_minor: "{{ ( env.openshift.version | string | split('.') )[:-1] | join('.') }}"
+    major: "{{ env.openshift.version | string | split('.') | first }}"
     arch: "{{ env.install_config.control.architecture }}"
-    major: "{{ env.openshift.version | string | first }}"
   get_url:
     url: "{{ item.url }}"
     dest: "{{ item.dest }}"
     mode: '0755'
   loop:
-    - { url: "https://mirror.openshift.com/pub/openshift-v{{ major }}/{{ arch }}/dependencies/rhcos/{{ version }}/latest/rhcos-live-kernel-{{ arch }}", dest: "/var/lib/libvirt/images/rhcos-live-kernel-{{ version }}-{{ arch }}" }
-    - { url: "https://mirror.openshift.com/pub/openshift-v{{ version | string | first }}/{{ arch }}/dependencies/rhcos/{{ version }}/latest/rhcos-live-initramfs.{{ arch }}.img", dest: "/var/lib/libvirt/images/rhcos-live-initramfs-{{ version }}-{{ arch }}.img" }
+    - { url: "https://mirror.openshift.com/pub/openshift-v{{ major }}/{{ arch }}/dependencies/rhcos/{{ major_minor }}/{{ major_minor_patch }}/rhcos-live-kernel-{{ arch }}", dest: "/var/lib/libvirt/images/rhcos-live-kernel-{{ major_minor_patch }}-{{ arch }}" }
+    - { url: "https://mirror.openshift.com/pub/openshift-v{{ major }}/{{ arch }}/dependencies/rhcos/{{ major_minor }}/{{ major_minor_patch }}/rhcos-live-initramfs.{{ arch }}.img", dest: "/var/lib/libvirt/images/rhcos-live-initramfs-{{ major_minor_patch }}-{{ arch }}.img" }
