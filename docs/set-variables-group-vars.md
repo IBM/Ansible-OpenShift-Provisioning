@@ -173,4 +173,4 @@
 **env.jumphost.ip: | (Optional) The ip of the jumphost.
 **env.jumphost.user: | (Optional) The user name to login to the jumphost.
 **env.jumphost.pass: | (Optional) The password for user to login to the jumphost.
-**env.jumphost.path_to_keypair: | The path to the keypair on the jumphost to be copied to the bastion.
+**env.jumphost.path_to_keypair: | (Optional) The path to the keypair on the jumphost to be copied to the bastion.
