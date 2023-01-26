@@ -130,18 +130,10 @@
 **env.pkgs.kvm** | A list of packages that will be installed on the KVM Host during the setup_kvm_host playbook.<br /> Feel free to add more as needed, just make sure to follow the same list format. | qemu-kvm
 **env.pkgs.bastion** | A list of packages that will be installed on the bastion during the setup_bastion playbook.<br /> Feel free to add more as needed, just make sure to follow the same list format. | haproxy
 
-## 12 - (Optional) Mirror Links
+## 12 - OpenShift Settings
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**env.openshift.client** | Link to the mirror for the OpenShift client from Red Hat. Feel free to change to a different version, but <br /> make sure it is for s390x architecture. | https://mirror.openshift.com<br />/pub/openshift-v4/s390x/clients<br />/ocp/stable/openshift-<br />client-linux.tar.gz
-**env.openshift.installer** | Link to the mirror for the OpenShift installer from Red Hat.<br /> Feel free to change to a different version, but make sure it is for s390x architecture. | https://mirror.openshift.com<br />/pub/openshift-v4/s390x<br />/clients/ocp/stable/openshift-<br />install-linux.tar.gz
-**env.coreos.kernel** | Link to the mirror of the CoreOS kernel to be used for the bootstrap, control and compute nodes.<br /> Feel free to change to a different version, but make sure it is for s390x architecture. | https://mirror.openshift.com<br />/pub/openshift-v4/s390x<br />/dependencies/rhcos<br />/4.9/latest/rhcos-4.9.0-s390x-<br />live-kernel-s390x
-**env.coreos.initramfs** | Link to the mirror of the CoreOS initramfs to be used for the bootstrap, control and compute nodes.<br /> Feel free to change to a different version, but make sure it is for s390x architecture. | https://mirror.openshift.com<br />/pub/openshift-v4<br />/s390x/dependencies/rhcos<br />/4.9/latest/rhcos-4.9.0-s390x-<br />live-initramfs.s390x.img
-**env.coreos.rootfs** | Link to the mirror of the CoreOS rootfs to be used for the bootstrap, control and compute nodes.<br /> Feel free to change to a different version, but make sure it is for s390x architecture. | https://mirror.openshift.com<br />/pub/openshift-v4<br />/s390x/dependencies/rhcos<br />/4.9/latest/rhcos-4.9.0-<br />s390x-live-rootfs.s390x.img 
-
-## 13 - (Optional) OCP Install Config
-**Variable Name** | **Description** | **Example**
-:--- | :--- | :---
+**env.openshift.version** | Version of OpenShift you would like to download and install. Use major.minor.patch naming convention. | 4.12.0
 **env.install_config.api_version** | Kubernetes API version for the cluster. These install_config variables will be passed to the OCP<br /> install_config file. This file is templated in the get_ocp role during the setup_bastion playbook.<br /> To make more fine-tuned adjustments to the install_config, you can find it at<br /> roles/get_ocp/templates/install-config.yaml.j2 | v1
 **env.install_config.compute.architecture** | Computing architecture for the compute nodes. Must be s390x for clusters on IBM zSystems. | s390x
 **env.install_config.compute.hyperthreading** | Enable or disable hyperthreading on compute nodes. Recommended enabled. | Enabled
@@ -153,14 +145,14 @@
 **env.install_config.service_network** | The IP address block for services. The default value is 172.30.0.0/16. The OpenShift SDN<br /> and OVN-Kubernetes network providers support only a single IP address block for the service<br /> network. An array with an IP address block in CIDR format. | 172.30.0.0/16
 **env.install_config.fips** | True or False (boolean) for whether or not to use the United States' Federal Information Processing<br /> Standards (FIPS). Not yet certified on IBM zSystems. Enclosed in 'single quotes'. | 'false'
 
-## 14 - (Optional) Proxy
+## 13 - (Optional) Proxy
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **env.proxy.http** | (Optional) A proxy URL to use for creating HTTP connections outside the cluster. Will be<br /> used in the install-config and applied to other Ansible hosts unless set otherwise in<br /> no_proxy below. Must follow this pattern: http://username:pswd>@ip:port | http://ocp-admin:Pa$sw0rd@9.72.10.1:80
 **env.proxy.https** | (Optional) A proxy URL to use for creating HTTPS connections outside the cluster. Will be<br /> used in the install-config and applied to other Ansible hosts unless set otherwise in<br /> no_proxy below. Must follow this pattern: https://username:pswd@ip:port | https://ocp-admin:Pa$sw0rd@9.72.10.1:80  
 **env.proxy.no** | (Optional) A comma-separated list (no spaces) of destination domain names, IP<br /> addresses, or other network CIDRs to exclude from proxying. When using a<br /> proxy, all necessary IPs and domains for your cluster will be added automatically. See<br /> roles/get_ocp/templates/install-config.yaml.j2 for more details on the template. <br />Preface a domain with . to match subdomains only. For example, .y.com matches<br /> x.y.com, but not y.com. Use * to bypass the proxy for all listed destinations. | example.com,192.168.10.1
 
-## 15 - (Optional) Misc
+## 14 - (Optional) Misc
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **env.language** | What language would you like Red Hat Enterprise Linux to use? In UTF-8 language code.<br /> Available languages and their corresponding codes can be found [here](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/5/html-single/international_language_support_guide/index), in the "Locale" column of Table 2.1. | en_US.UTF-8
