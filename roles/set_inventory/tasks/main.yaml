@@ -13,12 +13,13 @@
     echo "${ansible_config%/*}/"
   register: find_project
 
-- name: Template out inventory with localhost, FTP, KVM host, and bastion information
+- name: Template out inventory with localhost, FTP, KVM host, jumphost(optional) and bastion information
   tags: set_inventory
   template:
     src: hosts.j2
     dest: "{{ find_project.stdout }}{{ find_inventory.stdout }}/hosts"
     force: yes
+  failed_when: ( env.network_mode | upper == 'NAT' ) and (env.jumphost.name is none or env.jumphost.ip is none or env.jumphost.user is none or env.jumphost.pass is none)
 
 - meta: refresh_inventory
 
