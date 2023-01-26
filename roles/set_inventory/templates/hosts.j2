@@ -12,5 +12,7 @@
 [bastion]
 {{ env.bastion.networking.hostname }} ansible_host={{ env.bastion.networking.ip }} ansible_user={{ env.bastion.access.user }} ansible_become_password={{ env.bastion.access.pass }}
 
-[jumphost]
-{{ env.jumphost.name }} ansible_host={{ env.jumphost.ip }} ansible_user={{ env.jumphost.user }} ansible_become_password=i{{ env.jumphost.pass }}
+{% if ( env.network_mode | upper == 'NAT' ) and ( env.jumphost.name is not none ) and ( env.jumphost.ip is not none ) and ( env.jumphost.user is not none ) and ( env.jumphost.pass is not none ) -%}
+{{ '[jumphost]' }}
+{{ env.jumphost.name | string + ' ansible_host=' + env.jumphost.ip | string + ' ansible_user=' + env.jumphost.user | string + ' ansible_become_password=' + env.jumphost.pass | string }}
+{% endif -%}
