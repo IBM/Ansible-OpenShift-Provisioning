@@ -11,8 +11,8 @@
     --cpu host \
     --vcpus {{env.cluster.nodes.control.vcpu}} \
     --network network={{env.bridge_name}} \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.control.ip[i]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[i]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
+    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{env.cluster.nodes.control.ip[i]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[i]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
     --graphics none \
     --wait=-1 \
     --noautoconsole
@@ -33,8 +33,8 @@
     --cpu host \
     --vcpus {{env.cluster.nodes.control.vcpu}} \
     --network network={{env.bridge_name}} \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.control.ip[0]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[0]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
+    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{env.cluster.nodes.control.ip[0]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[0]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
     --graphics none \
     --wait=-1 \
     --noautoconsole
@@ -51,8 +51,8 @@
     --cpu host \
     --vcpus {{env.cluster.nodes.control.vcpu}} \
     --network network={{env.bridge_name}} \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.control.ip[1]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[1]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
+    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{env.cluster.nodes.control.ip[1]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[1]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
     --graphics none \
     --wait=-1 \
     --noautoconsole
@@ -69,8 +69,8 @@
     --cpu host \
     --vcpus {{env.cluster.nodes.control.vcpu}} \
     --network network={{env.bridge_name}} \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-s390x,initrd=rhcos-live-initramfs.s390x.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs.s390x.img ip={{env.cluster.nodes.control.ip[2]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[2]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
+    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{env.bastion.networking.ip}}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{env.cluster.nodes.control.ip[2]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[2]}}::none:1500 nameserver={{env.cluster.networking.nameserver1}} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign" \
     --graphics none \
     --wait=-1 \
     --noautoconsole

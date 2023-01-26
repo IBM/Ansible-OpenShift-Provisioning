@@ -1,16 +1,10 @@
 ---
 
-- name: Delete bin and ignition folders when refresh_ocp_version has been passed as True to command-line via extra-vars.
-  tags: get_ocp, refresh_ocp_version
-  vars:
-    refresh_ocp_version: 'False'
+- name: Delete ignition folder for idempotency
+  tags: get_ocp
   file:
-    path: /var/www/html/{{ item }}
+    path: /var/www/html/ignition
     state: absent
-  loop:
-    - ignition
-    - bin
-  when: refresh_ocp_version == 'True'
 
 - name: Create directory bin for mirrors
   tags: get_ocp
@@ -21,21 +15,6 @@
     mode: '0755'
     owner: "root"
     group: "root"
-
-- name: Check to see if rootfs already exists on bastion
-  tags: get_ocp
-  stat:
-    path: /var/www/html/bin/rhcos-live-rootfs.s390x.img
-  register: rootfs_check
-
-- name: Get Red Hat CoreOS rootfs file if it's not there already.
-  tags: get_ocp
-  get_url:
-    url: "{{ env.coreos.rootfs }}"
-    dest: /var/www/html/bin/rhcos-live-rootfs.s390x.img
-    mode: '0755'
-    force: yes
-  when: rootfs_check.stat.exists == false
 
 - name: Delete OCP download directory for idempotency, because ignition files deprecate after 24 hours.
   tags: get_ocp
@@ -50,6 +29,13 @@
     path: /root/ocpinst
     state: directory
 
+- name: Get Red Hat CoreOS rootfs file if it's not there already.
+  tags: get_ocp
+  get_url:
+    url: "https://mirror.openshift.com/pub/openshift-v{{ env.openshift.version | string | split('.') | first }}/{{ env.install_config.control.architecture }}/dependencies/rhcos/{{ ( env.openshift.version | string | split('.') )[:-1] | join('.') }}/{{ env.openshift.version }}/rhcos-live-rootfs.{{ env.install_config.control.architecture }}.img"
+    dest: "/var/www/html/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img"
+    mode: '0644'
+
 - name: Unzip OCP client and installer
   tags: get_ocp
   ansible.builtin.unarchive:
@@ -57,15 +43,15 @@
     dest: /root/ocpinst/
     remote_src: yes
   loop:
-    - "{{ env.openshift.client }}"
-    - "{{ env.openshift.installer }}"
+    - "https://mirror.openshift.com/pub/openshift-v{{ env.openshift.version | string | split('.') | first }}/{{ env.install_config.control.architecture }}/clients/ocp/{{ env.openshift.version }}/openshift-client-linux.tar.gz"
+    - "https://mirror.openshift.com/pub/openshift-v{{ env.openshift.version | string | split('.') | first }}/{{ env.install_config.control.architecture }}/clients/ocp/{{ env.openshift.version }}/openshift-install-linux.tar.gz"
 
 - name: Copy kubectl, oc, and openshift-install binaries to /usr/local/sbin
   tags: get_ocp
   become: true
   ansible.builtin.copy:
-    src: /root/ocpinst/{{item}}
-    dest: /usr/sbin/{{item}}
+    src: /root/ocpinst/{{ item }}
+    dest: /usr/sbin/{{ item }}
     owner: root
     group: root
     mode: '755'
@@ -75,13 +61,10 @@
     - oc
     - openshift-install
 
-- name: Determine whether proxy info is needed in the install-config.
-  tags: get_ocp
-  set_fact:
-    use_proxy: "{{ 'True' if (proxy_env.http_proxy is defined or proxy_env.https_proxy is defined or proxy_env.no_proxy is defined) else 'False' }}"
-
 - name: Use template file to create install-config and backup.
   tags: get_ocp
+  vars:
+    use_proxy: "{{ 'True' if (proxy_env.http_proxy is defined or proxy_env.https_proxy is defined or proxy_env.no_proxy is defined) else 'False' }}"
   template:
     src: install-config.yaml.j2
     dest: "{{ item }}"
