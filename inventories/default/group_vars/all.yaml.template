@@ -152,16 +152,9 @@ env:
     kvm: [ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
     bastion: [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
 
-# Section 12 - (Optional) OCP Mirror Links
+# Section 12 - OpenShift Settings
   openshift:
-    client: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/4.12.0/openshift-client-linux.tar.gz
-    installer: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/4.12.0/openshift-install-linux.tar.gz
-  coreos:
-    kernel: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/latest/rhcos-4.12.0-s390x-live-kernel-s390x
-    initramfs: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/latest/rhcos-4.12.0-s390x-live-initramfs.s390x.img
-    rootfs: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/latest/rhcos-4.12.0-s390x-live-rootfs.s390x.img
-
-# Section 13 - (Optional) OCP Install Config
+    version: 4.12.0
   install_config:
     api_version: v1
     compute:
@@ -177,14 +170,13 @@ env:
     service_network: 172.30.0.0/16
     fips: 'false'
 
-# Section 14 - (Optional) Proxy
+# Section 13 - (Optional) Proxy
+#  proxy:
+#    http: 
+#    https: 
+#    no: 
 
-#proxy_env:
-#  http_proxy: 
-#  https_proxy: 
-#  no_proxy: 
-
-# Section 15 - (Optional) Misc
+# Section 14 - (Optional) Misc
   language: en_US.UTF-8
   timezone: America/New_York
   root_access: false
