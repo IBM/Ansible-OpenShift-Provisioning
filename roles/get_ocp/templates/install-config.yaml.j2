@@ -2,9 +2,9 @@ apiVersion: {{ env.install_config.api_version }}
 baseDomain: {{ env.cluster.networking.base_domain }}
 {% if use_proxy == true %}
 {{ 'proxy: ' }}
-{{ '  httpProxy: ' + proxy_env.http_proxy }}
-{{ '  httpsProxy: ' + proxy_env.https_proxy }}
-{{ '  noProxy: ' + proxy_env.no_proxy + ',' + '127.0.0.1,' + 'localhost,' +
+{{ '  httpProxy: ' + env.proxy.http }}
+{{ '  httpsProxy: ' + env.proxy.https }}
+{{ '  noProxy: ' + env.proxy.no + ',' + '127.0.0.1,' + 'localhost,' +
 env.bastion.networking.ip + ',' +
 env.cluster.nodes.bootstrap.ip + ',' +
 env.cluster.nodes.control.ip|join(',') + ',' +
