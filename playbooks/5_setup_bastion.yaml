@@ -1,5 +1,18 @@
 ---
 
+- name: Copy ssh key to jumphost if network is NAT and jumphost defined
+  hosts: localhost
+  tags: ssh, ssh_copy_id, section_1
+  connection: local
+  become: false
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  vars:
+    ssh_target: ["{{ env.jumphost.ip }}", "{{ env.jumphost.user }}", "{{ env.jumphost.pass }}"]
+  roles:
+    - { role: ssh_copy_id, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
+
 - name: Configure ssh config file and configure ssh tunnel in case of network mode == 'NAT'
   hosts: jumphost
   tags: ssh, ssh_copy_id, section_1
@@ -10,7 +23,7 @@
   vars:
     ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}", "{{ env.jumphost.path_to_keypair }}", "{{ env.jumphost.ip }}"]
   roles:
-    - { role: ssh_add_config, tags: ssh_copy_id, ssh, when: env.network_mode | upper == "NAT" }
+    - { role: ssh_add_config, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
 
 - name: 5 setup bastion - copy SSH key to access bastion
   hosts: localhost
