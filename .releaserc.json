@@ -24,7 +24,6 @@
           {"type": "test", "section": "Tests", "hidden": false}
         ]
       }
-    }],
-    "@semantic-release/github"
+    }]
   ]
 }
