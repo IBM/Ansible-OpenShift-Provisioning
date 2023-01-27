@@ -15,7 +15,7 @@
     - { role: ssh_cp_keys_jumphost, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
 
 - name: Configure ssh config file if network mode == 'NAT'
-  hosts: localhost
+  hosts: jumphost
   tags: ssh, ssh_copy_id, section_1
   become: true
   gather_facts: false
