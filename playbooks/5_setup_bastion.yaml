@@ -12,9 +12,10 @@
     ssh_target: ["{{ env.jumphost.ip }}", "{{ env.jumphost.user }}", "{{ env.jumphost.pass }}"]
   roles:
     - { role: ssh_copy_id, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
+    - { role: ssh_cp_keys_jumphost, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
 
-- name: Configure ssh config file and configure ssh tunnel in case of network mode == 'NAT'
-  hosts: jumphost
+- name: Configure ssh config file if network mode == 'NAT'
+  hosts: localhost
   tags: ssh, ssh_copy_id, section_1
   become: true
   gather_facts: false

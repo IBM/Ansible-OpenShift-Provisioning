@@ -1,0 +1,19 @@
+---
+
+- name: Create ssh config file if network mode is NAT
+  tags: ssh_copy_id, ssh
+  ansible.builtin.blockinfile:
+    path: ~/.ssh/config
+    backup: true
+    create: true
+    mode: '0644'
+    block: |
+      Host bastion-jump
+        HostName {{ env.jumphost.name }}
+        User {{ env.jumphost.user }}
+        IdentityFile ~/.ssh/id_rsa
+      Host {{ env.bastion.networking.ip }}
+        HostName {{ env.bastion.networking.ip }} 
+        User {{ env.bastion.access.user }}
+        IdentityFile ~/.ssh/{{ env.ansible_key_name }}
+        ProxyJump bastion-jump 
