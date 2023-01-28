@@ -46,9 +46,6 @@ ansible-galaxy collection install community.general community.crypto ansible.pos
 ```
 * If you will be using these playbooks to automate the creation of the LPAR(s) that will act as KVM host(s) for the cluster, you will also need:
 ```
-pip3 install zhmcclient cryptography packaging PyYAML
-```
-```
 ansible-galaxy collection install ibm.ibm_zhmc 
 ```
 * If you are using MacOS, you also need to have [Homebrew](https://brew.sh/) package manager installed:
