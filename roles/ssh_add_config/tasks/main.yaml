@@ -7,7 +7,7 @@
 - name: Use template file to create expect script
   tags: ssh_copy_id, ssh
   template:
-    src: ssh-copy-id.exp.j2
+    src: ssh_copy_id.exp.j2
     dest: "/tmp/ssh-copy-id-expect-pass.exp"
     force: yes
 
