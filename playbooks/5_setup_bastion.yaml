@@ -23,6 +23,14 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
     ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}", "{{ env.jumphost.path_to_keypair }}", "{{ env.jumphost.ip }}"]
+  pre_tasks:
+    - name: Generate an OpenSSH keypair with the default values (4096 bits, RSA)
+      become: false
+      tags: ssh_key_gen, ssh, section_1
+      community.crypto.openssh_keypair:
+        path: "~/.ssh/id_rsa"
+        passphrase: ""
+        regenerate: full_idempotence
   roles:
     - { role: ssh_add_config, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
 
