@@ -13,6 +13,12 @@
     echo "${ansible_config%/*}/"
   register: find_project
 
+- name: Fail if network_mode is NAT and jumphost vars are undefined.
+  tags: set_inventory
+  fail:
+    msg: "Error jumphost vars undefined: when env.network_mode is NAT, you must set all env.jumphost variables."
+  when: ( env.network_mode | upper == 'NAT' ) and (env.jumphost.name is none or env.jumphost.ip is none or env.jumphost.user is none or env.jumphost.pass is none or env.jumphost.path_to_keypair is none)
+
 - name: Template out inventory with localhost, FTP, KVM host, jumphost(optional) and bastion information
   tags: set_inventory
   template:
