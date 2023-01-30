@@ -8,12 +8,12 @@
     create: true
     mode: '0644'
     block: |
-      Host bastion-jump
-        HostName {{ env.jumphost.name }}
+      Host {{env.bastion.vm_name }} 
+        HostName {{ env.jumphost.ip }}
         User {{ env.jumphost.user }}
-        IdentityFile ~/.ssh/id_rsa
+        IdentityFile {{ env.jumphost.path_to_key_name }} 
       Host {{ env.bastion.networking.ip }}
         HostName {{ env.bastion.networking.ip }} 
         User {{ env.bastion.access.user }}
         IdentityFile ~/.ssh/{{ env.ansible_key_name }}
-        ProxyJump bastion-jump 
+        ProxyJump {{ env.bastion.vm_name }} 
