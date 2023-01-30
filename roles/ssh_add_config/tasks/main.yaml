@@ -4,6 +4,13 @@
   tags: ssh_copy_id, ssh
   include_vars: "{{inventory_dir}}/group_vars/all.yaml"
 
+- name: Delete SSH key from known hosts if it already exists for idempotency
+  tags: ssh_copy_id, ssh
+  lineinfile:
+    path: "~/.ssh/known_hosts"
+    search_string: "{{ ssh_target[0] }}"
+    state: absent
+
 - name: Use template file to create expect script
   tags: ssh_copy_id, ssh
   template:
