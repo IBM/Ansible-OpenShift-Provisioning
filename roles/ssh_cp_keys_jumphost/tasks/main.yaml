@@ -1,6 +1,6 @@
 ---
 
-- name: Create ssh config file if network mode is NAT
+- name: Create ssh config file (or add to an exsting file) to if network mode is NAT
   tags: ssh_copy_id, ssh
   ansible.builtin.blockinfile:
     path: ~/.ssh/config
