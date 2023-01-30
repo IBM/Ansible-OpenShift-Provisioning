@@ -19,7 +19,6 @@
     src: hosts.j2
     dest: "{{ find_project.stdout }}{{ find_inventory.stdout }}/hosts"
     force: yes
-  failed_when: ( env.network_mode | upper == 'NAT' ) and (env.jumphost.name is none or env.jumphost.ip is none or env.jumphost.user is none or env.jumphost.pass is none)
 
 - meta: refresh_inventory
 
