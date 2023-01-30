@@ -11,6 +11,12 @@
     dest: "/tmp/ssh-copy-id-expect-pass.exp"
     force: yes
 
+- name: Installing required package 'expect'.
+  ansible.builtin.package:
+    name: expect
+    state: latest
+    update_cache: yes
+
 - name: Copy SSH ID from jumphost to bastion with pre-provided password
   tags: ssh_copy_id, ssh
   command: "expect /tmp/ssh-copy-id-expect-pass.exp"
