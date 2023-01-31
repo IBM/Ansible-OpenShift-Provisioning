@@ -1,0 +1,23 @@
+---
+# Section 1 - Workstation
+vault_workstation_sudo_pass: ""
+
+# Section 2 - LPAR(s)
+vault_z_lpar1_pass: ""
+
+#vault_z_lpar2_pass: ""
+#vault_z_lpar3_pass: ""
+
+# Section 3 - FTP Server
+vault_ftp_pass: ""
+
+# Section 4 - Red Hat
+vault_redhat_password: ""
+vault_redhat_pull_secret: ''
+
+# Section 5 - Bastion
+vault_bastion_access_pass: ""
+vault_bastion_access_root_pass: ""
+
+# Section 15 - (Optional) Misc
+env_jumphost_pass: ""

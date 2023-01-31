@@ -1,8 +1,19 @@
 # Step 2: Set Variables (group_vars)
 ## Overview
 * In a text editor of your choice, open the template of the [environment variables file](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template). Make a copy of it called all.yaml and paste it into the same directory with its template.
+* In addition open the template of the vault file [vault variables]((https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/vault.yaml.template) and make a copy of it called vault.yaml and paste it into the same directory with its template.
 * all.yaml is your master variables file and you will likely reference it many times throughout the process. The default inventory can be found at [inventories/default](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default).
-* The variables marked with an `X` are required to be filled in. Many values are pre-filled or are optional. Optional values are commented out; in order to use them, remove the `#` and fill them in.
+* vault.yaml is the ansible vault file holding all passwords and secrets. This vault file need to be encrypted before the playbooks are being executed. 
+    * To encrypt it execute the following command:
+      * ansible-vault encrypt inventories/default/group_vars/vault.yaml
+        You will be prompted for to enter a password. While executing the playbooks you will be prompted to enter this password.  
+    * To edit an encrypted vault file run following command:
+      * ansible-vault edit inventories/default/group_vars/vault.yaml   
+    * To decrypt the vault file run follwoing command:
+      * ansible-vault decrypt inventories/default/group_vars/vault.yaml
+    * For more information check the [ansible-vault documentation](https://docs.ansible.com/ansible/2.8/user_guide/playbooks_vault.html).   
+* The variables marked with an `X` within all.yaml are required to be filled in. Many values are pre-filled or are optional. Optional values are commented out; in order to use them, remove the `#` and fill them in.
+* <u>Note passwords and secrets</u>: All passwords and secrets need to be specified in the vault.yaml! It's strongly recommended to use an encrypted vault file to prevent security issues!!
 * This is the most important step in the process. Take the time to make sure everything here is correct.
 * <u>Note on YAML syntax</u>: Only the lowest value in each hierarchicy needs to be filled in. For example, at the top of the variables file env and z don't need to be filled in, but the cpc_name does. There are X's where input is required to help you with this.
 * Scroll the table to the right to see examples for each variable.
@@ -10,7 +21,7 @@
 ## 1 - Controller
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**env.controller.sudo_pass** | The password to the machine running Ansible (localhost).<br /> This will only be used for two things. To ensure you've installed the<br /> pre-requisite packages if you're on Linux, and to add the login URL<br /> to your /etc/hosts file. | Pas$w0rd!
+**env.controller.sudo_pass** | The password to the machine running Ansible (localhost).<br /> This will only be used for two things. To ensure you've installed the<br /> pre-requisite packages if you're on Linux, and to add the login URL<br /> to your /etc/hosts file. <br />This variable needs to be configured within the vault.yaml file by specifying vault_workstation_sudo_pass variable.| Pas$w0rd!
 
 ## 2 - LPAR(s)
 **Variable Name** | **Description** | **Example**
@@ -20,24 +31,24 @@
 **env.z.lpar1.hostname** | The hostname of the KVM host. | kvm-host-01
 **env.z.lpar1.ip** | The IPv4 address of the KVM host. | 192.168.10.1
 **env.z.lpar1.user** | Username for Linux admin on KVM host 1. Recommended to run as a non-root user with sudo access. | admin
-**env.z.lpar1.pass** | The password for the user that will be created or exists on the KVM host.  | ch4ngeMe!
+**env.z.lpar1.pass** | The password for the user that will be created or exists on the KVM host. <br />This variable needs to be configured within the vault.yaml file by specifying vault_z_lpar1_pass variable.  | ch4ngeMe!
 **env.z.lpar2.create** | To create a second LPAR and install RHEL on it to act as<br /> another KVM host, mark True. If using pre-existing LPAR(s) with RHEL<br /> already installed, mark False. | True
 **env.z.lpar2.hostname** | <b>(Optional)</b> The hostname of the second KVM host. | kvm-host-02
 **env.z.lpar2.ip** | <b>(Optional)</b> The IPv4 address of the second KVM host. | 192.168.10.2
 **env.z.lpar2.user** | Username for Linux admin on KVM host 2. Recommended to run as a non-root user with sudo access. | admin
-**env.z.lpar2.pass** | <b>(Optional)</b> The password for the admin user on the second KVM host. | ch4ngeMe!
+**env.z.lpar2.pass** | <b>(Optional)</b> The password for the admin user on the second KVM host. <br />This variable needs to be configured within the vault.yaml file by specifying vault_z_lpar2_pass variable.| ch4ngeMe!
 **env.z.lpar3.create** | To create a third LPAR and install RHEL on it to act as<br /> another KVM host, mark True. If using pre-existing LPAR(s) with RHEL<br /> already installed, mark False. | True
 **env.z.lpar3.hostname** | <b>(Optional)</b> The hostname of the third KVM host. | kvm-host-03
 **env.z.lpar3.ip** | <b>(Optional)</b> The IPv4 address of the third KVM host. | 192.168.10.3
 **env.z.lpar3.user** | Username for Linux admin on KVM host 3. Recommended to run as a non-root user with sudo access. | admin
-**env.z.lpar3.pass** | <b>(Optional)</b> The password for the admin user on the third KVM host. | ch4ngeMe!
+**env.z.lpar3.pass** | <b>(Optional)</b> The password for the admin user on the third KVM host. <br />This variable needs to be configured within the vault.yaml file by specifying vault_z_lpar3_pass variable. | ch4ngeMe!
 
 ## 3 - FTP Server
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **env.ftp.ip** | IPv4 address for the FTP server that will be used to pass config files and<br /> iso to KVM host LPAR(s) and bastion VM during their first boot. | 192.168.10.201
 **env.ftp.user** | Username to connect to the FTP server. Must have sudo and SSH access. | ftp-user
-**env.ftp.pass** | Password to connect to the FTP server as above user. | FTPpa$s!
+**env.ftp.pass** | Password to connect to the FTP server as above user. <br />This variable needs to be configured within the vault.yaml file by specifying vault_ftp_pass variable. | FTPpa$s!
 **env.ftp.iso_mount_dir** | Directory path relative to FTP root where RHEL ISO is mounted. If FTP root is /var/ftp/pub<br /> and the ISO is mounted at /var/ftp/pub/RHEL/8.5 then this variable would be<br /> RHEL/8.5. No slash before or after. | RHEL/8.5
 **env.ftp.cfgs_dir** | Directory path relative to FTP root where configuration files can be stored. If FTP root is /var/ftp/pub<br /> and you would like to store the configs at /var/ftp/pub/ocpz-config then this variable would be<br /> ocpz-config. No slash before or after. | ocpz-config
 
@@ -45,8 +56,8 @@
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **env.redhat.username** | Red Hat username with a valid license or free trial to Red Hat<br /> OpenShift Container Platform (RHOCP), which comes with<br /> necessary licenses for Red Hat Enterprise Linux (RHEL) and<br /> Red Hat CoreOS (RHCOS). | redhat.user
-**env.redhat.password** | Password to Red Hat above user's account. Used to auto-attach<br /> necessary subscriptions to KVM Host, bastion VM, and pull live<br /> images for OpenShift. | rEdHatPa$s!
-**env.redhat.pull_secret** | Pull secret for OpenShift, comes from Red Hat's [Hybrid Cloud Console](https://console.redhat.com/openshift/install/ibmz/user-provisioned).<br /> Make sure to enclose in 'single quotes'.<br />  | '{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}' 
+**env.redhat.password** | Password to Red Hat above user's account. Used to auto-attach<br /> necessary subscriptions to KVM Host, bastion VM, and pull live<br /> images for OpenShift. <br />This variable needs to be configured within the vault.yaml file by specifying vault_redhat_password variable. | rEdHatPa$s!
+**env.redhat.pull_secret** | Pull secret for OpenShift, comes from Red Hat's [Hybrid Cloud Console](https://console.redhat.com/openshift/install/ibmz/user-provisioned).<br /> Make sure to enclose in 'single quotes'.<br />  <br />This variable needs to be configured within the vault.yaml file by specifying vault_redhat_pull_secret variable. | '{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}' 
 
 ## 5 - Bastion
 **Variable Name** | **Description** | **Example**
@@ -66,8 +77,8 @@
 **env.bastion.networking.interface** | Name of the networking interface on the bastion from Linux's perspective. Most likely enc1. | enc1
 **env.bastion.networking.base_<br />domain** | Base domain that, when combined with the hostname, creates a fully-qualified<br /> domain name (FQDN) for the bastion? | ihost.com
 **env.bastion.access.user** | What would you like the admin's username to be on the bastion?<br /> If root, make pass and root_pass vars the same. | admin
-**env.bastion.access.pass** | The password to the bastion's admin user. If using root, make<br /> pass and root_pass vars the same. | cH4ngeM3!
-**env.bastion.access.root_pass** | The root password for the bastion. If using root, make<br /> pass and root_pass vars the same. | R0OtPa$s!
+**env.bastion.access.pass** | The password to the bastion's admin user. If using root, make<br /> pass and root_pass vars the same. <br />This variable needs to be configured within the vault.yaml file by specifying vault_bastion_access_pass variable. | cH4ngeM3!
+**env.bastion.access.root_pass** | The root password for the bastion. If using root, make<br /> pass and root_pass vars the same. <br />This variable needs to be configured within the vault.yaml file by specifying vault_bastion_access_root_pass variable. | R0OtPa$s!
 **env.bastion.options.dns** | Would you like the bastion to host the DNS information for the<br /> cluster? True or False. If false, resolution must come from<br /> elsewhere in your environment. Make sure to add IP addresses for<br /> KVM hosts, bastion, bootstrap, control, compute nodes, AND api,<br /> api-int and *.apps as described [here](https://docs.openshift.com/container-platform/4.8/installing/installing_bare_metal/installing-bare-metal-network-customizations.html) in section "User-provisioned<br /> DNS Requirements" Table 5. If True this will be done for you in<br /> the dns and check_dns roles. | True
 **env.bastion.options.load<br />balancer.on_bastion** | Would you like the bastion to host the load balancer (HAProxy) for the cluster?<br /> True or False (boolean).<br /> If false, this service must be provided elsewhere in your environment, and public and<br /> private IP of the load balancer must be<br /> provided in the following two variables. | True
 **env.bastion.options.load<br />balancer.public_ip** | (Only required if env.bastion.options.loadbalancer.on_bastion is True). The public IPv4<br /> address for your environment's loadbalancer. api, apps, *.apps must use this. | 192.168.10.50

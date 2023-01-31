@@ -1,11 +1,14 @@
 # Step 4: Run the Playbooks
 ## Overview
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
-* Run this shell command:
+* To run the playbooks with an encrypted vault file and specify the password interactively run the following shell command:
 ```
-ansible-playbook playbooks/0_setup.yaml 
+ansible-playbook playbooks/0_setup.yaml --ask-vault-pass
 ```
-
+* Alternatively, the password can be specified with a file. When using a file verify that the file permissions are set correctly and no one else can access your key file.
+```
+ansible-playbook playbooks/0_setup.yaml --vault-password-file ~/.vault_pass_file.txt
+```
 * Run each part step-by-step by running one playbook at a time, or all at once using [playbooks/site.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/site.yaml). 
 * Here's the full list of playbooks to be run in order, full descriptions of each can be found further down the page:
     * 0_setup.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/0_setup.yaml))
