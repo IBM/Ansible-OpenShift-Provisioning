@@ -21,7 +21,7 @@
 ## 1 - Controller
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**env.controller.sudo_pass** | The password to the machine running Ansible (localhost).<br /> This will only be used for two things. To ensure you've installed the<br /> pre-requisite packages if you're on Linux, and to add the login URL<br /> to your /etc/hosts file. <br />This variable needs to be configured within the vault.yaml file by specifying vault_workstation_sudo_pass variable.| Pas$w0rd!
+**env.controller.sudo_pass** | The password to the machine running Ansible (localhost).<br /> This will only be used for two things. To ensure you've installed the<br /> pre-requisite packages if you're on Linux, and to add the login URL<br /> to your /etc/hosts file. <br />This variable needs to be configured within the vault.yaml file by specifying vault_controller_sudo_pass variable.| Pas$w0rd!
 
 ## 2 - LPAR(s)
 **Variable Name** | **Description** | **Example**
