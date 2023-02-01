@@ -20,4 +20,4 @@ vault_bastion_access_pass: ""
 vault_bastion_access_root_pass: ""
 
 # Section 15 - (Optional) Misc
-env_jumphost_pass: ""
+vault_jumphost_pass:
