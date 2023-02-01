@@ -46,7 +46,7 @@
 :--- | :--- | :---
 **env.redhat.username** | Red Hat username with a valid license or free trial to Red Hat<br /> OpenShift Container Platform (RHOCP), which comes with<br /> necessary licenses for Red Hat Enterprise Linux (RHEL) and<br /> Red Hat CoreOS (RHCOS). | redhat.user
 **env.redhat.password** | Password to Red Hat above user's account. Used to auto-attach<br /> necessary subscriptions to KVM Host, bastion VM, and pull live<br /> images for OpenShift. | rEdHatPa$s!
-**env.redhat.pull_secret** | Pull secret for OpenShift, comes from Red Hat's [Hybrid Cloud Console](https://console.redhat.com/openshift/install/ibmz/user-provisioned).<br /> Make sure to enclose in 'single quotes'.<br />  | '{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}' 
+**env.redhat.pull_secret** | Pull secret for OpenShift, comes from Red Hat's [Hybrid Cloud Console](https://console.redhat.com/openshift/install/ibmz/user-provisioned).<br /> Make sure to enclose in 'single quotes'.<br />  | '{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}'
 
 ## 5 - Bastion
 **Variable Name** | **Description** | **Example**
@@ -141,7 +141,7 @@
 **env.install_config.control.hyperthreading** | Enable or disable hyperthreading on control nodes. Recommended enabled. | Enabled
 **env.install_config.cluster_network.cidr** | IPv4 block in Internal cluster networking in Classless Inter-Domain<br /> Routing (CIDR) notation. Recommended to keep as is. | 10.128.0.0/14
 **env.install_config.cluster_network.host_prefix** | The subnet prefix length to assign to each individual node. For example, if<br /> hostPrefix is set to 23 then each node is assigned a /23 subnet out of the given cidr. A hostPrefix<br /> value of 23 provides 510 (2^(32 - 23) - 2) pod IP addresses. | 23
-**env.install_config.cluster_network.type** | The cluster network provider Container Network Interface (CNI) plug-in to install.<br /> Either OpenShiftSDN (recommended) or OVNKubernetes. | OpenShiftSDN
+**env.install_config.cluster_network.type** | The cluster network provider Container Network Interface (CNI) plug-in to install.<br /> Either OpenShiftSDN or OVNKubernetes (default). | OVNKubernetes
 **env.install_config.service_network** | The IP address block for services. The default value is 172.30.0.0/16. The OpenShift SDN<br /> and OVN-Kubernetes network providers support only a single IP address block for the service<br /> network. An array with an IP address block in CIDR format. | 172.30.0.0/16
 **env.install_config.fips** | True or False (boolean) for whether or not to use the United States' Federal Information Processing<br /> Standards (FIPS). Not yet certified on IBM zSystems. Enclosed in 'single quotes'. | 'false'
 
@@ -149,7 +149,7 @@
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **env.proxy.http** | (Optional) A proxy URL to use for creating HTTP connections outside the cluster. Will be<br /> used in the install-config and applied to other Ansible hosts unless set otherwise in<br /> no_proxy below. Must follow this pattern: http://username:pswd>@ip:port | http://ocp-admin:Pa$sw0rd@9.72.10.1:80
-**env.proxy.https** | (Optional) A proxy URL to use for creating HTTPS connections outside the cluster. Will be<br /> used in the install-config and applied to other Ansible hosts unless set otherwise in<br /> no_proxy below. Must follow this pattern: https://username:pswd@ip:port | https://ocp-admin:Pa$sw0rd@9.72.10.1:80  
+**env.proxy.https** | (Optional) A proxy URL to use for creating HTTPS connections outside the cluster. Will be<br /> used in the install-config and applied to other Ansible hosts unless set otherwise in<br /> no_proxy below. Must follow this pattern: https://username:pswd@ip:port | https://ocp-admin:Pa$sw0rd@9.72.10.1:80
 **env.proxy.no** | (Optional) A comma-separated list (no spaces) of destination domain names, IP<br /> addresses, or other network CIDRs to exclude from proxying. When using a<br /> proxy, all necessary IPs and domains for your cluster will be added automatically. See<br /> roles/get_ocp/templates/install-config.yaml.j2 for more details on the template. <br />Preface a domain with . to match subdomains only. For example, .y.com matches<br /> x.y.com, but not y.com. Use * to bypass the proxy for all listed destinations. | example.com,192.168.10.1
 
 ## 14 - (Optional) Misc

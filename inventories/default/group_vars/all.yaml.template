@@ -166,15 +166,15 @@ env:
     cluster_network:
       cidr: 10.128.0.0/14
       host_prefix: 23
-      type: OpenShiftSDN
+      type: OVNKubernetes
     service_network: 172.30.0.0/16
     fips: 'false'
 
 # Section 13 - (Optional) Proxy
 #  proxy:
-#    http: 
-#    https: 
-#    no: 
+#    http:
+#    https:
+#    no:
 
 # Section 14 - (Optional) Misc
   language: en_US.UTF-8
@@ -183,4 +183,3 @@ env:
   ansible_key_name: ansible-ocpz
   ocp_ssh_key_comment: OpenShift key
   bridge_name: macvtap
-  
