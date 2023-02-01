@@ -1,5 +1,5 @@
 ---
-# Section 1 - Workstation
+# Section 1 - Controller
 vault_controller_sudo_pass: ""
 
 # Section 2 - LPAR(s)
