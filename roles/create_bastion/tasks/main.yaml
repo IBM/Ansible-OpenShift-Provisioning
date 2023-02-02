@@ -61,6 +61,7 @@
     virsh undefine {{ env.bastion.vm_name }} --remove-all-storage || true
     virt-install \
     --name {{ env.bastion.vm_name }} \
+    --osinfo detect=on,name={{ env.ftp.iso_os_variant | lower }} \
     --autostart \
     --memory={{ env.bastion.resources.ram }} \
     --vcpus={{ env.bastion.resources.vcpu }} \
