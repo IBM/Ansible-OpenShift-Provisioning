@@ -9,6 +9,7 @@
     virsh undefine {{ env.cluster.nodes.bootstrap.vm_name }} --remove-all-storage || true
     virt-install \
     --name {{ env.cluster.nodes.bootstrap.vm_name }} \
+    --osinfo detect=on,name=rhel8.6 \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.bootstrap.disk_size }}  \
     --ram {{ env.cluster.nodes.bootstrap.ram }} \
