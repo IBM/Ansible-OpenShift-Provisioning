@@ -1,5 +1,5 @@
 ---
-# Section 1 - Controller
+# Section 1 - Ansible Controller
 vault_controller_sudo_pass: ""
 
 # Section 2 - LPAR(s)
