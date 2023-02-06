@@ -4,7 +4,6 @@ vault_controller_sudo_pass: ""
 
 # Section 2 - LPAR(s)
 vault_z_lpar1_pass: ""
-
 #vault_z_lpar2_pass: ""
 #vault_z_lpar3_pass: ""
 
