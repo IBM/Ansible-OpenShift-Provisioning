@@ -81,6 +81,19 @@
         enabled: yes
         state: started
 
+- name: Configure ip_forward in case of NAT
+  hosts: kvm_host
+  tags: cfg_ip_forward
+  gather_facts: true
+  become: true
+    vars_files:
+      - "{{ inventory_dir }}/group_vars/all.yaml"
+    tasks:
+      - name: Configure ip_forward in case of network "NAT"
+        tags: cfg_ip_forward
+        ansible.builtin.command: sysctl -w net.ipv4.ip_forward={{ env.z.ip_forward }}
+      when: env.network_mode | upper == 'NAT' 
+
 - hosts: kvm_host
   tags: setup, section_3
   become: true

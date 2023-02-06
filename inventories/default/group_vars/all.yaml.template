@@ -11,6 +11,7 @@ env:
 # Section 2 - LPAR(s)
   z:
     high_availability: False
+    ip_forward: #X
     lpar1:
       create: True
       hostname: #X
