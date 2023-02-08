@@ -8,7 +8,7 @@
     create: true
     mode: '0644'
     block: |
-      Host {{env.bastion.vm_name }} 
+      Host {{ env.jumphost.name }} 
         HostName {{ env.jumphost.ip }}
         User {{ env.jumphost.user }}
         IdentityFile {{ env.jumphost.path_to_keypair.split('.')[:-1] | join('.') }}
