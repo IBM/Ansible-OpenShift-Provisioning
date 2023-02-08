@@ -60,7 +60,7 @@ ansible-galaxy collection install ibm.ibm_zhmc
 xcode-select --install
 ```
 ## Jumphost for NAT network
-* If for KVM network NAT is used, instead of macvtap, a ssh tunnel using a jumphost is required to access the OCP cluster.  To configure the ssh tunnel expect is required on the jumphost. Expect can be installed by adding it to the Section 11 of the all.yaml file if the jumphost is equal to the KVM host. Otherwise install it manually on the jumphost:
+* If for KVM network NAT is used, instead of macvtap, a ssh tunnel using a jumphost is required to access the OCP cluster.  To configure the ssh tunnel expect is required on the jumphost. Expect will be installed during the setup of the bastion. In case of missing access to install additional packages, install it manually on the jumphost by executing following command:
 ```
 yum install expect 
 ```
