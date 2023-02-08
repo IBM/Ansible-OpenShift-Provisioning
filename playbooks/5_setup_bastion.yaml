@@ -28,7 +28,7 @@
       become: false
       tags: ssh_key_gen, ssh, section_1
       community.crypto.openssh_keypair:
-        path: "{{ env.jumphost.path_to_keypair }}"
+        path: "{{ env.jumphost.path_to_keypair.split('.')[:-1] | join('.') }}"
         passphrase: ""
         regenerate: full_idempotence
   roles:
