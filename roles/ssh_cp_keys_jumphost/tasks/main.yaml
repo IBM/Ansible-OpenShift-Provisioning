@@ -16,4 +16,4 @@
         HostName {{ env.bastion.networking.ip }} 
         User {{ env.bastion.access.user }}
         IdentityFile {{ path_to_keypair.split('.')[:-1] | join('.') }}
-        ProxyJump {{ env.bastion.vm_name }} 
+        ProxyJump {{ env.jumphost.name }} 
