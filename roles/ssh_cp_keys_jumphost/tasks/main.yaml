@@ -15,5 +15,5 @@
       Host {{ env.bastion.networking.ip }}
         HostName {{ env.bastion.networking.ip }} 
         User {{ env.bastion.access.user }}
-        IdentityFile ~/.ssh/{{ env.ansible_key_name }}
+        IdentityFile {{ path_to_keypair.split('.')[:-1] | join('.') }}
         ProxyJump {{ env.bastion.vm_name }} 
