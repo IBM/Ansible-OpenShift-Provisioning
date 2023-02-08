@@ -161,9 +161,9 @@
 **env.ansible_key_name** | (Optional) Name of the SSH key that Ansible will use to connect to hosts. | ansible-ocpz
 **env.ocp_key_name** | Comment to describe the SSH key used for OCP. Arbitrary value. | OCPZ-01 key
 **env.bridge_name** | (Optional) Name of the macvtap bridge that will be created on the KVM host or in case of NAT the name of the NAT network defenition (usually it is 'default'). If NAT is being used and a jumphost is needed, the parameters network_mode, jumphost.name, jumphost.user and jumphost.pass must be specified, too. In case of default (NAT) network verify that the configured IP ranges does not interfere with the IPs defined for the controle and compute nodes. Modify the default network (dhcp range setting) to prevent issues with VMs using dhcp and OCP nodes having fixed IPs.| macvtap-net
-**env.network_mode: | (Optional) In case the network mode will be NAT and the installation will be executed from remote (e.g. your laptop), a jumphost needs to be defined to let the installation access the bastion host. If macvtap for networking is being used this variable should be empty.
-**env.jumphost.name: | (Optional) If env.network.mode is set to 'NAT' the name of the jumphost (e.g. the name of KVM host if used as jumphost) should be specified.
-**env.jumphost.ip: | (Optional) The ip of the jumphost.
-**env.jumphost.user: | (Optional) The user name to login to the jumphost.
-**env.jumphost.pass: | (Optional) The password for user to login to the jumphost.
-**env.jumphost.path_to_keypair: | (Optional) The absolute path to the public key file on the jumphost to be copied to the bastion.
+**env.network_mode: | (Optional) In case the network mode will be NAT and the installation will be executed from remote (e.g. your laptop), a jumphost needs to be defined to let the installation access the bastion host. If macvtap for networking is being used this variable should be empty. | NAT
+**env.jumphost.name: | (Optional) If env.network.mode is set to 'NAT' the name of the jumphost (e.g. the name of KVM host if used as jumphost) should be specified. | kvm-host-01
+**env.jumphost.ip: | (Optional) The ip of the jumphost. | 192.168.10.1
+**env.jumphost.user: | (Optional) The user name to login to the jumphost. | admin
+**env.jumphost.pass: | (Optional) The password for user to login to the jumphost. | ch4ngeMe!
+**env.jumphost.path_to_keypair: | (Optional) The absolute path to the public key file on the jumphost to be copied to the bastion. | /home/admin/.ssh/id_rsa.pub
