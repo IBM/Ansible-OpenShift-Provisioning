@@ -90,14 +90,14 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
   tasks:
     - name: Configure ip_forward in case of network "NAT"
-       tags: cfg_ip_forward
-       ansible.posix.sysctl:
-         name: net.ipv4.ip_forward
-         value: "{{ env.z.ip_forward }}"
-         sysctl_set: true
-         state: present
-         reload: true
-       when: env.network_mode | upper == 'NAT' 
+      tags: cfg_ip_forward
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: "{{ env.z.ip_forward }}"
+        sysctl_set: true
+        state: present
+        reload: true
+      when: env.network_mode | upper == 'NAT' 
 - hosts: kvm_host
   tags: setup, section_3
   become: true
