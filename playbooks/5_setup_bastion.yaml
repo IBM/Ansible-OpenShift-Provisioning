@@ -30,7 +30,7 @@
       community.crypto.openssh_keypair:
         path: "{{ env.jumphost.path_to_keypair.split('.')[:-1] | join('.') }}"
         passphrase: ""
-        regenerate: full_idempotence
+        regenerate: never
   roles:
     - { role: ssh_add_config, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
 
