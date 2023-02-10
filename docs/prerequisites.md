@@ -64,3 +64,7 @@ xcode-select --install
 ```
 yum install expect 
 ```
+In addition make sure that python3 is installed on the jumphost otherwise ansible might fail to run the tasks. You can install python3 manually by executing the following command:
+```
+yum install python3 
+```
