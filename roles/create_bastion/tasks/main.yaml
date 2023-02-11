@@ -53,7 +53,7 @@
   ansible.builtin.command: pwd
   register: kvm_host_home
 
-- name: Boot and kickstart bastion (up to 3 min). To monitor, login to your KVM host and run 'virsh console <bastion VM name>'
+- name: Boot and kickstart bastion. To monitor, login to your KVM host and run 'virsh console <bastion VM name>'
   tags: create_bastion, virt-install
   ansible.builtin.shell: |
     set -o pipefail
@@ -64,7 +64,7 @@
     --autostart \
     --memory={{ env.bastion.resources.ram }} \
     --vcpus={{ env.bastion.resources.vcpu }} \
-    --location http://{{ env.ftp.ip }}/{{ env.ftp.iso_mount_dir }} \
+    --location http://{{ env.z.lpar1.ip }}/{{ env.ftp.iso_mount_dir }} \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.bastion.resources.disk_size }}  \
     --network network={{ env.bridge_name }} \
     --graphics=none \
@@ -72,8 +72,3 @@
     --initrd-inject "/{{ kvm_host_home.stdout }}/{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg" \
     --extra-args "inst.ks=file:/bastion-ks.cfg ip={{ env.bastion.networking.ip }}::{{ env.bastion.networking.gateway }}\
     :{{ env.bastion.networking.subnetmask }}:{{ env.bastion.networking.hostname }}:enc1:none console=ttysclp0"
-
-- name: Waiting 1 minute for automated bastion installation and configuration to complete
-  tags: create_bastion, virt-install
-  ansible.builtin.pause:
-    minutes: 1

@@ -58,12 +58,13 @@ env:
     networking:
       ip: #X
       hostname: #X
+      base_domain: #X
       subnetmask: #X
       gateway: #X
       nameserver1: #X
 #      nameserver2:
+      forwarder: 1.1.1.1
       interface: #X
-      base_domain: #X
     access:
       user: #X
       pass: #X
@@ -80,6 +81,8 @@ env:
     networking:
       metadata_name: #X
       base_domain: #X
+      subnetmask: #X
+      gateway: #X
       nameserver1: #X
 #      nameserver2:
       forwarder: 1.1.1.1

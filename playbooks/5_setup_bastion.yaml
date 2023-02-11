@@ -31,15 +31,18 @@
         path: "{{ env.jumphost.path_to_keypair.split('.')[:-1] | join('.') }}"
         passphrase: ""
         regenerate: full_idempotence
+      when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none )
   roles:
     - { role: ssh_add_config, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
+  post_tasks:
+    - meta: clear_facts
 
 - name: 5 setup bastion - copy SSH key to access bastion
-  hosts: localhost
+  hosts: jumphost
   tags: ssh, ssh_copy_id, section_1
   connection: local
   become: false
-  gather_facts: false
+  gather_facts: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
@@ -55,6 +58,10 @@
     packages: "{{ env.pkgs.bastion }}"
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+  pre_tasks:
+    - import_role:
+        name: dns
+        tasks_from: initial-resolv.yaml
   roles:
     - { role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined }
     - install_packages
@@ -119,6 +126,7 @@
       loop:
         - issued
         - private
+      when: env.z.high_availability == True
 
     - name: Copy certificates and keys from controller to KVM hosts.
       tags: openvpn
@@ -146,6 +154,7 @@
       file:
         state: absent
         path: tmp
+      when: env.z.high_availability == True
 
 - hosts: bastion
   tags: get_ocp, section_3
