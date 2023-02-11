@@ -87,8 +87,8 @@
 - name: Enable haproxy
   tags: haproxy
   ansible.builtin.systemd:
-      name: haproxy
-      enabled: yes
+    name: haproxy
+    enabled: yes
 
 - name: Restart haproxy
   tags: haproxy

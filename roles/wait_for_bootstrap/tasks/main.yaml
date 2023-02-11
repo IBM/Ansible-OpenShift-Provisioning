@@ -7,7 +7,7 @@
   poll: 0
   register: watch_bootstrap
 
-- name: "Wait for first node-bootstrapper request, should be started within 6 min (retry every 30s)...To watch progress, \
+- name: "Wait for first node-bootstrapper request, should be started within 8 min (retry every 30s)...To watch progress, \
 SSH to root@bastion, SSH to core@bootstrap-ip and run 'journalctl -b -f -u release-image.service -u bootkube.service'"
   tags: wait_for_bootstrap
   ansible.builtin.shell: |
@@ -15,7 +15,7 @@ SSH to root@bastion, SSH to core@bootstrap-ip and run 'journalctl -b -f -u relea
     oc get csr | grep ":node-bootstrapper"
   register: csr_check
   until: (":node-bootstrapper" in csr_check.stdout)
-  retries: 12
+  retries: 16
   delay: 30
 
 - name: Print first node-bootstrapper requests

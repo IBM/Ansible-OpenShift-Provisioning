@@ -2,7 +2,7 @@
 ---
 - name: Update initramfs and kernel.
   hosts: kvm_host
-  become: True
+  become: False
   gather_facts: False
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -12,9 +12,10 @@
 - name: Update ignitions and other install files.
   hosts: bastion
   become: True
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
+    - common
     - get_ocp
 
 - import_playbook: 6_create_nodes.yaml

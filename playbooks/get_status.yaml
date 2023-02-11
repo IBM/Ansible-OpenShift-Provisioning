@@ -1,0 +1,10 @@
+---
+- name: Print node status
+  # Seletct bastion host
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+
+  roles:
+    - role: print_node_status

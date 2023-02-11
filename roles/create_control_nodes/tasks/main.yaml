@@ -2,20 +2,27 @@
 
 - name: Create CoreOS control nodes on the the KVM host.
   tags: create_control_nodes
-  command: |
+  ansible.builtin.shell: |
     virt-install \
     --name {{ env.cluster.nodes.control.vm_name[i] }} \
+    --osinfo detect=on,name=rhel8.6 \
     --autostart \
-    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }}  \
+    --disk size={{ env.cluster.nodes.control.disk_size }}  \
     --ram {{ env.cluster.nodes.control.ram }} \
     --cpu host \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{ env.cluster.nodes.control.ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.control.hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign" \
+    --location {{ rhcos_baseurl }},kernel={{ _rhcos.live_kernel }},initrd={{ _rhcos.live_initrd }} \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda \
+    ip={{env.cluster.nodes.control.ip[i]}}::{{networking.gateway}}:{{networking.subnetmask}}:{{env.cluster.nodes.control.hostname[i]}}::none:1500 \
+    nameserver={{env.cluster.networking.nameserver1}} \
+    coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ _rhcos.live_rootfs }} \
+    coreos.inst.ignition_url=http://{{env.bastion.networking.ip}}:8080/ignition/master.ign {{ _vm_console }}" \
     --graphics none \
+    --console pty,target_type=serial \
     --wait=-1 \
     --noautoconsole
+  timeout: 300
   with_sequence: start=0 end={{ (env.cluster.nodes.control.hostname | length) - 1 }} stride=1
   loop_control:
     extended: yes
@@ -27,8 +34,9 @@
   command: |
     virt-install \
     --name {{ env.cluster.nodes.control.vm_name[0] }} \
+    --osinfo detect=on,name=rhel8.6 \
     --autostart \
-    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }}  \
+    --disk size={{ env.cluster.nodes.control.disk_size }}  \
     --ram {{ env.cluster.nodes.control.ram }} \
     --cpu host \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
@@ -46,7 +54,7 @@
     virt-install \
     --name {{ env.cluster.nodes.control.vm_name[1] }} \
     --autostart \
-    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }}  \
+    --disk size={{ env.cluster.nodes.control.disk_size }}  \
     --ram {{ env.cluster.nodes.control.ram }} \
     --cpu host \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
@@ -64,7 +72,7 @@
     virt-install \
     --name {{ env.cluster.nodes.control.vm_name[2] }} \
     --autostart \
-    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }}  \
+    --disk size={{ env.cluster.nodes.control.disk_size }}  \
     --ram {{ env.cluster.nodes.control.ram }} \
     --cpu host \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \

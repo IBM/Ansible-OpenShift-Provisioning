@@ -1,0 +1,4 @@
+---
+
+- name: Stop play for debug
+  ansible.builtin.fail:

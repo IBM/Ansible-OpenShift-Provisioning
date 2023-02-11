@@ -1,0 +1,9 @@
+---
+- name: Load DNS update task
+  ansible.builtin.include_tasks: "{{ param_dns_cmd }}.yaml"
+
+- name: Restart 'named' service to update changes
+  become: true
+  ansible.builtin.systemd:
+    name: named
+    state: restarted

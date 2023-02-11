@@ -1,0 +1,54 @@
+---
+###################################################################################################
+#  To execute this playbook you need to create a node config yaml fiile with these parameters:
+# ---
+# day2_compute_node:
+#   vm_name: <your VM name>
+#   vm_hostname: <your VM host name>
+#   vm_ip: <node VM IP address>
+#   hostname: <KVM host name where the VM is created>
+#   host_arch: <KVM host architecture>
+#
+# Execute the playbook with '--extra-vars' option.
+# E.g.:
+# ansible-playbook playbooks/add_compute_node.yaml --extra-vars "@extra-cnode1.yml"
+
+- name: Add an additional compute node
+  # Select bastion host
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  pre_tasks:
+    - name: Check required variables
+      when: (day2_compute_node is not defined)
+      block:
+        - name: Check required variables
+          ansible.builtin.debug:
+            msg:
+              - "ERROR: Variable 'day2_compute_node' is not defined!"
+              - "Execute: 'ansible-playbook playbooks/add_compute_node.yaml --extra-vars \"@extra-cnode.yml\"'"
+        - name: Abort playbook
+          ansible.builtin.fail:
+            msg: "See above error!"
+
+  roles:
+    - role: common
+    - role: print_node_status
+    - role: update_ignition_files
+
+    - role: dns_update
+      param_dns_cmd: add
+      param_dns_hostname: "{{ day2_compute_node.vm_hostname }}"
+      param_dns_ip: "{{ day2_compute_node.vm_ip }}"
+
+    - role: create_compute_node
+      # Some tasks will be delegated to the bastion host and target KVM host
+      param_compute_node: "{{ day2_compute_node }}"
+
+    - role: approve_certs
+    - role: wait_for_node
+      wait_for_node_name: "{{ day2_compute_node.vm_hostname }}"
+    - role: approve_certs
+      approve_certs_cleanup: true
+    - role: print_node_status

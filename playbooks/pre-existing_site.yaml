@@ -2,7 +2,7 @@
 ---
 
 - import_playbook: 0_setup.yaml
-- import_playbook: 3_setup_kvm_host.yaml
+#- import_playbook: 3_setup_kvm_host.yaml
 - import_playbook: 4_create_bastion.yaml
 - import_playbook: 5_setup_bastion.yaml
 - import_playbook: 6_create_nodes.yaml

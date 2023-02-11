@@ -3,7 +3,7 @@
 # Prepare and then create the temporary bootstrap node and the control nodes
 - name: 6 create nodes - prepare KVM guests
   hosts: kvm_host
-  become: true
+  become: false
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -12,20 +12,26 @@
     # Delete control, compute and infra nodes, if exists
     - delete_nodes
 
-- hosts: kvm_host[-1]
-  become: true
+- name: 6 create nodes - create bootstrap
+  # Create botstrap on first KVM host, except when high availability is selected
+#  hosts: kvm_host[ "{{ (-1 if env.z.high_availability == 'True' else 0) }}" ]
+  hosts: kvm_host[0]
+  become: False
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
+    - common
     - create_bootstrap
 
-- hosts: kvm_host
-  become: true
+- name: 6 create nodes - create control nodes
+  hosts: kvm_host
+  become: false
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
+    - common
     - create_control_nodes
 
 - name: 6 create nodes - wait for bootstrap to connect control plane (for non-root user)
@@ -41,7 +47,7 @@
 
 - name: 6 create nodes - wait for bootstrap to connect to control plane (for root user)
   hosts: bastion
-  become: True
+  become: false
   environment:
     KUBECONFIG: "/{{ env.bastion.access.user }}/.kube/config"
   gather_facts: true
@@ -53,7 +59,7 @@
 - name: 6 create nodes - once bootstrapping is complete, tear down bootstrap.
   hosts: kvm_host[-1]
   tags: create_nodes, teardown_bootstrap
-  become: True
+  become: false
   gather_facts: False
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -72,19 +78,20 @@
         command: undefine
       ignore_errors: true
 
-    - name: Remove qcow2
-      tags: create_nodes, teardown_bootstrap
-      become: true
-      file:
-        path: "/var/lib/libvirt/images/{{ env.cluster.nodes.bootstrap.vm_name }}.qcow2"
-        state: absent
+    # - name: Remove qcow2
+    #   tags: create_nodes, teardown_bootstrap
+    #   become: true
+    #   ansible.builtin.file:
+    #     path: "/var/lib/libvirt/images/{{ env.cluster.nodes.bootstrap.vm_name }}.qcow2"
+    #     state: absent
 
 - name: 6 create nodes - once bootstrapping is complete, create compute nodes.
   hosts: kvm_host
   tags: create_compute_nodes
-  become: true
+  become: false
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
+    - common
     - create_compute_nodes

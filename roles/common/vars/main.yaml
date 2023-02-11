@@ -1,0 +1,6 @@
+---
+# rhcos image filenames
+_rhcos:
+  live_kernel: "rhcos-{{ rhcos_version }}-{{ _rhcos_arch }}-live-kernel-{{ _rhcos_arch }}"
+  live_initrd: "rhcos-{{ rhcos_version }}-{{ _rhcos_arch }}-live-initramfs.{{ _rhcos_arch }}.img"
+  live_rootfs: "rhcos-{{ rhcos_version }}-{{ _rhcos_arch }}-live-rootfs.{{ _rhcos_arch }}.img"

@@ -1,0 +1,7 @@
+---
+day2_compute_node:
+  vm_name: ocp1-worker-5
+  vm_hostname: worker-5
+  vm_ip: 172.23.232.139
+  hostname: xkvmocp05
+  host_arch: x86_64

@@ -1,16 +1,6 @@
 ---
 - name: Get and print nodes status
-  tags: check_nodes
-  block:
-    - name: Get nodes status
-      tags: check_nodes
-      ansible.builtin.command: oc get nodes
-      register: oc_get_nodes
-
-    - name: Print nodes status
-      tags: check_nodes
-      ansible.builtin.debug:
-        var: oc_get_nodes.stdout_lines
+  ansible.builtin.include_tasks: "{{ role_path }}/../common/tasks/print_ocp_node_status.yaml"
 
 - name: Make sure control and compute nodes are 'Ready' before continuing (retry every 20s)
   tags: check_nodes

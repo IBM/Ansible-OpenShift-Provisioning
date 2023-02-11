@@ -9,28 +9,31 @@
     virsh undefine {{ env.cluster.nodes.bootstrap.vm_name }} --remove-all-storage || true
     virt-install \
     --name {{ env.cluster.nodes.bootstrap.vm_name }} \
+    --osinfo detect=on,name=rhel8.6 \
     --autostart \
-    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.bootstrap.disk_size }}  \
+    --disk size={{ env.cluster.nodes.bootstrap.disk_size }}  \
     --ram {{ env.cluster.nodes.bootstrap.ram }} \
     --cpu host \
     --vcpus {{ env.cluster.nodes.bootstrap.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
+    --location {{ rhcos_baseurl }},kernel={{ _rhcos.live_kernel }},initrd={{ _rhcos.live_initrd }} \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda \
-    coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
-    ip={{ env.cluster.nodes.bootstrap.ip }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}::none:1500 \
-    nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} \
-    coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/bootstrap.ign" \
+    ip={{ env.cluster.nodes.bootstrap.ip }}::{{ networking.gateway }}:{{ networking.subnetmask }}:{{ env.cluster.nodes.bootstrap.hostname }}::none:1500 \
+    nameserver={{ env.cluster.networking.nameserver1 }} \
+    coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ _rhcos.live_rootfs }} \
+    coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/bootstrap.ign {{ _vm_console }}" \
     --graphics none \
+    --console pty,target_type=serial \
     --wait=-1 \
     --noautoconsole
+  timeout: 300
 
-- name: Set bootstrap qcow2 permissions
-  become: true
-  tags: create_bootstrap
-  command: chmod 600 /var/lib/libvirt/images/{{ env.cluster.nodes.bootstrap.vm_name }}.qcow2
+# - name: Set bootstrap qcow2 permissions
+#   become: true
+#   tags: create_bootstrap
+#   command: chmod 600 /var/lib/libvirt/images/{{env.cluster.nodes.bootstrap.vm_name}}.qcow2
 
-- name: Set bootstrap qcow2 ownership to qemu
-  become: true
-  tags: create_bootstrap
-  command: chown qemu:qemu /var/lib/libvirt/images/{{ env.cluster.nodes.bootstrap.vm_name }}.qcow2
+# - name: Set bootstrap qcow2 ownership to qemu
+#   become: true
+#   tags: create_bootstrap
+#   command: chown qemu:qemu /var/lib/libvirt/images/{{env.cluster.nodes.bootstrap.vm_name}}.qcow2

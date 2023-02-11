@@ -1,0 +1,4 @@
+---
+_vm_console: "console=ttysclp0"
+# rhcos image architecture
+_rhcos_arch: "s390x"

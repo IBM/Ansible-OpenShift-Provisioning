@@ -1,0 +1,43 @@
+---
+###################################################################################################
+#  To execute this playbook you need to create a node config yaml fiile with these parameters:
+# ---
+# day2_compute_node:
+#   vm_name: <your VM name>
+#   vm_hostname: <your VM host name>
+#   vm_ip: <node VM IP address>
+#   hostname: <KVM host name where the VM is created>
+#   host_arch: <KVM host architecture>
+#
+# Execute the playbook with '--extra-vars' option.
+# E.g.:
+# ansible-playbook playbooks/delete_compute_node.yaml --extra-vars "@extra-cnode1.yml"
+
+- name: Delete compute node
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  pre_tasks:
+    - name: Check required variables
+      when: (day2_compute_node is not defined)
+      block:
+        - name: Check required variables
+          ansible.builtin.debug:
+            msg:
+              - "ERROR: Variable 'day2_compute_node' is not defined!"
+              - "Execute: 'ansible-playbook playbooks/delete_compute_node.yaml --extra-vars \"@extra-cnode.yml\"'"
+        - name: Abort playbook
+          ansible.builtin.fail:
+            msg: "See above error!"
+  roles:
+    - role: delete_compute_node
+      # Some tasks will be delegated to the bastion host and target KVM host
+      param_compute_node: "{{ day2_compute_node }}"
+
+    - role: dns_update
+      param_dns_cmd: delete
+      param_dns_hostname: "{{ day2_compute_node.vm_hostname }}"
+      param_dns_ip: "{{ day2_compute_node.vm_ip }}"
+
+    - role: print_node_status
