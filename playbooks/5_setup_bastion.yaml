@@ -38,10 +38,9 @@
   post_tasks:
     - meta: clear_facts
 
-- name: 5 setup bastion - copy SSH keys to access bastion
-  hosts: localhost,jumphost
+- name: 5 setup bastion - copy SSH key to access bastion
+  hosts: localhost
   tags: ssh, ssh_copy_id, section_1
-  connection: local
   become: false
   gather_facts: true
   vars_files:
