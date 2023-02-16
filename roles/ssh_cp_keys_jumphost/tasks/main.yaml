@@ -11,9 +11,9 @@
       Host {{ env.jumphost.name }} 
         HostName {{ env.jumphost.ip }}
         User {{ env.jumphost.user }}
-        IdentityFile {{ path_to_key_pair.split('.')[:-1] | join('.') }}
+        IdentityFile {{ env.jumphost.path_to_keypair.split('.')[:-1] | join('.') }}
       Host {{ env.bastion.networking.ip }}
         HostName {{ env.bastion.networking.ip }} 
         User {{ env.bastion.access.user }}
-        IdentityFile {{ env.jumphost.path_to_keypair.split('.')[:-1] | join('.') }}
+        IdentityFile {{ path_to_key_pair.split('.')[:-1] | join('.') }}
         ProxyJump {{ env.jumphost.name }} 
