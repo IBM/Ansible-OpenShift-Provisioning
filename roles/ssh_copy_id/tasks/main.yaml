@@ -4,16 +4,6 @@
   tags: ssh_copy_id, ssh
   include_vars: "{{ inventory_dir }}/group_vars/all.yaml"
 
-- name: Get ansible public key for check in next task
-  tags: ssh_copy_id, ssh
-  set_fact:
-    ans_pub_key: "{{ lookup('file', '~/.ssh/{{ env.ansible_key_name }}.pub') }}"
-
-- name: Print Ansible public key
-  tags: ssh_copy_id, ssh
-  debug:
-    var: ans_pub_key
-
 - name: Delete SSH key from known hosts if it already exists for idempotency
   tags: ssh_copy_id, ssh
   lineinfile:
@@ -27,25 +17,62 @@
     src: ssh-copy-id.exp.j2
     dest: "{{ role_path }}/files/ssh-copy-id-expect-pass.exp"
     force: yes
+  delegate_to: 127.0.0.1
 
-- name: Copy SSH ID to remote host with pre-provided password
+- name: Copy expect file to jumphost first, if not running on localhost.
   tags: ssh_copy_id, ssh
-  command: "expect {{ role_path }}/files/ssh-copy-id-expect-pass.exp"
-  register: ssh_copy
+  copy:
+    src: "{{ role_path }}/files/ssh-copy-id-expect-pass.exp"
+    dest: "~/.ssh/ssh-copy-id-expect-pass.exp"
+  when: "inventory_hostname != '127.0.0.1'"
 
 - name: Print results of copying ssh id to remote host
   tags: ssh_copy_id, ssh
   debug:
     var: ssh_copy
+  when: "inventory_hostname != '127.0.0.1'"
 
-- name: Delete templated expect script
+- name: Copy SSH ID from controller to remote host with pre-provided password.
+  tags: ssh_copy_id, ssh
+  command: "expect {{ role_path }}/files/ssh-copy-id-expect-pass.exp"
+  register: ssh_copy
+  when: "inventory_hostname == '127.0.0.1'"
+
+- name: Print results of copying ssh id to remote host
+  tags: ssh_copy_id, ssh
+  debug:
+    var: ssh_copy
+  when: "inventory_hostname == '127.0.0.1'"
+
+- name: Copy SSH ID from jumphost to remote host with pre-provided password.
+  tags: ssh_copy_id, ssh
+  command: "expect ~/.ssh/ssh-copy-id-expect-pass.exp"
+  register: ssh_copy
+  when: "inventory_hostname != '127.0.0.1'"
+
+- name: Print results of copying ssh id to remote host
+  tags: ssh_copy_id, ssh
+  debug:
+    var: ssh_copy
+  when: "inventory_hostname != '127.0.0.1'"
+
+- name: Delete templated expect script on controller.
   tags: ssh_copy_id, ssh
   file:
     path: "{{ role_path }}/files/ssh-copy-id-expect-pass.exp"
     state: absent
+  delegate_to: 127.0.0.1
 
-- name: Re-create ssh-copy-id files folder
+- name: Delete templated expect script on jumphost.
+  tags: ssh_copy_id, ssh
+  file:
+    path: "{{ role_path }}/files/ssh-copy-id-expect-pass.exp"
+    state: absent
+  when: "inventory_hostname != '127.0.0.1'"
+
+- name: Ensure ssh-copy-id files folder exists for future runs.
   tags: ssh_copy_id, ssh
   file:
     path: "{{ role_path }}/files/"
     state: directory
+  delegate_to: 127.0.0.1
