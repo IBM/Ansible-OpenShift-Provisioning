@@ -59,7 +59,7 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
     packages: "{{ env.pkgs.controller }}"
-    ssh_target: [ "{{ env.ftp.ip }}", "{{ env.ftp.user }}", "{{ env.ftp.pass }}" ]
+    ssh_target: [ "{{ env.ftp.ip }}", "{{ env.ftp.user }}", "{{ env.ftp.pass }}", "{{ path_to_key_pair }}" ]
   roles:
     - install_packages
     - ssh_key_gen
