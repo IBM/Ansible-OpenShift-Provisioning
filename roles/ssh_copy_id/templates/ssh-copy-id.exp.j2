@@ -10,7 +10,7 @@ if {$force_conservative} {
 }
 
 set timeout 20
-spawn ssh-copy-id -f -o StrictHostKeyChecking=no -i {{ path_to_key_pair }} {{ ssh_target[1] }}@{{ ssh_target[0] }}
+spawn ssh-copy-id -f -o StrictHostKeyChecking=no -i {{ ssh_target[3] }} {{ ssh_target[1] }}@{{ ssh_target[0] }}
 expect {
 	"password: " {
 		send -- "{{ ssh_target[2] }}\r"

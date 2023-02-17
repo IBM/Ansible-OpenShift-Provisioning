@@ -46,16 +46,22 @@ ansible-galaxy collection install community.general community.crypto ansible.pos
 ```
 * If you will be using these playbooks to automate the creation of the LPAR(s) that will act as KVM host(s) for the cluster, you will also need:
 ```
-pip3 install zhmcclient cryptography packaging PyYAML
-```
-```
 ansible-galaxy collection install ibm.ibm_zhmc 
 ```
 * If you are using MacOS, you also need to have [Homebrew](https://brew.sh/) package manager installed:
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
-  * and [Xcode](https://apps.apple.com/us/app/xcode/id497799835?mt=12):
+  * [Xcode](https://apps.apple.com/us/app/xcode/id497799835?mt=12):
 ```
 xcode-select --install
+```
+## Jumphost for NAT network
+* If for KVM network NAT is used, instead of macvtap, a ssh tunnel using a jumphost is required to access the OCP cluster. To configure the ssh tunnel expect is required on the jumphost. Expect will be installed during the setup of the bastion (4_setup_bastion.yaml playbook). In case of missing access to install additional packages, install it manually on the jumphost by executing following command:
+```
+yum install expect 
+```
+In addition make sure that python3 is installed on the jumphost otherwise ansible might fail to run the tasks. You can install python3 manually by executing the following command:
+```
+yum install python3 
 ```
