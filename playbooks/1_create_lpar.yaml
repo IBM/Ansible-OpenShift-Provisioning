@@ -6,6 +6,16 @@
   vars_files: 
     - "{{ inventory_dir }}/group_vars/all.yaml"
   tasks:
+    - name: Install required python packages.
+      ansible.builtin.pip:
+        name: "{{ item }}"
+      loop:
+        - requests
+        - zhmcclient
+        - cryptography
+        - packaging 
+        - PyYAML
+
     - name: Include vars for first LPAR if it is to be created.
       include_vars:
         file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
