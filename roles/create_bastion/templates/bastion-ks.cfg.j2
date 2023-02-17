@@ -34,7 +34,7 @@ eula --agreed
 
 # Network information
 network --bootproto=static --device={{ env.bastion.networking.interface }} --ip={{ env.bastion.networking.ip }} --gateway={{ env.bastion.networking.gateway }} --netmask={{ env.bastion.networking.subnetmask }} --noipv6 --nameserver={{ env.bastion.networking.nameserver1 }}{{ (',' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} --activate
-network --hostname={{ env.bastion.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
+network --hostname={{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}
 
 # Firewall and SELinux
 firewall --enabled --http --ftp --smtp --ssh --port=443,9090
@@ -74,6 +74,7 @@ python3-pip
 rsync
 vim
 wget
+network-scripts
 %end
 
 %addon com_redhat_kdump --disable

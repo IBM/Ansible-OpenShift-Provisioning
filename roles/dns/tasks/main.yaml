@@ -1,4 +1,5 @@
 ---
+
 - name: Enable named
   tags: dns
   ansible.builtin.systemd:
@@ -115,7 +116,13 @@
     index_var: i
   when: env.cluster.nodes.infra.hostname is defined
 
-- name: Template out bastion's resolv.conf file, replacing default
+- name: Restart named to update changes made to DNS
+  tags: dns, resolv
+  ansible.builtin.systemd:
+    name: named
+    state: restarted
+
+- name: Template out bastion's resolv.conf file, replacing initial resolv.conf
   tags: dns, resolv
   ansible.builtin.template:
     src: resolv.conf.j2
@@ -124,18 +131,8 @@
     group: root
     mode: "644"
 
-- name: Restart named to update changes made to DNS
+- name: Restart network to update changes made to /etc/resolv.conf
   tags: dns, resolv
-  ansible.builtin.systemd:
-    name: named
+  ansible.builtin.service:
+    name: network
     state: restarted
-
-# NetworkManager modifies our /etc/resolv.conf file on next restart or reboot, we need to disable it
-- name: Disable management of /etc/resolv.conf by NetworkManager
-  tags: dns, resolv
-  ansible.builtin.copy:
-    src: 90-dns-none.conf
-    dest: /etc//NetworkManager/conf.d/90-dns-none.conf
-    group: root
-    owner: root
-    mode: "644"
