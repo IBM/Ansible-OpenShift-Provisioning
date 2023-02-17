@@ -1,41 +1,19 @@
 ---
 
-- name: Load in variables
+- name: Create ssh config file (or add to an exsting file) to if network mode is NAT
   tags: ssh_copy_id, ssh
-  include_vars: "{{inventory_dir}}/group_vars/all.yaml"
-
-- name: Delete SSH key from known hosts if it already exists for idempotency
-  tags: ssh_copy_id, ssh
-  lineinfile:
-    path: "~/.ssh/known_hosts"
-    search_string: "{{ ssh_target[0] }}"
-    state: absent
-
-- name: Use template file to create expect script
-  tags: ssh_copy_id, ssh
-  template:
-    src: ssh_copy_id.exp.j2
-    dest: "/tmp/ssh-copy-id-expect-pass.exp"
-    force: yes
-
-- name: Installing required package 'expect'.
-  ansible.builtin.package:
-    name: expect
-    state: latest
-    update_cache: yes
-
-- name: Copy SSH ID from jumphost to bastion with pre-provided password
-  tags: ssh_copy_id, ssh
-  command: "expect /tmp/ssh-copy-id-expect-pass.exp"
-  register: ssh_copy
-
-- name: Print results of copying ssh id to remote host
-  tags: ssh_copy_id, ssh
-  debug:
-    var: ssh_copy
-
-- name: Delete templated expect script
-  tags: ssh_copy_id, ssh
-  file:
-    path: "/tmp/ssh-copy-id-expect-pass.exp"
-    state: absent
+  ansible.builtin.blockinfile:
+    path: ~/.ssh/config
+    backup: true
+    create: true
+    mode: '0644'
+    block: |
+      Host {{ env.jumphost.name }} 
+        HostName {{ env.jumphost.ip }}
+        User {{ env.jumphost.user }}
+        IdentityFile {{ path_to_key_pair.split('.')[:-1] | join('.') }}
+      Host {{ env.bastion.networking.ip }}
+        HostName {{ env.bastion.networking.ip }} 
+        User {{ env.bastion.access.user }}
+        IdentityFile {{ path_to_key_pair.split('.')[:-1] | join('.') }}
+        ProxyJump {{ env.jumphost.name }} 
