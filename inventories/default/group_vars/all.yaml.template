@@ -152,7 +152,7 @@ env:
 # Section 11 - (Optional) Packages
   pkgs:
     galaxy: [ ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt ]
-    controller: [ openssh, expect ]
+    controller: [ openssh, expect, sshuttle ]
     kvm: [ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
     bastion: [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
 
