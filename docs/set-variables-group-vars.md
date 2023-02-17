@@ -16,6 +16,7 @@
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **env.z.high_availability** | Is this cluster spread across three LPARs? If yes, mark True. If not (just in<br /> one LPAR), mark False | True
+**env.z.ip_forward** | This variable specifies if ip forwarding is enabled or not if NAT network is selected. If ip_forwarding is set to 0, the installed OCP cluster will not be able to access external services. This setting will be configured during 3_setup_kvm playbook. If NAT will be configured after 3_setup_kvm playbook, the setup needs to be done manually before bastion is being created, configured or reconfigured by running the 3_setup_kvm playbook with parameter: --tags cfg_ip_forward | 1
 **env.z.lpar1.create** | To have Ansible create an LPAR and install RHEL on it for the KVM<br /> host, mark True. If using a pre-existing LPAR with RHEL already<br /> installed, mark False. | True
 **env.z.lpar1.hostname** | The hostname of the KVM host. | kvm-host-01
 **env.z.lpar1.ip** | The IPv4 address of the KVM host. | 192.168.10.1
@@ -59,12 +60,13 @@
 **env.bastion.resources.vcpu** | How many virtual CPUs would you like to allocate to the bastion? Recommended 4 or more. | 4
 **env.bastion.networking.ip** | IPv4 address for the bastion. | 192.168.10.3
 **env.bastion.networking.hostname** | Hostname of the bastion. Will be combined with<br /> env.bastion.networking.base_domain to create a Fully Qualified Domain Name (FQDN). | ocpz-bastion
+**env.bastion.networking.base_<br />domain** | Base domain that, when combined with the hostname, creates a fully-qualified<br /> domain name (FQDN) for the bastion? | ihost.com
 **env.bastion.networking.<br />subnetmask** | Subnet of the bastion. | 255.255.255.0
 **env.bastion.networking.gateway** | IPv4 of he bastion's gateway server. | 192.168.10.0
 **env.bastion.networking.name<br />server1** | IPv4 address of the server that resolves the bastion's hostname. | 192.168.10.200
 **env.bastion.networking.name<br />server2** | <b>(Optional)</b> A second IPv4 address that resolves the bastion's hostname. | 192.168.10.201
+**env.bastion.networking.forwarder** | What IPv4 address will be used to make external DNS calls for the bastion? Can use 1.1.1.1 or 8.8.8.8 as defaults. | 8.8.8.8
 **env.bastion.networking.interface** | Name of the networking interface on the bastion from Linux's perspective. Most likely enc1. | enc1
-**env.bastion.networking.base_<br />domain** | Base domain that, when combined with the hostname, creates a fully-qualified<br /> domain name (FQDN) for the bastion? | ihost.com
 **env.bastion.access.user** | What would you like the admin's username to be on the bastion?<br /> If root, make pass and root_pass vars the same. | admin
 **env.bastion.access.pass** | The password to the bastion's admin user. If using root, make<br /> pass and root_pass vars the same. | cH4ngeM3!
 **env.bastion.access.root_pass** | The root password for the bastion. If using root, make<br /> pass and root_pass vars the same. | R0OtPa$s!
@@ -80,7 +82,7 @@
 **env.cluster.networking.base_domain** | The site name, where is the cluster being hosted? This will be combined with the metadata_name<br /> and hostnames to create FQDNs.  | ihost.com
 **env.cluster.networking.nameserver1** | IPv4 address that the cluster get its hostname resolution from. If env.bastion.options.dns<br /> is True, this should be the IP address of the bastion. | 192.168.10.200
 **env.cluster.networking.nameserver2** | <b>(Optional)</b> A second IPv4 address will the cluster get its hostname resolution from? If env.bastion.options.dns<br /> is True, this should be left commented out. | 192.168.10.201
-**env.cluster.networking.forwarder** | What IPv4 address will be used to make external DNS calls? Can use 1.1.1.1 or 8.8.8.8 as defaults. | 8.8.8.8
+**env.cluster.networking.forwarder** | What IPv4 address will be used to make external DNS calls for the cluster? Can use 1.1.1.1 or 8.8.8.8 as defaults. | 8.8.8.8
 
 ## 7 - Bootstrap Node
 **Variable Name** | **Description** | **Example**
@@ -159,4 +161,10 @@
 **env.timezone** | Which timezone would you like Red Hat Enterprise Linux to use? A list of available timezone<br /> options can be found [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). | America/New_York
 **env.ansible_key_name** | (Optional) Name of the SSH key that Ansible will use to connect to hosts. | ansible-ocpz
 **env.ocp_key_name** | Comment to describe the SSH key used for OCP. Arbitrary value. | OCPZ-01 key
-**env.bridge_name** | (Optional) Name of the macvtap bridge that will be created on the KVM host. | macvtap-net
+**env.bridge_name** | (Optional) Name of the macvtap bridge that will be created on the KVM host or in case of NAT the name of the NAT network defenition (usually it is 'default'). If NAT is being used and a jumphost is needed, the parameters network_mode, jumphost.name, jumphost.user and jumphost.pass must be specified, too. In case of default (NAT) network verify that the configured IP ranges does not interfere with the IPs defined for the controle and compute nodes. Modify the default network (dhcp range setting) to prevent issues with VMs using dhcp and OCP nodes having fixed IPs.| macvtap-net
+**env.network_mode** | (Optional) In case the network mode will be NAT and the installation will be executed from remote (e.g. your laptop), a jumphost needs to be defined to let the installation access the bastion host. If macvtap for networking is being used this variable should be empty. | NAT
+**env.jumphost.name** | (Optional) If env.network.mode is set to 'NAT' the name of the jumphost (e.g. the name of KVM host if used as jumphost) should be specified. | kvm-host-01
+**env.jumphost.ip** | (Optional) The ip of the jumphost. | 192.168.10.1
+**env.jumphost.user** | (Optional) The user name to login to the jumphost. | admin
+**env.jumphost.pass** | (Optional) The password for user to login to the jumphost. | ch4ngeMe!
+**env.jumphost.path_to_keypair** | (Optional) The absolute path to the public key file on the jumphost to be copied to the bastion. | /home/admin/.ssh/id_rsa.pub

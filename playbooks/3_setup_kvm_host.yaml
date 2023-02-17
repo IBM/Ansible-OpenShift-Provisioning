@@ -9,7 +9,7 @@
   vars_files: 
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
-    ssh_target: ["{{ env.z.lpar1.ip }}","{{ env.z.lpar1.user }}","{{ env.z.lpar1.pass }}"]
+    ssh_target: ["{{ env.z.lpar1.ip }}","{{ env.z.lpar1.user }}","{{ env.z.lpar1.pass }}","{{ path_to_key_pair }}"]
   tasks:
     - name: Include vars for the KVM host.
       include_vars:
@@ -27,7 +27,7 @@
   vars_files: 
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
-    ssh_target: ["{{ env.z.lpar2.ip }}","{{ env.z.lpar2.user }}","{{ env.z.lpar2.pass }}"]
+    ssh_target: ["{{ env.z.lpar2.ip }}","{{ env.z.lpar2.user }}","{{ env.z.lpar2.pass }}","{{ path_to_key_pair }}"]
   tasks:
     - name: Include vars for second KVM host.
       include_vars:
@@ -48,7 +48,7 @@
   vars_files: 
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
-    ssh_target: ["{{ env.z.lpar3.ip }}","{{ env.z.lpar3.user }}","{{ env.z.lpar3.pass }}"]
+    ssh_target: ["{{ env.z.lpar3.ip }}","{{ env.z.lpar3.user }}","{{ env.z.lpar3.pass }}","{{ path_to_key_pair }}"]
   tasks:
     - name: Include vars for third KVM host.
       include_vars:
@@ -67,23 +67,59 @@
   gather_facts: true
   become: true
   vars: 
-    packages: "{{ env.pkgs.kvm}}"
+    packages: "{{ env.pkgs.kvm }}"
   roles:
     - { role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined }
     - install_packages
+    - httpd
   post_tasks:
-    - name: Enable cockpit console
-      command: systemctl enable --now cockpit.socket
-      
+    - name: Add ports to firewall
+      tags: firewall-libvirt
+      ansible.posix.firewalld:
+        port: 80/tcp
+        permanent: yes
+        state: enabled
+
     - name: Start and enable libvirt
-      service:
+      tags: firewall-libvirt
+      ansible.builtin.service:
         name: libvirtd
         enabled: yes
         state: started
+
+    - name: Permit traffic in libvirt zone
+      tags: firewall-libvirt
+      ansible.posix.firewalld:
+        service: http
+        permanent: yes
+        state: enabled
+        zone: libvirt
+        immediate: true
+
+    - name: Enable cockpit console
+      ansible.builtin.command: systemctl enable --now cockpit.socket
+
+- name: Configure ip_forward in case of NAT
+  hosts: kvm_host
+  tags: cfg_ip_forward, section_3
+  gather_facts: true
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  tasks:
+    - name: Configure ip_forward in case of network "NAT"
+      tags: cfg_ip_forward
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: "{{ env.z.ip_forward }}"
+        sysctl_set: true
+        state: present
+        reload: true
+      when: env.network_mode | upper == 'NAT' 
 
 - hosts: kvm_host
   tags: setup, section_3
   become: true
   roles:
     - configure_storage
-    - macvtap
+    - { role: macvtap, when: env.network_mode | upper != 'NAT' }
