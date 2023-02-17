@@ -1,6 +1,6 @@
 ---
 
-- name: 5 setup bastion - copy SSH key to access bastion
+- name: Copy ssh key to jumphost if network is NAT and jumphost defined, and add jumphost section to ssh config.
   hosts: localhost
   tags: ssh, ssh_copy_id, section_1
   connection: local
@@ -9,7 +9,54 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
-    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}"]
+    ssh_target: ["{{ env.jumphost.ip }}", "{{ env.jumphost.user }}", "{{ env.jumphost.pass }}", "{{ path_to_key_pair }}"]
+  roles:
+    - { role: ssh_copy_id, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
+    - { role: ssh_add_config, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
+
+- name: Configure jumphost if network mode == 'NAT'
+  hosts: jumphost
+  tags: ssh, ssh_copy_id, section_1
+  become: false
+  gather_facts: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  vars:
+    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}","{{ env.jumphost.path_to_keypair }}"]
+  pre_tasks:
+    - name: Generate an OpenSSH keypair with the default values (4096 bits, RSA), if using jumphost for NAT.
+      become: false
+      tags: ssh_key_gen, ssh, section_1
+      community.crypto.openssh_keypair:
+        path: "{{ env.jumphost.path_to_keypair.split('.')[:-1] | join('.') }}"
+        passphrase: ""
+        regenerate: never
+      when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none )
+    - block:
+        - name: Check if 'expect' is installed on jumphost, for use in ssh-copy-id role for NAT.
+          package_facts:
+          failed_when: "'expect' not in ansible_facts.packages"
+          when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none )
+      rescue:
+        - name: Package 'expect' must be installed on the jumphost, attempting to install it. #Using 'block' and 'rescue' to avoid running the 'package' module (which requires 'sudo') unless necessary.
+          become: true
+          package:
+            name: expect
+          when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none )
+  roles:
+    - { role: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
+  post_tasks:
+    - meta: clear_facts
+
+- name: 5 setup bastion - copy SSH key from localhost to access bastion.
+  hosts: localhost
+  tags: ssh, ssh_copy_id, section_1
+  become: false
+  gather_facts: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  vars:
+    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}","{{ path_to_key_pair }}"]
   roles:
     - ssh_copy_id
 
@@ -21,6 +68,10 @@
     packages: "{{ env.pkgs.bastion }}"
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+  pre_tasks:
+    - import_role:
+        name: dns
+        tasks_from: initial-resolv.yaml
   roles:
     - { role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined }
     - install_packages
@@ -85,6 +136,7 @@
       loop:
         - issued
         - private
+      when: env.z.high_availability == True
 
     - name: Copy certificates and keys from controller to KVM hosts.
       tags: openvpn
@@ -112,6 +164,7 @@
       file:
         state: absent
         path: tmp
+      when: env.z.high_availability == True
 
 - hosts: bastion
   tags: get_ocp, section_3
