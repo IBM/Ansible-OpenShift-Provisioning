@@ -31,11 +31,12 @@ env:
 #      user:
 #      pass:
 
-# Section 3 - FTP Server
-  ftp:
+# Section 3 - File Server
+  file_server:
     ip: #X
     user: #X
     pass: #X
+    protocol: #X
     iso_mount_dir: #X
     cfgs_dir: #X
 

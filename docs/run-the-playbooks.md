@@ -34,7 +34,7 @@ First-time setup of the Ansible Controller, the machine running Ansible.
 * Ansible inventory is templated out and working properly.
 * SSH key generated for Ansible passwordless authentication.
 * SSH agent is setup on the Ansible Controller.
-* Ansible SSH key is copied to the FTP server.
+* Ansible SSH key is copied to the file server.
 ### Notes
 * You can use an existing SSH key as your Ansible key, or have Ansible create one for you. It is highly recommended to use one without a passphrase.
 ## 1 Create LPAR Playbook
@@ -49,10 +49,10 @@ Creation of one to three Logical Partitions (LPARs), depending on your configura
 * Recommend opening the HMC via web-browser to watch the LPARs come up.
 ## 2 Create KVM Host Playbook
 ### Overview
-First-time start-up of Red Hat Enterprise Linux installed natively on the LPAR(s). Uses the Hardware Management Console (HMC) API, so your system must be in Dynamic Partition Manager (DPM) mode. Configuration files are passed to the FTP server and RHEL is booted and then kickstarted for fully automated setup.
+First-time start-up of Red Hat Enterprise Linux installed natively on the LPAR(s). Uses the Hardware Management Console (HMC) API, so your system must be in Dynamic Partition Manager (DPM) mode. Configuration files are passed to the file server and RHEL is booted and then kickstarted for fully automated setup.
 ### Outcomes
 * LPAR(s) started up in 'Active' state.
-* Configuration files (cfg, ins, prm) for the KVM host(s) are on the FTP server in the provided configs directory.
+* Configuration files (cfg, ins, prm) for the KVM host(s) are on the file server in the provided configs directory.
 ### Notes
 * Recommended to open the HMC via web-browser to watch the Operating System Messages for each LPAR as they boot in order to debug any potential problems.
 ## 3 Setup KVM Host Playbook
@@ -72,8 +72,7 @@ Configures the RHEL server(s) installed natively on the LPAR(s) to act as virtua
 ### Overview
 Creates the bastion KVM guest on the first KVM host. The bastion hosts essential services for the cluster. If you already have a bastion server, that can be used instead of running this playbook.
 ### Outcomes
-* RHEL ISO is mounted to HTTP-accessible directory on the FTP server.
-* Bastion configs are templated out to the FTP server.
+* Bastion configs are templated out to the file server.
 * Bastion is booted using virt-install.
 * Bastion is kickstarted for fully automated setup of the operating system.
 ### Notes
