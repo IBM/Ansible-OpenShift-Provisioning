@@ -1,8 +1,8 @@
 [localhost]
 127.0.0.1 ansible_connection=local ansible_become_password={{ env.controller.sudo_pass }}
 
-[ftp]
-{{ env.ftp.ip }} ansible_user={{ env.ftp.user }} ansible_become_password={{ env.ftp.pass }}
+[file_server]
+{{ env.file_server.ip }} ansible_user={{ env.file_server.user }} ansible_become_password={{ env.file_server.pass }}
 
 [kvm_host]
 {{ env.z.lpar1.hostname }} ansible_host={{ env.z.lpar1.ip }} ansible_user={{ env.z.lpar1.user }} ansible_become_password={{ env.z.lpar1.pass }}

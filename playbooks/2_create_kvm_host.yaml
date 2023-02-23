@@ -1,6 +1,6 @@
 ---
 #Template and update RHEL configuration files for KVM host to boot from
-- hosts: ftp
+- hosts: file_server
   tags: update_cfgs, update, kvm_host_1
   become: false
   gather_facts: false
@@ -18,7 +18,7 @@
       when: env.z.lpar1.create == True
 
 #Template and update RHEL configuration files for KVM host to boot from
-- hosts: ftp
+- hosts: file_server
   tags: update_cfgs, update, kvm_host_2
   become: false
   gather_facts: false
@@ -36,7 +36,7 @@
       when: env.z.lpar2.create == True
 
 #Template and update RHEL configuration files for KVM host to boot from
-- hosts: ftp
+- hosts: file_server
   tags: update_cfgs, update, kvm_host_3
   become: false
   gather_facts: false

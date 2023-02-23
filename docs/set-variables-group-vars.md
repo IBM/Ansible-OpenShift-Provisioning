@@ -33,14 +33,15 @@
 **env.z.lpar3.user** | Username for Linux admin on KVM host 3. Recommended to run as a non-root user with sudo access. | admin
 **env.z.lpar3.pass** | <b>(Optional)</b> The password for the admin user on the third KVM host. | ch4ngeMe!
 
-## 3 - FTP Server
+## 3 - File Server
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**env.ftp.ip** | IPv4 address for the FTP server that will be used to pass config files and<br /> iso to KVM host LPAR(s) and bastion VM during their first boot. | 192.168.10.201
-**env.ftp.user** | Username to connect to the FTP server. Must have sudo and SSH access. | ftp-user
-**env.ftp.pass** | Password to connect to the FTP server as above user. | FTPpa$s!
-**env.ftp.iso_mount_dir** | Directory path relative to FTP root where RHEL ISO is mounted. If FTP root is /var/ftp/pub<br /> and the ISO is mounted at /var/ftp/pub/RHEL/8.5 then this variable would be<br /> RHEL/8.5. No slash before or after. | RHEL/8.5
-**env.ftp.cfgs_dir** | Directory path relative to FTP root where configuration files can be stored. If FTP root is /var/ftp/pub<br /> and you would like to store the configs at /var/ftp/pub/ocpz-config then this variable would be<br /> ocpz-config. No slash before or after. | ocpz-config
+**env.file_server.ip** | IPv4 address for the file server that will be used to pass config files and<br /> iso to KVM host LPAR(s) and bastion VM during their first boot. | 192.168.10.201
+**env.file_server.user** | Username to connect to the file server. Must have sudo and SSH access. | user1
+**env.file_server.pass** | Password to connect to the file server as above user. | user1pa$s!
+**env.file_server.protocol** | Protocol used to serve the files, either 'ftp' or 'http' | http
+**env.file_server.iso_mount_dir** | Directory path relative to the HTTP/FTP accessible directory where RHEL ISO is mounted. For example, if the FTP root is at /home/user1<br /> and the ISO is mounted at /home/user1/RHEL/8.7 then this variable would be<br /> RHEL/8.7 - no slash before or after. | RHEL/8.7
+**env.file_server.cfgs_dir** | Directory path relative to to the HTTP/FTP accessible directory where configuration files can be stored. For example, if FTP root is /home/user1<br /> and you would like to store the configs at /home/user1/ocpz-config then this variable would be<br /> ocpz-config. No slash before or after. | ocpz-config
 
 ## 4 - Red Hat Info
 **Variable Name** | **Description** | **Example**

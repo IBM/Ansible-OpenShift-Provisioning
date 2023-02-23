@@ -4,7 +4,7 @@
   become: false
   tags: create_bastion
   ansible.builtin.file:
-    path: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}"
+    path: "{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}"
     mode: "0755"
     state: directory
 
@@ -13,7 +13,7 @@
   become: false
   ansible.builtin.template:
     src: "bastion-ks.cfg.j2"
-    dest: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
+    dest: "{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
     mode: "0644"
     force: true
 
@@ -28,7 +28,7 @@
   tags: create_bastion
   become: false
   ansible.builtin.lineinfile:
-    path: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
+    path: "{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
     insertafter: "Root password"
     line: "rootpw --iscrypted {{ root_pass_hash.stdout }}"
 
@@ -43,7 +43,7 @@
   tags: create_bastion
   become: false
   ansible.builtin.lineinfile:
-    path: "{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
+    path: "{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
     insertafter: "Users and Groups Definitions"
     line: "user --groups=wheel --name={{ env.bastion.access.user }} --password={{ user_pass_hash.stdout }} --iscrypted"
 
@@ -64,11 +64,11 @@
     --autostart \
     --memory={{ env.bastion.resources.ram }} \
     --vcpus={{ env.bastion.resources.vcpu }} \
-    --location http://{{ env.ftp.ip }}/{{ env.ftp.iso_mount_dir }} \
+    --location http://{{ env.file_server.ip }}/{{ env.file_server.iso_mount_dir }} \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.bastion.resources.disk_size }}  \
     --network network={{ env.bridge_name }} \
     --graphics=none \
     --noautoconsole --wait=-1 \
-    --initrd-inject "/{{ kvm_host_home.stdout }}/{{ env.ftp.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg" \
+    --initrd-inject "/{{ kvm_host_home.stdout }}/{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg" \
     --extra-args "inst.ks=file:/bastion-ks.cfg ip={{ env.bastion.networking.ip }}::{{ env.bastion.networking.gateway }}\
     :{{ env.bastion.networking.subnetmask }}:{{ env.bastion.networking.hostname }}:enc1:none console=ttysclp0"
