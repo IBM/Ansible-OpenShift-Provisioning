@@ -164,7 +164,7 @@ Final steps of waiting for and verifying the OpenShift cluster to complete its i
 * If needed, use this playbook to setup the file server to be compatible with these playbooks.
 * Generally, it must be run after 0_setup.yaml and before 4_create_bastion.yaml, with a few specific cases:
     * If using the file server to boot KVM hosts, it must be run before 2_create_kvm_host.yaml
-    * If using the KVM host as the file server, it must be run after 3_setup_kvm_host.yaml
+    * If using the KVM host as the file server (NAT-based networking only), it must be run after 3_setup_kvm_host.yaml
 ## Outcomes
 * Prompt user for an an active download link (expires after a few hours) of RHEL for IBM zSystems Binary DVD (iso) from Red Hat's Customer Portal ( https://access.redhat.com/downloads/content ) website. 
 * The interactive prompt can be avoided by defining it with extra-vars when running ansible-playbook on the command-line, i.e:
