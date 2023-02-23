@@ -145,7 +145,7 @@ Final steps of waiting for and verifying the OpenShift cluster to complete its i
 
 ## Reinstall Cluster Playbook (reinstall_cluster.yaml)
 ### Overview
-In case the cluster needs to be completely reinstalled, run this playbook. It will refresh the ingitions that expire after 24 hours, teardown the nodes and re-create them, and then verify the installation.
+* In case the cluster needs to be completely reinstalled, run this playbook. It will refresh the ingitions that expire after 24 hours, teardown the nodes and re-create them, and then verify the installation.
 ### Outcomes
 * get_ocp role runs.
     * Delete the folders /var/www/html/bin and /var/www/html/ignition.
@@ -158,6 +158,27 @@ In case the cluster needs to be completely reinstalled, run this playbook. It wi
     * Ignition files for the bootstrap, control, and compute nodes are transferred to HTTP-accessible directory for booting nodes.
 * 6 Create Nodes playbook runs, tearing down and recreating cluster nodes.
 * 7 OCP Verification playbook runs, verifying new deployment.
+
+## Setup File Server Playbook (setup_file_server.yaml)
+## Overview
+* If needed, use this playbook to setup the file server to be compatible with these playbooks.
+* Generally, it must be run after 0_setup.yaml and before 4_create_bastion.yaml, with a few specific cases:
+    * If using the file server to boot KVM hosts, it must be run before 2_create_kvm_host.yaml
+    * If using the KVM host as the file server, it must be run after 3_setup_kvm_host.yaml
+## Outcomes
+* Prompt user for an an active download link (expires after a few hours) of RHEL for IBM zSystems Binary DVD (iso) from Red Hat's Customer Portal ( https://access.redhat.com/downloads/content ) website. 
+* The interactive prompt can be avoided by defining it with extra-vars when running ansible-playbook on the command-line, i.e:
+    ```
+    ansible-playbook playbooks/setup_file_server.yaml --extra-vars "iso_link=http://https://access.cdn.redhat.com/content/[...]"
+    ```
+* Install httpd or vsftpd packages, depending on the env.file_server.protocol variable. As well as wget and firewalld. If install of packages fails, try registering with Red Hat, and then re-try installing packages after registration.
+* Download RHEL ISO from user-provided link.
+* Verify the SHA-256 checksum of the downloaded ISO.
+* Create a directory to store configuration files at the path provided by env.file_server.cfgs_dir
+* Create a directory for mounting the downloaded RHEL ISO at the path provided by env.file_server.iso_mount_dir
+* Mount RHEL ISO to path provided by env.file_server.iso_mount_dir
+* Start and enable either http or ftp service, based on the env.file_server.protocol variable.
+* Allow http or ftp traffic through the firewall, based on the env.file_server.protocol variable.
 
 ## Test Playbook (test.yaml)
 ### Overview

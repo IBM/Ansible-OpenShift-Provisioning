@@ -1,0 +1,157 @@
+# This playbook helps you setup the file server.
+# Run it after 0_setup.yaml and before 4_create_bastion.yaml
+# If you are using the KVM host as the file_server, run this playbook after 3_setup_kvm_host.yaml
+---
+- hosts: file_server
+  gather_facts: true
+  become: true
+  vars_prompt:
+    - name: iso_link
+      prompt: Paste in an active download link (expires after a few hours) for RHEL for IBM zSystems Binary DVD (iso) from Red Hat's Customer Portal ( https://access.redhat.com/downloads/content ) website
+      private: false
+      # This interactive prompt can be avoided by defining it with extra-vars when running ansible-playbook on the command-line, i.e:
+      # ansible-playbook playbooks/setup_file_server.yaml --extra-vars "iso_link=http://https://access.cdn.redhat.com/content/[...]"
+  vars:
+    protocol: "{{ env.file_server.protocol }}"
+    packages: "{{ ( 'httpd,firewalld,wget' if protocol == 'http' else 'vsftpd,firewalld,wget' if protocol == 'ftp' ).split(',') | list }}"
+    service_name: "{{ 'httpd' if protocol == 'http' else 'vsftpd' if protocol == 'ftp' }}"
+    iso_filename: "{{ iso_link.split('/')[-1].split('?')[0] }}"
+    iso_checksum: "{{ iso_link.split('/')[-2] }}"
+  tasks:
+    - name: Get user's home directory.
+      tags: always
+      become: false
+      command: 'echo ~'
+      register: echo_home
+      changed_when: false
+
+    - name: Set home_dir and mount_dir variables based on previous task for future use.
+      tags: always
+      set_fact:
+        home_dir: "{{ echo_home.stdout }}"
+        mount_dir: "{{ home_dir + '/' + env.file_server.iso_mount_dir if protocol == 'ftp' else '/var/www/html/' + env.file_server.iso_mount_dir if protocol == 'http' }}"
+
+    - block:
+        - name: Install packages.
+          tags: pkgs
+          include_role:
+            name: install_packages
+      rescue:
+        - name: Try to register system with Red Hat if unable to install packages.
+          tags: pkgs
+          include_role:
+            name: attach_subscription
+        - name: Try to install packages again, after registering.
+          tags: pkgs
+          include_role:
+            name: install_packages
+
+    - name: Start download of RHEL ISO from provided Customer Portal link to user's home. This task will continue to run even if the playbook run is terminated, and will pick back up where it left off if started again.
+      tags: iso
+      become: false
+      command: "wget -c '{{ iso_link }}' -O {{ home_dir }}/{{ iso_filename }}"
+      async: 6000
+      poll: -1
+      register: pull_iso
+
+    - name: Waiting for ISO download to complete - checking every 45 seconds. This may take 10 minutes or more, depending on server's bandwidth.
+      tags: iso
+      become: false
+      async_status:
+        jid: "{{ pull_iso.ansible_job_id }}"
+      register: iso_pull_check
+      until: iso_pull_check.finished
+      retries: 100
+      delay: 45
+
+    - name: Cleanup async job cache for ISO download.
+      tags: iso
+      become: false
+      async_status:
+        jid: "{{ pull_iso.ansible_job_id }}"
+        mode: cleanup
+
+    - name: Get SHA-256 sum of ISO.
+      tags: iso
+      stat:
+        path: "{{ home_dir }}/{{ iso_filename }}"
+        checksum_algorithm: sha256
+        get_checksum: yes
+      register: iso_stat
+
+    - name: Display checksums that will be verified in next step.
+      tags: iso
+      debug:
+        msg: 
+          - "Checksum of download: {{ iso_stat.stat.checksum }}"
+          - "Checksum of Red Hat : {{ iso_checksum }}"
+        
+    - name: Throw error if checksum verification fails, otherwise skip.
+      tags: iso
+      fail:
+        msg: "ERROR! Downloaded ISO file's checksum does not match the checksum from the Red Hat website."
+      when: iso_stat.stat.checksum != iso_checksum
+
+    - name: Create directory for storing configuration files, when using FTP.
+      tags: dir, cfgs
+      become: false
+      file:
+        path: '{{ home_dir }}/{{ env.file_server.cfgs_dir }}'
+        state: directory
+        mode: '0644'
+      when: protocol == 'ftp'
+
+    - name: Create directory for storing configuration files, when using HTTP.
+      tags: dir, cfgs
+      file:
+        path: '/var/www/html/{{ env.file_server.cfgs_dir }}'
+        state: directory
+        mode: '0644'
+      when: protocol == 'http'
+
+    - name: Unmount ISO, if one is already mounted, for idempotency.
+      tags: dir, mount
+      ansible.posix.mount:
+        state: unmounted
+        path: "{{ mount_dir }}"
+
+    - name: Create mounting directory for ISO when using FTP.
+      tags: dir, mount
+      become: false
+      file:
+        path: '{{ mount_dir }}'
+        state: directory
+        mode: '0644'
+      when: protocol == 'ftp'
+
+    - name: Create mounting directory for ISO when using HTTP.
+      tags: dir, mount
+      file:
+        path: '{{ mount_dir }}'
+        state: directory
+        mode: '0644'
+      when: protocol == 'http'
+    
+    - name: Mount ISO.
+      tags: dir, mount
+      ansible.posix.mount:
+        state: mounted
+        path: "{{ mount_dir }}"
+        src: "{{ home_dir }}/{{ iso_filename }}"
+        fstype: iso9660
+        opts: ro,noauto
+    
+    - name: Start and enable http or ftp service.
+      tags: service
+      service:
+        name: "{{ service_name }}"
+        state: started
+        enabled: true
+    
+    - name: Permit http or ftp traffic through firewall.
+      tags: service, firewall
+      ansible.posix.firewalld:
+        service: "{{ protocol }}"
+        permanent: yes
+        state: enabled
+        immediate: true

@@ -14,37 +14,17 @@
     * 8 IPv4 addresses
 ## File Server
 * A file server accessible from your IBM zSystems / LinuxONE server.
-* Either FTP or HTTP service configured and active.
-* Once a RHEL server is installed natively on the LPAR, pre-existing or configured by this automation, (i.e. the KVM host), you can use that as the file server. 
-* If you are not using a pre-existing KVM host(s) and need to create them using this automation, you must use an FTP server because the HMC does not support HTTP.
-* A user with sudo and SSH access on that server.
+* Use the [setup_file_server playbook](https://github.com/jacobemery/Ansible-OpenShift-Provisioning/blob/main/playbooks/setup_file_server.yaml) to help you setup the file server, or at least better understand what is required, if needed. It will work most reliably against a RHEL server. You will be prompted for an active RHEL 8.x 'Binary DVD' download link, see instructions for getting that in the next bullet point.
+    ```
+    ansible-playbook playbooks/setup_file_server.yaml
+    ```
 * A DVD ISO file of Red Hat Enterprise Linux (RHEL) 8 for s390x architecture mounted in an accessible folder (e.g. /home/<user>/rhel/ for FTP or /var/www/html/rhel for HTTP)
     * If you do not have RHEL for s390x yet, go to the Red Hat [Customer Portal](https://access.redhat.com/downloads/content) and download it.
     * Under 'Product Variant' use the drop-down menu to select 'Red Hat Enterprise Linux for IBM z Systems' 
-    * Double-check it's for version 8 and for s390x architecture
-    * Then scroll down to Red Hat Enterprise Linux 8.x Binary DVD and click on the 'Download Now' button.
-    * To pull the image directly from the command-line of your file server, copy the link for the 'Download Now' button and use `wget` to pull it down.
-        ```
-        wget "https://access.cdn.redhat.com/content/origin/files/sha256/13/13[...]40/rhel-8.7-s390x-dvd.iso?user=6[...]e"
-        ```
-    * Don't forget to mount it too:
-        * FTP:
-            ```
-            mount <rhel-8.7-s390x-dvd.iso> /home/<user>/rhel
-            ```
-        * or HTTP:
-            ```
-            mount <rhel-8.7-s390x-dvd.iso> /var/www/html/rhel
-            ```
+    * Double-check it's for version 8 and for s390x architecture.
+    * Then scroll down to Red Hat Enterprise Linux 8.x Binary DVD and click on the 'Download Now' button, or right click the button and click 'Copy Link'.
 * A folder created to store config files (e.g. /home/user/ocp-config for FTP or /var/www/html/ocp-config for http)
-    * For FTP:
-        ```
-        sudo mkdir /home/<username>/ocp-config
-        ```
-        or HTTP:
-        ```
-        sudo mkdir /var/www/html/ocp-config
-        ```
+* A user with sudo and SSH access.
 ## Ansible Controller
 * The computer/virtual machine running Ansible, sometimes referred to as localhost.
 * Must be running on with MacOS or Linux operating systems.
