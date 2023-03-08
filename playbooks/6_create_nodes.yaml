@@ -13,8 +13,6 @@
     - delete_nodes
 
 - name: 6 create nodes - create bootstrap
-  # Create botstrap on first KVM host, except when high availability is selected
-#  hosts: kvm_host[ "{{ (-1 if env.z.high_availability == 'True' else 0) }}" ]
   hosts: kvm_host[0]
   become: False
   gather_facts: false
