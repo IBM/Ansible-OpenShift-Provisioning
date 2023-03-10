@@ -44,7 +44,7 @@ env:
   redhat:
     username: #X
     password: #X
-    # Make sure to enclose pull_request in 'single quotes'
+    # Make sure to enclose pull_secret in 'single quotes'
     pull_secret: #'X'
 
 # Section 5 - Bastion
