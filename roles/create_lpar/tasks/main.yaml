@@ -110,7 +110,7 @@
           adapter_name: "{{ lpar.networking.nic.card2.adapter }}"
           adapter_port: "{{ lpar.networking.nic.card2.port }}"
           description: "NIC2"
-          device_number: “{{ '%04x' % ( lpar.networking.nic.card1.dev_num | int ) }}”
+          device_number: "{{ '%04x' % ( lpar.networking.nic.card1.dev_num | int ) }}"
   register: nic2  
   when: lpar.networking.nic.card2 is defined
 
