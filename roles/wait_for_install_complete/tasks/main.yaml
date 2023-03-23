@@ -1,18 +1,18 @@
 ---
-
 - name: Almost there! Add host info to /etc/hosts so you can login to the cluster via web browser. Ansible Controller sudo password required
   tags: wait_for_install_complete
   become: true
-  blockinfile:
-    create: true
-    backup: true
-    marker: "# {mark} ANSIBLE MANAGED BLOCK FOR OCP CLUSTER: {{ env.cluster.networking.metadata_name }}"
+  ansible.builtin.lineinfile:
+    regexp: "^{{ env.bastion.networking.ip }}"
+    line:
+      "{{ env.bastion.networking.ip }} oauth-openshift.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} \
+      console-openshift-console.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} \
+      api.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
     path: /etc/hosts
-    block: |
-      {{ env.bastion.networking.ip }} oauth-openshift.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
-      {{ env.bastion.networking.ip }} console-openshift-console.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
-      {{ env.bastion.networking.ip }} api.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
+    state: present
   delegate_to: 127.0.0.1
+  # Delegate do not work, if you run aop in a container !
+  ignore_errors: true
 
 - name: Get OCP URL
   tags: wait_for_install_complete
@@ -27,7 +27,7 @@
 
 - name: "Additional step, if using NAT"
   tags: wait_for_install_complete
-  debug: 
+  debug:
     msg: "NAT USERS ONLY: Create SSH tunnel to cluster, i.e run command in terminal window from controller: 'sshuttle -r {{ env.bastion.access.user }}@{{ env.bastion.networking.ip }} 192.168.122.0/15 --dns'"
   when: ( env.network_mode | upper == "NAT" )
   changed_when: false
@@ -35,7 +35,7 @@
 - name: Congratulations! OpenShift installation complete. Use the information below for first-time login via web browser.
   tags: wait_for_install_complete
   command: "echo {{ item }}"
-  loop: 
+  loop:
     - " URL: {{ ocp_url }} "
     - " Username: kubeadmin "
     - " Password: {{ ocp_passwd.stdout }} "
