@@ -3,12 +3,12 @@
 - name: Start openshift-installer with 'wait-for bootstrap-complete' (async task)
   tags: wait_for_bootstrap
   ansible.builtin.command: openshift-install wait-for bootstrap-complete --dir=/root/ocpinst
-  # Increase wait time to 90 min, because it depends highly on system performance and network speed
-  async: 5400
+  # Set wait time to 75 min, because it depends highly on system performance and network speed
+  async: 4500
   poll: 0
   register: watch_bootstrap
 
-- name: "Wait for first node-bootstrapper request, should be started within ~6 min (retry every 30s)...To watch progress, \
+- name: "Wait for first node-bootstrapper request. Takes < 10 min with good network connection (retry every 30s)...To watch progress, \
 SSH to root@bastion, SSH to core@bootstrap-ip and run 'journalctl -b -f -u release-image.service -u bootkube.service'"
   tags: wait_for_bootstrap
   ansible.builtin.shell: |
@@ -16,7 +16,7 @@ SSH to root@bastion, SSH to core@bootstrap-ip and run 'journalctl -b -f -u relea
     oc get csr | grep ":node-bootstrapper"
   register: csr_check
   until: (":node-bootstrapper" in csr_check.stdout)
-  retries: 20
+  retries: 60
   delay: 30
 
 - name: Print first node-bootstrapper requests
@@ -31,8 +31,8 @@ SSH to bastion, switch to root, from there, SSH to core@bootstrap-ip and run 'jo
     jid: "{{ watch_bootstrap.ansible_job_id }}"
   register: bootstrapping
   until: bootstrapping.finished
-  # Increase wait time to 75 min, because it depends highly on system performance and network speed
-  retries: 150
+  # Set wait time to 60 min, because it depends highly on system performance and network speed
+  retries: 120
   delay: 30
 
 - name: Make sure kubeconfig works properly
