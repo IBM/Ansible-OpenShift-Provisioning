@@ -10,9 +10,9 @@
       api.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
     path: /etc/hosts
     state: present
+    # When you are running AOP inside a container, then you must enable 'unsafe_writes'
+    unsafe_writes: true
   delegate_to: 127.0.0.1
-  # Delegate do not work, if you run aop in a container !
-  ignore_errors: true
 
 - name: Get OCP URL
   tags: wait_for_install_complete
