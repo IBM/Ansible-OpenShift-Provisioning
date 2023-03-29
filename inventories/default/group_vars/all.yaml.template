@@ -8,28 +8,12 @@ env:
   controller:
     sudo_pass: #X
 
-# Section 2 - LPAR(s)
-  z:
-    high_availability: False
-    ip_forward: #X
-    lpar1:
-      create: True
-      hostname: #X
-      ip: #X
-      user: #X
-      pass: #X
-    lpar2:
-      create: False
-#      hostname:
-#      ip:
-#      user:
-#      pass:
-    lpar3:
-      create: False
-#      hostname:
-#      ip:
-#      user:
-#      pass:
+# Section 2 - KVM Host(s)
+  kvm:
+    hostname: 
+      - #X
+#      - 
+#      - 
 
 # Section 3 - File Server
   file_server:
@@ -44,7 +28,7 @@ env:
   redhat:
     username: #X
     password: #X
-    # Make sure to enclose pull_request in 'single quotes'
+    # Make sure to enclose pull_secret in 'single quotes'
     pull_secret: #'X'
 
 # Section 5 - Bastion
@@ -72,6 +56,7 @@ env:
       root_pass: #X
     options:
       dns: True
+      openvpn: False
       loadbalancer:
         on_bastion: True
 #        public_ip:
