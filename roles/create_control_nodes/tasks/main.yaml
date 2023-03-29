@@ -4,6 +4,7 @@
   tags: create_control_nodes
   command: |
     virt-install \
+    --connect qemu:///system \
     --name {{ env.cluster.nodes.control.vm_name[i] }} \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }}  \
@@ -11,7 +12,7 @@
     --cpu host \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
+    --location {{ storage.pool_path }},kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{ env.cluster.nodes.control.ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.control.hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign" \
     --graphics none \
     --wait=-1 \
@@ -20,12 +21,13 @@
   loop_control:
     extended: yes
     index_var: i
-  when: env.z.high_availability == False and inventory_hostname == env.z.lpar1.hostname
+  when: ( groups['kvm_host'] | length == 1 )
 
 - name: Create the first CoreOS control node on the first KVM host, if cluster is to be highly available.
   tags: create_control_nodes
   command: |
     virt-install \
+    --connect qemu:///system \
     --name {{ env.cluster.nodes.control.vm_name[0] }} \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }}  \
@@ -33,17 +35,18 @@
     --cpu host \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
+    --location {{ storage.pool_path }},kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{ env.cluster.nodes.control.ip[0] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.control.hostname[0] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign" \
     --graphics none \
     --wait=-1 \
     --noautoconsole
-  when: env.z.high_availability == True and inventory_hostname == env.z.lpar1.hostname
+  when: ( groups['kvm_host'] | length > 1 ) and inventory_hostname == hostvars[groups['kvm_host'][0]]['networking']['hostname']
 
 - name: Create the second CoreOS control node on the second KVM host, if cluster is to be highly available.
   tags: create_control_nodes
   command: |
     virt-install \
+    --connect qemu:///system \
     --name {{ env.cluster.nodes.control.vm_name[1] }} \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }}  \
@@ -51,12 +54,12 @@
     --cpu host \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
+    --location {{ storage.pool_path }},kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{ env.cluster.nodes.control.ip[1] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.control.hostname[1] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign" \
     --graphics none \
     --wait=-1 \
     --noautoconsole
-  when: env.z.high_availability == True and inventory_hostname == env.z.lpar2.hostname
+  when: ( groups['kvm_host'] | length > 1 ) and inventory_hostname == hostvars[groups['kvm_host'][1]]['networking']['hostname']
 
 - name: Create the third CoreOS control node on the third KVM host, if cluster is to be highly available.
   tags: create_control_nodes
@@ -69,9 +72,9 @@
     --cpu host \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
+    --location {{ storage.pool_path }},kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{ env.cluster.nodes.control.ip[2] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.control.hostname[2] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign" \
     --graphics none \
     --wait=-1 \
     --noautoconsole
-  when: env.z.high_availability == True and inventory_hostname == env.z.lpar3.hostname
+  when: ( groups['kvm_host'] | length > 1 ) and inventory_hostname == hostvars[groups['kvm_host'][1]]['networking']['hostname']
