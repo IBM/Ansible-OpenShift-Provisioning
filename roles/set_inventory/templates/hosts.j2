@@ -5,9 +5,9 @@
 {{ env.file_server.ip }} ansible_user={{ env.file_server.user }} ansible_become_password={{ env.file_server.pass }}
 
 [kvm_host]
-{{ env.z.lpar1.hostname }} ansible_host={{ env.z.lpar1.ip }} ansible_user={{ env.z.lpar1.user }} ansible_become_password={{ env.z.lpar1.pass }}
-{{ (env.z.lpar2.hostname + ' ansible_host=' + env.z.lpar2.ip + ' ansible_user=' + env.z.lpar2.user + ' ansible_become_password=' + env.z.lpar2.pass ) if env.z.lpar2.hostname is defined else '' }}
-{{ (env.z.lpar3.hostname + ' ansible_host=' + env.z.lpar3.ip + ' ansible_user=' + env.z.lpar3.user + ' ansible_become_password=' + env.z.lpar3.pass ) if env.z.lpar3.hostname is defined else '' }}
+{{ env.kvm.hostname[0] }}
+{{ env.kvm.hostname[1] if env.kvm.hostname[1] is defined }}
+{{ env.kvm.hostname[2] if env.kvm.hostname[2] is defined -}}
 
 [bastion]
 {{ env.bastion.networking.hostname }} ansible_host={{ env.bastion.networking.ip }} ansible_user={{ env.bastion.access.user }} ansible_become_password={{ env.bastion.access.pass }}

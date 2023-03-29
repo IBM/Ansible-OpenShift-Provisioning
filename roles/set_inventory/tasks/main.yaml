@@ -13,6 +13,15 @@
     echo "${ansible_config%/*}/"
   register: find_project
 
+- name: Check to make sure that all KVM hosts defined in group_vars/all.yaml have a corresponding inventory host_vars file named with matching hostname and .yaml extension, i.e. kvmhost1.yaml
+  tags: set_inventory, lpar_check
+  stat:
+    path: "{{ find_project.stdout }}{{ find_inventory.stdout }}host_vars/{{ item }}.yaml"
+  loop: "{{ env.kvm.hostname }}"
+  when: item is defined
+  register: lpar_host_vars
+  failed_when: lpar_host_vars.stat.exists == False
+
 - name: Fail if network_mode is NAT and jumphost vars are undefined.
   tags: set_inventory
   fail:
@@ -25,6 +34,18 @@
     src: hosts.j2
     dest: "{{ find_project.stdout }}{{ find_inventory.stdout }}/hosts"
     force: yes
+
+- name: Add KVM host(s) info to inventory.
+  tags: set_inventory
+  ansible.builtin.lineinfile:
+    path: "{{ find_project.stdout }}{{ find_inventory.stdout }}/hosts"
+    search_string: "{{ env.kvm.hostname[i] }}"
+    line: "{{ env.kvm.hostname[i] + ' ansible_host=' + hostvars[groups['kvm_host'][i]]['networking']['ip'] + ' ansible_user=' + hostvars[groups['kvm_host'][i]]['access']['user'] + ' ansible_become_password=' + hostvars[groups['kvm_host'][i]]['access']['pass'] }}"
+  with_sequence: start=0 end={{ ( env.kvm.hostname | length ) - 1 }} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+  when: env.kvm.hostname[i] is defined
 
 - meta: refresh_inventory
 

@@ -31,7 +31,7 @@
 
 ### Updating additional parameters in RHEL configuration files that are more variable.
 
-- name: Add FCP storage boot drive  triplet info to KVM host's RHEL prm configuration file.
+- name: Add FCP storage boot drive triplet info to KVM host's RHEL prm configuration file.
   tags: update_cfgs
   lineinfile:
     path: '{{ env.file_server.cfgs_dir }}/{{ networking.hostname }}/kvm_host.prm'
@@ -69,7 +69,7 @@
 
 - name: Create hash from KVM user password to input in kickstart file
   tags: update_cfgs
-  shell: echo "{{ lpar.access.pass }}" | openssl passwd -6 -in -
+  shell: echo "{{ access.pass }}" | openssl passwd -6 -in -
   register: user_pass_hash
 
 - name: Add hashed user password to KVM host's RHEL kickstart config file
@@ -77,7 +77,7 @@
   lineinfile:
     path: "{{ env.file_server.cfgs_dir }}/{{ networking.hostname }}/kvm_host.cfg"
     insertafter: "Users and Groups Definitions"
-    line: "user --groups=wheel --name={{ lpar.access.user }} --password={{ user_pass_hash.stdout }} --iscrypted"
+    line: "user --groups=wheel,kvm,libvirt --name={{ access.user }} --password={{ user_pass_hash.stdout }} --iscrypted"
 
 - name: Add network information in KVM hosts's RHEL kickstart file when there is only one network card defined.
   tags: update_cfgs
