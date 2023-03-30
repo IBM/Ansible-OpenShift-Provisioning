@@ -4,7 +4,6 @@
   tags: create_compute_nodes
   command: |
     virt-install \
-    --connect qemu:///system \
     --name {{ env.cluster.nodes.compute.vm_name[i] }} \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }}  \
@@ -26,7 +25,6 @@
   tags: create_compute_nodes
   command: |
     virt-install \
-    --connect qemu:///system \
     --name {{ env.cluster.nodes.infra.vm_name[i] }} \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.infra.disk_size }}  \
@@ -66,7 +64,6 @@
   tags: create_compute_nodes
   command: |
     virt-install \
-    --connect qemu:///system \
     --name {{ compute_name[i] }} \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }}  \
@@ -88,7 +85,6 @@
   tags: create_compute_nodes
   command: |
     virt-install \
-    --connect qemu:///system \
     --name {{ infra_name[i] }} \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.infra.disk_size }}  \

@@ -106,13 +106,24 @@
         line: 'group = "libvirt"'
         backup: true
 
-    - name: Set default qemu connection to system.
+    - name: Set default uri connection to qemu:///system.
       tags: libvirt
       ansible.builtin.lineinfile:
-        path: /etc/libvirt/qemu.conf
+        path: "{{ item }}"
         regexp: '#uri_default = "qemu:///system"'
         line: 'uri_default = "qemu:///system"'
         backup: true
+      loop:
+        - /etc/libvirt/qemu.conf
+        - "/home/{{ access.user }}/.config/libvirt/libvirt.conf"
+        - /etc/libvirt/libvirt.conf 
+
+    - name: Set default qemu URI to qemu:///system for KVM admin user.
+      tags: libvirt, qemu
+      become: false
+      lineinfile:
+        path: /home/{{ access.user }}/.bash_profile
+        line: "export LIBVIRT_DEFAULT_URI=qemu:///system"
 
     - name: Ensure KVM admin user is part of groups 'kvm', 'libvirt'.
       tags: groups, group

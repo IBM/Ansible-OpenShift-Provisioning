@@ -5,10 +5,9 @@
   tags: create_bootstrap
   ansible.builtin.shell: |
     set -o pipefail
-    virsh -c qemu:///system destroy {{ env.cluster.nodes.bootstrap.vm_name }} || true
-    virsh -c qemu:///system undefine {{ env.cluster.nodes.bootstrap.vm_name }} --remove-all-storage || true
+    virsh destroy {{ env.cluster.nodes.bootstrap.vm_name }} || true
+    virsh undefine {{ env.cluster.nodes.bootstrap.vm_name }} --remove-all-storage || true
     virt-install \
-    --connect qemu:///system \
     --name {{ env.cluster.nodes.bootstrap.vm_name }} \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.bootstrap.disk_size }}  \

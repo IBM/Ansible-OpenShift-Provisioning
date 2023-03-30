@@ -57,10 +57,9 @@
   tags: create_bastion, virt-install
   ansible.builtin.shell: |
     set -o pipefail
-    virsh -c qemu:///system destroy {{ env.bastion.vm_name }} || true
-    virsh -c qemu:///system undefine {{ env.bastion.vm_name }} --remove-all-storage || true
+    virsh destroy {{ env.bastion.vm_name }} || true
+    virsh undefine {{ env.bastion.vm_name }} --remove-all-storage || true
     virt-install \
-    --connect qemu:///system \
     --name {{ env.bastion.vm_name }} \
     --autostart \
     --memory={{ env.bastion.resources.ram }} \
