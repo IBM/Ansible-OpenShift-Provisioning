@@ -5,9 +5,10 @@
 {{ env.file_server.ip }} ansible_user={{ env.file_server.user }} ansible_become_password={{ env.file_server.pass }}
 
 [kvm_host]
-{{ env.kvm.hostname[0] }}
-{{ env.kvm.hostname[1] if env.kvm.hostname[1] is defined }}
-{{ env.kvm.hostname[2] if env.kvm.hostname[2] is defined -}}
+{% for hostname in env.kvm.hostname %}
+{{- hostname -}}
+{%- if loop.index < env.kvm.hostname|length %}{{ '\n' }}{% endif -%}
+{% endfor %}
 
 [bastion]
 {{ env.bastion.networking.hostname }} ansible_host={{ env.bastion.networking.ip }} ansible_user={{ env.bastion.access.user }} ansible_become_password={{ env.bastion.access.pass }}
