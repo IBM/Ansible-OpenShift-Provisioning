@@ -20,7 +20,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: ( groups['kvm_host'] | length == 1 )
+  when: env.z.high_availability == False and inventory_hostname == env.z.lpar1.hostname
 
 - name: Create the first CoreOS control node on the first KVM host, if cluster is to be highly available.
   tags: create_control_nodes
@@ -38,7 +38,7 @@
     --graphics none \
     --wait=-1 \
     --noautoconsole
-  when: ( groups['kvm_host'] | length > 1 ) and inventory_hostname == hostvars[groups['kvm_host'][0]]['networking']['hostname']
+  when: env.z.high_availability == True and inventory_hostname == env.z.lpar1.hostname
 
 - name: Create the second CoreOS control node on the second KVM host, if cluster is to be highly available.
   tags: create_control_nodes
@@ -56,7 +56,7 @@
     --graphics none \
     --wait=-1 \
     --noautoconsole
-  when: ( groups['kvm_host'] | length > 1 ) and inventory_hostname == hostvars[groups['kvm_host'][1]]['networking']['hostname']
+  when: env.z.high_availability == True and inventory_hostname == env.z.lpar2.hostname
 
 - name: Create the third CoreOS control node on the third KVM host, if cluster is to be highly available.
   tags: create_control_nodes
@@ -74,4 +74,4 @@
     --graphics none \
     --wait=-1 \
     --noautoconsole
-  when: ( groups['kvm_host'] | length > 1 ) and inventory_hostname == hostvars[groups['kvm_host'][1]]['networking']['hostname']
+  when: env.z.high_availability == True and inventory_hostname == env.z.lpar3.hostname

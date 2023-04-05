@@ -19,7 +19,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: ( groups['kvm_host'] | length == 1 )
+  when: env.z.high_availability == False and inventory_hostname == env.z.lpar1.hostname
 
 - name: Install CoreOS on infra nodes
   tags: create_compute_nodes
@@ -40,7 +40,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: ( groups['kvm_host'] | length == 1 ) and env.cluster.nodes.infra.hostname is defined
+  when: env.cluster.nodes.infra.hostname is defined and env.z.high_availability == False and inventory_hostname == env.z.lpar1.hostname
 
 #If cluster is to be highly available, split control and infra nodes into lists corresponding to their future KVM hosts.
 
@@ -50,7 +50,7 @@
     compute_name: "{{ env.cluster.nodes.compute.vm_name[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
     compute_hostname: "{{ env.cluster.nodes.compute.hostname[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
     compute_ip: "{{ env.cluster.nodes.compute.ip[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
-  when: ( groups['kvm_host'] | length > 1 )
+  when: env.z.high_availability == True
 
 - name: Split information for infra nodes into groups. The number of groups being equal to the number of KVM hosts there are.
   tags: create_compute_nodes
@@ -58,7 +58,7 @@
     infra_name: "{{ env.cluster.nodes.infra.vm_name[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
     infra_hostname: "{{ env.cluster.nodes.infra.hostname[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
     infra_ip: "{{ env.cluster.nodes.infra.ip[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
-  when: ( groups['kvm_host'] | length > 1 ) and env.cluster.nodes.infra.hostname is defined
+  when: env.z.high_availability == True and env.cluster.nodes.infra.hostname is defined
 
 - name: Create CoreOS compute nodes on KVM hosts, if cluster is to be highly available.
   tags: create_compute_nodes
@@ -79,7 +79,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: ( groups['kvm_host'] | length > 1 ) and compute_hostname[i] is defined
+  when: env.z.high_availability == True and compute_hostname[i] is defined
 
 - name: Create CoreOS infra nodes on KVM hosts, if cluster is to be highly available.
   tags: create_compute_nodes
@@ -100,4 +100,4 @@
   loop_control:
     extended: yes
     index_var: i
-  when: ( groups['kvm_host'] | length > 1 ) and env.cluster.nodes.infra.hostname is defined and infra_hostname[i] is defined 
+  when: env.cluster.nodes.infra.hostname is defined and infra_hostname[i] is defined and env.z.high_availability == True

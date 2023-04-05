@@ -13,12 +13,6 @@
 ## 1 - KVM Host
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-## 2 - LPAR(s)
-**Variable Name** | **Description** | **Example**
-:--- | :--- | :---
-**create** | To have Ansible create an LPAR and install RHEL on it for the KVM<br /> host, mark True. If using a pre-existing LPAR with RHEL already<br /> installed, mark False. | True
-**access.user** | Username for Linux admin on KVM host 1. This user will be made part of the 'kvm', 'libvirt', and 'qemu' groups, if the 2_create_kvm_host.yaml or 3_setup_kvm_host.yaml playbooks are used, otherwise this must be configured manually. | admin
-**access.pass** | The password for the user that will be created or exists on the KVM host.  | ch4ngeMe!
 **networking.hostname** | The hostname of the LPAR with RHEL installed natively (the KVM host). | kvm-host-01
 **networking.ip** | The IPv4 address of the LPAR with RHEL installed natively (the KVM host). | 192.168.10.2
 **networking.subnetmask** | The subnet that the LPAR resides in within your network. | 255.255.255.0
@@ -27,8 +21,7 @@
 **networking.nameserver2** | <b>(Optional)</b> A second IPv4 address from which the KVM host can get its hostname<br /> resolved. Used for high availability. | 192.168.10.201
 **networking.device1** | The network interface card from Linux's perspective. Usually enc and then a number that comes<br /> from the dev_num of the network adapter. | enc100
 **networking.device2** | <b>(Optional)</b> Another Linux network interface card. Usually enc and then a number that comes<br /> from the dev_num of the second network adapter. | enc1
-**ip_forward** | This variable specifies if ip forwarding is enabled or not if NAT network is selected. If ip_forwarding is<br /> set to 0, the installed OCP cluster will not be able to access external services. This setting will be configured <br /> during 3_setup_kvm playbook. If NAT will be configured after 3_setup_kvm playbook, the setup needs to be done manually before bastion is <br />being created, configured or reconfigured by running the 3_setup_kvm playbook with parameter: --tags cfg_ip_forward | 1
-**storage.pool_path** | The absolute path to a directory on your KVM host that will be used to store qcow2 <br />images for the cluster and other installation artifacts. A sub-directory will be created here that matches your clsuter's <br />metadata name that will act as the cluster's libvirt storage pool directory. Note: all directories present in this path will be made executable for the<br /> 'qemu' group, as is required. | /home/kvm_admin/VirtualMachines 
+**storage.pool_path** | The absolute path to a directory on your KVM host that will be used to store qcow2 <br />images for the cluster and other installation artifacts. A sub-directory will be created here that matches your clsuter's <br />metadata name that will act as the cluster's libvirt storage pool directory. Note: all directories present in this path will be made executable for the<br /> 'qemu' group, as is required. | /home/kvm_admin/VirtualMachines
 
 ## Important Note
 * You can skip the rest of the variables on this page IF you are using existing LPAR(s) that has RHEL already installed.
@@ -48,6 +41,8 @@
 :--- | :--- | :---
 **lpar.name** | The name of the Logical Partition (LPAR) that you would like to create/target for the creation of<br /> your cluster. This LPAR will act as the KVM host, with RHEL installed natively. | OCPKVM1
 **lpar.description** | A short description of what this LPAR will be used for, will only be displayed in the HMC next to<br /> the LPAR name for identification purposes. | KVM host LPAR for RHOCP cluster.
+**lpar.access.user** | The username that will be created in RHEL when it is installed on the LPAR (the KVM host). | kvm-admin
+**lpar.access.pass** | The password for the user that will be created in RHEL when it is installed on the LPAR (the KVM host). | ch4ngeMe!
 **lpar.root_pass** | The root password for RHEL installed on the LPAR (the KVM host). | $ecureP4ass!
 
 ## 4 - (Optional) IFL & Memory

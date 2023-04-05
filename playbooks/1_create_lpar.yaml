@@ -18,13 +18,13 @@
 
     - name: Include vars for first LPAR if it is to be created.
       include_vars:
-        file: "{{ inventory_dir }}/host_vars/{{ hostvars[groups['kvm_host'][0]]['networking']['hostname'] }}.yaml"
-      when: hostvars[groups['kvm_host'][0]]['create']
+        file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
+      when: env.z.lpar1.create == True
 
     - name: Create an LPAR for the first KVM host.
       import_role:
         name: create_lpar
-      when: hostvars[groups['kvm_host'][0]]['create']
+      when: env.z.lpar1.create == True
           
 - hosts: localhost
   tags: create_lpar, create, kvm_host_2
@@ -32,13 +32,13 @@
   tasks:
     - name: Include vars for second LPAR if it is to be created.
       include_vars:
-        file: "{{ inventory_dir }}/host_vars/{{ hostvars[groups['kvm_host'][1]]['networking']['hostname'] }}.yaml"
-      when: env.kvm.hostname | length > 1 and hostvars[groups['kvm_host'][1]]['create']
+        file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar2.hostname }}.yaml"
+      when: env.z.lpar2.create == True
 
     - name: Create an LPAR for the second KVM host.
       import_role:
         name: create_lpar
-      when: env.kvm.hostname | length > 1 and hostvars[groups['kvm_host'][1]]['create']
+      when: env.z.lpar2.create == True
 
 - hosts: localhost
   tags: create_lpar, create, kvm_host_3
@@ -46,10 +46,10 @@
   tasks:
     - name: Include vars for third LPAR if it is to be created.
       include_vars:
-        file: "{{ inventory_dir }}/host_vars/{{ hostvars[groups['kvm_host'][1]]['networking']['hostname'] }}.yaml"
-      when: env.kvm.hostname | length > 2 and hostvars[groups['kvm_host'][2]]['create']
+        file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar3.hostname }}.yaml"
+      when: env.z.lpar3.create == True
       
     - name: Create an LPAR for a third KVM host.
       import_role:
         name: create_lpar
-      when: env.kvm.hostname | length > 2 and hostvars[groups['kvm_host'][2]]['create']
+      when: env.z.lpar3.create == True

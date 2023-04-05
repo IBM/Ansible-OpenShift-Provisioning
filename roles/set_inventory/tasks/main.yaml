@@ -35,18 +35,6 @@
     dest: "{{ find_project.stdout }}{{ find_inventory.stdout }}/hosts"
     force: yes
 
-- name: Add KVM host(s) info to inventory.
-  tags: set_inventory
-  ansible.builtin.lineinfile:
-    path: "{{ find_project.stdout }}{{ find_inventory.stdout }}/hosts"
-    search_string: "{{ env.kvm.hostname[i] }}"
-    line: "{{ env.kvm.hostname[i] + ' ansible_host=' + hostvars[groups['kvm_host'][i]]['networking']['ip'] + ' ansible_user=' + hostvars[groups['kvm_host'][i]]['access']['user'] + ' ansible_become_password=' + hostvars[groups['kvm_host'][i]]['access']['pass'] }}"
-  with_sequence: start=0 end={{ ( env.kvm.hostname | length ) - 1 }} stride=1
-  loop_control:
-    extended: yes
-    index_var: i
-  when: env.kvm.hostname[i] is defined
-
 - meta: refresh_inventory
 
 - name: Add path to Ansible private key in ansible.cfg

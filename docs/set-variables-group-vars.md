@@ -12,10 +12,26 @@
 :--- | :--- | :---
 **env.controller.sudo_pass** | The password to the machine running Ansible (localhost).<br /> This will only be used for two things. To ensure you've installed the<br /> pre-requisite packages if you're on Linux, and to add the login URL<br /> to your /etc/hosts file. | Pas$w0rd!
 
-## 2 - KVM Host(s)
+## 2 - LPAR(s)
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**env.kvm.hostname** | Short hostname of 1-3 KVM host(s) that will be used to deploy virtual machines onto. IMPORTANT: For each KVM host, you must create a corresponding host_vars file named `<kvm-hostname>.yaml` (i.e. ocpz1.yaml, ocpz2.yaml, ocpz3.yaml). Copy and rename the templates found in the [host_vars folder](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/host_vars) accordingly and fill in the variables there. | ocpz1
+**env.z.high_availability** | Is this cluster spread across three LPARs? If yes, mark True. If not (just in<br /> one LPAR), mark False | True
+**env.z.ip_forward** | This variable specifies if ip forwarding is enabled or not if NAT network is selected. If ip_forwarding is set to 0, the installed OCP cluster will not be able to access external services. This setting will be configured during 3_setup_kvm playbook. If NAT will be configured after 3_setup_kvm playbook, the setup needs to be done manually before bastion is being created, configured or reconfigured by running the 3_setup_kvm playbook with parameter: --tags cfg_ip_forward | 1
+**env.z.lpar1.create** | To have Ansible create an LPAR and install RHEL on it for the KVM<br /> host, mark True. If using a pre-existing LPAR with RHEL already<br /> installed, mark False. | True
+**env.z.lpar1.hostname** | The hostname of the KVM host. | kvm-host-01
+**env.z.lpar1.ip** | The IPv4 address of the KVM host. | 192.168.10.1
+**env.z.lpar1.user** | Username for Linux admin on KVM host 1. Recommended to run as a non-root user with sudo access. | admin
+**env.z.lpar1.pass** | The password for the user that will be created or exists on the KVM host.  | ch4ngeMe!
+**env.z.lpar2.create** | To create a second LPAR and install RHEL on it to act as<br /> another KVM host, mark True. If using pre-existing LPAR(s) with RHEL<br /> already installed, mark False. | True
+**env.z.lpar2.hostname** | <b>(Optional)</b> The hostname of the second KVM host. | kvm-host-02
+**env.z.lpar2.ip** | <b>(Optional)</b> The IPv4 address of the second KVM host. | 192.168.10.2
+**env.z.lpar2.user** | Username for Linux admin on KVM host 2. Recommended to run as a non-root user with sudo access. | admin
+**env.z.lpar2.pass** | <b>(Optional)</b> The password for the admin user on the second KVM host. | ch4ngeMe!
+**env.z.lpar3.create** | To create a third LPAR and install RHEL on it to act as<br /> another KVM host, mark True. If using pre-existing LPAR(s) with RHEL<br /> already installed, mark False. | True
+**env.z.lpar3.hostname** | <b>(Optional)</b> The hostname of the third KVM host. | kvm-host-03
+**env.z.lpar3.ip** | <b>(Optional)</b> The IPv4 address of the third KVM host. | 192.168.10.3
+**env.z.lpar3.user** | Username for Linux admin on KVM host 3. Recommended to run as a non-root user with sudo access. | admin
+**env.z.lpar3.pass** | <b>(Optional)</b> The password for the admin user on the third KVM host. | ch4ngeMe!
 
 ## 3 - File Server
 **Variable Name** | **Description** | **Example**
@@ -56,7 +72,6 @@
 **env.bastion.access.pass** | The password to the bastion's admin user. If using root, make<br /> pass and root_pass vars the same. | cH4ngeM3!
 **env.bastion.access.root_pass** | The root password for the bastion. If using root, make<br /> pass and root_pass vars the same. | R0OtPa$s!
 **env.bastion.options.dns** | Would you like the bastion to host the DNS information for the<br /> cluster? True or False. If false, resolution must come from<br /> elsewhere in your environment. Make sure to add IP addresses for<br /> KVM hosts, bastion, bootstrap, control, compute nodes, AND api,<br /> api-int and *.apps as described [here](https://docs.openshift.com/container-platform/4.8/installing/installing_bare_metal/installing-bare-metal-network-customizations.html) in section "User-provisioned<br /> DNS Requirements" Table 5. If True this will be done for you in<br /> the dns and check_dns roles. | True
-**env.bastion.options.openvpn** | Do you want to setup OpenVPN on your bastion? True or False. | True
 **env.bastion.options.load<br />balancer.on_bastion** | Would you like the bastion to host the load balancer (HAProxy) for the cluster?<br /> True or False (boolean).<br /> If false, this service must be provided elsewhere in your environment, and public and<br /> private IP of the load balancer must be<br /> provided in the following two variables. | True
 **env.bastion.options.load<br />balancer.public_ip** | (Only required if env.bastion.options.loadbalancer.on_bastion is True). The public IPv4<br /> address for your environment's loadbalancer. api, apps, *.apps must use this. | 192.168.10.50
 **env.bastion.options.load<br />balancer.private_ip** | (Only required if env.bastion.options.loadbalancer.on_bastion is True). The private IPv4 address<br /> for your environment's loadbalancer. api-int must use this. | 10.24.17.12

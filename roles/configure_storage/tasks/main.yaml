@@ -47,7 +47,7 @@
   ansible.builtin.file:
     path: "{{ storage.pool_path }}/{{ env.cluster.networking.metadata_name }}"
     state: directory
-    owner: "{{ access.user }}"
+    owner: "{{ ansible_user }}"
     group: qemu
     seuser: system_u
     setype: virt_image_t

@@ -7,13 +7,13 @@
   tasks:
     - name: Include vars for the KVM host.
       include_vars:
-        file: "{{ inventory_dir }}/host_vars/{{ hostvars[groups['kvm_host'][0]]['networking']['hostname'] }}.yaml"
-      when: hostvars[groups['kvm_host'][0]]['create']
+        file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
+      when: env.z.lpar1.create == True
 
     - name: Update configuration files for the KVM host.
       import_role:
         name: update_cfgs
-      when: hostvars[groups['kvm_host'][0]]['create']
+      when: env.z.lpar1.create == True
 
 #Template and update RHEL configuration files for KVM host to boot from
 - hosts: file_server
@@ -25,13 +25,13 @@
   tasks:
     - name: Include vars for a second KVM host if it is to be created.
       include_vars:
-        file: "{{ inventory_dir }}/host_vars/{{ hostvars[groups['kvm_host'][1]]['networking']['hostname'] }}.yaml"
-      when: env.kvm.hostname[1] is defined and hostvars[groups['kvm_host'][1]]['create']
+        file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar2.hostname }}.yaml"
+      when: env.z.lpar2.create == True
 
     - name: Update configuration files for a second KVM host, if cluster is to be highly available
       import_role:
         name: update_cfgs
-      when: env.kvm.hostname[1] is defined and hostvars[groups['kvm_host'][1]]['create']
+      when: env.z.lpar2.create == True
 
 #Template and update RHEL configuration files for KVM host to boot from
 - hosts: file_server
@@ -43,13 +43,13 @@
   tasks:
     - name: Include vars for third KVM host if it is to be created.
       include_vars:
-        file: "{{ inventory_dir }}/host_vars/{{ hostvars[groups['kvm_host'][2]]['networking']['hostname'] }}.yaml"
-      when: env.kvm.hostname[2] is defined and hostvars[groups['kvm_host'][2]]['create']
+        file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar3.hostname }}.yaml"
+      when: env.z.lpar3.create == True
 
     - name: Update configuration files for a third KVM host, if cluster is to be highly available
       import_role:
         name: update_cfgs
-      when: env.kvm.hostname[2] is defined and hostvars[groups['kvm_host'][2]]['create']
+      when: env.z.lpar3.create == True
 
 - name: Boot RHEL on LPAR 1
   hosts: localhost
@@ -58,13 +58,13 @@
   tasks:
     - name: Include vars for first LPAR if it is to be created.
       include_vars:
-        file: "{{ inventory_dir }}/host_vars/{{ hostvars[groups['kvm_host'][0]]['networking']['hostname'] }}.yaml"
-      when: hostvars[groups['kvm_host'][0]]['create']
+        file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
+      when: env.z.lpar1.create == True
 
     - name: Boot and install RHEL for KVM host
       import_role:
         name: create_kvm_host
-      when: hostvars[groups['kvm_host'][0]]['create']
+      when: env.z.lpar1.create == True
 
 - name: Boot RHEL on LPAR 2
   hosts: localhost
@@ -73,13 +73,13 @@
   tasks:
     - name: Include vars for second KVM host.
       include_vars:
-        file: "{{ inventory_dir }}/host_vars/{{ hostvars[groups['kvm_host'][1]]['networking']['hostname'] }}.yaml"
-      when: env.kvm.hostname[1] is defined and hostvars[groups['kvm_host'][1]]['create']
+        file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar2.hostname }}.yaml"
+      when: env.z.lpar2.create == True
 
     - name: Boot and install RHEL for a second KVM host.
       import_role:
         name: create_kvm_host
-      when: env.kvm.hostname[1] is defined and hostvars[groups['kvm_host'][1]]['create']
+      when: env.z.lpar2.create == True
 
 - name: Boot RHEL on LPAR 3
   hosts: localhost
@@ -88,10 +88,10 @@
   tasks:
     - name: Include vars for third KVM host.
       include_vars:
-        file: "{{ inventory_dir }}/host_vars/{{ hostvars[groups['kvm_host'][2]]['networking']['hostname'] }}.yaml"
-      when: env.kvm.hostname[2] is defined and hostvars[groups['kvm_host'][2]]['create']
+        file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar3.hostname }}.yaml"
+      when: env.z.lpar3.create == True
       
     - name: Boot and install RHEL for a third KVM host.
       import_role:
         name: create_kvm_host
-      when: env.kvm.hostname[2] is defined and hostvars[groups['kvm_host'][2]]['create']
+      when: env.z.lpar3.create == True
