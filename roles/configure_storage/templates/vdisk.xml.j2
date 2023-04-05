@@ -7,6 +7,6 @@
   <source>
   </source>
   <target>
-    <path>/var/lib/libvirt/images</path>
+    <path>{{ storage.pool_path }}/{{ env.cluster.networking.metadata_name }}</path>
   </target>
 </pool>

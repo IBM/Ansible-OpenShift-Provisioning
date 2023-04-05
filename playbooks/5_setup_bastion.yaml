@@ -4,7 +4,6 @@
   hosts: localhost
   tags: ssh, ssh_copy_id, section_1
   connection: local
-  become: false
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -17,7 +16,6 @@
 - name: Configure jumphost if network mode == 'NAT'
   hosts: jumphost
   tags: ssh, ssh_copy_id, section_1
-  become: false
   gather_facts: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -25,7 +23,6 @@
     ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}","{{ env.jumphost.path_to_keypair }}"]
   pre_tasks:
     - name: Generate an OpenSSH keypair with the default values (4096 bits, RSA), if using jumphost for NAT.
-      become: false
       tags: ssh_key_gen, ssh, section_1
       community.crypto.openssh_keypair:
         path: "{{ env.jumphost.path_to_keypair.split('.')[:-1] | join('.') }}"
@@ -51,7 +48,6 @@
 - name: 5 setup bastion - copy SSH key from localhost to access bastion.
   hosts: localhost
   tags: ssh, ssh_copy_id, section_1
-  become: false
   gather_facts: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -94,7 +90,6 @@
 
 - hosts: localhost
   tags: services, section_2, openvpn
-  become: false
   gather_facts: false
   tasks:
     - name: Create landing directories on controller for certificates and keys.
@@ -102,6 +97,7 @@
       file:
         state: directory
         path: tmp
+      when: env.z.high_availability == True
 
 - hosts: bastion
   tags: services, section_2, openvpn
@@ -120,13 +116,19 @@
         - ta.key
       when: env.z.high_availability == True
 
-- hosts: kvm_host
-  tags: services, section_2, openvpn
+- name: setup OpenVPN on KVM host(s).
+  hosts: kvm_host
+  tags: services, section_3, openvpn
   become: True
+  gather_facts: False
   vars:
     openvpn_role: "client"
     openvpn_client_server: "{{ env.bastion.networking.ip }}"
   pre_tasks:
+    - name: Gather facts.
+      setup:
+      when: env.z.high_availability == True
+
     - name: Create landing directories for certificates and keys on KVM hosts.
       tags: openvpn
       file:
@@ -156,7 +158,6 @@
 
 - hosts: localhost
   tags: services, section_2, openvpn
-  become: false
   gather_facts: false
   tasks:
     - name: Clean up tmp directories on controller for certificates and keys.

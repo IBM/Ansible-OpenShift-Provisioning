@@ -4,8 +4,6 @@
   tags: update_cfgs, update, kvm_host_1
   become: false
   gather_facts: false
-  vars_files: 
-    - "{{ inventory_dir }}/group_vars/all.yaml"
   tasks:
     - name: Include vars for the KVM host.
       include_vars:
@@ -53,12 +51,10 @@
         name: update_cfgs
       when: env.z.lpar3.create == True
 
-#Boot KVM host on LPAR
-- hosts: localhost
+- name: Boot RHEL on LPAR 1
+  hosts: localhost
   tags: create_kvm_host, boot, kvm_host_1
   connection: local
-  vars_files: 
-    - "{{ inventory_dir }}/group_vars/all.yaml"
   tasks:
     - name: Include vars for first LPAR if it is to be created.
       include_vars:
@@ -70,12 +66,10 @@
         name: create_kvm_host
       when: env.z.lpar1.create == True
 
-#Boot KVM host on LPAR
-- hosts: localhost
+- name: Boot RHEL on LPAR 2
+  hosts: localhost
   tags: create_kvm_host, boot, kvm_host_2
   connection: local
-  vars_files: 
-    - "{{ inventory_dir }}/group_vars/all.yaml"
   tasks:
     - name: Include vars for second KVM host.
       include_vars:
@@ -87,12 +81,10 @@
         name: create_kvm_host
       when: env.z.lpar2.create == True
 
-#Boot KVM host on LPAR
-- hosts: localhost
+- name: Boot RHEL on LPAR 3
+  hosts: localhost
   tags: create_kvm_host, boot, kvm_host_3
   connection: local
-  vars_files: 
-    - "{{ inventory_dir }}/group_vars/all.yaml"
   tasks:
     - name: Include vars for third KVM host.
       include_vars:
