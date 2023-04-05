@@ -13,15 +13,6 @@
     echo "${ansible_config%/*}/"
   register: find_project
 
-- name: Check to make sure that all KVM hosts defined in group_vars/all.yaml have a corresponding inventory host_vars file named with matching hostname and .yaml extension, i.e. kvmhost1.yaml
-  tags: set_inventory, lpar_check
-  stat:
-    path: "{{ find_project.stdout }}{{ find_inventory.stdout }}host_vars/{{ item }}.yaml"
-  loop: "{{ env.kvm.hostname }}"
-  when: item is defined
-  register: lpar_host_vars
-  failed_when: lpar_host_vars.stat.exists == False
-
 - name: Fail if network_mode is NAT and jumphost vars are undefined.
   tags: set_inventory
   fail:

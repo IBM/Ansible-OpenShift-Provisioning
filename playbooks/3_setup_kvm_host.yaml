@@ -156,7 +156,7 @@
       tags: cfg_ip_forward
       ansible.posix.sysctl:
         name: net.ipv4.ip_forward
-        value: "{{ networking.ip_forward }}"
+        value: "{{ env.z.ip_forward }}"
         sysctl_set: true
         state: present
         reload: true

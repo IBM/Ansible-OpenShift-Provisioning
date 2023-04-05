@@ -28,6 +28,30 @@
         extra_args: --upgrade
       when: env.z.lpar1.create == True or env.z.lpar2.create == True or env.z.lpar3.create == True
 
+    - name: Check to make sure that the KVM host has a corresponding inventory host_vars file named with matching hostname and .yaml extension.
+      tags: lpar_check
+      stat:
+        path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
+      when: env.z.lpar1.hostname is defined
+      register: lpar_host_vars
+      failed_when: lpar_host_vars.stat.exists == False
+
+    - name: Check to make sure the second KVM hosts have a corresponding inventory host_vars file named with matching hostname and .yaml extension, if defined.
+      tags: lpar_check
+      stat:
+        path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar2.hostname }}.yaml"
+      when: env.z.lpar2.hostname is defined
+      register: lpar_host_vars
+      failed_when: lpar_host_vars.stat.exists == False
+
+    - name: Check to make sure the third KVM hosts have a corresponding inventory host_vars file named with matching hostname and .yaml extension, if defined.
+      tags: lpar_check
+      stat:
+        path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar3.hostname }}.yaml"
+      when: env.z.lpar3.hostname is defined
+      register: lpar_host_vars
+      failed_when: lpar_host_vars.stat.exists == False
+
 - hosts: localhost
   connection: local
   become: False
