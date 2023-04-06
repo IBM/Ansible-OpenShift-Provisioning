@@ -11,7 +11,7 @@
     --cpu host \
     --vcpus {{ env.cluster.nodes.compute.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
+    --location {{ storage.pool_path }},kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{ env.cluster.nodes.compute.ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.compute.hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
     --wait=-1 \
     --noautoconsole
@@ -32,7 +32,7 @@
     --cpu host \
     --vcpus {{ env.cluster.nodes.infra.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
+    --location {{ storage.pool_path }},kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{ env.cluster.nodes.infra.ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.infra.hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
     --wait=-1 \
     --noautoconsole
@@ -71,7 +71,7 @@
     --cpu host \
     --vcpus {{ env.cluster.nodes.compute.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
+    --location {{ storage.pool_path }},kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{ compute_ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ compute_hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
     --wait=-1 \
     --noautoconsole
@@ -92,7 +92,7 @@
     --cpu host \
     --vcpus {{ env.cluster.nodes.infra.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location /var/lib/libvirt/images,kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
+    --location {{ storage.pool_path }},kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{ infra_ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ infra_hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
     --wait=-1 \
     --noautoconsole

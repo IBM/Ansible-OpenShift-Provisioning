@@ -9,6 +9,9 @@ networking:
   device1: #X
 #  device2: 
 
+storage:
+  pool_path: #X
+
 ##############################################################
 # Variables below this point only need to be filled out if   #
 # env.z.lpar3.create is True. Meaning, if the LPARs you will #
