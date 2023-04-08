@@ -5,7 +5,7 @@
   ansible.builtin.shell: |
     virt-install \
     --name {{ env.cluster.nodes.control.vm_name[i] }} \
-    --osinfo detect=on,name=rhel8.6 \
+    --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant | lower) }} \
     --autostart \
     --disk size={{ env.cluster.nodes.control.disk_size }}  \
     --ram {{ env.cluster.nodes.control.ram }} \
@@ -34,7 +34,7 @@
   command: |
     virt-install \
     --name {{ env.cluster.nodes.control.vm_name[0] }} \
-    --osinfo detect=on,name=rhel8.6 \
+    --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant | lower) }} \
     --autostart \
     --disk size={{ env.cluster.nodes.control.disk_size }}  \
     --ram {{ env.cluster.nodes.control.ram }} \

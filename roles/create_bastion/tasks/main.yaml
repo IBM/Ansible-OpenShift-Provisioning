@@ -1,5 +1,4 @@
 ---
-
 - name: Create a directory on the KVM host server for bastion configuration files
   become: false
   tags: create_bastion
@@ -53,7 +52,7 @@
   ansible.builtin.command: pwd
   register: kvm_host_home
 
-- name: Boot and kickstart bastion (up to 5 min). To monitor, login to your KVM host and run 'virsh console <bastion VM name>'
+- name: Boot and kickstart bastion. To monitor, login to your KVM host and run 'virsh console <bastion VM name>'
   tags: create_bastion, virt-install
   ansible.builtin.shell: |
     set -o pipefail
@@ -61,11 +60,11 @@
     virsh undefine {{ env.bastion.vm_name }} --remove-all-storage || true
     virt-install \
     --name {{ env.bastion.vm_name }} \
-    --osinfo detect=on,name={{ env.file_server.iso_os_variant | lower }} \
+    --osinfo detect=on,name={{ ('rhel8.7') if env.file_server.iso_os_variant is not defined else (env.file_server.iso_os_variant | lower) }} \
     --autostart \
     --memory={{ env.bastion.resources.ram }} \
     --vcpus={{ env.bastion.resources.vcpu }} \
-    --location http://{{ env.file_server.ip }}/{{ env.file_server.iso_mount_dir }} \
+    --location {{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}/{{ env.file_server.iso_mount_dir }} \
     --disk size={{ env.bastion.resources.disk_size }} \
     --network network={{ env.bridge_name }} \
     --graphics none \
@@ -75,7 +74,9 @@
     --extra-args "inst.ks=file:/bastion-ks.cfg ip={{ env.bastion.networking.ip }}::{{ env.bastion.networking.gateway }}:{{ env.bastion.networking.subnetmask }}:{{ env.bastion.networking.hostname }}::none {{ _vm_console }}"
   timeout: 300
   register: cmd_output
+
 - name: Debug, print above command output
+  tags: create_bastion, virt-install
   ansible.builtin.debug:
     var: cmd_output
 

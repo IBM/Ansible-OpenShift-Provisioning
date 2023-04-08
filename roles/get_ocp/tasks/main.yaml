@@ -54,7 +54,7 @@
     - oc
     - openshift-install
 
-- name: Use template file to create install-config and backup
+- name: Use template file to create install-config and backup.
   tags: get_ocp
   become: true
   vars:
@@ -138,14 +138,14 @@
 
 - name: Create directory in admin user's home for default kubeconfig.
   tags: get_ocp, config
-  become: False
+  become: false
   file:
     state: directory
     path: ~/.kube
 
 - name: Create directory in root's home for default kubeconfig.
   tags: get_ocp, config
-  become: True
+  become: true
   file:
     state: directory
     path: ~/.kube

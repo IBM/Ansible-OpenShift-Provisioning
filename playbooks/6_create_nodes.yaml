@@ -3,7 +3,6 @@
 # Prepare and then create the temporary bootstrap node and the control nodes
 - name: 6 create nodes - prepare KVM guests
   hosts: kvm_host
-  become: false
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -14,7 +13,6 @@
 
 - name: 6 create nodes - create bootstrap
   hosts: kvm_host[0]
-  become: False
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -24,7 +22,6 @@
 
 - name: 6 create nodes - create control nodes
   hosts: kvm_host
-  become: false
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -34,7 +31,7 @@
 
 - name: 6 create nodes - wait for bootstrap to connect control plane (for non-root user)
   hosts: bastion
-  become: True
+  become: true
   environment:
     KUBECONFIG: "/home/{{ env.bastion.access.user }}/.kube/config"
   gather_facts: true
@@ -45,7 +42,7 @@
 
 - name: 6 create nodes - wait for bootstrap to connect to control plane (for root user)
   hosts: bastion
-  become: false
+  become: true
   environment:
     KUBECONFIG: "/{{ env.bastion.access.user }}/.kube/config"
   gather_facts: true
@@ -55,10 +52,9 @@
     - {role: wait_for_bootstrap, when: env.bastion.access.user == "root"}
 
 - name: 6 create nodes - once bootstrapping is complete, tear down bootstrap.
-  hosts: kvm_host[-1]
+  hosts: kvm_host[0]
   tags: create_nodes, teardown_bootstrap
-  become: false
-  gather_facts: False
+  gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   tasks:
@@ -76,17 +72,9 @@
         command: undefine
       ignore_errors: true
 
-    # - name: Remove qcow2
-    #   tags: create_nodes, teardown_bootstrap
-    #   become: true
-    #   ansible.builtin.file:
-    #     path: "/var/lib/libvirt/images/{{ env.cluster.nodes.bootstrap.vm_name }}.qcow2"
-    #     state: absent
-
 - name: 6 create nodes - once bootstrapping is complete, create compute nodes.
   hosts: kvm_host
   tags: create_compute_nodes
-  become: false
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"

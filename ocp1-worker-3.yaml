@@ -1,7 +1,0 @@
----
-day2_compute_node:
-  vm_name: ocp1-worker-3
-  vm_hostname: worker-3
-  vm_ip: 172.23.232.137
-  hostname: a3elp37
-  host_arch: s390x

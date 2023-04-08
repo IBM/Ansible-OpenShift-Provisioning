@@ -1,8 +1,6 @@
 # Assume we have an existing ftp/http server already
 - name: 4 create bastion
   hosts: kvm_host[0]
-  # xkvmocp05 requires false
-  gather_facts: false
   become: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"

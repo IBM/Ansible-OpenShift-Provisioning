@@ -1,6 +1,6 @@
 ---
 
-# We create always a new bootstrap VM
+# Always creates a new bootstrap VM
 - name: Start bootstrap installation
   tags: create_bootstrap
   ansible.builtin.shell: |
@@ -9,7 +9,7 @@
     virsh undefine {{ env.cluster.nodes.bootstrap.vm_name }} --remove-all-storage || true
     virt-install \
     --name {{ env.cluster.nodes.bootstrap.vm_name }} \
-    --osinfo detect=on,name=rhel8.6 \
+    --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant | lower) }} \
     --autostart \
     --disk size={{ env.cluster.nodes.bootstrap.disk_size }}  \
     --ram {{ env.cluster.nodes.bootstrap.ram }} \
@@ -27,13 +27,3 @@
     --wait=-1 \
     --noautoconsole
   timeout: 300
-
-# - name: Set bootstrap qcow2 permissions
-#   become: true
-#   tags: create_bootstrap
-#   command: chmod 600 /var/lib/libvirt/images/{{env.cluster.nodes.bootstrap.vm_name}}.qcow2
-
-# - name: Set bootstrap qcow2 ownership to qemu
-#   become: true
-#   tags: create_bootstrap
-#   command: chown qemu:qemu /var/lib/libvirt/images/{{env.cluster.nodes.bootstrap.vm_name}}.qcow2
