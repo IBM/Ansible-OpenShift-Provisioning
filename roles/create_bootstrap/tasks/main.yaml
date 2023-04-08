@@ -24,3 +24,4 @@
     --graphics none \
     --wait=-1 \
     --noautoconsole
+  timeout: 300
