@@ -2,7 +2,6 @@
 ---
 - name: Update initramfs and kernel.
   hosts: kvm_host
-  become: True
   gather_facts: False
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"

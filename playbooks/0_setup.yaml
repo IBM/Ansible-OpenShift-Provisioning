@@ -3,10 +3,11 @@
 - hosts: localhost
   tags: localhost
   connection: local
-  become: False
-  gather_facts: True
+  become: false
+  gather_facts: true
   roles:
     - set_inventory
+
   post_tasks:
     - name: Ensure Ansible Galaxy collections have been installed.
       tags: galaxy
@@ -22,7 +23,7 @@
     - name: Ensure zhmcclient requirements are installed.
       tags: galaxy
       pip:
-        requirements: "{{zhmc_path.stdout}}/ibm/ibm_zhmc/requirements.txt"
+        requirements: "{{ zhmc_path.stdout }}/ibm/ibm_zhmc/requirements.txt"
         executable: pip3
         extra_args: --upgrade
       when: env.z.lpar1.create == True or env.z.lpar2.create == True or env.z.lpar3.create == True
@@ -53,8 +54,8 @@
 
 - hosts: localhost
   connection: local
-  become: False
-  gather_facts: True
+  become: false
+  gather_facts: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:

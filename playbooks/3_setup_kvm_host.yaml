@@ -1,12 +1,12 @@
 ---
 
-#Copy SSH key to access KVM host
-- hosts: localhost
+- name: Copy SSH key to access KVM host 1
+  hosts: localhost
   tags: ssh, ssh_copy_id, section_1, kvm_host_1
   connection: local
   become: false
   gather_facts: true
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
     ssh_target: ["{{ env.z.lpar1.ip }}","{{ env.z.lpar1.user }}","{{ env.z.lpar1.pass }}","{{ path_to_key_pair }}"]
@@ -19,12 +19,13 @@
       import_role:
         name: ssh_copy_id
 
-- hosts: localhost
+- name: Copy SSH key to access KVM host 2
+  hosts: localhost
   tags: ssh, ssh_copy_id, section_1, kvm_host_2
   connection: local
   become: false
   gather_facts: false
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
     ssh_target: ["{{ env.z.lpar2.ip }}","{{ env.z.lpar2.user }}","{{ env.z.lpar2.pass }}","{{ path_to_key_pair }}"]
@@ -40,12 +41,13 @@
         name: ssh_copy_id
       when: env.z.lpar2.hostname is defined
 
-- hosts: localhost
+- name: Copy SSH key to access KVM host 3
+  hosts: localhost
   tags: ssh, ssh_copy_id, section_1, kvm_host_3
   connection: local
   become: false
   gather_facts: false
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
     ssh_target: ["{{ env.z.lpar3.ip }}","{{ env.z.lpar3.user }}","{{ env.z.lpar3.pass }}","{{ path_to_key_pair }}"]
@@ -61,12 +63,12 @@
         name: ssh_copy_id
       when: env.z.lpar3.hostname is defined
 
-#Prepare KVM host and create bastion node
-- hosts: kvm_host
+- name: Prepare KVM host(s)
+  hosts: kvm_host
   tags: setup, section_2
   gather_facts: true
   become: true
-  vars: 
+  vars:
     packages: "{{ env.pkgs.kvm }}"
   roles:
     - { role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined }
@@ -74,21 +76,21 @@
     - httpd
   post_tasks:
     - name: Add ports to firewall
-      tags: firewall-libvirt
+      tags: firewall-libvirt, libvirt
       ansible.posix.firewalld:
         port: 80/tcp
         permanent: yes
         state: enabled
 
     - name: Start and enable libvirt
-      tags: firewall-libvirt
+      tags: firewall-libvirt, libvirt
       ansible.builtin.service:
         name: libvirtd
         enabled: yes
         state: started
 
     - name: Permit traffic in libvirt zone
-      tags: firewall-libvirt
+      tags: firewall-libvirt, libvirt
       ansible.posix.firewalld:
         service: http
         permanent: yes
@@ -96,12 +98,55 @@
         zone: libvirt
         immediate: true
 
+    - name: Set libvirt management to libvirt group instead of root.
+      tags: libvirt
+      ansible.builtin.lineinfile:
+        path: /etc/libvirt/qemu.conf
+        regexp: '#group = "root"'
+        line: 'group = "libvirt"'
+        backup: true
+
+    - name: Create file for user's custom libvirt configurations.
+      tags: libvirt
+      ansible.builtin.file:
+        path: "/home/{{ ansible_user }}/.config/libvirt/libvirt.conf"
+        state: touch
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    - name: Set default uri connection to qemu:///system.
+      tags: libvirt
+      ansible.builtin.lineinfile:
+        path: "{{ item }}"
+        regexp: '#uri_default = "qemu:///system"'
+        line: 'uri_default = "qemu:///system"'
+        backup: true
+      loop:
+        - /etc/libvirt/qemu.conf
+        - "/home/{{ ansible_user }}/.config/libvirt/libvirt.conf"
+        - /etc/libvirt/libvirt.conf
+
+    - name: Ensure KVM admin user is part of groups 'kvm', 'libvirt'.
+      tags: groups, group, libvirt
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        append: true
+        groups: kvm,libvirt
+
+    - name: Restart libvirt
+      tags: firewall-libvirt, libvirt
+      ansible.builtin.service:
+        name: libvirtd
+        enabled: yes
+        state: restarted
+
     - name: Enable cockpit console
+      tags: cockpit
       ansible.builtin.command: systemctl enable --now cockpit.socket
 
 - name: Configure ip_forward in case of NAT
   hosts: kvm_host
-  tags: cfg_ip_forward, section_3
+  tags: cfg_ip_forward, section_2
   gather_facts: true
   become: true
   vars_files:
@@ -115,7 +160,7 @@
         sysctl_set: true
         state: present
         reload: true
-      when: env.network_mode | upper == 'NAT' 
+      when: env.network_mode | upper == 'NAT'
 
 - hosts: kvm_host
   tags: setup, section_3
