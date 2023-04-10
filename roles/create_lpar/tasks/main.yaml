@@ -5,7 +5,7 @@
   tags: create_lpar, lpar
   ibm.ibm_zhmc.zhmc_partition:
     hmc_host: "{{ hmc.host }}"
-    hmc_auth: 
+    hmc_auth:
       userid: "{{ hmc.auth.user }}"
       password: "{{ hmc.auth.pass }}"
       verify: false
@@ -32,7 +32,7 @@
   tags: create_lpar, storage_group, storage_group_1
   ibm.ibm_zhmc.zhmc_storage_group_attachment:
     hmc_host: "{{ hmc.host }}"
-    hmc_auth: 
+    hmc_auth:
       userid: "{{ hmc.auth.user }}"
       password: "{{ hmc.auth.pass }}"
       verify: false
@@ -52,7 +52,7 @@
   tags: create_lpar, storage_group, storage_group_2
   ibm.ibm_zhmc.zhmc_storage_group_attachment:
     hmc_host: "{{ hmc.host }}"
-    hmc_auth: 
+    hmc_auth:
       userid: "{{ hmc.auth.user }}"
       password: "{{ hmc.auth.pass }}"
       verify: false
@@ -69,25 +69,25 @@
     var: sglparattach
   when: lpar.storage_group_2.name is defined
 
-#Attach Network Adapter 
+#Attach Network Adapter
 - name: Ensure NIC1 exists in the partition.
   tags: create_lpar, nic, nic1
   ibm.ibm_zhmc.zhmc_nic:
     hmc_host: "{{ hmc.host }}"
-    hmc_auth: 
+    hmc_auth:
       userid: "{{ hmc.auth.user }}"
       password: "{{ hmc.auth.pass }}"
       verify: false
     cpc_name: "{{ cpc_name }}"
     partition_name: "{{ lpar.name }}"
     name: "{{ lpar.networking.nic.card1.name }}"
-    state: present 
+    state: present
     properties:
       adapter_name: "{{ lpar.networking.nic.card1.adapter }}"
       adapter_port: "{{ lpar.networking.nic.card1.port }}"
       description: "NIC1"
       device_number: "{{ '%04x' % lpar.networking.nic.card1.dev_num | int }}"
-  register: nic1  
+  register: nic1
 
 - name: Print the result.
   tags: create_lpar, nic, nic1
@@ -98,24 +98,24 @@
   tags: create_lpar, nic, nic2
   ibm.ibm_zhmc.zhmc_nic:
     hmc_host: "{{ hmc.host }}"
-    hmc_auth: 
+    hmc_auth:
       userid: "{{ hmc.auth.user }}"
       password: "{{ hmc.auth.pass }}"
       verify: false
     cpc_name: "{{ cpc_name }}"
     partition_name: "{{ lpar.name }}"
     name: "{{ lpar.networking.nic.card2.name }}"
-    state: present 
+    state: present
     properties:
-          adapter_name: "{{ lpar.networking.nic.card2.adapter }}"
-          adapter_port: "{{ lpar.networking.nic.card2.port }}"
-          description: "NIC2"
-          device_number: “{{ '%04x' % ( lpar.networking.nic.card1.dev_num | int ) }}”
-  register: nic2  
+      adapter_name: "{{ lpar.networking.nic.card2.adapter }}"
+      adapter_port: "{{ lpar.networking.nic.card2.port }}"
+      description: "NIC2"
+      device_number: "{{ '%04x' % ( lpar.networking.nic.card2.dev_num | int ) }}"
+  register: nic2
   when: lpar.networking.nic.card2 is defined
 
 - name: Print the result.
   tags: create_lpar, nic, nic2
   debug:
-    var: nic2   
-  when: lpar.networking.nic.card2 is defined   
+    var: nic2
+  when: lpar.networking.nic.card2 is defined
