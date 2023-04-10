@@ -6,7 +6,7 @@
   connection: local
   become: false
   gather_facts: true
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
     ssh_target: ["{{ env.z.lpar1.ip }}","{{ env.z.lpar1.user }}","{{ env.z.lpar1.pass }}","{{ path_to_key_pair }}"]
@@ -25,7 +25,7 @@
   connection: local
   become: false
   gather_facts: false
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
     ssh_target: ["{{ env.z.lpar2.ip }}","{{ env.z.lpar2.user }}","{{ env.z.lpar2.pass }}","{{ path_to_key_pair }}"]
@@ -47,7 +47,7 @@
   connection: local
   become: false
   gather_facts: false
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
     ssh_target: ["{{ env.z.lpar3.ip }}","{{ env.z.lpar3.user }}","{{ env.z.lpar3.pass }}","{{ path_to_key_pair }}"]
@@ -68,7 +68,7 @@
   tags: setup, section_2
   gather_facts: true
   become: true
-  vars: 
+  vars:
     packages: "{{ env.pkgs.kvm }}"
   roles:
     - { role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined }
@@ -124,7 +124,7 @@
       loop:
         - /etc/libvirt/qemu.conf
         - "/home/{{ ansible_user }}/.config/libvirt/libvirt.conf"
-        - /etc/libvirt/libvirt.conf 
+        - /etc/libvirt/libvirt.conf
 
     - name: Ensure KVM admin user is part of groups 'kvm', 'libvirt'.
       tags: groups, group, libvirt
@@ -160,7 +160,7 @@
         sysctl_set: true
         state: present
         reload: true
-      when: env.network_mode | upper == 'NAT' 
+      when: env.network_mode | upper == 'NAT'
 
 - hosts: kvm_host
   tags: setup, section_3
@@ -168,4 +168,3 @@
   roles:
     - configure_storage
     - { role: macvtap, when: env.network_mode | upper != 'NAT' }
-    
