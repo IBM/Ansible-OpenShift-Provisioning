@@ -59,7 +59,7 @@
 - name: 5 setup bastion - configure bastion node with essential services
   hosts: bastion
   tags: services, section_2
-  become: True
+  become: true
   vars:
     packages: "{{ env.pkgs.bastion }}"
   vars_files:
@@ -80,7 +80,7 @@
 
 - hosts: bastion
   tags: services, section_2, openvpn
-  become: True
+  become: true
   vars:
     openvpn_role: "server"
   roles:
@@ -119,8 +119,8 @@
 - name: setup OpenVPN on KVM host(s).
   hosts: kvm_host
   tags: services, section_3, openvpn
-  become: True
-  gather_facts: False
+  become: true
+  gather_facts: false
   vars:
     openvpn_role: "client"
     openvpn_client_server: "{{ env.bastion.networking.ip }}"
@@ -169,7 +169,7 @@
 
 - hosts: bastion
   tags: get_ocp, section_3
-  become: True
+  become: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:

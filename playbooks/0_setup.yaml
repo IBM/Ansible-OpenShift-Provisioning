@@ -3,8 +3,8 @@
 - hosts: localhost
   tags: localhost
   connection: local
-  become: False
-  gather_facts: True
+  become: false
+  gather_facts: true
   roles:
     - set_inventory
 
@@ -54,8 +54,8 @@
 
 - hosts: localhost
   connection: local
-  become: False
-  gather_facts: True
+  become: false
+  gather_facts: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
