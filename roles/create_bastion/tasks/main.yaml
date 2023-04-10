@@ -1,5 +1,4 @@
 ---
-
 - name: Create a directory on the KVM host server for bastion configuration files
   become: false
   tags: create_bastion
