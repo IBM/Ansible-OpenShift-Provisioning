@@ -20,7 +20,7 @@
   tags: update_cfgs, update, kvm_host_2
   become: false
   gather_facts: false
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   tasks:
     - name: Include vars for a second KVM host if it is to be created.
@@ -38,7 +38,7 @@
   tags: update_cfgs, update, kvm_host_3
   become: false
   gather_facts: false
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   tasks:
     - name: Include vars for third KVM host if it is to be created.
@@ -90,7 +90,7 @@
       include_vars:
         file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar3.hostname }}.yaml"
       when: env.z.lpar3.create == True
-      
+
     - name: Boot and install RHEL for a third KVM host.
       import_role:
         name: create_kvm_host
