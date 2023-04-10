@@ -38,7 +38,7 @@
 **env.ftp.ip** | IPv4 address for the FTP server that will be used to pass config files and<br /> iso to KVM host LPAR(s) and bastion VM during their first boot. | 192.168.10.201
 **env.ftp.user** | Username to connect to the FTP server. Must have sudo and SSH access. | ftp-user
 **env.ftp.pass** | Password to connect to the FTP server as above user. | FTPpa$s!
-**env.ftp.iso_mount_dir** | Directory path relative to FTP root where RHEL ISO is mounted. If FTP root is /var/ftp/pub<br /> and the ISO is mounted at /var/ftp/pub/RHEL/8.5 then this variable would be<br /> RHEL/8.7. No slash before or after. | RHEL/8.7
+**env.ftp.iso_mount_dir** | Directory path relative to FTP root where RHEL ISO is mounted. If FTP root is /var/ftp/pub<br /> and the ISO is mounted at /var/ftp/pub/RHEL/8.7 then this variable would be<br /> RHEL/8.7. No slash before or after. | RHEL/8.7
 **env.ftp.iso_os_variant** | Used to optimize the guest configuration. Use the command 'osinfo-query os' to get a list of defined OS variants. | rhel8.7
 **env.ftp.cfgs_dir** | Directory path relative to FTP root where configuration files can be stored. If FTP root is /var/ftp/pub<br /> and you would like to store the configs at /var/ftp/pub/ocpz-config then this variable would be<br /> ocpz-config. No slash before or after. | ocpz-config
 
