@@ -27,7 +27,7 @@
 
 - name: 6 create nodes - wait for bootstrap to connect control plane (for non-root user)
   hosts: bastion
-  become: True
+  become: true
   environment:
     KUBECONFIG: "/home/{{ env.bastion.access.user }}/.kube/config"
   gather_facts: true
@@ -38,7 +38,7 @@
 
 - name: 6 create nodes - wait for bootstrap to connect to control plane (for root user)
   hosts: bastion
-  become: True
+  become: true
   environment:
     KUBECONFIG: "/{{ env.bastion.access.user }}/.kube/config"
   gather_facts: true
@@ -50,7 +50,7 @@
 - name: 6 create nodes - once bootstrapping is complete, tear down bootstrap.
   hosts: kvm_host[-1]
   tags: create_nodes, teardown_bootstrap
-  gather_facts: False
+  gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   tasks:
