@@ -12,5 +12,5 @@
     loop_var: node
   register: cmd_output
   until: ("Ready" == cmd_output.stdout)
-  retries: 60
+  retries: 90
   delay: 20
