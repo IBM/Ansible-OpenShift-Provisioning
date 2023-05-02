@@ -39,7 +39,7 @@
     --namespace={{ hypershift.hcp.CLUSTERS_NAMESPACE }} 
     --base-domain= {{ hypershift.hcp.BASEDOMAIN }} 
     --api-server-address=api.{{ hypershift.hcp.HOSTED_CLUSTER_NAME }}.{{ hypershift.hcp.BASEDOMAIN }} 
-    --ssh-key ~/.ssh/id_rsa.pub
+    --ssh-key ~/.ssh/{{ env.ansible_key_name }}.pub
     --release-image=quay.io/openshift-release-dev/ocp-release:{{ hypershift.hcp.OCP_RELEASE }} 
 
 
