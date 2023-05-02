@@ -1,0 +1,22 @@
+---
+
+- name: Find inventory directory from ansible.cfg
+  tags: set_inventory
+  shell: cat {{ ansible_config_file }} | grep 'inventory=' | cut -f2 -d"="
+  register: find_inventory
+
+- name: Find absolute path to project.
+  tags: set_inventory
+  shell: |
+    set -o pipefail
+    ansible_config="{{ ansible_config_file }}"
+    echo "${ansible_config%/*}/"
+  register: find_project
+
+- name: Create inventory
+  template:
+    src: inventory_template.j2
+    dest: "{{ find_project.stdout }}{{ find_inventory.stdout }}/inventory_hypershift"
+
+- name: Add ssh-key to kvm_host Authorised Keys
+  shell: ssh-copy-id root@{{hypershift.kvm_host}}

@@ -1,0 +1,25 @@
+apiVersion: agent-install.openshift.io/v1beta1
+kind: AgentServiceConfig
+metadata:
+  name: agent
+spec:
+  mirrorRegistryRef:
+    name: mirror-config
+  databaseStorage:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: "{{ hypershift.asc.DB_VOLUME_SIZE }}"
+  filesystemStorage:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: "{{ hypershift.asc.FS_VOLUME_SIZE }}"
+  osImages:
+    - openshiftVersion: "{{ hypershift.asc.OCP_VERSION }}"
+      version: "{{ OCP_RELEASE_VERSION.stdout_lines[0] }}"
+      url: "{{ hypershift.asc.ISO_URL }}"
+      rootFSUrl: "{{ hypershift.asc.ROOT_FS_URL }}"
+      cpuArchitecture: "{{ hypershift.hcp.ARCH }}"
