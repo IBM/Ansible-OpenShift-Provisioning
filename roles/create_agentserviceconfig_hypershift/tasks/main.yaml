@@ -1,7 +1,7 @@
 ---
 
 - name: Get OCP Release Version
-  shell: curl -s https://mirror.openshift.com/pub/openshift-v4/{{ hypershift.hcp.ARCH }}/clients/ocp-dev-preview/4.13.0-ec.4/release.txt | awk '/machine-os / { print $2 }'
+  shell: curl -s https://mirror.openshift.com/pub/openshift-v4/{{ hypershift.hcp.ARCH }}/clients/ocp-dev-preview/{{ hypershift.asc.OCP_VERSION }}/release.txt | awk '/machine-os / { print $2 }'
   register: OCP_RELEASE_VERSION
 
 
