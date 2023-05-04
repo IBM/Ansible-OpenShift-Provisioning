@@ -169,3 +169,17 @@
 **env.jumphost.user** | (Optional) The user name to login to the jumphost. | admin
 **env.jumphost.pass** | (Optional) The password for user to login to the jumphost. | ch4ngeMe!
 **env.jumphost.path_to_keypair** | (Optional) The absolute path to the public key file on the jumphost to be copied to the bastion. | /home/admin/.ssh/id_rsa.pub
+
+
+## 15 - Hypershift
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**hypershift.kvm_host** | IPv4 address of KVM host for hypershift | 192.168.10.1
+**hypershift.kvm_host_user** | User for KVM host | root
+**hypershift.bastion_hypershift** | IPv4 address for bastion of Hosted Cluster | 192.168.10.1
+**hypershift.bastion_hypershift_user** | User for bastion of Hosted Cluster | root
+**hypershift.mgmt_cluster_nameserver** | IP Address of Nameserver of Management Cluster | 192.168.10.1
+**hypershift.go_version** | Version of go you want to install on kvm_host <br /> ( It will replace existing go with this version ) | 1.19.5
+**hypershift.oc_url** | URL for OC Client that you want to install on the host | https://...<br /> ..openshift-client-linux-4.13.0-ec.4.tar.gz
+
+
