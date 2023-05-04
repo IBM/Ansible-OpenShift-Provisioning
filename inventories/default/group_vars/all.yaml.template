@@ -222,7 +222,6 @@ hypershift:
     PULL_SECRET_FILE: /root/ansible_workdir/auth_file
     OCP_RELEASE: # OCP Release Version for HCP 
     MACHINE_CIDR:  # Machine CIDR for Hosted Control Plane
-    SSH_PUB_KEY: # Path for ssh Public key
     ARCH: # Architecture for InfraEnv 
     # Make sure to enclose pull_secret in 'single quotes'
     PULL_SECRET:

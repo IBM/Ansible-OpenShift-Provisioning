@@ -22,7 +22,7 @@
 
 - name: Get ssh key for host
   slurp:
-    src: "{{ hypershift.hcp.SSH_PUB_KEY }}"
+    src: "~/.ssh/{{ env.ansible_key_name }}.pub"
   register: remote_content_encoded
 
 
