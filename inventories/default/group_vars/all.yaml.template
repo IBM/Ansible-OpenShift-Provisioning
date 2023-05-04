@@ -204,6 +204,7 @@ env:
 
 hypershift:
   kvm_host: #kvm host where you want to run all oc commands and create VMs ( Agents ) 
+  kvm_host_user: #Give User here Ex: root
   bastion_hypershift: # IP to create bastion for Hosted Cluster
   mgmt_cluster_nameserver:  # Nameserver IP of Management Cluster
 
