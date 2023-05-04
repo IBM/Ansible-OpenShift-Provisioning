@@ -4,8 +4,10 @@
   hosts: kvm_host_hypershift
   vars_files:
     - "{{playbook_dir}}/secrets.yaml"
+
   roles:
   - install_prerequisites_host_hypershift
+
 
 
 - name: Create AgentServiceConfig Hosted Control Plane and InfraEnv

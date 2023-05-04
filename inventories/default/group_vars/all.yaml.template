@@ -156,6 +156,7 @@ env:
     controller: [ openssh, expect, sshuttle ]
     kvm: [ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
     bastion: [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
+    hypershift: [ make, jq, git, virt-install ]
 
 # Section 12 - OpenShift Settings
   openshift:
@@ -209,7 +210,7 @@ hypershift:
   mgmt_cluster_nameserver:  # Nameserver IP of Management Cluster
 
   go_version: "1.19.5"  # Change this if you want to install any other version  of go
-
+  oc_url: #Give  OC client URL 
 
   #Hosted Control Plane Parameters
 
@@ -230,6 +231,7 @@ hypershift:
   # AgentServiceConfig Parameters
 
   asc:
+    URL_FOR_OCP_RELEASE_FILE: # Add URL for OCP release.txt File
     DB_VOLUME_SIZE: # DatabaseStorage Volume Size 
     FS_VOLUME_SIZE: # FileSystemStorage Volume Size
     OCP_VERSION: # OCP Version for AgentServiceConfig

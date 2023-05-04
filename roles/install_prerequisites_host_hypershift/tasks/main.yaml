@@ -1,7 +1,6 @@
 ---
 
 
-
 - name: Install ansible-kubernetes module
   pip:
     name:
@@ -16,27 +15,19 @@
   command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ env.ansible_key_name }}"
   when: ssh_key.stat.exists == false
 
-- name: Install Required packages
+- name: Install Packages on kvm_host
+  yum: 
+    name:
+      - "{{ item }}"
+    state: present
+  loop: "{{ env.pkgs.kvm }}"
+
+- name: Install Packages for Hypershift
   yum:
     name:
-      - wget
-      - make
-      - jq
-      - qemu-kvm
-      - libvirt
-      - libvirt-devel
-      - libvirt-daemon-kvm
-      - qemu-img
-      - genisoimage
-      - virt-manager 
-      - "@Development Tools"
-      - git
-      - virt-install
+      - "{{ item }}"
     state: present
-
-
-- name: Start libvirtd.service
-  shell: systemctl enable --now libvirtd ; systemctl start libvirtd.service
+  loop: "{{ env.pkgs.hypershift }}"
 
 # Creating one directory for Storing Files
 
@@ -61,12 +52,12 @@
 
 - name: Download OC Client
   get_url:
-    url: "{{ oc_url }}"
+    url: "{{ hypershift.oc_url }}"
     dest: /root/ansible_workdir/
   when: oc_installed.rc != 0
 
 - name: tar oc
-  command: tar -vxzf /root/ansible_workdir/{{ oc_url.split('/')[-1] }}
+  command: tar -vxzf /root/ansible_workdir/{{ hypershift.oc_url.split('/')[-1] }}
   when: oc_installed.rc != 0
 
 - name: Copy oc to /usr/local/bin/oc 
@@ -138,7 +129,7 @@
   shell: cd  /root/ansible_workdir/hypershift ; git fetch origin ; git rebase origin/main ; make build ; sudo install -m 0755 bin/hypershift /usr/local/bin/hypershift
   when: hypershift_check.rc != 0
 
-- name: Add Management Cluster Nameserve to /etc/resolv.conf
+- name: Add Management Cluster Nameserver to /etc/resolv.conf
   lineinfile:
     dest: /etc/resolv.conf
     insertbefore: BOF
