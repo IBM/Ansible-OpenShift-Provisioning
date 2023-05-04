@@ -7,6 +7,7 @@
     set -o pipefail
     virsh destroy {{ env.cluster.nodes.bootstrap.vm_name }} || true
     virsh undefine {{ env.cluster.nodes.bootstrap.vm_name }} --remove-all-storage || true
+    export VIRTINSTALL_OSINFO_DISABLE_REQUIRE=1
     virt-install \
     --name {{ env.cluster.nodes.bootstrap.vm_name }} \
     --autostart \

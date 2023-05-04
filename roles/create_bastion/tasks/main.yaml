@@ -58,6 +58,7 @@
     set -o pipefail
     virsh destroy {{ env.bastion.vm_name }} || true
     virsh undefine {{ env.bastion.vm_name }} --remove-all-storage || true
+    export VIRTINSTALL_OSINFO_DISABLE_REQUIRE=1
     virt-install \
     --name {{ env.bastion.vm_name }} \
     --autostart \
