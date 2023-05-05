@@ -31,8 +31,8 @@
 - name: Get Red Hat CoreOS rootfs file if it's not there already.
   tags: get_ocp
   get_url:
-    url: "https://mirror.openshift.com/pub/openshift-v{{ env.openshift.version | string | split('.') | first }}/{{ env.install_config.control.architecture }}/dependencies/rhcos/{{ ( env.openshift.version | string | split('.') )[:-1] | join('.') }}/{{ env.openshift.version }}/rhcos-live-rootfs.{{ env.install_config.control.architecture }}.img"
-    dest: "/var/www/html/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img"
+    url: "{{ rhcos_baseurl }}{{ rhcos_live_rootfs }}"
+    dest: "/var/www/html/bin/{{ rhcos_live_rootfs }}"
     mode: "0644"
 
 - name: Unzip OCP client and installer
