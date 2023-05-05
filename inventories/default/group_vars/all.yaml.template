@@ -198,7 +198,8 @@ env:
     pass:
     path_to_keypair:
 
-# RHCOS variables
+# Section 15 - RHCOS (CoreOS)
+
 # rhcos_baseurl with '/' at the end !
 rhcos_baseurl: "https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/4.12.3/"
 
