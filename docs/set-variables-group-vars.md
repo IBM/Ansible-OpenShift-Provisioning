@@ -174,7 +174,7 @@
 
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**rhcos_baseurl** | Link to the mirror of the CoreOS files to be used for the bootstrap, control and compute nodes.<br /> Feel free to change to a different version. | https://mirror.openshift.com<br />/pub/openshift-v4/s390x<br />/dependencies/rhcos<br />/4.12/4.12.3/
+**rhcos_download_url** | Link to the mirror of the CoreOS files to be used for the bootstrap, control and compute nodes.<br /> Feel free to change to a different version. | https://mirror.openshift.com<br />/pub/openshift-v4/s390x<br />/dependencies/rhcos<br />/4.12/4.12.3/
 **rhcos_os_variant** | CoreOS base OS. Use the OS string as defined in 'osinfo-query os -f short-id' | rhel8.6
 **rhcos_live_kernel** | CoreOS kernel filename to be used for the bootstrap, control and compute nodes.<br /> Feel free to change to a different version | rhcos-4.12.3-s390x-live-kernel-s390x
 **rhcos_live_initrd** | CoreOS initramfs to be used for the bootstrap, control and compute nodes.<br /> Feel free to change to a different version. | rhcos-4.12.3-s390x-live-initramfs.s390x.img

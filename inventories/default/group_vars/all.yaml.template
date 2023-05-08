@@ -200,8 +200,8 @@ env:
 
 # Section 15 - RHCOS (CoreOS)
 
-# rhcos_baseurl with '/' at the end !
-rhcos_baseurl: "https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/4.12.3/"
+# rhcos_download_url with '/' at the end !
+rhcos_download_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/4.12.3/"
 
 # For rhcos_os_variant use the OS string as defined in 'osinfo-query os -f short-id'
 rhcos_os_variant: rhel8.6
