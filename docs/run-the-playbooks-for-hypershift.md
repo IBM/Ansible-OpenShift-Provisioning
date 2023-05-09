@@ -16,7 +16,7 @@ ansible-playbook playbooks/setup_for_hypershift.yaml
 * Creating an encrypted file for storing Management Cluster Credentials.
 ### Steps:
 * The ansible-vault create command is used to create the encrypted file.
-* Create an encrypted file in playbooks directory and set the Vault password.( Below command will prompt for setting Vault password)  
+* Create an encrypted file in playbooks directory and set the Vault password ( Below command will prompt for setting Vault password).
 ```
 ansible-vault create playbooks/secrets.yaml
 ``` 
@@ -35,8 +35,7 @@ ansible-vault edit playbooks/secrets.yaml
 * Make sure you entered Manamegement cluster credenitails properly ,incorrect credentails will cause problem while logging in to the cluster in further steps.
 
 * Here is the playbook which handle the creation of Hosted Cluster using Hypershift , full descriptions of each can be found further down the page.
-
-      * create_hosted_cluster.yaml ([code](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_hosted_cluster.yaml))
+    * create_hosted_cluster.yaml ([code](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_hosted_cluster.yaml))
 * Run this shell command to run the create_hosted_cluster.yaml playbook:
 ```
 ansible-playbook playbooks/create_hosted_cluster.yaml
@@ -46,6 +45,7 @@ ansible-playbook playbooks/create_hosted_cluster.yaml
 * Watch Ansible as it completes the installation, correcting errors if they arise.
 * To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml
 
+# Description for Playbooks
 
 ## setup_for_hypershift Playbook
 ### Overview
