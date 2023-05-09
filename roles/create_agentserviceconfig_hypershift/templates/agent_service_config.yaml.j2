@@ -10,16 +10,16 @@ spec:
     - ReadWriteOnce
     resources:
       requests:
-        storage: "{{ hypershift.asc.DB_VOLUME_SIZE }}"
+        storage: "{{ hypershift.asc.db_volume_size}}"
   filesystemStorage:
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
-        storage: "{{ hypershift.asc.FS_VOLUME_SIZE }}"
+        storage: "{{ hypershift.asc.fs_volume_size }}"
   osImages:
-    - openshiftVersion: "{{ hypershift.asc.OCP_VERSION }}"
-      version: "{{ OCP_RELEASE_VERSION.stdout_lines[0] }}"
-      url: "{{ hypershift.asc.ISO_URL }}"
-      rootFSUrl: "{{ hypershift.asc.ROOT_FS_URL }}"
-      cpuArchitecture: "{{ hypershift.hcp.ARCH }}"
+    - openshiftVersion: "{{ hypershift.asc.ocp_version }}"
+      version: "{{ ocp_release_version.stdout_lines[0] }}"
+      url: "{{ hypershift.asc.iso_url }}"
+      rootFSUrl: "{{ hypershift.asc.root_fs_url }}"
+      cpuArchitecture: "{{ hypershift.hcp.arch }}"

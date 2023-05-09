@@ -216,25 +216,25 @@ hypershift:
   #Hosted Control Plane Parameters
 
   hcp:
-    CLUSTERS_NAMESPACE: # Namespace for Hosted Control Plane
-    HOSTED_CLUSTER_NAME: # Hosted Cluster Name 
-    BASEDOMAIN: # Basedomain for Hosted ControlPlane
-    PULL_SECRET_FILE: /root/ansible_workdir/auth_file
-    OCP_RELEASE: # OCP Release Version for HCP 
-    MACHINE_CIDR:  # Machine CIDR for Hosted Control Plane
-    ARCH: # Architecture for InfraEnv 
+    clusters_namespace: # Namespace for Hosted Control Plane
+    hosted_cluster_name: # Hosted Cluster Name 
+    basedomain: # Basedomain for Hosted ControlPlane
+    pull_secret_file: /root/ansible_workdir/auth_file
+    ocp_release: # OCP Release Version for HCP 
+    machine_cidr:  # Machine CIDR for Hosted Control Plane
+    arch: # Architecture for InfraEnv 
     # Make sure to enclose pull_secret in 'single quotes'
-    PULL_SECRET:
+    pull_secret:
 
 
 
   # AgentServiceConfig Parameters
 
   asc:
-    URL_FOR_OCP_RELEASE_FILE: # Add URL for OCP release.txt File
-    DB_VOLUME_SIZE: # DatabaseStorage Volume Size 
-    FS_VOLUME_SIZE: # FileSystemStorage Volume Size
-    OCP_VERSION: # OCP Version for AgentServiceConfig
-    ISO_URL:    # Mirror registry URL for ISO  
-    ROOT_FS_URL: # Mirrir registry URL for rootfs image
+    url_for_ocp_release_file: # Add URL for OCP release.txt File
+    db_volume_size: # DatabaseStorage Volume Size 
+    fs_volume_size: # FileSystemStorage Volume Size
+    ocp_version: # OCP Version for AgentServiceConfig
+    iso_url:    # Mirror registry URL for ISO  
+    root_fs_url: # Mirrir registry URL for rootfs image
     mce_namespace: "multicluster-engine" # This is the Recommended Namespace for Multicluster Engine operator

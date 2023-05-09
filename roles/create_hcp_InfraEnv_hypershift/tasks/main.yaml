@@ -2,21 +2,21 @@
 
 - name: Getting Hosted Control Plane Namespace
   set_fact: 
-    HOSTED_CONTROL_PLANE_NAMESPACE: "{{ hypershift.hcp.CLUSTERS_NAMESPACE }}-{{ hypershift.hcp.HOSTED_CLUSTER_NAME }}"
+    hosted_control_plane_namespace: "{{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}"
 
 - name: Check if Hosted Control Plane Namespace exists 
   k8s_info:
     api_version: v1
     kind: Namespace
-    name: "{{ HOSTED_CONTROL_PLANE_NAMESPACE }}"
+    name: "{{ hosted_control_plane_namespace }}"
   register: namespace_check
-  #ignore_errors: yes
+  ignore_errors: yes
 
 - name: Create Hosted Control Plane Namespace 
   k8s:
     api_version: v1
     kind: Namespace
-    name: "{{ HOSTED_CONTROL_PLANE_NAMESPACE }}"
+    name: "{{ hosted_control_plane_namespace }}"
     state: present
   when: namespace_check.resources | length == 0 
 
@@ -33,21 +33,21 @@
 - name: Create a Hosted Cluster
   command: >
     hypershift create cluster agent 
-    --name={{ hypershift.hcp.HOSTED_CLUSTER_NAME }} 
-    --pull-secret={{ hypershift.hcp.PULL_SECRET_FILE }} 
-    --agent-namespace={{ HOSTED_CONTROL_PLANE_NAMESPACE }} 
-    --namespace={{ hypershift.hcp.CLUSTERS_NAMESPACE }} 
-    --base-domain= {{ hypershift.hcp.BASEDOMAIN }} 
-    --api-server-address=api.{{ hypershift.hcp.HOSTED_CLUSTER_NAME }}.{{ hypershift.hcp.BASEDOMAIN }} 
+    --name={{ hypershift.hcp.hosted_cluster_name }} 
+    --pull-secret={{ hypershift.hcp.pull_secret_file }} 
+    --agent-namespace={{ hosted_control_plane_namespace }} 
+    --namespace={{ hypershift.hcp.clusters_namespace }} 
+    --base-domain= {{ hypershift.hcp.basedomain }} 
+    --api-server-address=api.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }} 
     --ssh-key ~/.ssh/{{ env.ansible_key_name }}.pub
-    --release-image=quay.io/openshift-release-dev/ocp-release:{{ hypershift.hcp.OCP_RELEASE }} 
+    --release-image=quay.io/openshift-release-dev/ocp-release:{{ hypershift.hcp.ocp_release }} 
 
 
 - name: Waiting for Hosted Control Plane to be available
-  command: oc wait --timeout=30m --for=condition=Available --namespace={{ hypershift.hcp.CLUSTERS_NAMESPACE }} hostedcluster/{{ hypershift.hcp.HOSTED_CLUSTER_NAME }}
+  command: oc wait --timeout=30m --for=condition=Available --namespace={{ hypershift.hcp.clusters_namespace }} hostedcluster/{{ hypershift.hcp.hosted_cluster_name }}
 
 - name: Wait for pods to come up in Hosted Cluster Namespace
-  shell: oc get pods -n {{ HOSTED_CONTROL_PLANE_NAMESPACE }} | wc -l
+  shell: oc get pods -n {{ hosted_control_plane_namespace }} | wc -l
   register: pod_count
   until: pod_count.stdout > '25'
   retries: 40
@@ -55,7 +55,7 @@
 
 
 - name: Wait for all pods to be in Running State in  Hosted Cluster Namespace
-  shell: oc get pods -n {{ HOSTED_CONTROL_PLANE_NAMESPACE }}  --no-headers | grep -v 'Running\|Completed\|Terminating' | wc -l
+  shell: oc get pods -n {{ hosted_control_plane_namespace }}  --no-headers | grep -v 'Running\|Completed\|Terminating' | wc -l
   register: pod_status
   until: pod_status.stdout == '0'
   retries: 30
@@ -63,14 +63,14 @@
 
 - name: Create InfraEnv Resource
   k8s:
-    namespace: "{{ HOSTED_CONTROL_PLANE_NAMESPACE }}"
+    namespace: "{{ hosted_control_plane_namespace }}"
     definition:
       apiVersion: agent-install.openshift.io/v1beta1
       kind: InfraEnv
       metadata:
-        name: "{{ hypershift.hcp.HOSTED_CLUSTER_NAME }}"
+        name: "{{ hypershift.hcp.hosted_cluster_name }}"
       spec:
-        cpuArchitecture: "{{ hypershift.hcp.ARCH }}"
+        cpuArchitecture: "{{ hypershift.hcp.arch }}"
         pullSecretRef:
           name: pull-secret
         sshAuthorizedKey: "{{ssh_key}}"
@@ -78,7 +78,7 @@
 
 
 - name: Wait for ISO to generate in InfraEnv 
-  shell: oc get InfraEnv -n  {{ HOSTED_CONTROL_PLANE_NAMESPACE }} --no-headers
+  shell: oc get InfraEnv -n  {{ hosted_control_plane_namespace }} --no-headers
   register: infra
   until: infra.stdout.split(' ')[-1] != ''
   retries: 60

@@ -1,8 +1,8 @@
 ---
 
 - name: Get OCP Release Version
-  shell: curl -s {{ hypershift.asc.URL_FOR_OCP_RELEASE_FILE }}  | awk '/machine-os / { print $2 }'
-  register: OCP_RELEASE_VERSION
+  shell: curl -s {{ hypershift.asc.url_for_ocp_release_file }}  | awk '/machine-os / { print $2 }'
+  register: ocp_release_version
 
 
 - name: Create Config map mirror-config ( For updating AgentServiceConfig with the brew mirror information )
