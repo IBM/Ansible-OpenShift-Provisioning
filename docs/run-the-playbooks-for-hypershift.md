@@ -57,7 +57,7 @@ ansible-playbook playbooks/create_hosted_cluster.yaml
 ### Notes
 * You can use an existing SSH key as your Ansible key, or have Ansible create one for you.
 
-## setup_for_hypershift Playbook
+## create_hosted_cluster Playbook
 ### Overview
 * Creating AgentServiceConfig, HostedControlPlane , InfraEnv Resources
 ### Outcomes
