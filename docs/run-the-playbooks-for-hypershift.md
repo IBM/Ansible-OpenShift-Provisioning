@@ -1,5 +1,5 @@
 # Run the Playbooks
-## Overview
+## Initial Setup for Hypershift
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
 
 * First playbook to be run is setup_for_hypershift.yaml which will create inventory file for hypershift and will add ssh key to the kvm host.
@@ -34,6 +34,7 @@ ansible-vault edit playbooks/secrets.yaml
 ``` 
 * Make sure you entered Manamegement cluster credenitails properly ,incorrect credentails will cause problem while logging in to the cluster in further steps.
 
+## Create Hosted Cluster 
 * Here is the playbook which handle the creation of Hosted Cluster using Hypershift , full descriptions of each can be found further down the page.
     * create_hosted_cluster.yaml ([code](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_hosted_cluster.yaml))
 * Run this shell command to run the create_hosted_cluster.yaml playbook:
