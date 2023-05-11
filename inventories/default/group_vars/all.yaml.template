@@ -184,6 +184,7 @@ env:
 # Section 14 - (Optional) Misc
   language: en_US.UTF-8
   timezone: America/New_York
+  keyboard: us
   root_access: false
   ansible_key_name: ansible-ocpz
   ocp_ssh_key_comment: OpenShift key
