@@ -138,7 +138,7 @@
 
 - name: Copy pull secret to kvm_host
   copy:
-    content: "{{hypershift.hcp.PULL_SECRET}}"
+    content: "{{hypershift.hcp.pull_secret}}"
     dest: /root/ansible_workdir/auth_file
 
 #-----------------------------------------------------------
