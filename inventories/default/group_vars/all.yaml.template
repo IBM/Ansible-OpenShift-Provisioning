@@ -205,9 +205,9 @@ env:
 
 hypershift:
   kvm_host: #kvm host where you want to run all oc commands and create VMs ( Agents ) 
-  kvm_host_user: #Give User here Ex: root
+  kvm_host_user: #Give User here Ex: root ( Should have root user access. if not, contact Administrator)
   bastion_hypershift: # IP to create bastion for Hosted Cluster
-  bastion_hypershift_user: # User for Bastion
+  bastion_hypershift_user: # User for Bastion  ( Should have root user access. if not, contact Administrator)
   mgmt_cluster_nameserver:  # Nameserver IP of Management Cluster
 
   go_version: "1.19.5"  # Change this if you want to install any other version  of go

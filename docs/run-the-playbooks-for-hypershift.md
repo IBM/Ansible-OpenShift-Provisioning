@@ -1,9 +1,13 @@
 # Run the Playbooks
+## Prerequisites
+* Running OCP Cluster ( Management Cluster ) 
+* KVM host with root user access
+
 ## Initial Setup for Hypershift
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
 
 * First playbook to be run is setup_for_hypershift.yaml which will create inventory file for hypershift and will add ssh key to the kvm host.
-### Note:
+###### Note:
 * If you are running this first time, it will prompt for the password for kvm host for the selected user.
 * Enter password of kvm host to establish SSH key-based authentication.
 * Run this shell command:
@@ -11,7 +15,7 @@
 ansible-playbook playbooks/setup_for_hypershift.yaml
 ```
 
-## Setup Ansible Vault for Management Cluster Credentials.
+## Setup Ansible Vault for Management Cluster Credentials
 ### Overview
 * Creating an encrypted file for storing Management Cluster Credentials.
 ### Steps:
