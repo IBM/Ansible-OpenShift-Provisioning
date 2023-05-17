@@ -55,11 +55,11 @@
 - name: Boot and kickstart bastion. To monitor, login to your KVM host and run 'virsh console <bastion VM name>'
   tags: create_bastion, virt-install
   ansible.builtin.shell: |
-    set -o pipefail
     virsh destroy {{ env.bastion.vm_name }} || true
     virsh undefine {{ env.bastion.vm_name }} --remove-all-storage || true
     virt-install \
     --name {{ env.bastion.vm_name }} \
+    --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
     --autostart \
     --memory={{ env.bastion.resources.ram }} \
     --vcpus={{ env.bastion.resources.vcpu }} \
