@@ -2,17 +2,18 @@
 
 - name: Install CoreOS on compute nodes
   tags: create_compute_nodes
-  command: |
+  shell: |
     virt-install \
     --name {{ env.cluster.nodes.compute.vm_name[i] }} \
+    --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }}  \
     --ram {{ env.cluster.nodes.compute.ram }} \
     --cpu host \
     --vcpus {{ env.cluster.nodes.compute.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location {{ storage.pool_path }},kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{ env.cluster.nodes.compute.ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.compute.hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
+    --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} ip={{ env.cluster.nodes.compute.ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.compute.hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
     --wait=-1 \
     --noautoconsole
   with_sequence: start=0 end={{ ( env.cluster.nodes.compute.hostname | length ) - 1 }} stride=1
@@ -23,17 +24,18 @@
 
 - name: Install CoreOS on infra nodes
   tags: create_compute_nodes
-  command: |
+  shell: |
     virt-install \
     --name {{ env.cluster.nodes.infra.vm_name[i] }} \
+    --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.infra.disk_size }}  \
     --ram {{ env.cluster.nodes.infra.ram }} \
     --cpu host \
     --vcpus {{ env.cluster.nodes.infra.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location {{ storage.pool_path }},kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{ env.cluster.nodes.infra.ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.infra.hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
+    --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} ip={{ env.cluster.nodes.infra.ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.infra.hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
     --wait=-1 \
     --noautoconsole
   with_sequence: start=0 end={{ ( env.cluster.nodes.infra.hostname | length ) - 1}} stride=1
@@ -62,17 +64,18 @@
 
 - name: Create CoreOS compute nodes on KVM hosts, if cluster is to be highly available.
   tags: create_compute_nodes
-  command: |
+  shell: |
     virt-install \
     --name {{ compute_name[i] }} \
+    --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }}  \
     --ram {{ env.cluster.nodes.compute.ram }} \
     --cpu host \
     --vcpus {{ env.cluster.nodes.compute.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location {{ storage.pool_path }},kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{ compute_ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ compute_hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
+    --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} ip={{ compute_ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ compute_hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
     --wait=-1 \
     --noautoconsole
   loop: "{{ compute_name | zip(compute_hostname, compute_ip) | list }}"
@@ -83,17 +86,18 @@
 
 - name: Create CoreOS infra nodes on KVM hosts, if cluster is to be highly available.
   tags: create_compute_nodes
-  command: |
+  shell: |
     virt-install \
     --name {{ infra_name[i] }} \
+    --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.infra.disk_size }}  \
     --ram {{ env.cluster.nodes.infra.ram }} \
     --cpu host \
     --vcpus {{ env.cluster.nodes.infra.vcpu }} \
     --network network={{ env.bridge_name }} \
-    --location {{ storage.pool_path }},kernel=rhcos-live-kernel-{{ env.openshift.version }}-{{ env.install_config.control.architecture }},initrd=rhcos-live-initramfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/rhcos-live-rootfs-{{ env.openshift.version }}-{{ env.install_config.control.architecture }}.img ip={{ infra_ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ infra_hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
+    --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} ip={{ infra_ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ infra_hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
     --wait=-1 \
     --noautoconsole
   loop: "{{ infra_name | zip(infra_hostname, infra_ip) | list }}"
