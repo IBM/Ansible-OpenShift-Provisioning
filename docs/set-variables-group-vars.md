@@ -170,8 +170,17 @@
 **env.jumphost.pass** | (Optional) The password for user to login to the jumphost. | ch4ngeMe!
 **env.jumphost.path_to_keypair** | (Optional) The absolute path to the public key file on the jumphost to be copied to the bastion. | /home/admin/.ssh/id_rsa.pub
 
+## 15 - RHCOS (CoreOS)
 
-## 15 - Hypershift
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**rhcos_download_url** | Link to the CoreOS files to be used for the bootstrap, control and compute nodes.<br /> Feel free to change to a different version. | https://mirror.openshift.com<br />/pub/openshift-v4/s390x<br />/dependencies/rhcos<br />/4.12/4.12.3/
+**rhcos_os_variant** | CoreOS base OS. Use the OS string as defined in 'osinfo-query os -f short-id' | rhel8.6
+**rhcos_live_kernel** | CoreOS kernel filename to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-kernel-s390x
+**rhcos_live_initrd** | CoreOS initramfs to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-initramfs.s390x.img
+**rhcos_live_rootfs** | CoreOS rootfs to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-rootfs.s390x.img
+
+## 16 - Hypershift
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **hypershift.kvm_host** | IPv4 address of KVM host for hypershift | 192.168.10.1
@@ -189,7 +198,7 @@
 **hypershift.hcp.MACHINE_CIDR** | Machines CIDR for Hosted Cluster | 192.168.122.0/24
 **hypershift.hcp.ARCH** | Architecture for InfraEnv and AgentServiceConfig" | s390x
 **hypershift.hcp.PULL_SECRET** | Pull Secret of Management Cluster <br /> Make sure to enclose pull_secret in 'single quotes' | '{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}'
-**hypershift.asc.URL_FOR_OCP_RELEASE_FILE** | Add URL for OCP release.txt File | https://... <br /> ..../release.txt 
+**hypershift.asc.URL_FOR_OCP_RELEASE_FILE** | Add URL for OCP release.txt File | https://... <br /> ..../release.txt
 **hypershift.asc.DB_VOLUME_SIZE** | DatabaseStorage Volume Size | 10Gi
 **hypershift.asc.FS_VOLUME_SIZE** | FileSystem Storage Volume Size | 10Gi
 **hypershift.asc.OCP_VERSION** | OCP Version for AgentServiceConfig | 4.13.0-ec.4

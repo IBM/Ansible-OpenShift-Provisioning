@@ -189,40 +189,52 @@ env:
   ansible_key_name: ansible-ocpz
   ocp_ssh_key_comment: OpenShift key
   bridge_name: macvtap
-  network_mode: 
+  network_mode:
 
 #jumphost if network mode is NAT
-  jumphost:     
-    name: 
+  jumphost:
+    name:
     ip:
-    user: 
-    pass:  
+    user:
+    pass:
     path_to_keypair:
+=======
 
+# Section 15 - RHCOS (CoreOS)
 
+# rhcos_download_url with '/' at the end !
+rhcos_download_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/4.12.3/"
 
-# Section 15 - Hypershift
+# For rhcos_os_variant use the OS string as defined in 'osinfo-query os -f short-id'
+rhcos_os_variant: rhel8.6
+
+# RHCOS live image filenames
+rhcos_live_kernel: "rhcos-4.12.3-s390x-live-kernel-s390x"
+rhcos_live_initrd: "rhcos-4.12.3-s390x-live-initramfs.s390x.img"
+rhcos_live_rootfs: "rhcos-4.12.3-s390x-live-rootfs.s390x.img"
+
+# Section 16 - Hypershift
 
 hypershift:
-  kvm_host: #kvm host where you want to run all oc commands and create VMs ( Agents ) 
+  kvm_host: #kvm host where you want to run all oc commands and create VMs ( Agents )
   kvm_host_user: #Give User here Ex: root ( Should have root user access. if not, contact Administrator)
   bastion_hypershift: # IP to create bastion for Hosted Cluster
   bastion_hypershift_user: # User for Bastion  ( Should have root user access. if not, contact Administrator)
   mgmt_cluster_nameserver:  # Nameserver IP of Management Cluster
 
   go_version: "1.19.5"  # Change this if you want to install any other version  of go
-  oc_url: #Give  OC client URL 
+  oc_url: #Give  OC client URL
 
   #Hosted Control Plane Parameters
 
   hcp:
     clusters_namespace: # Namespace for Hosted Control Plane
-    hosted_cluster_name: # Hosted Cluster Name 
+    hosted_cluster_name: # Hosted Cluster Name
     basedomain: # Basedomain for Hosted ControlPlane
     pull_secret_file: /root/ansible_workdir/auth_file
-    ocp_release: # OCP Release Version for HCP 
+    ocp_release: # OCP Release Version for HCP
     machine_cidr:  # Machine CIDR for Hosted Control Plane
-    arch: # Architecture for InfraEnv 
+    arch: # Architecture for InfraEnv
     # Make sure to enclose pull_secret in 'single quotes'
     pull_secret:
 
@@ -232,9 +244,10 @@ hypershift:
 
   asc:
     url_for_ocp_release_file: # Add URL for OCP release.txt File
-    db_volume_size: # DatabaseStorage Volume Size 
+    db_volume_size: # DatabaseStorage Volume Size
     fs_volume_size: # FileSystemStorage Volume Size
     ocp_version: # OCP Version for AgentServiceConfig
-    iso_url:    # Mirror registry URL for ISO  
+    iso_url:    # Mirror registry URL for ISO
     root_fs_url: # Mirrir registry URL for rootfs image
     mce_namespace: "multicluster-engine" # This is the Recommended Namespace for Multicluster Engine operator
+
