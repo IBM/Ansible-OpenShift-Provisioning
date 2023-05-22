@@ -216,25 +216,25 @@ rhcos_live_rootfs: "rhcos-4.12.3-s390x-live-rootfs.s390x.img"
 # Section 16 - Hypershift
 
 hypershift:
-  kvm_host: #kvm host where you want to run all oc commands and create VMs ( Agents )
-  kvm_host_user: #Give User here Ex: root ( Should have root user access. if not, contact Administrator)
-  bastion_hypershift: # IP to create bastion for Hosted Cluster
-  bastion_hypershift_user: # User for Bastion  ( Should have root user access. if not, contact Administrator)
-  mgmt_cluster_nameserver:  # Nameserver IP of Management Cluster
+  kvm_host: 
+  kvm_host_user:
+  bastion_hypershift: 
+  bastion_hypershift_user:
+  mgmt_cluster_nameserver:  
 
   go_version: "1.19.5"  # Change this if you want to install any other version  of go
-  oc_url: #Give  OC client URL
+  oc_url: 
 
   #Hosted Control Plane Parameters
 
   hcp:
-    clusters_namespace: # Namespace for Hosted Control Plane
-    hosted_cluster_name: # Hosted Cluster Name
-    basedomain: # Basedomain for Hosted ControlPlane
+    clusters_namespace:
+    hosted_cluster_name: 
+    basedomain:
     pull_secret_file: /root/ansible_workdir/auth_file
-    ocp_release: # OCP Release Version for HCP
-    machine_cidr:  # Machine CIDR for Hosted Control Plane
-    arch: # Architecture for InfraEnv
+    ocp_release: 
+    machine_cidr:  
+    arch: 
     # Make sure to enclose pull_secret in 'single quotes'
     pull_secret:
 
@@ -243,11 +243,11 @@ hypershift:
   # AgentServiceConfig Parameters
 
   asc:
-    url_for_ocp_release_file: # Add URL for OCP release.txt File
-    db_volume_size: # DatabaseStorage Volume Size
-    fs_volume_size: # FileSystemStorage Volume Size
-    ocp_version: # OCP Version for AgentServiceConfig
-    iso_url:    # Mirror registry URL for ISO
-    root_fs_url: # Mirrir registry URL for rootfs image
+    url_for_ocp_release_file:
+    db_volume_size: 
+    fs_volume_size:
+    ocp_version:
+    iso_url:   
+    root_fs_url:
     mce_namespace: "multicluster-engine" # This is the Recommended Namespace for Multicluster Engine operator
 

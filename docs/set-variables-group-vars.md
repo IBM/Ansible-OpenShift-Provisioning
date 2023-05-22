@@ -183,7 +183,7 @@
 ## 16 - Hypershift
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**hypershift.kvm_host** | IPv4 address of KVM host for hypershift | 192.168.10.1
+**hypershift.kvm_host** | IPv4 address of KVM host for hypershift <br /> ( kvm host where you want to run all oc commands and create VMs)| 192.168.10.1
 **hypershift.kvm_host_user** | User for KVM host | root
 **hypershift.bastion_hypershift** | IPv4 address for bastion of Hosted Cluster | 192.168.10.1
 **hypershift.bastion_hypershift_user** | User for bastion of Hosted Cluster | root
