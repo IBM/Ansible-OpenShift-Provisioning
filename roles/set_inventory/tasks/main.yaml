@@ -8,7 +8,6 @@
 - name: Find absolute path to project.
   tags: set_inventory
   shell: |
-    set -o pipefail
     ansible_config="{{ ansible_config_file }}"
     echo "${ansible_config%/*}/"
   register: find_project
