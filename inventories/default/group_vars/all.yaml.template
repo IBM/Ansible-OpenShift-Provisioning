@@ -198,7 +198,7 @@ env:
     user:
     pass:
     path_to_keypair:
-=======
+
 
 # Section 15 - RHCOS (CoreOS)
 
