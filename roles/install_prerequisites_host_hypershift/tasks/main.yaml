@@ -1,0 +1,148 @@
+---
+
+
+- name: Install ansible-kubernetes module
+  pip:
+    name:
+      - kubernetes
+
+- name: Check if SSH key exists
+  stat:
+    path: "~/.ssh/{{ env.ansible_key_name }}.pub"
+  register: ssh_key
+
+- name: Generate SSH key
+  command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ env.ansible_key_name }}"
+  when: ssh_key.stat.exists == false
+
+- name: Install Packages on kvm_host
+  yum: 
+    name:
+      - "{{ item }}"
+    state: present
+  loop: "{{ env.pkgs.kvm }}"
+
+- name: Install Packages for Hypershift
+  yum:
+    name:
+      - "{{ item }}"
+    state: present
+  loop: "{{ env.pkgs.hypershift }}"
+
+# Creating one directory for Storing Files
+
+- name: Create Work Directory
+  file:
+    path: /root/ansible_workdir
+    state: directory
+
+
+
+#-----------------------------------------------------------
+# Installing OC Client
+#-----------------------------------------------------------
+
+
+
+- name: Check if OC installed 
+  command: oc
+  register: oc_installed
+  ignore_errors: yes
+
+
+- name: Download OC Client
+  get_url:
+    url: "{{ hypershift.oc_url }}"
+    dest: /root/ansible_workdir/
+  when: oc_installed.rc != 0
+
+- name: tar oc
+  command: tar -vxzf /root/ansible_workdir/{{ hypershift.oc_url.split('/')[-1] }}
+  when: oc_installed.rc != 0
+
+- name: Copy oc to /usr/local/bin/oc 
+  shell: cp oc /usr/local/bin/oc
+  when: oc_installed.rc != 0
+
+
+#-----------------------------------------------------------
+# Installing Go
+#-----------------------------------------------------------
+
+- name: Download Latest Go 
+  get_url:
+    url: "https://golang.org/dl/go{{ hypershift.go_version }}.linux-s390x.tar.gz"
+    dest: "/root/ansible_workdir/"
+
+
+- name: Unzip the go tar.gz package 
+  command: tar -C /usr/local -xzf /root/ansible_workdir/go{{ hypershift.go_version }}.linux-s390x.tar.gz
+
+
+
+- name: Set the PATH as Environment Variable
+  lineinfile:
+    path: "~/.bash_profile"
+    line: "export PATH=$PATH:/usr/local/go/bin"
+    state: present
+
+- name: Set Environment Variables for GOPATH
+  lineinfile:
+    path: "~/.bash_profile"
+    line: "export GOPATH=/root/"
+    state: present
+
+
+
+- name: Copy go to /usr/local/bin/
+  copy:
+    src: /usr/local/go/bin/go
+    dest: /usr/local/bin/
+
+
+- name: Set permissions to go 
+  command: chmod 755 /usr/local/bin/go
+
+
+- name: Load environment variables
+  shell: source ~/.bash_profile
+
+
+#-----------------------------------------------------------
+# Installing Hypershift Binary
+#-----------------------------------------------------------
+
+- name: check if hypershift installed
+  command: hypershift -v
+  register: hypershift_check
+  ignore_errors: yes
+
+
+- name: Download Latest hypershift
+  git:
+    repo: https://github.com/openshift/hypershift.git
+    dest: /root/ansible_workdir/hypershift
+    clone: yes
+  when: hypershift_check.rc != 0
+
+- name: Install Hypershift
+  shell: cd  /root/ansible_workdir/hypershift ; git fetch origin ; git rebase origin/main ; make build ; sudo install -m 0755 bin/hypershift /usr/local/bin/hypershift
+  when: hypershift_check.rc != 0
+
+- name: Add Management Cluster Nameserver to /etc/resolv.conf
+  lineinfile:
+    dest: /etc/resolv.conf
+    insertbefore: BOF
+    line: nameserver {{ hypershift.mgmt_cluster_nameserver }}
+
+
+- name: Copy pull secret to kvm_host
+  copy:
+    content: "{{hypershift.hcp.pull_secret}}"
+    dest: /root/ansible_workdir/auth_file
+
+#-----------------------------------------------------------
+# Login to Management Cluster
+#-----------------------------------------------------------
+- name: Login to Management Cluster 
+  command: oc login {{ api_server }} -u {{ user_name }} -p {{ password }} --insecure-skip-tls-verify=true
