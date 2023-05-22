@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mirror-config
+  namespace: "{{ hypershift.asc.mce_namespace }}" # please verify that this namespace is where MCE is installed.
+  labels:
+    app: assisted-service
+data:
+  registries.conf: |
+    unqualified-search-registries = ["registry.access.redhat.com", "docker.io"]
+
+    [[registry]]
+      location = "registry.stage.redhat.io"
+      insecure = false
+      blocked = false
+      mirror-by-digest-only = true
+      prefix = ""
+
+      [[registry.mirror]]
+        location = "brew.registry.redhat.io"
+        insecure = false
+
+    [[registry]]
+      location = "registry.redhat.io/multicluster-engine"
+      insecure = false
+      blocked = false
+      mirror-by-digest-only = true
+      prefix = ""
+
+      [[registry.mirror]]
+        location = "brew.registry.redhat.io/multicluster-engine"
+        insecure = false
