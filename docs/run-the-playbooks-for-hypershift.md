@@ -46,7 +46,6 @@ ansible-vault edit playbooks/secrets.yaml
 * Run this shell command to run the create_hosted_cluster.yaml playbook:
 ```
 ansible-playbook playbooks/create_hosted_cluster.yaml --ask-vault-pass
-
 ```
 
 
