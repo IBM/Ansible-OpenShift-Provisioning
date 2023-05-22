@@ -5,25 +5,3 @@
 
 - name: Load variables based on architecture
   ansible.builtin.include_vars: "../vars/{{ ansible_architecture }}/vars.yaml"
-
-- name: Verify RHCOS OS variant, redefine if required
-  block:
-    - name: Define RHCOS OS variant variable, if not defined
-      when: (rhcos_os_variant is not defined)
-      ansible.builtin.set_fact:
-        rhcos_os_variant: "rhel8.6"
-
-    - name: Get defined RHCOS OS variants
-      when: (rhcos_os_variant is defined)
-      ansible.builtin.shell: |
-        set -o pipefail
-        osinfo-query os -f short-id | grep "{{ rhcos_os_variant }}"
-      changed_when: false
-      ignore_errors: true
-      register: cmd_output
-
-    - name: Redefine RHCOS OS variant variable
-      when: (cmd_output.rc != 0)
-      ansible.builtin.set_fact:
-        # Defined RHEL OS variant, is not known on KVM host
-        rhcos_os_variant: "rhel8-unknown"
