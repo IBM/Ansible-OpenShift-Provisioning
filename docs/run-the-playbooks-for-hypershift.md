@@ -45,7 +45,7 @@ ansible-vault edit playbooks/secrets.yaml
     * create_hosted_cluster.yaml ([code](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_hosted_cluster.yaml))
 * Run this shell command to run the create_hosted_cluster.yaml playbook:
 ```
-ansible-playbook playbooks/create_hosted_cluster.yaml
+ansible-playbook playbooks/create_hosted_cluster.yaml --ask-vault-pass
 ```
 
 
