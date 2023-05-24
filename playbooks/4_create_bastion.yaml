@@ -6,4 +6,5 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
   roles:
+    - common
     - { role: create_bastion, when: env.bastion.create == True }

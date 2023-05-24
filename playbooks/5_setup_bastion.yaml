@@ -173,4 +173,5 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
+    - common
     - get_ocp
