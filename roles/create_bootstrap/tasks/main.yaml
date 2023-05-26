@@ -20,8 +20,9 @@
     coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} \
     ip={{ env.cluster.nodes.bootstrap.ip }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}::none:1500 \
     nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} \
-    coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/bootstrap.ign" \
+    coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/bootstrap.ign {{ _vm_console }}" \
     --graphics none \
+    --console pty,target_type=serial \
     --wait=-1 \
     --noautoconsole
   timeout: 300
