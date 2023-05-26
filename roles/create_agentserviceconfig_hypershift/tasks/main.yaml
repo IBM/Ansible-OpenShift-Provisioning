@@ -38,8 +38,10 @@
 
 - name: Rollout new deployment for assisted-service
   command: oc rollout restart deployment/assisted-service -n {{ hypershift.asc.mce_namespace }}
-
-
+  register: assisted_service
+  until: assisted_service.rc == 0
+  retries: 5
+  delay: 15
 
 - name: Wait for Agent Service Deployment to be Succeeded
   shell: oc get AgentServiceConfig agent -o json | jq -r '.status|.conditions[]|.status' | grep False | wc -l
