@@ -1,7 +1,18 @@
 # Use this if you want to re-install nodes with a new OCP version
 ---
 
-- name: Copy SSH key to access KVM host 1
+- name: Re-Install cluster - Copy SSH key from localhost to access bastion
+  hosts: localhost
+  tags: ssh, ssh_copy_id, section_1
+  gather_facts: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  vars:
+    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}","{{ path_to_key_pair }}"]
+  roles:
+    - ssh_copy_id
+
+- name: Re-Install cluster - Copy SSH key to access KVM host 1
   hosts: localhost
   tags: ssh, ssh_copy_id, section_1, kvm_host_1
   connection: local
@@ -12,15 +23,15 @@
   vars:
     ssh_target: ["{{ env.z.lpar1.ip }}","{{ env.z.lpar1.user }}","{{ env.z.lpar1.pass }}","{{ path_to_key_pair }}"]
   tasks:
-    - name: Include vars for the KVM host.
-      include_vars:
+    - name: Include vars for the KVM host
+      ansible.builtin.include_vars:
         file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
 
-    - name: Copy SSH key to KVM host.
-      import_role:
+    - name: Copy SSH key to KVM host
+      ansible.builtin.import_role:
         name: ssh_copy_id
 
-- name: Copy SSH key to access KVM host 2
+- name: Re-Install cluster - Copy SSH key to access KVM host 2
   hosts: localhost
   tags: ssh, ssh_copy_id, section_1, kvm_host_2
   connection: local
@@ -31,18 +42,17 @@
   vars:
     ssh_target: ["{{ env.z.lpar2.ip }}","{{ env.z.lpar2.user }}","{{ env.z.lpar2.pass }}","{{ path_to_key_pair }}"]
   tasks:
-    - name: Include vars for second KVM host.
-      include_vars:
+    - name: Include vars for second KVM host
+      ansible.builtin.include_vars:
         file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar2.hostname }}.yaml"
       when: env.z.lpar2.hostname is defined
 
-    - name: copy SSH key to second KVM host, if cluster is to be highly available.
-      tags: ssh_copy_id, ssh
-      import_role:
+    - name: copy SSH key to second KVM host, if cluster is to be highly available
+      ansible.builtin.import_role:
         name: ssh_copy_id
       when: env.z.lpar2.hostname is defined
 
-- name: Copy SSH key to access KVM host 3
+- name: Re-Install cluster - Copy SSH key to access KVM host 3
   hosts: localhost
   tags: ssh, ssh_copy_id, section_1, kvm_host_3
   connection: local
@@ -51,20 +61,19 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
-    ssh_target: ["{{ env.z.lpar3.ip }}","{{ env.z.lpar3.user }}","{{ env.z.lpar3.pass }}","{{ path_to_key_pair }}"]
+    ssh_target: [" {{ env.z.lpar3.ip }}","{{ env.z.lpar3.user }}","{{ env.z.lpar3.pass }}","{{ path_to_key_pair }}" ]
   tasks:
-    - name: Include vars for third KVM host.
-      include_vars:
+    - name: Include vars for third KVM host
+      ansible.builtin.include_vars:
         file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar3.hostname }}.yaml"
       when: env.z.lpar3.hostname is defined
 
-    - name: copy SSH key to third KVM host, if cluster is to be highly available.
-      tags: ssh_copy_id, ssh
-      import_role:
+    - name: copy SSH key to third KVM host, if cluster is to be highly available
+      ansible.builtin.import_role:
         name: ssh_copy_id
       when: env.z.lpar3.hostname is defined
 
-- name: Update ignitions and other install files.
+- name: Re-Install cluster - Update ignitions and other install files
   hosts: bastion
   become: true
   vars_files:
