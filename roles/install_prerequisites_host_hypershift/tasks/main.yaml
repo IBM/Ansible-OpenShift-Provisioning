@@ -21,6 +21,7 @@
       - "{{ item }}"
     state: present
   loop: "{{ env.pkgs.kvm }}"
+  when: host != 'bastion_hypershift'
 
 - name: Install Packages for Hypershift
   yum:
@@ -64,70 +65,7 @@
   shell: cp oc /usr/local/bin/oc
   when: oc_installed.rc != 0
 
-
 #-----------------------------------------------------------
-# Installing Go
-#-----------------------------------------------------------
-
-- name: Download Latest Go 
-  get_url:
-    url: "https://golang.org/dl/go{{ hypershift.go_version }}.linux-s390x.tar.gz"
-    dest: "/root/ansible_workdir/"
-
-
-- name: Unzip the go tar.gz package 
-  command: tar -C /usr/local -xzf /root/ansible_workdir/go{{ hypershift.go_version }}.linux-s390x.tar.gz
-
-
-
-- name: Set the PATH as Environment Variable
-  lineinfile:
-    path: "~/.bash_profile"
-    line: "export PATH=$PATH:/usr/local/go/bin"
-    state: present
-
-- name: Set Environment Variables for GOPATH
-  lineinfile:
-    path: "~/.bash_profile"
-    line: "export GOPATH=/root/"
-    state: present
-
-
-
-- name: Copy go to /usr/local/bin/
-  copy:
-    src: /usr/local/go/bin/go
-    dest: /usr/local/bin/
-
-
-- name: Set permissions to go 
-  command: chmod 755 /usr/local/bin/go
-
-
-- name: Load environment variables
-  shell: source ~/.bash_profile
-
-
-#-----------------------------------------------------------
-# Installing Hypershift Binary
-#-----------------------------------------------------------
-
-- name: check if hypershift installed
-  command: hypershift -v
-  register: hypershift_check
-  ignore_errors: yes
-
-
-- name: Download Latest hypershift
-  git:
-    repo: https://github.com/openshift/hypershift.git
-    dest: /root/ansible_workdir/hypershift
-    clone: yes
-  when: hypershift_check.rc != 0
-
-- name: Install Hypershift
-  shell: cd  /root/ansible_workdir/hypershift ; git fetch origin ; git rebase origin/main ; make build ; sudo install -m 0755 bin/hypershift /usr/local/bin/hypershift
-  when: hypershift_check.rc != 0
 
 - name: Add Management Cluster Nameserver to /etc/resolv.conf
   lineinfile:
@@ -135,11 +73,6 @@
     insertbefore: BOF
     line: nameserver {{ hypershift.mgmt_cluster_nameserver }}
 
-
-- name: Copy pull secret to kvm_host
-  copy:
-    content: "{{hypershift.hcp.pull_secret}}"
-    dest: /root/ansible_workdir/auth_file
 
 #-----------------------------------------------------------
 # Login to Management Cluster

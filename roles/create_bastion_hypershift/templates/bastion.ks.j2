@@ -1,0 +1,86 @@
+install
+text
+keyboard us
+lang en_US.UTF-8
+skipx
+rootpw {{ bastion_root_pw }}
+firewall --disabled
+authconfig --enableshadow --enablemd5
+selinux --enforcing
+timezone --utc America/New_York
+clearpart --none --initlabel
+bootloader --location=mbr --append="console=tty0 console=ttyS0,115200n8"
+autopart
+reboot
+repo --name="rhel" --baseurl=http://bistro2.lnxero1.boe/redhat/s390x/RHEL8.5/DVD/BaseOS
+repo --name=AppStream --baseurl=http://bistro2.lnxero1.boe/redhat/s390x/RHEL8.5/DVD/AppStream
+%packages
+@core
+kernel
+nfs-utils
+yum-utils
+
+firewalld
+
+tar
+tcpdump
+rsync
+
+tmux
+wget
+python3
+
+ python3-libselinux
+
+ %end
+
+ %post --erroronfail
+
+echo -n "Network fixes"
+cat > /etc/sysconfig/network << EOF
+NETWORKING=yes
+NOZEROCONF=yes
+EOF
+
+sed -i 's|^enabled=1|enabled=0|' /etc/yum/pluginconf.d/product-id.conf
+sed -i 's|^enabled=1|enabled=0|' /etc/yum/pluginconf.d/subscription-manager.conf
+
+ yum clean all
+
+rm -rf /var/log/yum.log
+rm -rf /var/lib/yum/*
+rm -rf /root/install.log
+rm -rf /root/install.log.syslog
+rm -rf /root/anaconda-ks.cfg
+rm -rf /var/log/anaconda*
+
+touch /var/log/cron
+touch /var/log/boot.log
+mkdir -p /var/cache/yum
+/usr/sbin/fixfiles -R -a restore
+
+rm -f /var/lib/systemd/random-seed
+
+
+mkdir -p /root/.ssh
+echo "{{ ssh_key }}" > /root/.ssh/authorized_keys
+chmod 0700 /root/.ssh
+chmod 0600 /root/.ssh/authorized_keys
+
+cat <<"EO_REPO" > /etc/yum.repos.d/base.repo
+[rhel]
+name=RHEL
+baseurl=http://bistro2.lnxero1.boe/redhat/s390x/RHEL8.5/DVD/BaseOS
+enabled=1
+gpgcheck=0
+
+
+[AppStream]
+name=AppStream
+baseurl=http://bistro2.lnxero1.boe/redhat/s390x/RHEL8.5/DVD/AppStream
+enabled=1
+gpgcheck=0
+
+EO_REPO
+
+%end 

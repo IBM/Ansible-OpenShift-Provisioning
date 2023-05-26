@@ -1,0 +1,57 @@
+---
+
+- name: Download ipxe script
+  shell: curl -k -L $(oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} get InfraEnv {{ hypershift.hcp.hosted_cluster_name }} -ojsonpath="{.status.bootArtifacts.ipxeScript}")
+  register: ipxe_script
+
+- name: Copy ipxe script to a File
+  copy:
+    dest: "/root/ansible_workdir/ipxe_script_from_ansible"
+    content: "{{ ipxe_script.stdout }}"
+
+- name: Get URL for initrd
+  set_fact:
+    initrd_url: "{{ ipxe_script.stdout_lines[1].split(' ')[3] }}"
+
+
+
+
+- name: Create Installation directory
+  shell: mkdir -p /var/lib/libvirt/images/pxeboot/
+
+- name: Download initrd.img 
+  shell: curl -k -L -o /var/lib/libvirt/images/pxeboot/initrd.img "{{ initrd_url }}"
+
+
+- name: Get URL for ISO 
+  shell: oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} get InfraEnv {{ hypershift.hcp.hosted_cluster_name }} -ojsonpath="{.status.isoDownloadURL}"
+  register: iso_url
+
+- name: Change URL to full-iso
+  set_fact:
+    full_iso_url: "{{ iso_url.stdout | replace('full','full-iso') }}"
+
+
+
+- name: Download ISO
+  shell: curl -k -L -o /root/ansible_workdir/image.iso "{{ full_iso_url }}"
+  register: iso_download_status
+  until: iso_download_status.rc == 0
+  retries: 5
+  delay: 15 
+
+- name: Create Directory for mounting iso
+  shell: mkdir -p /mnt/iso/
+
+- name: Unmount any existing iso
+  shell: umount /mnt/iso/
+  ignore_errors: true
+
+- name: Mount ISO
+  shell: mount -t iso9660 -o loop /root/ansible_workdir/image.iso /mnt/iso
+
+- name: Copy the kernel.img from iso to Installation Directory
+  copy:
+    src: /mnt/iso/images/pxeboot/kernel.img
+    dest: /var/lib/libvirt/images/pxeboot/kernel.img
+    remote_src: yes

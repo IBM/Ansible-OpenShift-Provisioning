@@ -19,7 +19,7 @@ ansible-playbook playbooks/setup_for_hypershift.yaml
 
 ## Setup Ansible Vault for Management Cluster Credentials
 ### Overview
-* Creating an encrypted file for storing Management Cluster Credentials.
+* Creating an encrypted file for storing Management Cluster Credentials and other passwords.
 ### Steps:
 * The ansible-vault create command is used to create the encrypted file.
 * Create an encrypted file in playbooks directory and set the Vault password ( Below command will prompt for setting Vault password).
@@ -29,6 +29,7 @@ ansible-vault create playbooks/secrets.yaml
 
 * Give the credentials of Management Cluster in the encrypted file (created above) in following format.
 ```
+bastion_root_pw: '<password_you_want_to_keep_for_bastion>'
 api_server: '<api-server-url>:<port>'
 user_name: '<username>'
 password: '<password>'
@@ -66,10 +67,16 @@ ansible-playbook playbooks/create_hosted_cluster.yaml --ask-vault-pass
 
 ## create_hosted_cluster Playbook
 ### Overview
-* Creating AgentServiceConfig, HostedControlPlane , InfraEnv Resources
+* Creates Bastion and configures bastion
+* Creating AgentServiceConfig, HostedControlPlane , InfraEnv Resources , Download Images.
 ### Outcomes
+* Install Prerequisites on kvm_host
+* Creates bastion
+* Configure bastion
 * Log in to Management Cluster
 * Creates AgentServiceConfig resource and required configmaps.
 * Deploys HostedControlPlane and .
 * Creates InfraEnv resource and wait till ISO generation.
+* Download required Images to kvm_host ( initrd.img and kernel.img )
+* Download rootfs.img and configure httpd on bastion.
 

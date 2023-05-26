@@ -1,0 +1,63 @@
+---
+
+- name: Check the available networks on host
+  shell: virsh net-list --all
+  register: network_list
+
+- name: Check if macvtap exists
+  set_fact: 
+    network_exists: "{{ 'macvtap-net' in network_list.stdout_lines[2:]|join(',')}}"
+
+# Creating one directory for Storing Files
+
+
+
+- name: Create xml for macvtap
+  copy:
+    content: | 
+      <network>
+        <name>macvtap-net</name>
+        <forward mode="bridge">
+          <interface dev="enc1100"/>
+        </forward>
+      </network>
+    dest: /root/ansible_workdir/macvtap-def.xml
+  when: not network_exists
+
+
+- name: Create macvtap network if it doesn't exists
+  shell: | 
+    virsh net-define /root/ansible_workdir/macvtap-def.xml
+    virsh net-autostart macvtap-net
+    virsh net-start macvtap-net
+  when: not network_exists
+
+
+- name: Get ssh key of local host
+  slurp:
+    src: "~/.ssh/{{ env.ansible_key_name }}.pub"
+  register: encoded_ssh
+  delegate_to: localhost
+
+- name: Decode the ssh key
+  set_fact:
+    ssh_key: "{{encoded_ssh.content | b64decode |replace('\n','')}}"
+
+- name: Create Directory for images and bastion.ks
+  shell: mkdir -p /home/libvirt/images/
+
+- name: Create bastion.ks file
+  template:
+    src: bastion.ks.j2
+    dest: /home/libvirt/bastion.ks
+
+- name: Create qemu image for bastion
+  command: qemu-img create -f qcow2 /home/libvirt/images/ansible_bastion.qcow2 100G
+
+- name: Create bastion 
+  command: virt-install --name ansible_bastion --memory 4096 --vcpus sockets=1,cores=4,threads=1 --disk /home/libvirt/images/ansible_bastion.qcow2,format=qcow2,bus=virtio,cache=none --os-variant "rhel{{hypershift.bastion_parms.os_variant}}" --network network:macvtap-net --location 'http://bistro2.lnxero1.boe/redhat/s390x/RHEL{{hypershift.bastion_parms.os_variant}}/DVD/' --rng=/dev/urandom --initrd-inject /home/libvirt/bastion.ks --extra-args="ks=file:/bastion.ks ip={{ hypershift.bastion_hypershift }}::{{hypershift.bastion_parms.gate_way}}:{{hypershift.bastion_parms.subnet_mask}}:bastion.lnxero1.boe:enc1:none console=ttysclp0 nameserver={{hypershift.bastion_parms.nameserver}}" --noautoconsole --wait -1
+
+
+- name: Add route to bastion from kvm_host
+  shell: ip route add {{ hypershift.bastion_hypershift }} via {{ hypershift.gateway}}
+  ignore_errors: yes

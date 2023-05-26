@@ -221,6 +221,15 @@ hypershift:
   kvm_host_user:
   bastion_hypershift: 
   bastion_hypershift_user:
+  create_bastion: 
+  gateway: 
+  branch_for_cli: 
+  bastion_parms:
+    os_variant: 
+    nameserver:
+    gate_way: 
+    subnet_mask: 
+
   mgmt_cluster_nameserver:  
 
   go_version: "1.19.5"  # Change this if you want to install any other version  of go
