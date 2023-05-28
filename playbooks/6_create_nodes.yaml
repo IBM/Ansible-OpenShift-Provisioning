@@ -12,7 +12,7 @@
     - delete_nodes
 
 - name: 6 create nodes - create bootstrap
-  hosts: kvm_host[-1]
+  hosts: kvm_host[0]
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -52,7 +52,7 @@
     - {role: wait_for_bootstrap, when: env.bastion.access.user == "root"}
 
 - name: 6 create nodes - once bootstrapping is complete, tear down bootstrap.
-  hosts: kvm_host[-1]
+  hosts: kvm_host[0]
   tags: create_nodes, teardown_bootstrap
   gather_facts: false
   vars_files:
