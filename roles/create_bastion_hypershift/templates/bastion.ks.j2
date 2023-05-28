@@ -12,8 +12,8 @@ clearpart --none --initlabel
 bootloader --location=mbr --append="console=tty0 console=ttyS0,115200n8"
 autopart
 reboot
-repo --name="rhel" --baseurl=http://bistro2.lnxero1.boe/redhat/s390x/RHEL8.5/DVD/BaseOS
-repo --name=AppStream --baseurl=http://bistro2.lnxero1.boe/redhat/s390x/RHEL8.5/DVD/AppStream
+repo --name="rhel" --baseurl=http://bistro2.lnxero1.boe/redhat/s390x/RHEL{{hypershift.bastion_parms.os_variant}}/DVD/BaseOS
+repo --name=AppStream --baseurl=http://bistro2.lnxero1.boe/redhat/s390x/RHEL{{hypershift.bastion_parms.os_variant}}/DVD/AppStream
 %packages
 @core
 kernel
@@ -70,14 +70,14 @@ chmod 0600 /root/.ssh/authorized_keys
 cat <<"EO_REPO" > /etc/yum.repos.d/base.repo
 [rhel]
 name=RHEL
-baseurl=http://bistro2.lnxero1.boe/redhat/s390x/RHEL8.5/DVD/BaseOS
+baseurl=http://bistro2.lnxero1.boe/redhat/s390x/RHEL{{hypershift.bastion_parms.os_variant}}/DVD/BaseOS
 enabled=1
 gpgcheck=0
 
 
 [AppStream]
 name=AppStream
-baseurl=http://bistro2.lnxero1.boe/redhat/s390x/RHEL8.5/DVD/AppStream
+baseurl=http://bistro2.lnxero1.boe/redhat/s390x/RHEL{{hypershift.bastion_parms.os_variant}}/DVD/AppStream
 enabled=1
 gpgcheck=0
 
