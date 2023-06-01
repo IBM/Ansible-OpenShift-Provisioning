@@ -3,10 +3,10 @@
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
 * Run this shell command:
 ```
-ansible-playbook playbooks/0_setup.yaml 
+ansible-playbook playbooks/0_setup.yaml
 ```
 
-* Run each part step-by-step by running one playbook at a time, or all at once using [playbooks/site.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/site.yaml). 
+* Run each part step-by-step by running one playbook at a time, or all at once using [playbooks/site.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/site.yaml).
 * Here's the full list of playbooks to be run in order, full descriptions of each can be found further down the page:
     * 0_setup.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/0_setup.yaml))
     * 1_create_lpar.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/1_create_lpar.yaml))
@@ -16,13 +16,13 @@ ansible-playbook playbooks/0_setup.yaml
     * 5_setup_bastion.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/5_setup_bastion.yaml))
     * 6_create_nodes.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/6_create_nodes.yaml))
     * 7_ocp_verification.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/7_ocp_verification.yaml))
-* Watch Ansible as it completes the installation, correcting errors if they arise. 
+* Watch Ansible as it completes the installation, correcting errors if they arise.
 * To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml
-* Alternatively, to run all the playbooks at once, start the master playbook by running this shell command: 
+* Alternatively, to run all the playbooks at once, start the master playbook by running this shell command:
 ```
-ansible-playbook playbooks/site.yaml 
+ansible-playbook playbooks/site.yaml
 ```
-* If the process fails in error, go through the steps in the [troubleshooting](troubleshooting.md) page. 
+* If the process fails in error, go through the steps in the [troubleshooting](troubleshooting.md) page.
 * At the end of the the last playbook, follow the printed instructions for first-time login to the cluster.
 
 ## 0 Setup Playbook
@@ -76,8 +76,8 @@ Creates the bastion KVM guest on the first KVM host. The bastion hosts essential
 * Bastion is booted using virt-install.
 * Bastion is kickstarted for fully automated setup of the operating system.
 ### Notes
-* This can be a particularly sticky part of the process. 
-* If any of the variables used in the virt-install or kickstart are off, the bastion won't be able to boot. 
+* This can be a particularly sticky part of the process.
+* If any of the variables used in the virt-install or kickstart are off, the bastion won't be able to boot.
 * Recommend watching it come up from the first KVM host's cockpit. Go to http://kvm-ip-here:9090 via web-browser to view it. You'll have to sign in, enable administrative access (top right), and then click on the virtual machines tab on the left-hand toolbar.
 ## 5 Setup Bastion Playbook
 ### Overview
@@ -128,18 +128,26 @@ Final steps of waiting for and verifying the OpenShift cluster to complete its i
 * To install a new cluster, copy your inventory directory, change the default in the ansible.cfg, change the variables, and start again. With all the customizations to the playbooks you made along the way still intact.
 
 # Additional Playbooks
+
+## Create additional compute nodes (create_compute_node.yaml) and delete compute nodes (delete_compute_node.yaml)
+### Overview
+* In case you want to add additional compute nodes to your cluster or delete existing compute nodes in your cluster,
+run these playbooks.
+### Outcomes
+* The defind compute node will be added or deleted, depends which playbook you have executed.
+
 ## Master Playbook (site.yaml)
 ### Overview
 * Use this playbook to run all required playbooks (0-7) all at once.
 ### Outcomes
-* Same as all the above outcomes for all required playbooks. 
+* Same as all the above outcomes for all required playbooks.
 * At the end you will have an OpenShift cluster deployed and first-time login credentials.
 
 ## Pre-Existing Host Master Playbook (pre-existing_site.yaml)
 ### Overview
 * Use this version of the master playbook if you are using a pre-existing LPAR(s) with RHEL already installed.
 ### Outcomes
-* Same as all the above outcomes for all playbooks excluding 1 & 2. 
+* Same as all the above outcomes for all playbooks excluding 1 & 2.
 * This will not create LPAR(s) nor boot your RHEL KVM host(s).
 * At the end you will have an OpenShift cluster deployed and first-time login credentials.
 
