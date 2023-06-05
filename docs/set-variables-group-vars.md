@@ -136,7 +136,6 @@
 ## 12 - OpenShift Settings
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**env.openshift.version** | Version of OpenShift you would like to download and install. Use major.minor.patch naming convention. | 4.12.0
 **env.install_config.api_version** | Kubernetes API version for the cluster. These install_config variables will be passed to the OCP<br /> install_config file. This file is templated in the get_ocp role during the setup_bastion playbook.<br /> To make more fine-tuned adjustments to the install_config, you can find it at<br /> roles/get_ocp/templates/install-config.yaml.j2 | v1
 **env.install_config.compute.architecture** | Computing architecture for the compute nodes. Must be s390x for clusters on IBM zSystems. | s390x
 **env.install_config.compute.hyperthreading** | Enable or disable hyperthreading on compute nodes. Recommended enabled. | Enabled
@@ -160,7 +159,7 @@
 :--- | :--- | :---
 **env.language** | What language would you like Red Hat Enterprise Linux to use? In UTF-8 language code.<br /> Available languages and their corresponding codes can be found [here](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/5/html-single/international_language_support_guide/index), in the "Locale" column of Table 2.1. | en_US.UTF-8
 **env.timezone** | Which timezone would you like Red Hat Enterprise Linux to use? A list of available timezone<br /> options can be found [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). | America/New_York
-**env.keyboard** | Which keyboard layout would you like Red Hat Enterprise Linux to use?  | us 
+**env.keyboard** | Which keyboard layout would you like Red Hat Enterprise Linux to use?  | us
 **env.ansible_key_name** | (Optional) Name of the SSH key that Ansible will use to connect to hosts. | ansible-ocpz
 **env.ocp_key_name** | Comment to describe the SSH key used for OCP. Arbitrary value. | OCPZ-01 key
 **env.bridge_name** | (Optional) Name of the macvtap bridge that will be created on the KVM host or in case of NAT the name of the NAT network defenition (usually it is 'default'). If NAT is being used and a jumphost is needed, the parameters network_mode, jumphost.name, jumphost.user and jumphost.pass must be specified, too. In case of default (NAT) network verify that the configured IP ranges does not interfere with the IPs defined for the controle and compute nodes. Modify the default network (dhcp range setting) to prevent issues with VMs using dhcp and OCP nodes having fixed IPs.| macvtap-net
@@ -171,10 +170,13 @@
 **env.jumphost.pass** | (Optional) The password for user to login to the jumphost. | ch4ngeMe!
 **env.jumphost.path_to_keypair** | (Optional) The absolute path to the public key file on the jumphost to be copied to the bastion. | /home/admin/.ssh/id_rsa.pub
 
-## 15 - RHCOS (CoreOS)
+## 15 - OCP and RHCOS (CoreOS)
 
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
+**ocp_download_url** | Link to the mirror for the OpenShift client and installer from Red Hat. | https://mirror.openshift.com<br />/pub/openshift-v4/multi<br />/clients/ocp/4.13.1/s390x/
+**ocp_client_tgz** | OpenShift client filename (tar.gz). | openshift-client-linux.tar.gz
+**ocp_install_tgz** | OpenShift installer filename (tar.gz). | openshift-install-linux.tar.gz
 **rhcos_download_url** | Link to the CoreOS files to be used for the bootstrap, control and compute nodes.<br /> Feel free to change to a different version. | https://mirror.openshift.com<br />/pub/openshift-v4/s390x<br />/dependencies/rhcos<br />/4.12/4.12.3/
 **rhcos_os_variant** | CoreOS base OS. Use the OS string as defined in 'osinfo-query os -f short-id' | rhel8.6
 **rhcos_live_kernel** | CoreOS kernel filename to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-kernel-s390x
