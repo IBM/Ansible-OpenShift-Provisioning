@@ -191,6 +191,9 @@
 **hypershift.create_bastion** | Mark it to 'true' if you want to create bastion with the provided IP (hypershift.bastion_hypershift) <br /> 'false' if bastion already there with that IP | 'true'
 **hypershift.gateway** | IPv4 Address for gateway from where the kvm_host and bastion are reachable  <br /> This for adding ip route from kvm_host to bastion through gateway  | 192.168.10.1
 **hypershift.branch_for_cli** | Git branch for latest release of hypershift | release-4.13
+**hypershift.bastion_parms.interface** | Interface for bastion | enc1
+**hypershift.bastion_parms.hostname** | Hostname for bastion | bastion
+**hypershift.bastion_parms.base_domain** | Basedomain for bastion | lnxero1.boe
 **hypershift.bastion_parms.os_variant** | rhel os variant for creating bastion | 8.4
 **hypershift.bastion_parms.nameserver** | Nameserver for creating bastion | 192.168.10.1
 **hypershift.bastion_parms.gate_way** | Gateway IP for creating bastion <br /> This is how it well be used ip=<ipv4 address>::<nameserver>:<subnet mask> | 192.168.10.1

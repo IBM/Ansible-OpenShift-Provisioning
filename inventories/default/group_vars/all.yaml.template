@@ -225,6 +225,9 @@ hypershift:
   gateway: 
   branch_for_cli: 
   bastion_parms:
+    interface: 
+    hostname: 
+    base_domain: 
     os_variant: 
     nameserver:
     gate_way: 
