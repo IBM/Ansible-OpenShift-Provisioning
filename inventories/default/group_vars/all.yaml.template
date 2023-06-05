@@ -159,8 +159,6 @@ env:
     hypershift: [ make, jq, git, virt-install ]
 
 # Section 12 - OpenShift Settings
-  openshift:
-    version: 4.12.0
   install_config:
     api_version: v1
     compute:
@@ -201,7 +199,13 @@ env:
     path_to_keypair:
 
 
-# Section 15 - RHCOS (CoreOS)
+# Section 15 - OCP and RHCOS (CoreOS)
+
+# ocp_download_url with '/' at the end !
+ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/s390x/"
+# ocp client and installer filenames
+ocp_client_tgz: "openshift-client-linux.tar.gz"
+ocp_install_tgz: "openshift-install-linux.tar.gz"
 
 # rhcos_download_url with '/' at the end !
 rhcos_download_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/4.12.3/"
@@ -217,10 +221,11 @@ rhcos_live_rootfs: "rhcos-4.12.3-s390x-live-rootfs.s390x.img"
 # Section 16 - Hypershift
 
 hypershift:
-  kvm_host: 
+  kvm_host:
   kvm_host_user:
-  bastion_hypershift: 
+  bastion_hypershift:
   bastion_hypershift_user:
+
   create_bastion: 
   gateway: 
   branch_for_cli: 
@@ -235,16 +240,22 @@ hypershift:
   go_version: "1.20.3"  # Change this if you want to install any other version  of go
   oc_url: 
 
+  mgmt_cluster_nameserver:
+
+  go_version: "1.19.5"  # Change this if you want to install any other version  of go
+  oc_url:
+
+
   #Hosted Control Plane Parameters
 
   hcp:
     clusters_namespace:
-    hosted_cluster_name: 
+    hosted_cluster_name:
     basedomain:
     pull_secret_file: /root/ansible_workdir/auth_file
-    ocp_release: 
-    machine_cidr:  
-    arch: 
+    ocp_release:
+    machine_cidr:
+    arch:
     # Make sure to enclose pull_secret in 'single quotes'
     pull_secret:
 
@@ -254,10 +265,10 @@ hypershift:
 
   asc:
     url_for_ocp_release_file:
-    db_volume_size: 
+    db_volume_size:
     fs_volume_size:
     ocp_version:
-    iso_url:   
+    iso_url:
     root_fs_url:
     mce_namespace: "multicluster-engine" # This is the Recommended Namespace for Multicluster Engine operator
 

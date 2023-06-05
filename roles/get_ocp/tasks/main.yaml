@@ -42,8 +42,8 @@
     dest: /root/ocpinst/
     remote_src: yes
   loop:
-    - "https://mirror.openshift.com/pub/openshift-v{{ env.openshift.version | string | split('.') | first }}/{{ env.install_config.control.architecture }}/clients/ocp/{{ env.openshift.version }}/openshift-client-linux.tar.gz"
-    - "https://mirror.openshift.com/pub/openshift-v{{ env.openshift.version | string | split('.') | first }}/{{ env.install_config.control.architecture }}/clients/ocp/{{ env.openshift.version }}/openshift-install-linux.tar.gz"
+    - "{{ ocp_download_url }}{{ ocp_client_tgz }}"
+    - "{{ ocp_download_url }}{{ ocp_install_tgz }}"
 
 - name: Copy kubectl, oc, and openshift-install binaries to /usr/local/sbin
   tags: get_ocp

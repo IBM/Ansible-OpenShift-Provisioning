@@ -17,3 +17,4 @@ verbosity: 1
 skip_list:
   - no-changed-when
   - name[casing]
+  - var-naming[no-role-prefix]
