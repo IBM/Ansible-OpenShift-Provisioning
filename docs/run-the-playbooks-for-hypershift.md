@@ -5,6 +5,9 @@
 * MCE instance created and hypershift-preview component enabled.
 * KVM host with root user access
 
+## Note: 
+* As of now we are supporting only macvtap for hypershift Agent based installation.
+
 ## Initial Setup for Hypershift
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
 
