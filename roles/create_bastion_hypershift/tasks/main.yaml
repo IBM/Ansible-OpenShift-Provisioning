@@ -74,10 +74,10 @@
           chmod 0600 /root/.ssh/authorized_keys
 
 - name: Create qemu image for bastion
-  command: qemu-img create -f qcow2 /home/libvirt/images/ansible_bastion.qcow2 100G
+  command: qemu-img create -f qcow2 /home/libvirt/images/{{ hypershift.hcp.hosted_cluster_name }}-bastion.qcow2 100G
 
 - name: Create bastion 
-  command: virt-install --name ansible_bastion --memory 4096 --vcpus sockets=1,cores=4,threads=1 --disk /home/libvirt/images/ansible_bastion.qcow2,format=qcow2,bus=virtio,cache=none --os-variant "rhel{{hypershift.bastion_parms.os_variant}}" --network network:macvtap-net --location 'http://bistro2.lnxero1.boe/redhat/s390x/RHEL{{hypershift.bastion_parms.os_variant}}/DVD/' --rng=/dev/urandom --initrd-inject /home/libvirt/bastion.ks --extra-args="ks=file:/bastion.ks ip={{ hypershift.bastion_hypershift }}::{{hypershift.bastion_parms.gate_way}}:{{hypershift.bastion_parms.subnet_mask}}:{{ hypershift.bastion_parms.hostname }}.{{ hypershift.bastion_parms.base_domain }}:{{ hypershift.bastion_parms.interface }}:none console=ttysclp0 nameserver={{hypershift.bastion_parms.nameserver}}" --noautoconsole --wait -1
+  command: virt-install --name {{ hypershift.hcp.hosted_cluster_name }}-bastion --memory 4096 --vcpus sockets=1,cores=4,threads=1 --disk /home/libvirt/images/{{ hypershift.hcp.hosted_cluster_name }}-bastion.qcow2,format=qcow2,bus=virtio,cache=none --os-variant "rhel{{hypershift.bastion_parms.os_variant}}" --network network:macvtap-net --location 'http://bistro2.lnxero1.boe/redhat/s390x/RHEL{{hypershift.bastion_parms.os_variant}}/DVD/' --rng=/dev/urandom --initrd-inject /home/libvirt/bastion.ks --extra-args="ks=file:/bastion.ks ip={{ hypershift.bastion_hypershift }}::{{hypershift.bastion_parms.gate_way}}:{{hypershift.bastion_parms.subnet_mask}}:{{ hypershift.bastion_parms.hostname }}.{{ hypershift.bastion_parms.base_domain }}:{{ hypershift.bastion_parms.interface }}:none console=ttysclp0 nameserver={{hypershift.bastion_parms.nameserver}}" --noautoconsole --wait -1
 
 
 - name: Add route to bastion from kvm_host
