@@ -227,6 +227,7 @@ hypershift:
   bastion_hypershift_user:
 
   create_bastion: 
+  networking_device: 
   gateway: 
   branch_for_cli: 
   bastion_parms:
