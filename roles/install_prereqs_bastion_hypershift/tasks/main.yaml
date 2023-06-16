@@ -102,10 +102,12 @@
 - name: Get the number of Management Cluster Worker Nodes 
   shell: oc get no -o wide --no-headers|grep -i worker| awk '{print $6}' | wc -l
   register: mgmt_workers_count
+  changed_when: false
 
 - name: Get the IPs of Management Cluster Workers 
   shell: oc get no -o wide --no-headers|grep -i worker| awk '{print $6}' 
   register: mgmt_workers
+  changed_when: false
 
 
 - name: Add Management Cluster Worker IPs to Haproxy 
