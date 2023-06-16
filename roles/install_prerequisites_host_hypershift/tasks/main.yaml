@@ -24,7 +24,7 @@
   when: host != 'bastion_hypershift'
 
 - name: Install Packages for Hypershift
-  yum:
+  package:
     name:
       - "{{ item }}"
     state: present

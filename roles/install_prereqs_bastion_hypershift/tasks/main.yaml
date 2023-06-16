@@ -1,11 +1,9 @@
 ---
 
 - name: Install Packages on bastion
-  yum:
-    name:
-      - "{{ item }}"
+  package:
+    name: "{{ env.pkgs.bastion }}"
     state: present
-  loop: "{{ env.pkgs.bastion }}"
 
 #-----------------------------------------------------------
 # Installing Go
