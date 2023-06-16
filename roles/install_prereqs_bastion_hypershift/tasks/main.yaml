@@ -58,8 +58,6 @@
     mode: '755'
     state: 'file'
 
-- name: Load environment variables
-  shell: source ~/.bash_profile
 
 
 #-----------------------------------------------------------
