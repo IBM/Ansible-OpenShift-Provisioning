@@ -2,7 +2,9 @@
 
 
 - name: Install ansible-kubernetes module
-  shell: pip install kubernetes --ignore-installed PyYAML
+  pip:
+    name: kubernetes
+    extra_args: --ignore-installed PyYAML
 
 - name: Check if SSH key exists
   stat:
