@@ -132,7 +132,7 @@ Final steps of waiting for and verifying the OpenShift cluster to complete its i
 ## Create additional compute nodes (create_compute_node.yaml) and delete compute nodes (delete_compute_node.yaml)
 ### Overview
 * In case you want to add additional compute nodes to your cluster or delete existing compute nodes in your cluster,
-run these playbooks.
+run these playbooks. Currently we support only **env.network_mode** `macvtap` for these two playbooks.
 ### Outcomes
 * The defind compute node will be added or deleted, depends which playbook you have executed.
 
