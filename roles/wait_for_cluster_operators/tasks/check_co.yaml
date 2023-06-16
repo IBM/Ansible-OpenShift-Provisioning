@@ -18,11 +18,11 @@
   tags: wait_for_cluster_operators
   ansible.builtin.shell: |
     set -o pipefail
-    # Check for 'AVAILABLE' state
-    oc get co 2> /dev/null | awk '{print $3}'
+    # Check for 'PROGRESSING' state
+    oc get co 2> /dev/null | awk '{print $4}'
   register: co_check
   # Check for "True" and "False", in case output was empty for any reason
-  until: ("False" not in co_check.stdout) and ("True" in co_check.stdout)
+  until: ("True" not in co_check.stdout) and ("False" in co_check.stdout)
   retries: 10
   delay: 30
   ignore_errors: true
@@ -33,4 +33,4 @@
   ansible.builtin.set_fact:
     cluster_operators_ok: true
   # Check for "True" and "False", in case output was empty for any reason
-  when: not cluster_operators_ok and ("False" not in co_check.stdout) and ("True" in co_check.stdout)
+  when: not cluster_operators_ok and ("True" not in co_check.stdout) and ("False" in co_check.stdout)
