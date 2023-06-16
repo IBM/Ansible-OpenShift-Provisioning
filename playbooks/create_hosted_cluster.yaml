@@ -1,5 +1,5 @@
 ---
-# Task 0
+
 - name: Install Prerequisites on kvm_host
   hosts: kvm_host_hypershift
   vars_files:
@@ -12,7 +12,7 @@
       import_role:
         name:  install_prerequisites_host_hypershift
 
-# Task 1
+
 
 - name: Create macvtap network
   hosts: kvm_host_hypershift
@@ -25,7 +25,7 @@
       import_role:
         name: macvtap
 
-# Task 2
+
 
 - name: Create bastion for hypershift
   hosts: kvm_host_hypershift
@@ -36,7 +36,7 @@
       include_role:
         name: create_bastion_hypershift
       when: hypershift.create_bastion == 'true'
-# Task 3
+
 
 - name: Configuring Bastion
   hosts: bastion_hypershift
@@ -54,7 +54,7 @@
       import_role:
         name: install_prereqs_bastion_hypershift
 
-# Task 4
+
 
 - name: Create AgentServiceConfig Hosted Control Plane and InfraEnv
   hosts: bastion_hypershift
@@ -64,14 +64,14 @@
   - create_agentserviceconfig_hypershift
   - create_hcp_InfraEnv_hypershift
 
-# Task 5
+
 
 - name: Download Required images for booting Agents
   hosts: kvm_host_hypershift
   roles:
   - setup_for_agents_hypershift
 
-# Task 6
+
 
 - name: Configure httpd on bastion for hosting rootfs
   hosts: bastion_hypershift
