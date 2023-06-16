@@ -28,7 +28,7 @@ defaults
     timeout check           10s
     maxconn                 3000
 
-frontend {{hypershift.hcp.hosted_cluster_name}}-api-server
+frontend {{ hypershift.hcp.hosted_cluster_name }}-api-server
     mode tcp
     option tcplog
     bind {{hypershift.bastion_hypershift}}:30000-33000
