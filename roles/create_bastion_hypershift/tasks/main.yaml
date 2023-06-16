@@ -25,9 +25,9 @@
 
 - name: Adding root password for bastion to bastion.ks
   lineinfile:
-        path: /home/libvirt/bastion.ks
-        insertafter: '^lang.*'
-        line: "rootpw {{bastion_root_pw}}"
+    path: /home/libvirt/bastion.ks
+    insertafter: '^lang.*'
+    line: "rootpw {{ bastion_root_pw }}"
 
 - name: Adding ssh key to bastion
   blockinfile:
