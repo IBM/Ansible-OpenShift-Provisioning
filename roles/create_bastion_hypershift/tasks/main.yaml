@@ -10,7 +10,10 @@
     ssh_key: "{{encoded_ssh.content | b64decode |replace('\n','')}}"
 
 - name: Create Directory for images and bastion.ks
-  shell: mkdir -p /home/libvirt/images/
+  file: 
+    path: /home/libvirt/images/
+    recurse: true
+    state: directory
 
 - name: Create bastion.ks file
   template:
