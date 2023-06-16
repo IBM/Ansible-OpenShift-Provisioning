@@ -47,10 +47,16 @@
     dest: /usr/local/bin/
 
 - name: Set permissions to go 
-  command: chmod 755 /usr/bin/go 
+  file:
+    path: /usr/bin/go
+    mode: '755'
+    state: 'file'
 
 - name: Set permissions to go
-  command: chmod 755 /usr/local/bin/go  
+  file:
+    path: /usr/local/bin/go
+    mode: '755'
+    state: 'file'
 
 - name: Load environment variables
   shell: source ~/.bash_profile

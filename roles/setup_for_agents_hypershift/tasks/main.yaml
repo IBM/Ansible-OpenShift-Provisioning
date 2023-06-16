@@ -10,21 +10,31 @@
     content: "{{ ipxe_script.stdout }}"
 
 - name: Create Installation directory
-  shell: mkdir -p /var/lib/libvirt/images/pxeboot/
+  file:
+    path: /var/lib/libvirt/images/pxeboot
+    state: directory
+    mode: '0755'
 
 - name: Get URL for initrd
   set_fact:
     initrd_url: "{{ ipxe_script.stdout_lines[1].split(' ')[3] }}"
 
 - name: Download initrd.img 
-  shell: curl -k -L -o /var/lib/libvirt/images/pxeboot/initrd.img "{{ initrd_url }}"
+  get_url:
+    url: "{{ initrd_url }}"
+    dest: /var/lib/libvirt/images/pxeboot/initrd.img
+    validate_certs: false
+    follow_redirects: yes
 
 - name: Get URL for kernel.img
   set_fact:
     kernel_url: "{{ ipxe_script.stdout_lines[2].split(' ')[1] }}"
 
 - name: Download kernel.img
-  shell: curl -k -L -o /var/lib/libvirt/images/pxeboot/kernel.img "{{ kernel_url }}"
-
+  get_url:
+    url: "{{ kernel_url }}"
+    dest: /var/lib/libvirt/images/pxeboot/kernel.img
+    validate_certs: false
+    follow_redirects: yes
 
 
