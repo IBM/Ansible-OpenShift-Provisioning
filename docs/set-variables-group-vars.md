@@ -208,3 +208,13 @@
 **hypershift.asc.ISO_URL** | Give URL for ISO image | https://... <br /> ...s390x-live.s390x.iso
 **hypershift.asc.ROOT_FS_URL** | Give URL for rootfs image | https://... <br /> ... live-rootfs.s390x.img
  *hypershift.asc.mce_namespace** | Namespace where your Multicluster Engine Operator is installed <br /> Recommended Namespace for MCE is 'multicluster-engine' <br /> Change this only if MCE is installed in other namespace | multicluster-engine
+
+## 17 - (Optional) Create compute node in a day-2 operation
+
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**day2_compute_node.vm_name** | Name of the compute node VM.  | compute-4
+**day2_compute_node.vm_hostname** | Hostnames for compute node. | compute-4
+**day2_compute_node.vm_vm_ip** | IPv4 address of the compute node. | 192.168.10.99
+**day2_compute_node.hostname** | The hostname of the KVM host | kvm-host-01
+**day2_compute_node.host_arch** | KVM host architecture.  | s390x
