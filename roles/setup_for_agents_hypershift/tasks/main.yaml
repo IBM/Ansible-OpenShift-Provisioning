@@ -4,10 +4,6 @@
   shell: curl -k -L $(oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} get InfraEnv {{ hypershift.hcp.hosted_cluster_name }} -ojsonpath="{.status.bootArtifacts.ipxeScript}")
   register: ipxe_script
 
-- name: Copy ipxe script to a File
-  copy:
-    dest: "/root/ansible_workdir/ipxe_script_from_ansible"
-    content: "{{ ipxe_script.stdout }}"
 
 - name: Create Installation directory
   file:

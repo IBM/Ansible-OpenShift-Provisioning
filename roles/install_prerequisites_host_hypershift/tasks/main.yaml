@@ -30,15 +30,6 @@
     state: present
   loop: "{{ env.pkgs.hypershift }}"
 
-# Creating one directory for Storing Files
-
-- name: Create Work Directory
-  file:
-    path: /root/ansible_workdir
-    state: directory
-
-
-
 #-----------------------------------------------------------
 # Installing OC Client
 #-----------------------------------------------------------

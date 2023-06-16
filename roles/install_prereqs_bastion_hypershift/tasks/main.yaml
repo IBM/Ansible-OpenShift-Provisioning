@@ -4,6 +4,12 @@
   package:
     name: "{{ env.pkgs.bastion }}"
     state: present
+# Creating one directory for Storing Files
+
+- name: Create Work Directory
+  file:
+    path: /root/ansible_workdir
+    state: directory
 
 #-----------------------------------------------------------
 # Installing Go
