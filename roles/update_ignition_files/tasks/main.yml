@@ -1,0 +1,19 @@
+---
+
+# Ignition file update
+- name: Update master and worker ignition files on bastion host
+  # Requires sudo access
+  become: true
+  block:
+    - name: Update master and worker ignition files on bastion
+      ansible.builtin.shell: |
+        echo "Print machineconfigs:"
+        oc get mc
+        echo "Update worker ignition file ..."
+        oc extract -n openshift-machine-api secret/worker-user-data --keys=userData --to=- > /var/www/html/ignition/worker.ign
+        echo "Update master ignition file ..."
+        oc extract -n openshift-machine-api secret/master-user-data --keys=userData --to=- > /var/www/html/ignition/master.ign
+      register: cmd_output
+    - name: Print above command output
+      ansible.builtin.debug:
+        var: cmd_output.stdout_lines
