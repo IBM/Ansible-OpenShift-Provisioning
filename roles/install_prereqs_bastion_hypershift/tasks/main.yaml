@@ -18,7 +18,13 @@
 
 
 - name: Unzip the go tar.gz package 
-  command: tar -C /usr/local -xzf /root/ansible_workdir/go{{ hypershift.go_version }}.linux-s390x.tar.gz
+  unarchive:
+    src: "/root/ansible_workdir/go{{ hypershift.go_version }}.linux-s390x.tar.gz"
+    dest: "/usr/local"
+    remote_src: yes
+    extra_opts: ["-z"]
+    creates: "/usr/local/go{{ hypershift.go_version }}"
+
 
 - name: Set Environment Variables
   lineinfile:
