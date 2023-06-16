@@ -58,10 +58,6 @@
     mode: '755'
     state: 'file'
 
-- name: Load environment variables
-  shell: source ~/.bash_profile
-
-
 #-----------------------------------------------------------
 # Installing Hypershift Binary
 #-----------------------------------------------------------
@@ -80,8 +76,16 @@
     version: "{{ hypershift.branch_for_cli }}"
   when: hypershift_check.rc != 0
 
+- name: Build  Hypershift Latest
+  community.general.make:
+    target: build
+    chdir: /root/ansible_workdir/hypershift
+  when: hypershift_check.rc != 0
+
 - name: Install Hypershift Latest
-  shell: cd  /root/ansible_workdir/hypershift ; make build ; sudo install -m 0755 bin/hypershift /usr/local/bin/hypershift
+  ansible.builtin.command:
+    chdir: /root/ansible_workdir/hypershift
+    cmd: sudo install -m 0755 bin/hypershift /usr/local/bin/hypershift
   when: hypershift_check.rc != 0
 
 - name: Copy pull secret to ansible_workdir
