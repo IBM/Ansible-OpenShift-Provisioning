@@ -1,6 +1,6 @@
 ---
 - name: install apache httpd
-  yum:
+  package:
     name: httpd
     state: latest
 
