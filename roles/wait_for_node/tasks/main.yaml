@@ -9,7 +9,7 @@
     oc get nodes --no-headers=true | grep "^{{ wait_for_node_name | lower }}" | awk '{print $2}'
   register: cmd_output
   until: ("Ready" == cmd_output.stdout)
-  retries: 60
+  retries: 30
   delay: 20
 
 - name: Get and print nodes status
