@@ -43,6 +43,7 @@
     - role: update_ignition_files
 
     - role: dns_update
+      when: env.bastion.options.dns
       param_dns_cmd: add
       param_dns_hostname: "{{ day2_compute_node.vm_hostname }}"
       param_dns_ip: "{{ day2_compute_node.vm_ip }}"

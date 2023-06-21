@@ -36,6 +36,7 @@
       param_compute_node: "{{ day2_compute_node }}"
 
     - role: dns_update
+      when: env.bastion.options.dns
       param_dns_cmd: delete
       param_dns_hostname: "{{ day2_compute_node.vm_hostname }}"
       param_dns_ip: "{{ day2_compute_node.vm_ip }}"
