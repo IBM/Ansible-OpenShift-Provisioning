@@ -26,3 +26,9 @@
     --wait=-1 \
     --noautoconsole
   timeout: 300
+  register: cmd_output
+
+- name: Debug, print above command output
+  tags: create_bootstrap
+  ansible.builtin.debug:
+    var: cmd_output
