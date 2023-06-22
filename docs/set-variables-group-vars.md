@@ -183,7 +183,7 @@
 **rhcos_live_initrd** | CoreOS initramfs to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-initramfs.s390x.img
 **rhcos_live_rootfs** | CoreOS rootfs to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-rootfs.s390x.img
 
-## 16 - Hypershift
+## 16 - Hypershift ( Optional )
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **hypershift.kvm_host** | IPv4 address of KVM host for hypershift <br /> ( kvm host where you want to run all oc commands and create VMs)| 192.168.10.1

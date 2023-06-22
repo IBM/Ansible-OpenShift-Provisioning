@@ -10,7 +10,7 @@
 
 ## Initial Setup for Hypershift
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
-
+* Update all the variables in Section-16 ( Hypershift ) and Section-3 ( File Server ) before running the playbooks.
 * First playbook to be run is setup_for_hypershift.yaml which will create inventory file for hypershift and will add ssh key to the kvm host.
 ###### Note:
 * If you are running this first time, it will prompt for the password for kvm host for the selected user.
