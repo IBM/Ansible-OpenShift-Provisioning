@@ -1,11 +1,4 @@
 ---
-
-
-- name: Install ansible-kubernetes module
-  pip:
-    name: kubernetes
-    extra_args: --ignore-installed PyYAML
-
 - name: Check if SSH key exists
   stat:
     path: "~/.ssh/{{ env.ansible_key_name }}.pub"
@@ -14,6 +7,11 @@
 - name: Generate SSH key
   command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ env.ansible_key_name }}"
   when: ssh_key.stat.exists == false
+
+- name: Create Work Directory
+  file:
+    path: /root/ansible_workdir
+    state: directory
 
 - name: Install Packages on kvm_host
   yum: 

@@ -20,7 +20,7 @@
     url: "{{ initrd_url }}"
     dest: /var/lib/libvirt/images/pxeboot/initrd.img
     validate_certs: false
-    follow_redirects: yes
+
 
 - name: Get URL for kernel.img
   set_fact:
@@ -31,6 +31,6 @@
     url: "{{ kernel_url }}"
     dest: /var/lib/libvirt/images/pxeboot/kernel.img
     validate_certs: false
-    follow_redirects: yes
+
 
 
