@@ -1,8 +1,4 @@
 ---
-- name: Install ansible-kubernetes module
-  pip:
-    name: kubernetes
-    extra_args: --ignore-installed PyYAML
 
 - name: Install Packages on bastion
   package:

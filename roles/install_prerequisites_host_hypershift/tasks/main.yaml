@@ -1,5 +1,11 @@
 ---
 
+
+- name: Install ansible-kubernetes module
+  pip:
+    name: kubernetes
+    extra_args: --ignore-installed PyYAML
+
 - name: Check if SSH key exists
   stat:
     path: "~/.ssh/{{ env.ansible_key_name }}.pub"
