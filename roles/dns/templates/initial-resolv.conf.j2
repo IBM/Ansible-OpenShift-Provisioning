@@ -1,2 +1,8 @@
-search {{ env.bastion.networking.base_domain }}
-nameserver {{ env.bastion.networking.forwarder }}
+search {{ hostvars['bastion'].fqdn.split('.')[1:] | join('.') }}
+{% if hostvars['bastion'].setup_dns %}
+nameserver {{ hostvars['bastion'].forwarder }}
+{% else %}
+{% for ns in hostvars['bastion'].nameservers %}
+nameserver {{ ns }}
+{% endfor %}
+{% endif %}

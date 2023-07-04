@@ -1,5 +1,5 @@
 $TTL 86400
-@ IN SOA {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. admin.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} (
+@ IN SOA {{ hostvars['bastion'].fqdn }}. admin.{{ hostvars['bastion'].fqdn.split('.')[1:] | join('.') }} (
                                             2020011800 ;Serial
                                             3600 ;Refresh
                                             1800 ;Retry
@@ -7,13 +7,24 @@ $TTL 86400
                                             86400 ;Minimum TTL
 )
 ;Name Server Information
-@ IN NS {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.
-{{ env.bastion.networking.hostname }}     IN      A       {{ env.bastion.networking.ip }}
+@ IN NS {{ hostvars['bastion'].fqdn }}.
+{{ hostvars['bastion'].fqdn.split('.')[0] }}     IN      A       {{ hostvars['bastion'].bastion_ip }}
 
 ;Reverse lookup for Name Server
-{{ bastion_split_ip.3 }} IN PTR {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.
+{{ bastion_split_ip[-1] }} IN PTR {{ hostvars['bastion'].fqdn }}.
 
 ;PTR Record IP address to Hostname
-{{ bootstrap_split_ip.3 }}     IN      PTR     {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.
-{{ bastion_split_ip.3 }}     IN      PTR     api-int.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.
-{{ bastion_split_ip.3 }}     IN      PTR     api.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.
+{{ bootstrap_split_ip[-1] }}     IN      PTR     {{ hostvars['bootstrap_node'].hostname }}.{{ metadata_name }}.{{ base_domain }}.
+
+{{ bastion_split_ip[-1] }}     IN      PTR     api-int.{{ metadata_name }}.{{ base_domain }}.
+{{ bastion_split_ip[-1] }}     IN      PTR     api.{{ metadata_name }}.{{ base_domain }}.
+
+; entries for the control nodes
+{% for node in groups['control_nodes'] %}
+{{ hostvars[node].node_ip.split('.')[-1] }} IN PTR {{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }}.
+{% endfor %}
+
+; entries for the compute nodes
+{% for node in groups['compute_nodes'] %}
+{{ hostvars[node].node_ip.split('.')[-1] }} IN PTR {{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }}.
+{% endfor %}

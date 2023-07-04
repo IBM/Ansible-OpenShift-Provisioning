@@ -1,5 +1,5 @@
 $TTL 86400
-@ IN SOA {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}. admin.{{ env.bastion.networking.base_domain }}.(
+@ IN SOA {{ hostvars['bastion'].fqdn }}. admin.{{ hostvars['bastion'].fqdn.split('.')[1:] | join('.') }} (
                                                 2020021821 ;Serial
                                                 3600 ;Refresh
                                                 1800 ;Retry
@@ -8,24 +8,30 @@ $TTL 86400
 )
 
 ;Name Server / Bastion Information
-@ IN NS {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}.
+@ IN NS {{ hostvars['bastion'].fqdn }}.
 
 ;IP Address for Name Server
-{{ env.bastion.networking.hostname }} IN A {{ env.bastion.networking.ip }}
+{{ hostvars['bastion'].fqdn.split('.')[0] }} IN A {{ hostvars['bastion'].bastion_ip }}
 
-;entry for bootstrap host.
-{{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.cluster.nodes.bootstrap.ip }}
+;entry for bootstrap node
+{{ hostvars['bootstrap_node'].hostname }}.{{ metadata_name }}.{{ base_domain }}. IN A {{ hostvars['bootstrap_node'].node_ip }}
 
-;entries for the control nodes
+; entries for the control nodes
+{% for node in groups['control_nodes'] %}
+{{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }}. IN A {{ hostvars[node].node_ip }}
+{% endfor %}
 
-;entries for the compute nodes
+; entries for the compute nodes
+{% for node in groups['compute_nodes'] %}
+{{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }}. IN A {{ hostvars[node].node_ip }}
+{% endfor %}
 
 ;The api identifies the IP of your load balancer.
-api.{{ env.cluster.networking.metadata_name }}     IN    CNAME {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}.
-api-int.{{ env.cluster.networking.metadata_name }} IN    CNAME {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}.
+api.{{ metadata_name }}     IN    CNAME {{ hostvars['bastion'].fqdn }}.
+api-int.{{ metadata_name }} IN    CNAME {{ hostvars['bastion'].fqdn }}.
 
 ;The wildcard also identifies the load balancer.
-apps.{{ env.cluster.networking.metadata_name }}  IN    CNAME {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}.
-*.apps.{{ env.cluster.networking.metadata_name }}  IN    CNAME {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}.
+apps.{{ metadata_name }}  IN    CNAME {{ hostvars['bastion'].fqdn }}.
+*.apps.{{ metadata_name }}  IN    CNAME {{ hostvars['bastion'].fqdn }}.
 
 ;EOF
