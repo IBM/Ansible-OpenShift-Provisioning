@@ -1,18 +1,9 @@
 # Use this if you want to re-install nodes with a new OCP version
 ---
-- name: Update initramfs and kernel.
-  hosts: kvm_host
-  gather_facts: False
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
-  roles:
-    - prep_kvm_guests
 
 - name: Update ignitions and other install files.
   hosts: bastion
   become: True
-  vars_files: 
-    - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - get_ocp
 
