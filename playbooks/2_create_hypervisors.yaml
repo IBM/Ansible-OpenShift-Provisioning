@@ -1,0 +1,32 @@
+---
+
+- name: Create configuration files for hypervisors to boot from file server.
+  hosts: hypervisors
+  tags: update_cfgs, update
+  become: false
+  gather_facts: false
+  vars:
+    ansible_host: "{{ hostvars['file_server'].fs_ip }}"
+    ansible_user: "{{ hostvars['file_server'].fs_user }}"
+    ansible_ssh_private_key_file: "{{ hostvars['file_server'].ansible_ssh_private_key_file }}"
+  tasks:
+    - name: Update configuration files for hypervisors.
+      include_role:
+        name: update_cfgs
+      when: create
+
+- name: Boot OS on LPAR(s).
+  hosts: hypervisors
+  tags: create_hypervisors, boot
+  become: false
+  gather_facts: false
+  vars: 
+    ansible_host: 127.0.0.1 #Using HMC API
+    ansible_connection: local
+  tasks:
+    - meta: clear_facts
+
+    - name: Boot and install OS for hypervisors.
+      include_role:
+        name: create_hypervisors
+      when: create
