@@ -1,74 +1,51 @@
 ---
-
-- name: Create a directory on the KVM host server for bastion configuration files
-  become: false
+- name: Create a directory on the hypervisor for bastion's configuration files
   tags: create_bastion
   ansible.builtin.file:
-    path: "{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}"
+    path: "{{ cfgs_dir }}/{{ hostvars['bastion'].fqdn.split('.')[0] }}"
     mode: "0755"
     state: directory
-
-- name: Copy template kickstart file to KVM host server
-  tags: create_bastion
-  become: false
-  ansible.builtin.template:
-    src: "bastion-ks.cfg.j2"
-    dest: "{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
-    mode: "0644"
-    force: true
 
 - name: Create hash from bastion's root password to input in kickstart file
   tags: create_bastion
   ansible.builtin.shell: |
     set -o pipefail
-    echo "{{ env.bastion.access.root_pass }}" | openssl passwd -6 -in -
+    echo "{{ hostvars['bastion'].root_pass }}" | openssl passwd -6 -in -
   register: root_pass_hash
-
-- name: Add hashed root password to bastion's RHEL kickstart config file
-  tags: create_bastion
-  become: false
-  ansible.builtin.lineinfile:
-    path: "{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
-    insertafter: "Root password"
-    line: "rootpw --iscrypted {{ root_pass_hash.stdout }}"
 
 - name: Create hash from bastion user password to input in kickstart file
   tags: create_bastion
   ansible.builtin.shell: |
     set -o pipefail
-    echo "{{ env.bastion.access.pass }}" | openssl passwd -6 -in -
+    echo "{{ hostvars['bastion'].ansible_become_password }}" | openssl passwd -6 -in -
   register: user_pass_hash
 
-- name: Add hashed user password to bastion's RHEL kickstart config file
+- name: Template kickstart file to hypervisor
   tags: create_bastion
-  become: false
-  ansible.builtin.lineinfile:
-    path: "{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
-    insertafter: "Users and Groups Definitions"
-    line: "user --groups=wheel --name={{ env.bastion.access.user }} --password={{ user_pass_hash.stdout }} --iscrypted"
-
-- name: Get KVM host home for use in next step
-  tags: create_bastion, virt-install
-  become: false
-  ansible.builtin.command: pwd
-  register: kvm_host_home
+  ansible.builtin.template:
+    src: "bastion-ks.cfg.j2"
+    dest: "{{ cfgs_dir }}/{{ hostvars['bastion'].fqdn.split('.')[0] }}/bastion-ks.cfg"
+    mode: "0644"
+    force: true
 
 - name: Boot and kickstart bastion. To monitor, login to your KVM host and run 'virsh console <bastion VM name>'
   tags: create_bastion, virt-install
   ansible.builtin.shell: |
     set -o pipefail
-    virsh destroy {{ env.bastion.vm_name }} || true
-    virsh undefine {{ env.bastion.vm_name }} --remove-all-storage || true
+    virsh destroy {{ hostvars['bastion'].vm_name }} || true
+    virsh undefine {{ hostvars['bastion'].vm_name }} --remove-all-storage || true
     virt-install \
-    --name {{ env.bastion.vm_name }} \
+    --name {{ hostvars['bastion'].vm_name }} \
+    --connect qemu:///system \
+    --os-variant={{ hostvars['file_server'].iso_os_variant | lower }} \
     --autostart \
-    --memory={{ env.bastion.resources.ram }} \
-    --vcpus={{ env.bastion.resources.vcpu }} \
-    --location {{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}/{{ env.file_server.iso_mount_dir }} \
-    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.bastion.resources.disk_size }} \
-    --network network={{ env.bridge_name }} \
+    --memory={{ hostvars['bastion'].ram }} \
+    --vcpus={{ hostvars['bastion'].vcpu }} \
+    --location {{ hostvars['file_server'].protocol }}://{{ hostvars['file_server'].fs_user + ':' + hostvars['file_server'].ansible_become_password + '@' if hostvars['file_server'].protocol == 'ftp' else '' }}{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].iso_mount_dir }} \
+    --disk pool={{ pool_name }},size={{ hostvars['bastion'].disk_size }} \
+    --network network={{ network_name }} \
     --graphics=none \
     --noautoconsole --wait=-1 \
-    --initrd-inject "/{{ kvm_host_home.stdout }}/{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg" \
-    --extra-args "inst.ks=file:/bastion-ks.cfg ip={{ env.bastion.networking.ip }}::{{ env.bastion.networking.gateway }}\
-    :{{ env.bastion.networking.subnetmask }}:{{ env.bastion.networking.hostname }}:enc1:none console=ttysclp0"
+    --initrd-inject "{{ cfgs_dir }}/{{ hostvars['bastion'].fqdn.split('.')[0] }}/bastion-ks.cfg" \
+    --extra-args "inst.ks=file:/bastion-ks.cfg ip={{ hostvars['bastion'].bastion_ip }}::{{ hostvars['bastion'].gateway }}\
+    :{{ hostvars['bastion'].netmask }}:{{ hostvars['bastion'].fqdn.split('.')[0] }}:enc1:none console=ttysclp0"

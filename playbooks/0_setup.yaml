@@ -1,24 +1,23 @@
 ---
 
-- hosts: localhost
-  tags: localhost
-  connection: local
-  become: False
-  gather_facts: True
-  roles:
-    - set_inventory
+- hosts: controller
+  tags: controller
+  become: false
+  gather_facts: true
+  vars:
+    create_hypervisors_any: groups['hypervisors'] | map('extract', hostvars, ['create']) | list | any
+    ssh_target: "{{ hostvars['file_server'].inventory_hostname }}"
 
-  post_tasks:
+  pre_tasks:
     - name: Ensure Ansible Galaxy collections have been installed.
       tags: galaxy
-      command: ansible-galaxy collection install {{ item }}
-      loop: "{{ env.pkgs.galaxy }}"
+      command: ansible-galaxy collection install -r ../requirements.yaml
 
     - name: Find ibm_zhmc collection install location, if automated LPAR creation is to be used.
       tags: galaxy
       shell: ansible-galaxy collection list ibm.ibm_zhmc | grep -i ansible | cut -c 3-
       register: zhmc_path
-      when: env.z.lpar1.create == True or env.z.lpar2.create == True or env.z.lpar3.create == True
+      when: create_hypervisors_any
 
     - name: Ensure zhmcclient requirements are installed.
       tags: galaxy
@@ -26,43 +25,49 @@
         requirements: "{{ zhmc_path.stdout }}/ibm/ibm_zhmc/requirements.txt"
         executable: pip3
         extra_args: --upgrade
-      when: env.z.lpar1.create == True or env.z.lpar2.create == True or env.z.lpar3.create == True
+      when: create_hypervisors_any
 
-    - name: Check to make sure that the KVM host has a corresponding inventory host_vars file named with matching hostname and .yaml extension.
-      tags: lpar_check
+    - name: Check to make sure that each hypervisor to be created has a corresponding inventory host_vars file.
+      tags: hypervisor_check
       stat:
-        path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
-      when: env.z.lpar1.hostname is defined
-      register: lpar_host_vars
-      failed_when: lpar_host_vars.stat.exists == False
+        path: "{{ inventory_dir }}/host_vars/{{ hostvars[item].inventory_hostname }}.yaml"
+      loop: "{{ groups['hypervisors'] }}"
+      when: hostvars[item].create
+      register: hypervisor_host_vars
+      failed_when: not hypervisor_host_vars.stat.exists
 
-    - name: Check to make sure the second KVM hosts have a corresponding inventory host_vars file named with matching hostname and .yaml extension, if defined.
-      tags: lpar_check
+    - name: Check to make sure the bastion has a corresponding inventory host_vars file if it is to be created.
+      tags: bastion_check
       stat:
-        path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar2.hostname }}.yaml"
-      when: env.z.lpar2.hostname is defined
-      register: lpar_host_vars
-      failed_when: lpar_host_vars.stat.exists == False
+        path: "{{ inventory_dir }}/host_vars/{{ hostvars['bastion'].inventory_hostname }}.yaml"
+      when: hostvars['bastion'].create
+      register: bastion_host_vars
+      failed_when: not bastion_host_vars.stat.exists
 
-    - name: Check to make sure the third KVM hosts have a corresponding inventory host_vars file named with matching hostname and .yaml extension, if defined.
-      tags: lpar_check
-      stat:
-        path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar3.hostname }}.yaml"
-      when: env.z.lpar3.hostname is defined
-      register: lpar_host_vars
-      failed_when: lpar_host_vars.stat.exists == False
+    - name: Fail if network_mode is NAT and jumphost vars are undefined.
+      tags: set_inventory
+      fail:
+        msg: "Error! jumphost vars undefined: when any of the hypervisors have network_mode set to NAT, you must define all jumphost variables."
+      loop: "{{ groups['hypervisors'] }}"
+      when: ( hostvars[item].network_mode | upper == 'NAT' ) and ( hostvars['jumphost'].name is none or hostvars['jumphost'].ansible_host is none or hostvars['jumphost'].ansible_user is none or hostvars['jumphost'].ansible_password is none or hostvars['jumphost'].path_to_keypair is none)
 
-- hosts: localhost
-  connection: local
-  become: False
-  gather_facts: True
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
-  vars:
-    packages: "{{ env.pkgs.controller }}"
-    ssh_target: [ "{{ env.file_server.ip }}", "{{ env.file_server.user }}", "{{ env.file_server.pass }}", "{{ path_to_key_pair }}" ]
+    - name: Check inventory setup.
+      tags: set_inventory
+      command: ansible-inventory --list
+      register: inv_check
+      failed_when: inv_check.rc != 0
+
+    - name: Install Extra Packages for Enterprise Linux (EPEL) repository for RHEL machines, in order to install 'sshuttle' package.
+      tags: install_packages
+      dnf:
+        name: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm'
+        state: present
+      when: ansible_os_family == 'RedHat'
+      
   roles:
     - install_packages
     - ssh_key_gen
-    - ssh_agent
-    - ssh_copy_id #to file server
+
+- import_playbook: connect_hosts.yaml
+  vars:
+    ssh_target: file_server

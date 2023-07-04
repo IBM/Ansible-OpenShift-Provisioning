@@ -11,41 +11,45 @@
 #    part_end: 100%
 #    fs_type: xfs
 #  register: partition_status
-#  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
+#  when: lpar.storage_group_2.name is defined
 #
 #- name: Print partition status.
 #  tags: configure_storage, storage_group_2, part
 #  debug:
 #    var: partition_status
-#  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
+#  when: lpar.storage_group_2.name is defined
 #
 #- name: Reload partition table
 #  tags: configure_storage, storage_group_2, part
 #  command: partprobe
-#  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
+#  when: lpar.storage_group_2.name is defined
 #
 #- name: Add storage_group_2 disk to existing volume group.
 #  tags: configure_storage, storage_group_2, pvcreate
 #  command: pvcreate /dev/mapper/mpathb1
-#  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
+#  when: lpar.storage_group_2.name is defined
 #
 #- name: Extend logical volume group with new PV
 #  tags: configure_storage, storage_group_2, vgextend
-#  command: vgextend rhel_aoznode1 /dev/mapper/mpathb1 and lpar.storage_group_2.auto_config == True
-#  when: lpar.storage_group_2.name is defined and lpar.storage_group_2.auto_config == True
-#
-#- name: Extend the root logical volume to consume all remaining space in the volume group.
-#  tags: configure_storage, lvextend
-#  community.general.lvol:
-#    vg: "rhel_{{ networking.hostname | lower }}"
-#    lv: root
-#    size: +100%FREE
-#    resizefs: true
+#  command: vgextend rhel_aoznode1 /dev/mapper/mpathb1
+#  when: lpar.storage_group_2.name is defined
 
-- name: Create directory in <storage.pool_path> for this cluster's storage pool.
+# - name: Gather facts.
+#   tags: gather_facts, lvextend
+#   ansible.builtin.setup:
+
+# - name: Extend the root logical volume to consume all remaining space in the volume group.
+#   tags: configure_storage, lvextend
+#   community.general.lvol:
+#     vg: "rhel_{{ ansible_hostname | lower }}"
+#     lv: root
+#     size: +100%FREE
+#     resizefs: true
+
+- name: Create directory in pool_path for this cluster's storage pool.
   tags: configure_storage, pool
   ansible.builtin.file:
-    path: "{{ storage.pool_path }}/{{ env.cluster.networking.metadata_name }}"
+    path: "{{ pool_path }}"
     state: directory
     owner: "{{ ansible_user }}"
     group: qemu
@@ -57,34 +61,34 @@
 - name: Ensure qemu has execute permissions for all parent directories of the directory that will be used as a storage pool for this cluster.
   tags: configure_storage, pool
   file:
-    path: "{{ storage.pool_path.split('/')[:i] | join('/') }}"
+    path: "{{ pool_path.split('/')[:i] | join('/') }}"
     state: directory
     group: qemu
     mode: g+x
     recurse: false
-  loop: "{{ range( 0, storage.pool_path.split('/') | length + 1 ) }}"
+  loop: "{{ range( 0, pool_path.split('/') | length + 1 ) }}"
   loop_control:
     extended: yes
     index_var: i
     extended_allitems: false
-    label: "{{ storage.pool_path.split('/')[:i] | join('/') }}"
-  when: "storage.pool_path.split('/')[:i] | join('/') != ''"
+    label: "{{ pool_path.split('/')[:i] | join('/') }}"
+  when: "pool_path.split('/')[:i] | join('/') != ''"
 
-- name: Define a new storage pool
+- name: Define a storage pool
   tags: configure_storage, pool
   community.libvirt.virt_pool:
     command: define
-    name: "{{ env.cluster.networking.metadata_name }}-vdisk"
+    name: "{{ pool_name }}"
     xml: '{{ lookup ( "template", "vdisk.xml.j2" ) }}'
 
-- name: Set storage pool to active.
+- name: Ensure storage pool is set to active.
   tags: configure_storage, pool
   community.libvirt.virt_pool:
-    name: "{{ env.cluster.networking.metadata_name }}-vdisk"
+    name: "{{ pool_name }}"
     state: active
 
-- name: Set storage pool to autostart.
+- name: Ensure storage pool is set to autostart.
   tags: configure_storage, pool
   community.libvirt.virt_pool:
-    name: "{{ env.cluster.networking.metadata_name }}-vdisk"
+    name: "{{ pool_name }}"
     autostart: yes

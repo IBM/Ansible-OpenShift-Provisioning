@@ -1,5 +1,4 @@
 ---
-
 - name: Start openshift-installer with 'wait-for bootstrap-complete' (async task)
   tags: wait_for_bootstrap
   ansible.builtin.command: openshift-install wait-for bootstrap-complete --dir=/root/ocpinst
@@ -7,12 +6,16 @@
   poll: 0
   register: watch_bootstrap
 
-- name: "Wait for first node-bootstrapper request, should be started within 6 min (retry every 30s)...To watch progress, \
-SSH to root@bastion, SSH to core@bootstrap-ip and run 'journalctl -b -f -u release-image.service -u bootkube.service'"
+- name: Determine 'oc' path.
   tags: wait_for_bootstrap
-  ansible.builtin.shell: |
-    set -o pipefail
-    oc get csr | grep ":node-bootstrapper"
+  ansible.builtin.command: "which oc"
+  register: oc_path
+
+- name: "Wait for first node-bootstrapper request, should be started within 6 min (retry every 30s)...To watch progress, \
+    SSH to root@bastion, SSH to core@bootstrap-ip and run 'journalctl -b -f -u release-image.service -u bootkube.service'"
+  tags: wait_for_bootstrap
+  become: true
+  ansible.builtin.shell: "{{ oc_path.stdout }} get csr | grep ':node-bootstrapper'"
   register: csr_check
   until: (":node-bootstrapper" in csr_check.stdout)
   retries: 12
@@ -25,17 +28,17 @@ SSH to root@bastion, SSH to core@bootstrap-ip and run 'journalctl -b -f -u relea
 
 - name: Wait for control node CSRs (retry every 30s)
   tags: wait_for_bootstrap
-  ansible.builtin.shell: |
-    set -o pipefail
-    oc get csr | awk '{print $4}' | grep "^system:node:{{ item | lower }}"
+  ansible.builtin.shell: "{{ oc_path.stdout }} get csr | awk '{print $4}' | grep '^system:node:{{ hostvars[node].hostname | lower }}'"
   register: cmd_output
   until: ("system:node:" in cmd_output.stdout)
-  loop: "{{ env.cluster.nodes.control.hostname }}"
+  loop: "{{ groups['control_nodes'] }}"
+  loop_control:
+    loop_var: node
   retries: 20
   delay: 30
 
 - name: "Retry wait-for bootstrap-complete job ID check until it's finished. This may take some time... To watch progress, \
-SSH to bastion, switch to root, from there, SSH to core@bootstrap-ip and run 'journalctl -b -f -u release-image.service -u bootkube.service'"
+    SSH to bastion, switch to root, from there, SSH to core@bootstrap-ip and run 'journalctl -b -f -u release-image.service -u bootkube.service'"
   tags: wait_for_bootstrap
   ansible.builtin.async_status:
     jid: "{{ watch_bootstrap.ansible_job_id }}"
@@ -46,7 +49,7 @@ SSH to bastion, switch to root, from there, SSH to core@bootstrap-ip and run 'jo
 
 - name: Make sure kubeconfig works properly
   tags: wait_for_bootstrap
-  ansible.builtin.command: oc whoami
+  ansible.builtin.command: "{{ oc_path.stdout }} whoami"
   register: oc_whoami
   until: oc_whoami.stdout == "system:admin"
   retries: 60

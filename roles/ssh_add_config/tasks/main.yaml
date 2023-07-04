@@ -6,14 +6,13 @@
     path: ~/.ssh/config
     backup: true
     create: true
-    mode: '0644'
     block: |
-      Host {{ env.jumphost.name }} 
-        HostName {{ env.jumphost.ip }}
-        User {{ env.jumphost.user }}
-        IdentityFile {{ path_to_key_pair.split('.')[:-1] | join('.') }}
-      Host {{ env.bastion.networking.ip }}
-        HostName {{ env.bastion.networking.ip }} 
-        User {{ env.bastion.access.user }}
-        IdentityFile {{ path_to_key_pair.split('.')[:-1] | join('.') }}
-        ProxyJump {{ env.jumphost.name }} 
+      Host {{ hostvars['jumphost'].ansible_host }} 
+        HostName {{ hostvars['jumphost'].ansible_host }}
+        User {{ hostvars['jumphost'].ansible_user }}
+        IdentityFile {{ hostvars['jumphost'].ansible_ssh_private_key_file }}
+      Host {{ hostvars['bastion'].bastion_ip }}
+        HostName {{ hostvars['bastion'].bastion_ip }} 
+        User {{ hostvars['bastion'].bastion_user }}
+        IdentityFile {{ hostvars['jumphost'].ansible_ssh_private_key_file }}
+        ProxyJump {{ hostvars['jumphost'].ansible_host }} 

@@ -14,35 +14,37 @@ text --non-interactive
 firstboot --enable
 
 # Use network installation
-url --url={{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}/{{ env.file_server.iso_mount_dir }}
+url --url={{ hostvars['file_server'].protocol }}://{{ hostvars['file_server'].fs_user + ':' + hostvars['file_server'].ansible_become_password + '@' if hostvars['file_server'].protocol == 'ftp' else '' }}{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].iso_mount_dir }}
 
 # Add yum repositories
-repo --install --name="AppStream" --baseurl={{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}/{{ env.file_server.iso_mount_dir }}/AppStream/
-repo --install --name="BaseOS" --baseurl={{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}/{{ env.file_server.iso_mount_dir }}/BaseOS/
+repo --install --name="AppStream" --baseurl={{ hostvars['file_server'].protocol }}://{{ hostvars['file_server'].fs_user + ':' + hostvars['file_server'].ansible_become_password + '@' if hostvars['file_server'].protocol == 'ftp' else '' }}{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].iso_mount_dir }}/AppStream
+repo --install --name="BaseOS" --baseurl={{ hostvars['file_server'].protocol }}://{{ hostvars['file_server'].fs_user + ':' + hostvars['file_server'].ansible_become_password + '@' if hostvars['file_server'].protocol == 'ftp' else '' }}{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].iso_mount_dir }}/BaseOS
 
 # Keyboard layouts
 keyboard --vckeymap=us --xlayouts='us'
 
 # System language
-lang {{ env.language }}
+lang {{ hostvars['bastion'].language }}
 
 # System timezone
-timezone {{ env.timezone }}
+timezone {{ hostvars['bastion'].timezone }}
 
 # Mark the End-User License Agreement (EULA) as agreed
 eula --agreed
 
 # Network information
-network --bootproto=static --device={{ env.bastion.networking.interface }} --ip={{ env.bastion.networking.ip }} --gateway={{ env.bastion.networking.gateway }} --netmask={{ env.bastion.networking.subnetmask }} --noipv6 --nameserver={{ env.bastion.networking.nameserver1 }}{{ (',' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} --activate
-network --hostname={{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}
+network --bootproto=static --device={{ hostvars['bastion'].interface }} --ip={{ hostvars['bastion'].bastion_ip }} --gateway={{ hostvars['bastion'].gateway }} --netmask={{ hostvars['bastion'].netmask }} --noipv6 {% for ns in hostvars['bastion'].nameservers %}--nameserver={{ ns }}{% if not loop.last %} {% endif %}{% endfor %} --activate
+network --hostname={{ hostvars['bastion'].fqdn }}
 
 # Firewall and SELinux
 firewall --enabled --http --ftp --smtp --ssh --port=443,9090
 selinux --enforcing
 
 # Root password (will fill in during create_bastion role)
+rootpw --iscrypted {{ root_pass_hash.stdout }}
 
 # Users and Groups Definitions (will fill in during create_bastion role)
+user --groups=wheel --name={{ hostvars['bastion'].bastion_user }} --password={{ user_pass_hash.stdout }} --iscrypted
 
 # The following is the partition information you requested
 ignoredisk --only-use=vda
@@ -57,7 +59,7 @@ clearpart --all --initlabel --drives=vda
 part /boot --fstype="xfs" --asprimary --ondisk=vda --size=1024
 part pv.01 --fstype="lvmpv" --grow --size=1 --ondisk=vda
 volgroup vgsystem --pesize=4096 pv.01
-logvol swap --fstype=swap --name=swap --vgname=vgsystem --size={{ env.bastion.resources.swap }}
+logvol swap --fstype=swap --name=swap --vgname=vgsystem --size={{ hostvars['bastion'].swap }}
 logvol / --fstype=xfs --name=root --vgname=vgsystem --size=1 --grow
 
 # Packages selection

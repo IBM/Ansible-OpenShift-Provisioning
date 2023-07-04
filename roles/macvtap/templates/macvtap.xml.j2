@@ -1,6 +1,6 @@
 <network>
-    <name>{{ env.bridge_name }}</name>
-    <forward dev='{{ networking.device1 }}' mode='bridge'>
-        <interface dev='{{ networking.device1 }}'/>
+    <name>{{ network_name }}</name>
+    <forward dev='{{ device1 }}' mode='bridge'>
+        <interface dev='{{ device1 }}'/>
     </forward>
 </network>

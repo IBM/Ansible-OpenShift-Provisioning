@@ -1,75 +1,69 @@
 ---
-
-- name: Check internal cluster DNS resolution for the bastion
+- name: Check internal cluster DNS resolution for the bastion.
   tags: check_dns, dns
-  shell: "dig +short {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }} | tail -n1"
+  shell: "dig +short {{ hostvars['bastion'].fqdn }} | tail -n1"
   register: bastion_lookup
-  failed_when: env.bastion.networking.ip != bastion_lookup.stdout
+  failed_when: hostvars['bastion'].bastion_ip != bastion_lookup.stdout
+  changed_when: false
 
-- name: Check internal cluster DNS resolution for external API and apps services
+- name: Print results of 'check internal cluster DNS resolution for the bastion'.
+  tags: check_dns, dns
+  debug:
+    msg: "{{ hostvars['bastion'].fqdn.split('.')[0] }} - from inventory: {{ hostvars['bastion'].bastion_ip }}, from DNS: {{ bastion_lookup.stdout }}"
+
+- name: Check DNS resolution for all nodes.
+  tags: check_dns, dns
+  shell: "dig +short {{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }} | tail -n1"
+  register: node_lookup
+  loop: "{{ [hostvars['bootstrap_node'].inventory_hostname] + groups['control_nodes'] + groups['compute_nodes']  }}"
+  loop_control:
+    loop_var: node
+    label: "{{ hostvars[node].hostname }} - from inventory: {{ hostvars[node].node_ip }}, from DNS: {{ node_lookup.stdout }}"
+  failed_when: hostvars[node].node_ip != node_lookup.stdout
+  changed_when: false
+
+- name: Check internal cluster DNS resolution for external API and apps services.
   tags: check_dns, dns
   shell: "dig +short {{ item }} | tail -n1"
   loop:
-    - "api.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
-    - "apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
-    - "test.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
+    - "api.{{ metadata_name }}.{{ base_domain }}"
+    - "apps.{{ metadata_name }}.{{ base_domain }}"
+    - "test.apps.{{ metadata_name }}.{{ base_domain }}"
+  loop_control:
+    label: >-
+      {{ item }} - from inventory: {{
+        hostvars['bastion'].setup_lb
+        | ternary(hostvars['bastion'].bastion_ip, hostvars['bastion'].lb_public_ip)
+      }},
+      from DNS: {{ services_lookup.stdout }}
   register: services_lookup
-  failed_when: ((env.bastion.options.loadbalancer.on_bastion == True) and (env.bastion.networking.ip != services_lookup.stdout)) or ((env.bastion.options.loadbalancer.on_bastion == False) and (env.bastion.options.loadbalancer.public_ip != services_lookup.stdout) )
+  failed_when: ((hostvars['bastion'].setup_lb == True) and (hostvars['bastion'].bastion_ip != services_lookup.stdout)) or ((hostvars['bastion'].setup_lb == False) and (hostvars['bastion'].lb_public_ip != services_lookup.stdout) )
+  changed_when: false
 
-- name: Check internal cluster DNS resolution for internal API services
+- name: Check internal cluster DNS resolution for internal API services.
   tags: check_dns, dns
-  shell: "dig +short api-int.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1"
+  shell: "dig +short api-int.{{ metadata_name }}.{{ base_domain }} | tail -n1"
   register: api_int_lookup
-  failed_when: ((env.bastion.options.loadbalancer.on_bastion == True) and (env.bastion.networking.ip != api_int_lookup.stdout)) or ((env.bastion.options.loadbalancer.on_bastion == False) and (env.bastion.options.loadbalancer.private_ip != api_int_lookup.stdout) )
+  failed_when: ((hostvars['bastion'].setup_lb == True) and (hostvars['bastion'].bastion_ip != api_int_lookup.stdout)) or ((hostvars['bastion'].setup_lb == False) and (hostvars['bastion'].lb_private_ip != api_int_lookup.stdout) )
+  changed_when: false
 
-- name: Check internal cluster DNS resolution for bootstrap
-  tags: check_dns, dns
-  shell: "dig +short {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1"
-  register: bootstrap_lookup
-  failed_when: env.cluster.nodes.bootstrap.ip != bootstrap_lookup.stdout
-
-- name: Print results from bootstrap lookup
+- name: Print results of 'check internal cluster DNS resolution for internal API services'.
   tags: check_dns, dns
   debug:
-    var: bootstrap_lookup.stdout
+    msg: >-
+      api-int.{{ metadata_name }}.{{ base_domain }} - from inventory: {{
+        hostvars['bastion'].setup_lb
+        | ternary(hostvars['bastion'].bastion_ip, hostvars['bastion'].lb_private_ip)
+      }},
+      from DNS: {{ api_int_lookup.stdout }}
 
-- name: Check control nodes DNS resolution
-  tags: check_dns, dns
-  shell: "dig +short {{ env.cluster.nodes.control.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}  | tail -n1"
-  register: control_lookup
-  failed_when: env.cluster.nodes.control.ip[i] != control_lookup.stdout
-  with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
-  loop_control:
-    extended: yes
-    index_var: i
-
-- name: Check compute nodes DNS resolution
-  tags: check_dns, dns
-  shell: "dig +short {{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}  | tail -n1"
-  register: compute_lookup
-  failed_when: env.cluster.nodes.compute.ip[i] != compute_lookup.stdout
-  with_sequence: start=0 end={{(env.cluster.nodes.compute.hostname | length) - 1}} stride=1
-  loop_control:
-    extended: yes
-    index_var: i
-
-- name: Check infrastructure nodes DNS resolution
-  tags: check_dns, dns
-  shell: "dig +short {{ env.cluster.nodes.infra.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}  | tail -n1"
-  register: infra_lookup
-  failed_when: env.cluster.nodes.infra.ip[i] != infra_lookup.stdout
-  with_sequence: start=0 end={{(env.cluster.nodes.infra.hostname | length) - 1}} stride=1
-  loop_control:
-    extended: yes
-    index_var: i
-  when: env.cluster.nodes.infra.hostname is defined
-
-- name: Check external DNS resolution from forwarder
+- name: Check external DNS resolution from forwarder.
   tags: check_dns, dns
   register: external_dns_check
-  failed_when: '"server can" in external_dns_check.stdout'
   command: "nslookup {{ item }}"
   loop:
     - www.google.com
     - www.ibm.com
     - www.redhat.com
+  failed_when: '"server can" in external_dns_check.stdout'
+  changed_when: false
