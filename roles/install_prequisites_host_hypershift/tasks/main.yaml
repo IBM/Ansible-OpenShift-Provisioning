@@ -1,0 +1,120 @@
+---
+
+- name: Ensure SSH directory exists.
+  file:
+    path: "{{ hcp.ssh_private_key_file.split('/')[0:-1] | join('/') }}"
+    state: directory
+
+- name: Check if SSH key already exists.
+  stat:
+    path: "{{ hcp.ssh_private_key_file }}.pub"
+  register: ssh_key
+
+- name: Generate an OpenSSH keypair with the default values (4096 bits, RSA) for HyperShift HCP.
+  community.crypto.openssh_keypair:
+    path: "{{ hcp.ssh_private_key_file }}"
+    passphrase: ""
+    comment: "HyperShift HCP key"
+    regenerate: never
+  register: ssh_key_creation
+  when: ssh_key.stat.exists == false
+
+- name: Install kubernetes pip package.
+  pip:
+    name: kubernetes
+
+- name: Install packages.
+  package: 
+    name: "{{ pkgs }}"
+    state: present
+
+- name: Create working directory.
+  file:
+    path: /root/ansible_workdir
+    state: directory
+
+block:
+  - name: Check if oc binary is already installed.
+    command: oc
+
+  rescue:
+    - name: Download oc binary.
+      get_url:
+        url: "{{ oc_url }}"
+        dest: /root/ansible_workdir/{{ oc_url.split('/')[-1] }}
+
+    - name: Unarchive oc binary.
+      unarchive:
+        src: /root/ansible_workdir/{{ oc_url.split('/')[-1] }}
+        dest: /usr/local/bin/oc
+        remote_src: true
+
+- name: Download latest Go.
+  get_url:
+    url: "https://golang.org/dl/go{{ go_version }}.linux-{{ ansible_architecture }}.tar.gz"
+    dest: "/root/ansible_workdir/"
+
+- name: Unzip the go tar.gz package.
+  unarchive: 
+    src: /root/ansible_workdir/go{{ go_version }}.linux-{{ ansible_architecture }}.tar.gz
+    dest: /usr/local
+    remote_src: true
+
+- name: Add Go binary to PATH in bash_profile.
+  lineinfile:
+    path: "~/.bash_profile"
+    line: "export PATH=$PATH:/usr/local/go/bin"
+    state: present
+
+- name: Export GOPATH in bash_profile.
+  lineinfile:
+    path: "~/.bash_profile"
+    line: "export GOPATH=/root/"
+    state: present
+
+- name: Copy go to /usr/local/bin/ folder.
+  copy:
+    src: /usr/local/go/bin/go
+    dest: /usr/local/bin/
+
+- name: Set permissions for go binary.
+  file:
+    path: /usr/local/bin/go
+    mode: "0755"
+
+block:
+  - name: Check if HyperShift is already installed.
+    command: hypershift -v
+    register: hypershift_check
+    ignore_errors: yes
+
+  rescue:
+    - name: Download latest hypershift from GitHub.
+      git:
+        repo: https://github.com/openshift/hypershift.git
+        dest: /root/ansible_workdir/hypershift
+        clone: yes
+
+    - name: Build HyperShift using make.
+      community.general.make:
+        chdir: /root/ansible_workdir/hypershift 
+
+    - name: Copy HyperShift binaries to /usr/local/bin folder.
+      copy: 
+        src: /root/ansible_workdir/hypershift/bin/hypershift
+        dest: /usr/local/bin/hypershift
+        mode: "0755"
+
+- name: Add Management Cluster Nameserver to /etc/resolv.conf file.
+  lineinfile:
+    dest: /etc/resolv.conf
+    insertbefore: BOF
+    line: nameserver {{ mgmt_cluster_nameserver }}
+
+- name: Copy pull secret to hypervisor.
+  copy:
+    content: "{{ hcp.pull_secret | tojson }}"
+    dest: /root/ansible_workdir/auth_file
+
+- name: Login to Management Cluster.
+  command: "oc login {{ hcp.api_server }} -u {{ hcp.user_name }} -p {{ hcp.password }} --insecure-skip-tls-verify=true"
