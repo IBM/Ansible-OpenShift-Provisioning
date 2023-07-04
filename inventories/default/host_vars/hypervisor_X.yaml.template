@@ -1,0 +1,56 @@
+##############################################################
+# These variables only need to be filled in if the
+# 'create' variable is True for this hypervisor. 
+##############################################################
+
+hostname: #X
+netmask: #X
+gateway: #X
+nameservers:
+  - #X
+  #- 
+device1: 
+#device2: 
+root_pass: "{{ vault_hypervisor_X_root_pass }}" #Change to match correspondnig variable in group_vars/all/vault.yaml
+
+# Section 2 - CPC & HMC
+cpc_name: #X
+hmc_host: #X
+hmc_user: #X
+hmc_pass: "{{ vault_hmc_X_pass }}" #Change to match correspondnig variable in group_vars/all/vault.yaml
+
+# Section 3 - LPAR
+lpar_name: #X
+lpar_desc: LPAR for Ansible-OpenShift-Provisioning.
+
+# Section 4 - IFL, Memory, Weights
+ifl_count: #X
+mem_init: #X
+mem_max: #X
+weight_init: #X
+weight_min: #X
+weight_max: #X
+
+# Section 5 - Network Interface Card(s)
+nics:
+  - name: #X
+    adapter: #X
+    port: #X
+    dev_num: #X
+  #- name: #Optional - add more NICs as needed
+    #adapter: 
+    #port: 
+    #dev_num: 
+
+# Section 6 - Storage Group(s)
+storage_groups:
+  - name: AOZF200
+    boot_parms: | #Only required for devices used for booting OS, to be input in .prm file
+      rd.zfcp=0.0.X000,0xA000000000000000A,0x0000000000000000
+      rd.zfcp=0.0.X000,0xA000000000000000B,0x0000000000000000
+      rd.zfcp=0.0.X000,0xA000000000000000C,0x0000000000000000
+      rd.zfcp=0.0.X000,0xA000000000000000D,0x0000000000000000
+  #- name: #Optional - add more Storage Groups as needed
+    #boot_parms: |
+      #rd.dasd=0123
+      #rd.dasd=0456 #Add as many DASD devices as needed for boot
