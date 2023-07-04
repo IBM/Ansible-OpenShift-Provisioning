@@ -1,0 +1,80 @@
+---
+
+- name: Getting Hosted Control Plane Namespace.
+  set_fact: 
+    hosted_control_plane_namespace: "{{ hcp.clusters_namespace }}-{{ hcp.hosted_cluster_name }}"
+
+block:
+  - name: Check if Hosted Control Plane Namespace exists.
+    k8s_info:
+      api_version: v1
+      kind: Namespace
+      name: "{{ hosted_control_plane_namespace }}"
+    register: namespace_check
+
+  rescue:
+    - name: Create Hosted Control Plane Namespace.
+      k8s:
+        api_version: v1
+        kind: Namespace
+        name: "{{ hosted_control_plane_namespace }}"
+        state: present
+
+- name: Get SSH public key for host.
+  slurp:
+    src: "{{ ssh_private_key_file }}.pub"
+  register: remote_content_encoded
+
+- name: Decode the ssh key.
+  set_fact:
+    ssh_key: "{{ remote_content_encoded.content | b64decode | replace('\n','') }}"
+
+- name: Create a Hosted Cluster.
+  command: >
+    hypershift create cluster agent 
+    --name={{ hcp.hosted_cluster_name }} 
+    --pull-secret={{ hcp.pull_secret_file | tojson }} 
+    --agent-namespace={{ hosted_control_plane_namespace }} 
+    --namespace={{ hcp.clusters_namespace }} 
+    --base-domain= {{ hcp.basedomain }} 
+    --api-server-address=api.{{ hcp.hosted_cluster_name }}.{{ hcp.basedomain }} 
+    --ssh-key {{ ssh_private_key_file }}.pub
+    --release-image=quay.io/openshift-release-dev/ocp-release:{{ hcp.ocp_release }} 
+
+- name: Waiting for Hosted Control Plane to be available
+  command: oc wait --timeout=30m --for=condition=Available --namespace={{ hcp.clusters_namespace }} hostedcluster/{{ hcp.hosted_cluster_name }}
+
+- name: Wait for pods to come up in Hosted Cluster Namespace.
+  shell: oc get pods -n {{ hosted_control_plane_namespace }} | wc -l
+  register: pod_count
+  until: pod_count.stdout > '25'
+  retries: 40
+  delay: 10
+
+- name: Wait for all pods to be in Running State in  Hosted Cluster Namespace.
+  shell: oc get pods -n {{ hosted_control_plane_namespace }}  --no-headers | grep -v 'Running\|Completed\|Terminating' | wc -l
+  register: pod_status
+  until: pod_status.stdout == '0'
+  retries: 30
+  delay: 10
+
+- name: Create InfraEnv Resource.
+  k8s:
+    namespace: "{{ hosted_control_plane_namespace }}"
+    definition:
+      apiVersion: agent-install.openshift.io/v1beta1
+      kind: InfraEnv
+      metadata:
+        name: "{{ hcp.hosted_cluster_name }}"
+      spec:
+        cpuArchitecture: "{{ hcp.arch }}"
+        pullSecretRef:
+          name: pull-secret
+        sshAuthorizedKey: "{{ ssh_key }}"
+
+- name: Wait for ISO to generate in InfraEnv.
+  command: "oc get InfraEnv -n  {{ hosted_control_plane_namespace }} --no-headers"
+  register: infra
+  until: infra.stdout.split(' ')[-1] != ''
+  retries: 60
+  delay: 20
