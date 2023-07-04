@@ -1,3 +1,4 @@
 /*
 !.gitignore
-!KVMhostname*-here.yaml.template
+!hypervisor_*.yaml.template
+!bastion.yaml.template
