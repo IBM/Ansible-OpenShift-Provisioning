@@ -1,96 +1,46 @@
 ---
 
-### Setup
-
-- name: Create directory for KVM host's RHEL configuration files for installation.
+- name: Clean-up old config files for idempotency.
   tags: update_cfgs
   file:
-    path: '{{ env.file_server.cfgs_dir }}/{{ networking.hostname }}'
+    path: "{{ hostvars['file_server'].doc_root }}/{{ hostvars['file_server'].cfgs_dir }}/{{ hostname }}"
+    state: absent
+
+- name: Create directory for hypervisor's configuration files for installation.
+  tags: update_cfgs
+  file:
+    path: "{{ hostvars['file_server'].doc_root }}/{{ hostvars['file_server'].cfgs_dir }}/{{ hostname }}"
     state: directory
 
-- name: Clean-up old cfg files.
+- name: Extract NIC ID from Linux network device for input in prm file for boot.
+  set_fact:
+    nic_id: "{{ device1 | regex_replace('[^0-9]', '') | int }}"
+
+- name: Create hash from password to input in kickstart file
   tags: update_cfgs
-  shell: rm -rf {{ env.file_server.cfgs_dir }}/{{ networking.hostname }}/kvm_host.*
+  shell: "echo '{{ ansible_become_password }}' | openssl passwd -6 -in -"
+  register: user_pass_hash
 
-### Templating out RHEL configuration files for the KVM host to pull from the FTP server
-
-- name: Split iso_mount_dir variable on / for use in template
+- name: Create hash from root password to input in kickstart file
   tags: update_cfgs
-  set_fact: 
-    ins_dir:  "{{ env.file_server.iso_mount_dir.split('/') }}"
+  shell: "echo '{{ root_pass }}' | openssl passwd -6 -in -"
+  register: root_pass_hash
 
-- name: Template RHEL configuration files out to FTP server.
+- name: Find relative path between cfgs_dir and iso_mount_dir for use in ins file.
+  tags: update_cfgs
+  vars:
+    dir1: "{{ hostvars['file_server'].doc_root }}/{{ hostvars['file_server'].cfgs_dir }}/{{ hostname }}"
+    dir2: "{{ hostvars['file_server'].doc_root }}/{{ hostvars['file_server'].iso_mount_dir }}"
+  ansible.builtin.command: 
+    cmd: "realpath --relative-to={{ dir1 }} {{ dir2 }}"
+  register: relative_path
+
+- name: Template configuration files out to fileserver.
   tags: update_cfgs
   template:
     src: "{{ item }}.j2"
-    dest: "{{ env.file_server.cfgs_dir }}/{{ networking.hostname }}/{{ item }}"
+    dest: "{{ hostvars['file_server'].doc_root }}/{{ hostvars['file_server'].cfgs_dir }}/{{ hostname }}/{{ item }}"
   loop: 
-    - kvm_host.prm
-    - kvm_host.ins
-    - kvm_host.cfg
-
-### Updating additional parameters in RHEL configuration files that are more variable.
-
-- name: Add FCP storage boot drive triplet info to KVM host's RHEL prm configuration file.
-  tags: update_cfgs
-  lineinfile:
-    path: '{{ env.file_server.cfgs_dir }}/{{ networking.hostname }}/kvm_host.prm'
-    insertafter: 'inst.repo'
-    line: rd.zfcp=0.0.{{ lpar.storage_group_1.dev_num }},0x{{ lpar.storage_group_1.storage_wwpn[i] }},0x0000000000000000
-  with_sequence: start=0 end={{(lpar.storage_group_1.storage_wwpn | length) - 1}} stride=1
-  loop_control:
-    extended: yes
-    index_var: i
-
-- name: Create list from nic1 device number, incremented twice for input in KVM host prm file for boot
-  set_fact:
-    nic_child_list:
-      - "{{ '%04x' % ( lpar.networking.nic.card1.dev_num | int ) }}"
-      - "{{ '%04x' % ( lpar.networking.nic.card1.dev_num | int + 1 ) }}"
-      - "{{ '%04x' % ( lpar.networking.nic.card1.dev_num | int + 2 ) }}"
-
-- name: Add network device information to KVM host's RHEL prm file for boot
-  lineinfile:
-    path: "{{env.file_server.cfgs_dir}}/{{ networking.hostname }}/kvm_host.prm"
-    insertafter: "ro ramdisk_size"
-    line: "rd.znet=qeth,0.0.{{nic_child_list[0]}},0.0.{{nic_child_list[1]}},0.0.{{nic_child_list[2]}},layer2=1,portno={{ lpar.networking.nic.card1.port }}"
-
-- name: Create hash from KVM host root password to input in kickstart file
-  tags: update_cfgs
-  shell: echo "{{ lpar.access.root_pass }}" | openssl passwd -6 -in -
-  register: root_pass_hash
-
-- name: Add hashed root password to KVM host's RHEL kickstart config file
-  tags: update_cfgs
-  lineinfile:
-    path: "{{ env.file_server.cfgs_dir }}/{{ networking.hostname }}/kvm_host.cfg"
-    insertafter: "Root password"
-    line: "rootpw --iscrypted {{ root_pass_hash.stdout }}"
-
-- name: Create hash from KVM user password to input in kickstart file
-  tags: update_cfgs
-  shell: echo "{{ lpar.access.pass }}" | openssl passwd -6 -in -
-  register: user_pass_hash
-
-- name: Add hashed user password to KVM host's RHEL kickstart config file
-  tags: update_cfgs
-  lineinfile:
-    path: "{{ env.file_server.cfgs_dir }}/{{ networking.hostname }}/kvm_host.cfg"
-    insertafter: "Users and Groups Definitions"
-    line: "user --groups=wheel,kvm,libvirt --name={{ ansible_user }} --password={{ user_pass_hash.stdout }} --iscrypted"
-
-- name: Add network information in KVM hosts's RHEL kickstart file when there is only one network card defined.
-  tags: update_cfgs
-  lineinfile:
-    path: "{{ env.file_server.cfgs_dir }}/{{ networking.hostname }}/kvm_host.cfg"
-    insertafter: "Network information"
-    line: network  --bootproto=static --device={{ networking.device1 }} --gateway={{ networking.gateway }} --ip={{ networking.ip }} --nameserver={{ networking.nameserver1 }} {{ ('--nameserver=' + networking.nameserver2) if networking.nameserver2 is defined else '' }} --netmask={{ networking.subnetmask }} --noipv6 --activate --hostname={{ networking.hostname }}
-  when: lpar.networking.nic.card2 is not defined
-
-- name: Add network information in KVM hosts's RHEL kickstart file when there are two network cards defined.
-  tags: update_cfgs
-  lineinfile:
-    path: "{{ env.file_server.cfgs_dir }}/{{ networking.hostname }}/kvm_host.cfg"
-    insertafter: "Network information"
-    line: "network  --bootproto=static --device={{ networking.device1 }} --bondslaves={{ lpar.networking.nic.card1.name }},{{ lpar.networking.nic.card2.name }}  --bondopts=mode=active-backup;primary={{ lpar.networking.nic.card1 }} --gateway={{ networking.gateway }} --ip={{ networking.ip }} --nameserver={{ networking.nameserver1 }} {{ ('--nameserver=' + networking.nameserver2) if networking.nameserver2 is defined else '' }} --netmask={{ networking.subnetmask }} --noipv6 --activate --hostname={{ networking.hostname }}"
-  when: lpar.networking.nic.card2.name is defined
+    - hypervisor.prm
+    - hypervisor.ins
+    - hypervisor.cfg
