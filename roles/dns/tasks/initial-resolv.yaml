@@ -12,7 +12,7 @@
   tags: resolv
   ansible.builtin.copy:
     src: 90-dns-none.conf
-    dest: /etc//NetworkManager/conf.d/90-dns-none.conf
+    dest: /etc/NetworkManager/conf.d/90-dns-none.conf
     group: root
     owner: root
     mode: "644"
