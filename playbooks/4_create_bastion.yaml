@@ -1,9 +1,20 @@
-# Assume we have an existing ftp/http server already
-- name: 4 create bastion
-  hosts: kvm_host[0]
-  become: false
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
-    - "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
+---
+
+- hosts: hypervisors
+  tags: create_bastion
+  gather_facts: false
+  tasks:
+    - name: Determine which hypervisor is hosting the bastion.
+      set_fact:
+        hypervisor_with_bastion: "{{ inventory_hostname }}"
+      when: "'bastion' in guests and hostvars['bastion'].create"
+
+- hosts: "{{ hypervisor_with_bastion | default('hypervisor_1') }}"
+  gather_facts: true
   roles:
-    - { role: create_bastion, when: env.bastion.create == True }
+    - common
+  post_tasks:
+    - name: Create bastion.
+      include_role: 
+        name: create_bastion
+      when: hostvars['bastion'].create
