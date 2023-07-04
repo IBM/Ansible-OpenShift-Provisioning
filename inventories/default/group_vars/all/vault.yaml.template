@@ -1,0 +1,20 @@
+---
+vault_redhat_pass: #X
+vault_redhat_pull_secret: #X
+vault_controller_pass: #X
+vault_bastion_pass: #X
+vault_bastion_root_pass: #X
+vault_file_server_pass: #X
+vault_hypervisor_1_pass: #X
+#vault_hypervisor_1_root_pass: # Only required if hypervisor's 'create' is True
+#vault_hypervisor_2_pass: # Only required if using two hypervisors
+#vault_hypervisor_2_root_pass: # Only required if hypervisor's 'create' is True and using two hypervisors
+#vault_hypervisor_3_pass: # Only required if using three hypervisors
+#vault_hypervisor_3_root_pass: # Only required if hypervisor's 'create' is True and using three hypervisors
+#vault_hmc1_pass: # Only required if hypervisor's 'create' is True
+#vault_hmc2_pass: # Only required if hypervisor's 'create' is True and using two hypervisors
+#vault_hmc3_pass: # Only required if hypervisor's 'create' is True and using three hypervisors
+#vault_jumphost_pass: # Only required if any hypervisor's 'network_mode' is set to 'nat'
+#vault_hypervisor_hypershift_pass: # Only required if setting up HyperShift.
+#vault_bastion_hypershift_pass: # Only required if setting up HyperShift.
+#vault_hypershift_pull_secret: # Only required if setting up HyperShift.
