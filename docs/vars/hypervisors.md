@@ -24,7 +24,7 @@
 **network_name** | Name of virtual network to be defined</br > that the VM guests will use. | macvtap-net
 **network_mode** | Either 'nat' or leave blank to use default MacVTap. | 
 **network_interface** | Which network interface to connect</br > the virtual network to. | "{{ ansible_default_ipv4.interface }}"
-**ip_forward** | If 'network_mode' above is 'nat', it is highly</br > recommended to set this to '1' to enable IP forwarding, </br >which is required for NAT-based networking, but can</br > be setup in a variety of ways important to network security. | 0
+**ip_forward** | If 'network_mode' above is 'nat', it is highly</br > recommended to set this to '1' to enable IP forwarding, </br >which is required for NAT-based networking, but can</br > be setup in a variety of ways important to network security.</br > This will change sysctl at the kernel level. | 0
 **pool_name** | Name of virtual storage pool to be created/managed</br > that the VM guests will use. | "{{ metadata_name }}_vdisk"
 **pool_path** | Absolute path to the storage pool used by VM guests. | "/home/{{ hypervisor_user }}/VirtualMachines/{{ metadata_name }}"
 **create** | True or False - create this hypervisor via Ansible</br > Playbooks. If 'True' must follow additional steps below. | True
