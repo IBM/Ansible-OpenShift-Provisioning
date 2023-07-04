@@ -2,9 +2,9 @@ apiVersion: {{ hostvars['bootstrap_node'].api_version }}
 baseDomain: {{ base_domain }}
 {% if use_proxy == true %}
 {{ 'proxy: ' }}
-{{ '  httpProxy: ' + hostvars['bastion'].http_proxy }}
-{{ '  httpsProxy: ' + hostvars['bastion'].https_proxy }}
-{{ '  noProxy: ' + hostvars['bastion'].no_proxy + ',' + '127.0.0.1,' + 'localhost,' +
+{{ '  httpProxy: ' + hostvars['bastion'].proxy_env.http_proxy }}
+{{ '  httpsProxy: ' + hostvars['bastion'].proxy_env.https_proxy }}
+{{ '  noProxy: ' + hostvars['bastion'].proxy_env.no_proxy + ',' + '127.0.0.1,' + 'localhost,' +
 hostvars['bastion'].bastion_ip + ',' +
 hostvars['bootstrap_node'].node_ip + ',' +
 (groups['control_nodes'] | map('extract', hostvars, 'node_ip') | join(',')) + ',' +

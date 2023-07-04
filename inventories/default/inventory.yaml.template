@@ -14,9 +14,10 @@ all:
     timezone: America/New_York
     language: en_US.UTF-8
 
-    #http_proxy: #optional
-    #https_proxy: #optional
-    #no_proxy: #optional
+    #proxy_env:
+      #http_proxy: #optional
+      #https_proxy: #optional
+      #no_proxy: #optional
 
     # ocp_download_url with '/' at the end !
     ocp_download_url: https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/s390x/

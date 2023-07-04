@@ -68,7 +68,7 @@
 - name: Use template file to create install-config.
   tags: get_ocp
   vars:
-    use_proxy: "{{ 'True' if (http_proxy is defined or https_proxy is defined or no_proxy is defined) else 'False' }}"
+    use_proxy: "{{ 'True' if (proxy_env.http_proxy is defined or proxy_env.https_proxy is defined or proxy_env.no_proxy is defined) else 'False' }}"
   template:
     src: install-config.yaml.j2
     dest: /root/ocpinst/install-config.yaml
