@@ -1,0 +1,70 @@
+- name: Add ports to firewall
+  tags: firewall-libvirt, libvirt
+  ansible.posix.firewalld:
+    port: 80/tcp
+    permanent: yes
+    state: enabled
+
+- name: Start and enable libvirt
+  tags: firewall-libvirt, libvirt
+  ansible.builtin.service:
+    name: libvirtd
+    enabled: yes
+    state: started
+
+- name: Permit traffic in libvirt zone
+  tags: firewall-libvirt, libvirt
+  ansible.posix.firewalld:
+    service: http
+    permanent: yes
+    state: enabled
+    zone: libvirt
+    immediate: true
+
+- name: Set libvirt management to libvirt group instead of root.
+  tags: libvirt
+  ansible.builtin.lineinfile:
+    path: /etc/libvirt/qemu.conf
+    regexp: '#group = "root"'
+    line: 'group = "libvirt"'
+    backup: true
+
+- name: Create sub-directories for file for user's custom libvirt configurations.
+  tags: libvirt
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config/libvirt"
+    state: directory
+
+- name: Create file for user's custom libvirt configurations.
+  tags: libvirt
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config/libvirt/libvirt.conf"
+    state: touch
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Set default uri connection to qemu:///system.
+  tags: libvirt
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    regexp: '#uri_default = "qemu:///system"'
+    line: 'uri_default = "qemu:///system"'
+    backup: true
+  loop:
+    - /etc/libvirt/qemu.conf
+    - "{{ ansible_env.HOME }}/.config/libvirt/libvirt.conf"
+    - /etc/libvirt/libvirt.conf 
+
+- name: Ensure KVM admin user is part of groups 'kvm', 'libvirt'.
+  tags: groups, group, libvirt
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    append: true
+    groups: kvm,libvirt
+
+- name: Restart libvirt
+  tags: firewall-libvirt, libvirt
+  ansible.builtin.service:
+    name: libvirtd
+    enabled: yes
+    state: restarted
