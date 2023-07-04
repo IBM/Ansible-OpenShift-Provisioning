@@ -1,78 +1,107 @@
 ---
 
-# Prepare and then create the temporary bootstrap node and the control nodes
-- name: 6 create nodes - prepare KVM guests
-  hosts: kvm_host
+- hosts: hypervisors
+  tags: prep
   gather_facts: false
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
-  roles:
-    - prep_kvm_guests
-    # Delete control, compute and infra nodes, if exists
-    - delete_nodes
-
-- hosts: kvm_host[-1]
-  gather_facts: false
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
-  roles:
-    - create_bootstrap
-
-- hosts: kvm_host
-  gather_facts: false
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
-  roles:
-    - create_control_nodes
-
-- name: 6 create nodes - wait for bootstrap to connect control plane (for non-root user)
-  hosts: bastion
-  become: True
-  environment:
-    KUBECONFIG: "/home/{{ env.bastion.access.user }}/.kube/config"
-  gather_facts: true
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
-  roles:
-    - {role: wait_for_bootstrap, when: env.bastion.access.user != "root"}
-
-- name: 6 create nodes - wait for bootstrap to connect to control plane (for root user)
-  hosts: bastion
-  become: True
-  environment:
-    KUBECONFIG: "/{{ env.bastion.access.user }}/.kube/config"
-  gather_facts: true
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
-  roles:
-    - {role: wait_for_bootstrap, when: env.bastion.access.user == "root"}
-
-- name: 6 create nodes - once bootstrapping is complete, tear down bootstrap.
-  hosts: kvm_host[-1]
-  tags: create_nodes, teardown_bootstrap
-  gather_facts: False
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
   tasks:
-    - name: Destroy bootstrap. Expect ignored errors if bootstrap is already destroyed.
-      tags: create_nodes, teardown_bootstrap
-      community.libvirt.virt:
-        name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
-        command: destroy
-      ignore_errors: true
-
-    - name: Undefine bootstrap. Expect ignored errors if bootstrap is already undefined.
-      tags: create_nodes, teardown_bootstrap
-      community.libvirt.virt:
-        name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
-        command: undefine
-      ignore_errors: true
-
-- name: 6 create nodes - once bootstrapping is complete, create compute nodes.
-  hosts: kvm_host
-  tags: create_compute_nodes
-  gather_facts: false
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - name: Get Red Hat CoreOS kernel and initramfs from URL to <pool_path>
+      get_url:
+        url: "{{ item.url }}"
+        dest: "{{ item.dest }}"
+        mode: '0755'
+      loop:
+        - { url: "{{ rhcos_download_url }}{{ rhcos_live_kernel }}", dest: "{{ pool_path }}/{{ rhcos_live_kernel }}" }
+        - { url: "{{ rhcos_download_url }}{{ rhcos_live_initrd }}", dest: "{{ pool_path }}/{{ rhcos_live_initrd }}" }
+      
+- name: Create temporary bootstrap node.
+  tags: create_bootstrap_node
+  hosts: hypervisors
+  any_errors_fatal: True
+  gather_facts: True
+  vars:
+    target_nodes: 'bootstrap_node'
+  pre_tasks:
+    - name: Determine which hypervisor is hosting the bootstrap node.
+      tags: test
+      set_fact:
+        hypervisor_with_bootstrap: "{{ inventory_hostname }}"
+        cacheable: true
+      when: "'bootstrap_node' in guests"
   roles:
-    - create_compute_nodes
+    - { role: delete_nodes, when: "inventory_hostname == hypervisor_with_bootstrap | default('hypervisors[-1]')" }
+    - { role: create_nodes, when: "inventory_hostname == hypervisor_with_bootstrap | default('hypervisors[-1]')" }
+
+- name: Create control nodes.
+  hosts: hypervisors
+  tags: create_control_nodes
+  gather_facts: true
+  vars:
+    target_nodes: 'control'
+  roles:
+    - delete_nodes
+    - create_nodes
+
+- name: Wait for bootstrap to connect control plane.
+  hosts: bastion
+  become: true
+  environment:
+    KUBECONFIG: "{% if bastion_user == 'root' %}/root/.kube/config{% else %}/home/{{ bastion_user }}/.kube/config{% endif %}"
+  gather_facts: true
+  roles:
+    - wait_for_bootstrap
+
+- name: Once bootstrapping is complete, tear down node.
+  hosts: hypervisors
+  tags: create_nodes, teardown_bootstrap
+  gather_facts: false
+  vars:
+    target_nodes: 'bootstrap_node'
+  pre_tasks:
+    - name: Determine which hypervisor is hosting the bootstrap node.
+      set_fact:
+        hypervisor_with_bootstrap: "{{ inventory_hostname }}"
+      when: "'bootstrap_node' in guests and hypervisor_with_bootstrap is undefined"
+  roles:
+    - { role: delete_nodes, when: "inventory_hostname == hypervisor_with_bootstrap | default('hypervisors[-1]')" }
+
+- name: Remove bootstrap info from bastion's services.
+  hosts: bastion
+  become: true
+  tasks:
+    - name: Remove references to bootstrap node from DNS.
+      tags: create_nodes, teardown_bootstrap, dns
+      include_role:
+        name: dns
+        tasks_from: delete.yaml
+      loop: "{{ [hostvars['bootstrap_node'].inventory_hostname] }}"
+      loop_control: 
+        loop_var: node
+      when: setup_dns
+
+    - name: Check DNS is working for rest of nodes after deleting bootstrap.
+      include_role:
+        name: check_dns
+        tasks_from: delete.yaml
+      loop: "{{ groups['compute_nodes'] + groups['control_nodes'] }}"
+      loop_control:
+        loop_var: node
+
+    - name: Remove references to bootstrap node from loadbalancer.
+      tags: create_nodes, teardown_bootstrap, haproxy
+      include_role:
+        name: haproxy
+        tasks_from: delete.yaml
+      loop: "{{ [hostvars['bootstrap_node'].inventory_hostname] }}"
+      loop_control:
+        loop_var: node
+      when: setup_lb
+
+- name: Create compute nodes.
+  hosts: hypervisors
+  tags: create_compute_nodes
+  gather_facts: true
+  vars:
+    target_nodes: 'compute'
+  roles:
+    - delete_nodes
+    - create_nodes
