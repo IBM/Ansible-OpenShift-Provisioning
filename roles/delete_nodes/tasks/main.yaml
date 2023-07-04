@@ -1,33 +1,51 @@
 ---
 
-- name: Delete bootstrap node, if exists
-  tags: delete_nodes
-  ansible.builtin.shell: |
-    set -o pipefail
-    virsh destroy "{{ env.cluster.nodes.bootstrap.vm_name }}" || true
-    virsh undefine "{{ env.cluster.nodes.bootstrap.vm_name }}" --remove-all-storage || true
-  register: delete_bootstrap
-  changed_when: "('destroyed' in delete_bootstrap.stdout) or ('undefined' in delete_bootstrap.stdout)"
+- name: Get virsh list of pre-existing running nodes.
+  tags: delete_nodes, shutdown
+  community.libvirt.virt:
+    command: list_vms
+    state: running
+  register: virsh_running
 
-- name: Delete control, compute and infra nodes, if exists
-  tags: delete_nodes
-  ansible.builtin.shell: |
-    set -o pipefail
-    virsh destroy {{ item }} || true
-    virsh undefine {{ item }} --remove-all-storage || true
-  loop: "{{ env.cluster.nodes.control.vm_name + env.cluster.nodes.compute.vm_name \
-    if env.cluster.nodes.infra.vm_name is not defined \
-    else env.cluster.nodes.control.vm_name + env.cluster.nodes.compute.vm_name + env.cluster.nodes.infra.vm_name }}"
-  register: delete_nodes
-  changed_when: "('destroyed' in delete_nodes.stdout) or ('undefined' in delete_nodes.stdout)"
+- name: Shutdown pre-existing running nodes.
+  tags: delete_nodes, shutdown
+  vars:
+    nodes_on_hypervisor: "{{ guests | select('search', target_nodes) | list }}"
+  community.libvirt.virt:
+    name: "{{ hostvars[node].vm_name }}"
+    command: destroy
+  when: nodes_on_hypervisor | length > 0 and hostvars[node].vm_name in virsh_running.list_vms
+  loop: "{{ nodes_on_hypervisor }}"
+  loop_control:
+    loop_var: node
+  register: shutdown_nodes
 
-- name: Get and print virsh list
-  tags: delete_nodes
-  block:
-    - name: Get virsh list
-      ansible.builtin.command: virsh list
-      register: cmd_virsh_list
+- name: Get virsh list of pre-existing nodes.
+  tags: delete_nodes, undefine
+  community.libvirt.virt:
+    command: list_vms
+  register: virsh_defined
 
-    - name: Print virsh list
-      ansible.builtin.debug:
-        var: cmd_virsh_list.stdout_lines
+- name: Undefine pre-existing defined nodes.
+  tags: delete_nodes, undefine
+  vars:
+    nodes_on_hypervisor: "{{ guests | select('search', target_nodes) | list }}"
+  community.libvirt.virt:
+    name: "{{ hostvars[node].vm_name }}"
+    command: undefine
+  when: nodes_on_hypervisor | length > 0 and hostvars[node].vm_name in virsh_defined.list_vms
+  loop: "{{ nodes_on_hypervisor }}"
+  loop_control:
+    loop_var: node
+  register: undefine_nodes
+
+- name: Get virsh list for verification.
+  tags: delete_nodes, verify
+  community.libvirt.virt:
+    command: list_vms
+  register: virsh
+
+- name: Print virsh list for verification.
+  tags: delete_nodes, verify
+  ansible.builtin.debug:
+    msg: "{{ virsh.list_vms }}"
