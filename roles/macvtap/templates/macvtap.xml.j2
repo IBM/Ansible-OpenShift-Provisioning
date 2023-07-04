@@ -1,6 +1,6 @@
 <network>
     <name>{{ network_name }}</name>
-    <forward dev='{{ device1 }}' mode='bridge'>
-        <interface dev='{{ device1 }}'/>
+    <forward dev='{{ network_interface }}' mode='bridge'>
+        <interface dev='{{ network_interface }}'/>
     </forward>
 </network>

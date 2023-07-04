@@ -9,8 +9,8 @@ gateway: #X
 nameservers:
   - #X
   #- 
-device1: 
-#device2: 
+device1:
+#device2:
 root_pass: "{{ vault_hypervisor_X_root_pass }}" #Change to match correspondnig variable in group_vars/all/vault.yaml
 
 # Section 2 - CPC & HMC

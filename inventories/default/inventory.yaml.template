@@ -117,6 +117,7 @@ all:
         pkgs: [ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
         network_name: macvtap
         network_mode: #default is macvtap
+        network_interface: "{{ ansible_default_ipv4.interface }}"
         ip_forward: 0
         pool_name: "{{ metadata_name }}_vdisk"
         pool_path: "/home/{{ hypervisor_user }}/VirtualMachines/{{ metadata_name }}"
