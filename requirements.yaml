@@ -1,0 +1,7 @@
+---
+collections:
+  - name: ibm.ibm_zhmc
+  - name: community.general
+  - name: community.crypto
+  - name: ansible.posix
+  - name: community.libvirt
