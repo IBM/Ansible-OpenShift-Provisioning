@@ -1,0 +1,139 @@
+# To delete any number of compute node VMs from their hypervisor host and remove them from the cluster: 
+  # First comment out their inventory hostname(s) in the respective hypervisors' 'guests' list in inventory.yaml
+  # Then run this playbook. 
+# Note: Keep compute nodes-to-be-deleted's hostvars sections defined for this playbook to run successfully, as those variables are required to fully remove them. 
+  # After this playbook runs, their hostvars section can be safely deleted or commented out from inventory.yaml
+---
+
+- name: Determine which compute nodes have been removed from inventory.
+  hosts: hypervisors
+  any_errors_fatal: true
+  vars:
+    existing_vms: []
+  tasks:
+    - name: Get virsh list of existing VMs.
+      tags: always
+      community.libvirt.virt:
+        command: list_vms
+      register: virsh
+
+    - name: Print virsh.list_vms.
+      tags: always
+      debug:
+        msg: "{{ virsh.list_vms }}"
+
+    - name: Get Ansible inventory names for each item in previous list of active VM guests on each hypervisor.
+      tags: always
+      set_fact:
+        existing_vms: "{{ existing_vms + [hostvars[item].inventory_hostname] }}"
+      loop: "{{ groups['compute_nodes'] }}"
+      when: hostvars[item].vm_name in virsh.list_vms
+
+    - name: Print existing_vms.
+      tags: always
+      debug:
+        msg: "{{ existing_vms }}"
+
+    - name: Create a list of compute nodes that are not defined in inventory but exist on hypervisors.
+      tags: always
+      set_fact:
+        del_compute: "{{ existing_vms | difference(guests) }}"
+        cacheable: true
+
+    - name: Print del_compute.
+      tags: always
+      debug:
+        msg: "{{ del_compute }}"
+
+- name: Delete info about compute nodes from bastion's services.
+  hosts: bastion
+  become: true
+  gather_facts: false
+  vars: 
+    del_compute_master: []
+  pre_tasks:
+    - name: Fill master list of compute nodes to be deleted across all hypervisors.
+      tags: always
+      set_fact:
+        del_compute_master: "{{ del_compute_master + hostvars[item]['del_compute'] }}"
+      loop: "{{ groups['hypervisors'] }}"
+
+    - name: Print master list of compute nodes to be deleted across all hypervisors.
+      tags: always
+      debug:
+        msg: "{{ del_compute_master }}"
+
+  roles:
+    - { role: common, tags: always }
+    - role: print_node_status
+
+  post_tasks:
+    - name: Mark compute nodes to be deleted as unschedulable. 
+      tags: oc
+      command: "oc adm cordon {{ hostvars[node].hostname | lower }}"
+      loop: "{{ del_compute_master }}"
+      loop_control: 
+        loop_var: node
+    
+    - name: Safely evict all pods from compute nodes to be deleted.
+      tags: oc
+      command: "oc adm drain {{ hostvars[node].hostname | lower }} --force --delete-emptydir-data --ignore-daemonsets"
+      loop: "{{ del_compute_master }}"
+      loop_control:
+        loop_var: node
+
+    - name: Create backup of compute nodes to be deleted.
+      tags: oc
+      shell: "oc get node {{ hostvars[node].hostname | lower }} -o yaml > {{ ansible_date_time.iso8601_basic_short }}-{{ hostvars[node].hostname | lower }}-backup.yaml"
+      loop: "{{ del_compute_master }}"
+      loop_control:
+        loop_var: node
+
+    - name: Set compute nodes to be deleted to 'power off' status.
+      tags: oc
+      command: "oc delete node {{ hostvars[node].hostname | lower }}"
+      loop: "{{ del_compute_master }}"
+      loop_control:
+        loop_var: node
+
+    - name: Remove DNS entries for compute nodes.
+      include_role:
+        name: dns
+        tasks_from: delete.yaml
+      loop: "{{ del_compute_master }}"
+      loop_control: 
+        loop_var: node
+      when: setup_dns
+
+    - name: Check DNS is working after deleting nodes.
+      include_role:
+        name: check_dns
+        tasks_from: delete.yaml
+      loop: "{{ groups['compute_nodes'] | difference(del_compute_master) }}"
+      loop_control:
+        loop_var: node
+
+    - name: Remove loadbalancer entries for compute nodes to be removed.
+      include_role:
+        name: haproxy
+        tasks_from: delete.yaml
+      loop: "{{ del_compute_master }}"
+      loop_control: 
+        loop_var: node
+      when: setup_lb
+
+- name: Delete compute nodes on hypervisors.
+  hosts: hypervisors
+  vars:
+    guests: "{{ del_compute }}"
+    target_nodes: 'compute'
+  roles:
+    - delete_nodes
+
+- name: Ensure deleted compute nodes are removed from cluster.
+  hosts: bastion
+  become: true
+  environment:
+    KUBECONFIG: "{{ '/home/' if (bastion_user != 'root') else '/'}}{{ bastion_user }}/.kube/config"
+  roles:
+    - print_node_status

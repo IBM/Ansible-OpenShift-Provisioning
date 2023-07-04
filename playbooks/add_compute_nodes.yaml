@@ -1,0 +1,100 @@
+# To add any number of compute nodes to the hypervisors and the cluster: 
+  # First add them to their respective hypervisors' 'guests' list
+  # Next add a hostvars section for them in inventory.yaml under the 'compute_nodes' section and define all the variables there, same as with other nodes
+  # Finally, run this playbook.
+---
+
+- name: Determine which compute nodes have been added to inventory.
+  hosts: hypervisors
+  any_errors_fatal: true
+  vars:
+    existing_vms: []
+  tasks:
+    - name: Get virsh list of existing VMs.
+      community.libvirt.virt:
+        command: list_vms
+      register: virsh
+
+    - name: Get Ansible inventory names for each item on previous list of active VM guests on each hypervisor.
+      set_fact:
+        existing_vms: "{{ existing_vms + [hostvars[item].inventory_hostname] }}"
+      loop: "{{ guests }}"
+      when: hostvars[item].vm_name in virsh.list_vms
+
+    - name: Create a list of compute nodes as defined in inventory that do not exist on hypervisors yet.
+      set_fact:
+        add_compute: "{{ ( guests | select('match', '^compute_') | list ) | difference(existing_vms) }}"
+        cacheable: true
+
+    - name: Print list of new compute nodes to be added by hypervisor.
+      debug:
+        msg: "{{ add_compute }}"
+
+- name: Update bastion's services with info about new compute nodes.
+  hosts: bastion
+  become: true
+  gather_facts: false
+  vars: 
+    add_compute_master: []
+  pre_tasks:
+    - name: Fill master list of compute nodes to be added across all hypervisors.
+      set_fact:
+        add_compute_master: "{{ add_compute_master + hostvars[item]['add_compute'] }}"
+      loop: "{{ groups['hypervisors'] }}"
+
+    - name: Print list of all new compute nodes to be added.
+      debug:
+        msg: "{{ add_compute_master }}"
+
+  roles:
+    - role: common
+    - role: print_node_status
+    - role: update_ignition_files
+
+  post_tasks:
+
+    - name: Update DNS for compute nodes to be added.
+      include_role:
+        name: dns
+        tasks_from: add.yaml
+      loop: "{{ add_compute_master }}"
+      loop_control: 
+        loop_var: node
+      when: setup_dns
+
+    - name: Check DNS is working with new nodes correctly.
+      include_role:
+        name: check_dns
+        tasks_from: add.yaml
+      loop: "{{ groups['compute_nodes'] }}"
+      loop_control:
+        loop_var: node
+
+    - name: Update loadbalancer for compute nodes to be added.
+      include_role:
+        name: haproxy
+        tasks_from: add.yaml
+      loop: "{{ add_compute_master }}"
+      loop_control: 
+        loop_var: node
+      when: setup_lb
+
+- name: Create new compute nodes on hypervisors.
+  hosts: hypervisors
+  vars:
+    guests: "{{ add_compute }}"
+    target_nodes: 'compute'
+  roles:
+    - create_nodes
+
+- name: Add new compute nodes to cluster.
+  hosts: bastion
+  become: true
+  environment:
+    KUBECONFIG: "{{ '/home/' if (bastion_user != 'root') else '/'}}{{ bastion_user }}/.kube/config"
+  roles:
+    - approve_certs
+    - check_nodes
+    - role: approve_certs
+      approve_certs_cleanup: true
+    - print_node_status

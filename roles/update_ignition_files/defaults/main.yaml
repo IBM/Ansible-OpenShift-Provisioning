@@ -1,0 +1,3 @@
+---
+# Assume we have only one bastion host defined
+#ignition_update_host: "{{ groups['bastion'][0] }}"

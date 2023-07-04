@@ -1,0 +1,7 @@
+---
+- name: Check DNS resolution for compute nodes.
+  tags: check_dns, dns
+  shell: "dig +short {{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }} | tail -n1"
+  register: node_lookup
+  failed_when: hostvars[node].node_ip != node_lookup.stdout
+  changed_when: false

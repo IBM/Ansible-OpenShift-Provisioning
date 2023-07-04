@@ -1,0 +1,7 @@
+---
+- name: Gather facts
+  ansible.builtin.gather_facts:
+  when: ansible_architecture is not defined
+
+- name: Load variables based on architecture
+  ansible.builtin.include_vars: "../vars/{{ ansible_architecture }}/vars.yaml"
