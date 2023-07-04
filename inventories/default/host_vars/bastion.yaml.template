@@ -1,0 +1,9 @@
+vm_name: bastion
+disk_size: 30
+ram: 4096
+swap: 4096
+vcpu: 4
+netmask: #X
+gateway: #X
+interface: #X
+root_pass: "{{ vault_bastion_root_pass }}"
