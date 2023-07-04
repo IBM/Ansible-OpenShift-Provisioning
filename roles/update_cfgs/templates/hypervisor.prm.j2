@@ -1,0 +1,10 @@
+ro ramdisk_size=40000
+rd.znet=qeth,0.0.{{ '%04d' % nic_id | int }},0.0.{{ '%04d' % (nic_id | int + 1) }},0.0.{{ '%04d' % (nic_id | int + 2) }},layer2=1,portno={{ nics[0].port }}
+ip={{ hypervisor_ip }}::{{ gateway }}:{{ ( '1.1.1.1/' + netmask | string ) | ipaddr('prefix') }}:{{ hostname }}:{{ device1 }}:none
+nameserver={{ nameservers | join(' nameserver=') | trim }}
+inst.repo=ftp://{{ hostvars['file_server'].fs_user }}:{{ hostvars['file_server'].ansible_become_password }}@{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].iso_mount_dir }}{{ "\n" }}
+{%- for group in storage_groups %}
+{{ group.boot_parms }}
+{%- endfor %}
+inst.ks=ftp://{{ hostvars['file_server'].fs_user }}:{{ hostvars['file_server'].ansible_become_password }}@{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].cfgs_dir }}/{{ hostname }}/hypervisor.cfg
+inst.cmdline
