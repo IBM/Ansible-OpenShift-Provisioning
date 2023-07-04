@@ -6,7 +6,7 @@ If you encounter errors while running the main playbook, there are a few things 
 * Google the specific error message.  
 * Re-run the role with the verbosity '-v' option to get more debugging information (more v's give more info). For example:  
 ```
-ansible-playbook playbooks/setup_bastion.yaml -vvv
+ansible-playbook playbooks/4_create_bastion.yaml -vvv
 ```
 * Use tags
   * To be more selective with what parts of a playbook are run, use tags. 
@@ -15,13 +15,13 @@ ansible-playbook playbooks/setup_bastion.yaml -vvv
   * This is especially helpful for troubleshooting. You can add in tags under the `name` parameter for individual tasks you'd like to run. 
   * Here's an example of using a tag:
 ```
-ansible-playbook playbooks/setup_kvm_host.yaml --tags "section_2,section_3"
+ansible-playbook playbooks/3_setup_hypervisors.yaml --tags 'section_2,section_3'
 ```
-  * This runs only the parts of the [setup_kvm_host playbook](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml) marked with tags section_2 and section_3. To use more than one tag, they must be quoted (single or double) and comma-separated (with or without spaces between).
+  * This runs only the parts of the [setup_hypervisor playbook](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_hypervisors.yaml) marked with tags section_2 and section_3. To use more than one tag, they must be quoted (single or double) and comma-separated (with or without spaces between).
 * E-mail Jacob Emery at jacob.emery@ibm.com
 * If it's a problem with an OpenShift verification step: 
     * Open the cockpit to monitor the VMs. 
-      * In a web browser, go to https://kvm-host-IP-here:9090
+      * In a web browser, go to https://hypervisor-IP-here:9090
       * Sign-in with your credentials set in the variables file
       * Enable administrative access in the top right.
       * Open the 'Virtual Machines' tab from the left side toolbar.
