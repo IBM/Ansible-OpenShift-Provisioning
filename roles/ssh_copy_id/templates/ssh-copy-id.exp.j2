@@ -10,10 +10,10 @@ if {$force_conservative} {
 }
 
 set timeout 20
-spawn ssh-copy-id -f -o StrictHostKeyChecking=no -i {{ ssh_target[3] }} {{ ssh_target[1] }}@{{ ssh_target[0] }}
+spawn ssh-copy-id -f -o StrictHostKeyChecking=no -i {{ hostvars['jumphost'].ssh_jumphost_private_key_file if inventory_hostname == 'jumphost' else hostvars[ssh_target].ansible_ssh_private_key_file }} {{ hostvars[ssh_target].ansible_user }}@{{ hostvars[ssh_target].ansible_host }}
 expect {
 	"password: " {
-		send -- "{{ ssh_target[2] }}\r"
+		send -- "{{ hostvars[ssh_target].ansible_become_password }}\r"
 		expect eof
 	}
 	"Number of key(s) added:" {}
