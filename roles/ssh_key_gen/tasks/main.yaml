@@ -18,20 +18,13 @@
 - name: Generate an OpenSSH keypair with the default values (4096 bits, RSA)
   tags: ssh_key_gen, ssh
   community.crypto.openssh_keypair:
-    path: "~/.ssh/{{ env.ansible_key_name }}"
+    path: "{{ hostvars[ssh_target].ansible_ssh_private_key_file }}"
     passphrase: ""
     comment: "Ansible-OpenShift-Provisioning SSH key"
-    regenerate: full_idempotence
+    regenerate: never
   register: ssh_key_creation
 
 - name: Print results of ssh key pair creation
   tags: ssh_key_gen, ssh
   debug:
     var: ssh_key_creation
-
-- name: Save path to key pair for use in ssh-copy-id role
-  tags: ssh_key_gen, ssh
-  lineinfile:
-    search_string: "path_to_key_pair:"
-    line: "path_to_key_pair: {{ ssh_key_creation.filename }}.pub"
-    path: "{{ inventory_dir }}/group_vars/all.yaml"

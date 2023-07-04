@@ -1,0 +1,33 @@
+---
+- name: Check to see if local SSH directory exists
+  tags: ssh_ocp_key_gen
+  stat:
+    path: /root/.ssh
+  register: ssh_directory_exists_check
+
+- name: Create SSH local directory if it doesn't already exist
+  tags: ssh_ocp_key_gen
+  file:
+    path: /root/.ssh
+    state: directory
+    mode: "0700"
+  register: ssh_directory_creation
+  when: ssh_directory_exists_check.stat.exists == false
+
+- name: Generate an OpenSSH keypair with the default values (4096 bits, rsa) and encrypted private key for access to cluster.
+  tags: ssh_ocp_key_gen
+  community.crypto.openssh_keypair:
+    path: "{{ hostvars['bastion'].ssh_cluster_private_key_file }}"
+    backend: opensshbin
+    owner: root
+    group: root
+    passphrase: ""
+    comment: "OpenShift key"
+    regenerate: never
+  register: ssh_ocp
+
+- name: Print results of SSH key generation
+  tags: ssh_ocp_key_gen
+  debug:
+    var: ssh_ocp.public_key
+  when: ssh_ocp.changed == true
