@@ -1,0 +1,8 @@
+---
+
+- name: Install Prerequisites and create AgentServiceConfig Hosted Control Plane and InfraEnv.
+  hosts: hypervisor_hypershift
+  roles:
+    - install_prerequisites_host_hypershift
+    - create_agentserviceconfig_hypershift
+    - create_hcp_InfraEnv_hypershift
