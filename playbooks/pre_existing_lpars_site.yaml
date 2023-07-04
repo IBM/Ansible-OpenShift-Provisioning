@@ -1,0 +1,9 @@
+# If you are using pre-existing LPAR(s) with RHEL already installed, use this version of the master playbook.
+---
+
+- import_playbook: 0_setup.yaml
+- import_playbook: 3_setup_hypervisors.yaml
+- import_playbook: 4_create_bastion.yaml
+- import_playbook: 5_setup_bastion.yaml
+- import_playbook: 6_create_nodes.yaml
+- import_playbook: 7_ocp_verification.yaml
