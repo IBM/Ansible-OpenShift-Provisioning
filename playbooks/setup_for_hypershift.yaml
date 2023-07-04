@@ -1,0 +1,8 @@
+---
+
+#----------------------------------------------------------
+
+- name: Setup on localhost
+  hosts: localhost
+  roles:
+  - create_inventory_setup_hypershift

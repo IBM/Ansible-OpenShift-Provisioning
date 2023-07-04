@@ -156,10 +156,9 @@ env:
     controller: [ openssh, expect, sshuttle ]
     kvm: [ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
     bastion: [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
+    hypershift: [ make, jq, git, virt-install ]
 
 # Section 12 - OpenShift Settings
-  openshift:
-    version: 4.12.0
   install_config:
     api_version: v1
     compute:
@@ -184,16 +183,81 @@ env:
 # Section 14 - (Optional) Misc
   language: en_US.UTF-8
   timezone: America/New_York
+  keyboard: us
   root_access: false
   ansible_key_name: ansible-ocpz
   ocp_ssh_key_comment: OpenShift key
   bridge_name: macvtap
-  network_mode: 
+  network_mode:
 
 #jumphost if network mode is NAT
-  jumphost:     
-    name: 
+  jumphost:
+    name:
     ip:
-    user: 
-    pass:  
+    user:
+    pass:
     path_to_keypair:
+
+# Section 15 - OCP and RHCOS (CoreOS)
+
+# ocp_download_url with '/' at the end !
+ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/s390x/"
+# ocp client and installer filenames
+ocp_client_tgz: "openshift-client-linux.tar.gz"
+ocp_install_tgz: "openshift-install-linux.tar.gz"
+
+# rhcos_download_url with '/' at the end !
+rhcos_download_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/4.12.3/"
+
+# For rhcos_os_variant use the OS string as defined in 'osinfo-query os -f short-id'
+rhcos_os_variant: rhel8.6
+
+# RHCOS live image filenames
+rhcos_live_kernel: "rhcos-4.12.3-s390x-live-kernel-s390x"
+rhcos_live_initrd: "rhcos-4.12.3-s390x-live-initramfs.s390x.img"
+rhcos_live_rootfs: "rhcos-4.12.3-s390x-live-rootfs.s390x.img"
+
+# Section 16 - Hypershift
+
+hypershift:
+  kvm_host:
+  kvm_host_user:
+  bastion_hypershift:
+  bastion_hypershift_user:
+  mgmt_cluster_nameserver:
+
+  go_version: "1.19.5"  # Change this if you want to install any other version  of go
+  oc_url:
+
+  #Hosted Control Plane Parameters
+
+  hcp:
+    clusters_namespace:
+    hosted_cluster_name:
+    basedomain:
+    pull_secret_file: /root/ansible_workdir/auth_file
+    ocp_release:
+    machine_cidr:
+    arch:
+    # Make sure to enclose pull_secret in 'single quotes'
+    pull_secret:
+
+  # AgentServiceConfig Parameters
+
+  asc:
+    url_for_ocp_release_file:
+    db_volume_size:
+    fs_volume_size:
+    ocp_version:
+    iso_url:
+    root_fs_url:
+    mce_namespace: "multicluster-engine" # This is the Recommended Namespace for Multicluster Engine operator
+
+# Section 17 - (Optional) Create additional compute node in a day-2 operation
+
+day2_compute_node:
+  vm_name:
+  vm_hostname:
+  vm_ip:
+  hostname:
+  host_arch:

@@ -1,0 +1,49 @@
+---
+
+- name: Get OCP Release Version
+  shell: curl -s {{ hypershift.asc.url_for_ocp_release_file }}  | awk '/machine-os / { print $2 }'
+  register: ocp_release_version
+
+
+- name: Create Config map mirror-config ( For updating AgentServiceConfig with the brew mirror information )
+  template: 
+    src: mirror-config.yml.j2
+    dest: /root/ansible_workdir/mirror-config.yaml
+
+- name: Deploy Config map - mirror config
+  shell: oc apply -f /root/ansible_workdir/mirror-config.yaml
+
+- name: Create agenterviceconfig.yaml
+  template: 
+    src: agent_service_config.yaml.j2
+    dest: /root/ansible_workdir/agentserviceconfig.yaml
+
+- name: Deploy AgentServiceConfig
+  command: oc apply -f /root/ansible_workdir/agentserviceconfig.yaml
+
+ 
+- name: Create Config map for ISO_IMAGE_TYPE 
+  k8s:
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: my-assisted-service-config
+        namespace: "{{ hypershift.asc.mce_namespace }}"
+      data:
+        ISO_IMAGE_TYPE: 'full'
+
+- name: Add the annotation to the AgentServiceConfig
+  shell: oc annotate --overwrite AgentServiceConfig agent unsupported.agent-install.openshift.io/assisted-service-configmap=my-assisted-service-config
+
+- name: Rollout new deployment for assisted-service
+  command: oc rollout restart deployment/assisted-service -n {{ hypershift.asc.mce_namespace }}
+
+
+
+- name: Wait for Agent Service Deployment to be Succeeded
+  shell: oc get AgentServiceConfig agent -o json | jq -r '.status|.conditions[]|.status' | grep False | wc -l
+  register: asc
+  until: asc.stdout == '0'
+  retries: 60
+  delay: 20
