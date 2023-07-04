@@ -1,10 +1,11 @@
 # Use this if you want to re-install nodes with a new OCP version
 ---
 
-- name: Update ignitions and other install files.
+- name: Re-Install cluster - Update ignitions and other install files
   hosts: bastion
   become: True
   roles:
+    - common
     - get_ocp
 
 - import_playbook: 6_create_nodes.yaml

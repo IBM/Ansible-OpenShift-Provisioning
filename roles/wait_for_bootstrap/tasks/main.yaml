@@ -2,7 +2,8 @@
 - name: Start openshift-installer with 'wait-for bootstrap-complete' (async task)
   tags: wait_for_bootstrap
   ansible.builtin.command: openshift-install wait-for bootstrap-complete --dir=/root/ocpinst
-  async: 3600
+  # Set wait time to 75 min, because it depends highly on system performance and network speed
+  async: 4500
   poll: 0
   register: watch_bootstrap
 
@@ -18,7 +19,7 @@
   ansible.builtin.shell: "{{ oc_path.stdout }} get csr | grep ':node-bootstrapper'"
   register: csr_check
   until: (":node-bootstrapper" in csr_check.stdout)
-  retries: 12
+  retries: 60
   delay: 30
 
 - name: Print first node-bootstrapper requests
@@ -44,15 +45,16 @@
     jid: "{{ watch_bootstrap.ansible_job_id }}"
   register: bootstrapping
   until: bootstrapping.finished
-  retries: 100
+  # Set wait time to 60 min, because it depends highly on system performance and network speed
+  retries: 120
   delay: 30
 
 - name: Make sure kubeconfig works properly
   tags: wait_for_bootstrap
   ansible.builtin.command: "{{ oc_path.stdout }} whoami"
   register: oc_whoami
-  until: oc_whoami.stdout == "system:admin"
-  retries: 60
+  until: (oc_whoami.stdout == "system:admin")
+  retries: 30
   delay: 10
 
 - name: Print output of oc whoami, should be "system:admin" if previous task worked

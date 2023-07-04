@@ -1,4 +1,0 @@
----
-
-- name: Get and print nodes status
-  ansible.builtin.include_tasks: "{{ role_path }}/../common/tasks/print_ocp_node_status.yaml"

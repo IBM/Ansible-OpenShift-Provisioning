@@ -71,7 +71,7 @@ block:
         pullSecretRef:
           name: pull-secret
         sshAuthorizedKey: "{{ ssh_key }}"
-
+        
 - name: Wait for ISO to generate in InfraEnv.
   command: "oc get InfraEnv -n  {{ hosted_control_plane_namespace }} --no-headers"
   register: infra

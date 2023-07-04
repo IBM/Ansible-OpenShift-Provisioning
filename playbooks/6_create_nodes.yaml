@@ -43,7 +43,7 @@
 
 - name: Wait for bootstrap to connect control plane.
   hosts: bastion
-  become: true
+  become: True
   environment:
     KUBECONFIG: "{% if bastion_user == 'root' %}/root/.kube/config{% else %}/home/{{ bastion_user }}/.kube/config{% endif %}"
   gather_facts: true
@@ -53,7 +53,7 @@
 - name: Once bootstrapping is complete, tear down node.
   hosts: hypervisors
   tags: create_nodes, teardown_bootstrap
-  gather_facts: false
+  gather_facts: False
   vars:
     target_nodes: 'bootstrap_node'
   pre_tasks:

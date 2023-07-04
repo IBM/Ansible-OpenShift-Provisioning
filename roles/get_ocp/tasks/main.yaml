@@ -11,7 +11,7 @@
   file:
     path: /var/www/html/bin
     state: directory
-    mode: '0755'
+    mode: "0755"
     owner: "root"
     group: "root"
 
@@ -91,8 +91,8 @@
   become: true
   replace:
     path: /root/ocpinst/manifests/cluster-scheduler-02-config.yml
-    regexp: ': true'
-    replace: ': false'
+    regexp: ": true"
+    replace: ": false"
 
 - name: Set permissions for ocpinst directory contents to root.
   tags: get_ocp
@@ -128,24 +128,24 @@
     group: root
     mode: "{{ item.mode }}"
   loop:
-    - { state: file, path: bootstrap.ign, mode: '755' }
-    - { state: file, path: master.ign, mode: '755' }
-    - { state: file, path: worker.ign, mode: '755' }
-    - { state: directory, path: auth, mode: '755' }
-    - { state: file, path: metadata.json, mode: '755' }
-    - { state: file, path: auth/kubeconfig, mode: '644' }
-    - { state: file, path: auth/kubeadmin-password, mode: '644' }
+    - { state: file, path: bootstrap.ign, mode: "755" }
+    - { state: file, path: master.ign, mode: "755" }
+    - { state: file, path: worker.ign, mode: "755" }
+    - { state: directory, path: auth, mode: "755" }
+    - { state: file, path: metadata.json, mode: "755" }
+    - { state: file, path: auth/kubeconfig, mode: "644" }
+    - { state: file, path: auth/kubeadmin-password, mode: "644" }
 
 - name: Create directory in admin user's home for default kubeconfig.
   tags: get_ocp, config
-  become: False
+  become: false
   file:
     state: directory
     path: ~/.kube
 
 - name: Create directory in root's home for default kubeconfig.
   tags: get_ocp, config
-  become: True
+  become: true
   file:
     state: directory
     path: ~/.kube
@@ -193,7 +193,7 @@
     src: /root/ocpinst/{{ item }}.ign
     dest: /var/www/html/ignition
     remote_src: yes
-    mode: '775'
+    mode: "775"
     group: root
     owner: root
   loop:

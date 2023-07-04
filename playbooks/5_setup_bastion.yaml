@@ -186,4 +186,5 @@
   tags: get_ocp, section_3
   become: True
   roles:
+    - common
     - get_ocp
