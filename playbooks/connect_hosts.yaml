@@ -1,0 +1,50 @@
+---
+
+- name: "Pre-Flight Connection Test: Ensure all hosts in inventory are reachable via SSH and use ssh-copy-id if unreachable, then gather facts."
+  hosts: "{{ ssh_target | default('all') }}"
+  gather_facts: no
+  tasks:
+
+    - block:
+
+      - name: Check if all hosts from inventory are reachable.
+        tags: check
+        ansible.builtin.wait_for_connection:
+          connect_timeout: 5
+          timeout: 1
+        register: connection
+        failed_when: connection.failed
+
+      rescue:
+
+      - name: Host(s) unreachable.
+        tags: debug
+        ansible.builtin.debug:
+          msg: "Attempting to rescue by copying supplied SSH key from inventory..."
+        run_once: true
+
+      - name: Ensure unreachable hosts are absent from ~/.ssh/known_hosts to ensure idempotency before copying SSH key.
+        tags: ssh_copy_id, known_hosts
+        ansible.builtin.lineinfile:
+          path: ~/.ssh/known_hosts
+          regexp: "{{ ansible_host }}"
+          state: absent
+        delegate_to: localhost
+
+      - name: Copy SSH key to hosts in inventory.
+        tags: ssh_copy_id
+        ansible.builtin.expect:
+          command: "ssh-copy-id -o StrictHostKeyChecking=no -i {{ ansible_ssh_private_key_file }} {{ ansible_user }}@{{ ansible_host }}"
+          responses:
+            "password:": "{{ ansible_become_password }}"
+        register: copy_id
+        changed_when: copy_id.rc == 0
+        delegate_to: localhost
+
+      - name: Pinging hosts to test connection.
+        tags: ping
+        ansible.builtin.ping:
+
+    - name: Gather facts.
+      tags: gather_facts
+      ansible.builtin.setup:
