@@ -1,5 +1,12 @@
 ---
 
+- name: Ensure libvirt is started and enabled
+  tags: macvtap
+  service:
+    name: libvirtd
+    enabled: yes
+    state: started
+
 - name: Set up macvtap bridge configuration xml from template to KVM host
   tags: macvtap
   community.libvirt.virt_net:

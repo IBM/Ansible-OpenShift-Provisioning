@@ -21,7 +21,6 @@
 **networking.nameserver2** | <b>(Optional)</b> A second IPv4 address from which the KVM host can get its hostname<br /> resolved. Used for high availability. | 192.168.10.201
 **networking.device1** | The network interface card from Linux's perspective. Usually enc and then a number that comes<br /> from the dev_num of the network adapter. | enc100
 **networking.device2** | <b>(Optional)</b> Another Linux network interface card. Usually enc and then a number that comes<br /> from the dev_num of the second network adapter. | enc1
-**storage.pool_path** | The absolute path to a directory on your KVM host that will be used to store qcow2 <br />images for the cluster and other installation artifacts. A sub-directory will be created here that matches your clsuter's <br />metadata name that will act as the cluster's libvirt storage pool directory. Note: all directories present in this path will be made executable for the<br /> 'qemu' group, as is required. | /home/kvm_admin/VirtualMachines
 
 ## Important Note
 * You can skip the rest of the variables on this page IF you are using existing LPAR(s) that has RHEL already installed.

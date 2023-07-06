@@ -3,6 +3,7 @@
 # Prepare and then create the temporary bootstrap node and the control nodes
 - name: 6 create nodes - prepare KVM guests
   hosts: kvm_host
+  become: true
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -12,6 +13,7 @@
     - delete_nodes
 
 - hosts: kvm_host[-1]
+  become: true
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -19,6 +21,7 @@
     - create_bootstrap
 
 - hosts: kvm_host
+  become: true
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -50,6 +53,7 @@
 - name: 6 create nodes - once bootstrapping is complete, tear down bootstrap.
   hosts: kvm_host[-1]
   tags: create_nodes, teardown_bootstrap
+  become: True
   gather_facts: False
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -68,9 +72,17 @@
         command: undefine
       ignore_errors: true
 
+    - name: Remove qcow2
+      tags: create_nodes, teardown_bootstrap
+      become: true
+      file:
+        path: "/var/lib/libvirt/images/{{ env.cluster.nodes.bootstrap.vm_name }}.qcow2"
+        state: absent
+
 - name: 6 create nodes - once bootstrapping is complete, create compute nodes.
   hosts: kvm_host
   tags: create_compute_nodes
+  become: true
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"

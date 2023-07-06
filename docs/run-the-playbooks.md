@@ -139,8 +139,8 @@ Final steps of waiting for and verifying the OpenShift cluster to complete its i
 ### Overview
 * Use this version of the master playbook if you are using a pre-existing LPAR(s) with RHEL already installed.
 ### Outcomes
-* Same as all the above outcomes for all playbooks excluding 1 & 2. 
-* This will not create LPAR(s) nor boot your RHEL KVM host(s).
+* Same as all the above outcomes for all playbooks except 1 & 2. 
+* So this will not create LPAR(s) nor boot your RHEL KVM host(s). 
 * At the end you will have an OpenShift cluster deployed and first-time login credentials.
 
 ## Reinstall Cluster Playbook (reinstall_cluster.yaml)
