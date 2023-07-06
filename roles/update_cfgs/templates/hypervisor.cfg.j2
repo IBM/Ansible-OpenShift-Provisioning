@@ -15,7 +15,7 @@ dd if=/dev/zero of=/dev/mapper/mpathh bs=512 count=10
 reboot
 
 # Use network installation
-url --url=ftp://{{env.file_server.user}}:{{env.file_server.pass}}@{{env.file_server.ip}}/{{ env.file_server.iso_mount_dir }}
+url --url=ftp://{{ hostvars['file_server'].fs_user }}:{{ hostvars['file_server'].ansible_become_password }}@{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].iso_mount_dir }}
 
 # Use text mode install
 text
@@ -27,20 +27,23 @@ firstboot --enable
 keyboard --vckeymap=us --xlayouts='us'
 
 # System language
-lang {{ env.language }}
+lang {{ language }}
 
-# Network information (will fill in during update_cfgs role)
+# System timezone
+timezone {{ timezone }}
+
+# Network information
+network --bootproto=static --device={{ device1 }} {% if nic2.name is defined %}--bondslaves={{ nic1.name }},{{ nic2.name }} --bondopts=mode=active-backup;primary={{ nic1.name }} {% endif %}--gateway={{ gateway }} --ip={{ hypervisor_ip }} {% for ns in nameservers %}--nameserver={{ ns }}{% if not loop.last %} {% endif %}{% endfor %} --netmask={{ netmask }} --noipv6 --activate --hostname={{ hostname }}
 
 # Firewall and SELinux
 firewall --enabled --http --ftp --smtp --ssh --port=443,9090,123
 selinux --enforcing
 
 # Root password (will fill in during update_cfgs role)
-
-# System timezone
-timezone {{ env.timezone }}
+rootpw --iscrypted {{ root_pass_hash.stdout }}
 
 #Users and Groups Definitions (will fill in during update_cfgs role)
+user --groups=wheel,kvm,libvirt --name={{ hypervisor_user }} --password={{ user_pass_hash.stdout }} --iscrypted
 
 # The following is the partition information you requested
 ignoredisk --only-use=mpatha
