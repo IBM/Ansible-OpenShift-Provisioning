@@ -1,0 +1,25 @@
+---
+
+- name: Create CoreOS nodes on hypervisors.
+  tags: create_nodes
+  vars:
+    nodes_on_hypervisor: "{{ guests | select('search', target_nodes) | list }}"
+  command: |
+    virt-install \
+    --name {{ hostvars[node].vm_name }} \
+    --disk pool={{ pool_name }},size={{ hostvars[node].disk_size }}  \
+    --ram {{ hostvars[node].ram }} \
+    --cpu host \
+    --vcpus {{ hostvars[node].vcpu }} \
+    --network network={{ network_name }} \
+    --location "{{ pool_path }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }}" \
+    --extra-args "rd.neednet=1 coreos.inst.install_dev=/dev/vda coreos.live.rootfs_url=http://{{ hostvars['bastion'].bastion_ip }}:8080/bin/{{ rhcos_live_rootfs }} ip={{ hostvars[node].node_ip }}::{{ hostvars[node].gateway }}:{{ hostvars[node].netmask }}:{{ hostvars[node].hostname }}::none:1500 {% for ns in hostvars[node].nameservers %}nameserver={{ ns }} {% endfor %} coreos.inst.ignition_url=http://{{ hostvars['bastion'].bastion_ip }}:8080/ignition/{{ 'bootstrap' if target_nodes == 'bootstrap_node' else 'master' if target_nodes == 'control' else 'worker' if target_nodes == 'compute' }}.ign" \
+    --graphics none \
+    --wait=-1 \
+    --autostart \
+    --noautoconsole
+  loop: "{{ nodes_on_hypervisor }}"
+  when: nodes_on_hypervisor | length > 0
+  loop_control:
+    loop_var: node
+    label: "Starting {{ hostvars[node].vm_name }}..."
