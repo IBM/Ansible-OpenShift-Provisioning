@@ -1,0 +1,22 @@
+---
+- name: Add forward and reverse DNS entry
+  become: true
+  block:
+    - name: Add forward DNS
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ metadata_name }}.db
+        insertafter: "; entries for the compute nodes"
+        line: "{{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }}. IN A {{ hostvars[node].node_ip }}"
+        state: present
+
+    - name: Add reverse DNS
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ metadata_name }}.rev
+        insertafter: "; entries for the compute nodes"
+        line: "{{ hostvars[node].node_ip.split('.').3 }}     IN      PTR     {{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }}."
+        state: present
+
+    - name: Restart 'named' service to update changes
+      ansible.builtin.systemd:
+        name: named
+        state: restarted

@@ -1,0 +1,12 @@
+- name: Delete node from haproxy config.
+  tags: haproxy
+  lineinfile:
+    path: /etc/haproxy/haproxy.cfg
+    state: absent
+    regexp: "{{ hostvars[node].hostname }}"
+  
+- name: Restart haproxy
+  tags: haproxy
+  systemd:
+    state: restarted
+    name: haproxy

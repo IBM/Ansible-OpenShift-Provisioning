@@ -1,0 +1,33 @@
+---
+
+- name: Delete forward and reverse DNS entry
+  become: true
+  block:
+    - name: Delete forward DNS using hostname
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ metadata_name }}.db
+        state: absent
+        regexp: "^{{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }}"
+
+    - name: Delete forward DNS using ip
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ metadata_name }}.db
+        state: absent
+        regex: "A {{ hostvars[node].node_ip }}"
+
+    - name: Delete reverse DNS using hostname
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ metadata_name }}.rev
+        state: absent
+        regexp: "{{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }}."
+
+    - name: Delete reverse DNS using IP
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ metadata_name }}.rev
+        state: absent
+        regexp: "^{{ hostvars[node].node_ip.split('.').3 }} "
+
+    - name: Restart 'named' service to update changes
+      ansible.builtin.systemd:
+        name: named
+        state: restarted

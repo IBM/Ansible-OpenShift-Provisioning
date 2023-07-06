@@ -1,0 +1,24 @@
+
+- name: Determine haproxy ports and set facts for use in next task.
+  tags: haproxy
+  set_fact:
+    lb_ports:
+      - "{{ '6443' if hostvars[node].inventory_hostname in groups['control_nodes'] + [hostvars['bootstrap_node'].inventory_hostname] else '443' if hostvars[node].inventory_hostname in groups['compute_nodes'] }}"
+      - "{{ '22623' if hostvars[node].inventory_hostname in groups['control_nodes'] + [hostvars['bootstrap_node'].inventory_hostname] else '80' if hostvars[node].inventory_hostname in groups['compute_nodes'] }}"
+
+- name: Add new nodes to haproxy config file.
+  tags: haproxy
+  lineinfile:
+    path: /etc/haproxy/haproxy.cfg
+    state: present
+    line: "      server {{ hostvars[node].hostname }} {{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }}:{{ port }} check inter 1s"
+    insertafter: "  #{{ port }} section"
+  loop: "{{ lb_ports }}"
+  loop_control:
+    loop_var: port
+
+- name: Restart haproxy
+  tags: haproxy
+  systemd:
+    state: restarted
+    name: haproxy
