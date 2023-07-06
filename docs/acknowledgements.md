@@ -1,13 +1,17 @@
-Phillip Wilson  
-Filipe Miranda  
-Patrick Fruth  
-Wasif Mohammad  
-Stuart Tener  
-Fred Bader  
-Ken Morse  
-Nico Boehr  
-Trevor Vardeman  
-Matt Mondics  
-Klaus Smolin  
-Amadeus Podvratnik  
-Miao Zhang-Cohen  
+Thank you!
+
+* Fred Bader
+* Nico Boehr
+* Veera Damisetti
+* Jacob Emery
+* Patrick Fruth
+* Filipe Miranda
+* Matt Mondics
+* Ken Morse
+* Wasif Mohammad
+* Amadeus Podvratnik
+* Klaus Smolin
+* Stuart Tener
+* Trevor Vardeman
+* Phillip Wilson
+* Miao Zhang-Cohen
