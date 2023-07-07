@@ -35,7 +35,6 @@
         name: create_bastion_hypershift
       when: hypershift.create_bastion == 'true'
 
-
 - name: Configuring Bastion
   hosts: bastion_hypershift
   become: true
