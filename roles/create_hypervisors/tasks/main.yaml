@@ -1,0 +1,67 @@
+---
+
+- name: Start LPAR.
+  tags: create_hypervisor
+  ibm.ibm_zhmc.zhmc_partition:
+    hmc_host: "{{ hmc_host }}"
+    hmc_auth:
+      userid: "{{ hmc_user }}"
+      password: "{{ hmc_pass }}"
+      verify: false
+    cpc_name: "{{ cpc_name }}"
+    name: "{{ lpar_name }}"
+    properties:
+      boot_ftp_host: "{{ hostvars['file_server'].fs_ip }}"
+      boot_ftp_username: "{{ hostvars['file_server'].fs_user }}"
+      boot_ftp_password: "{{ hostvars['file_server'].ansible_become_password }}"
+      boot_ftp_insfile: "{{ hostvars['file_server'].cfgs_dir }}/{{ hostname }}/hypervisor.ins"
+      boot_device: "ftp"
+    state: active
+  register: _create_instances
+  async: 600
+  poll: 0
+
+- name: Wait for start, checking for success at 1 minute intervals, expect many retries.
+  tags: create_hypervisor
+  async_status:
+    jid: "{{ _create_instances.ansible_job_id }}"
+  register: _jobs
+  until: _jobs.finished
+  delay: 60 
+  retries: 10
+
+#- name: Template hmccreds.yaml for use with os_messages.py
+#  tags: create_hypervisor, test2
+#  template:
+#    src: hmccreds.yaml.j2
+#    dest: "{{ role_path }}/files/hmccreds.yaml"
+
+#- name: Execute os_messages.py
+#  tags: create_hypervisor, test2
+#  command: "{{ role_path }}/files/os_messages.py {{ role_path }}/files/hmcclient.yaml"
+#  register: os_messages_output
+
+#- name: Show LPAR OS messages from HMC.
+#  tags: create_hypervisor, test2
+#  debug:
+#    msg: "{{ os_messages_output }}"
+#  until: "'login:' in os_messages_output"
+
+- name: Wait 7 minutes for automated RHEL installation and configuration to complete.
+  tags: create_hypervisor
+  pause:
+    minutes: 7
+
+#- name: Change LPAR's boot source to storage adapter instead of FTP for future booting
+#  tags: create_hypervisor
+#  ibm.ibm_zhmc.zhmc_partition:
+#    hmc_host: "{{ hmc_host }}"
+#    hmc_auth:
+#      userid: "{{ hmc_user }}"
+#      password: "{{ hmc_pass }}"
+#      verify: false
+#    cpc_name: "{{ cpc_name }}"
+#    name: "{{ lpar_name }}"
+#    properties:
+#      boot_device: "storage-adapter"
+#    state: active
