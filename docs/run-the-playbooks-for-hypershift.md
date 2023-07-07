@@ -70,16 +70,16 @@ ansible-playbook playbooks/create_hosted_cluster.yaml --ask-vault-pass
 
 ## create_hosted_cluster Playbook
 ### Overview
-* Creates Bastion and configures bastion
-* Creating AgentServiceConfig, HostedControlPlane , InfraEnv Resources , Download Images.
+* Creates and configures bastion
+* Creating AgentServiceConfig, HostedControlPlane, InfraEnv Resources, Download Images
 ### Outcomes
-* Install Prerequisites on kvm_host
-* Creates bastion
+* Install prerequisites on kvm_host
+* Create bastion
 * Configure bastion
 * Log in to Management Cluster
-* Creates AgentServiceConfig resource and required configmaps.
-* Deploys HostedControlPlane and .
-* Creates InfraEnv resource and wait till ISO generation.
-* Download required Images to kvm_host ( initrd.img and kernel.img )
+* Creates AgentServiceConfig resource and required configmaps
+* Deploys HostedControlPlane
+* Creates InfraEnv resource and wait till ISO generation
+* Download required Images to kvm_host (initrd.img and kernel.img)
 * Download rootfs.img and configure httpd on bastion.
 
