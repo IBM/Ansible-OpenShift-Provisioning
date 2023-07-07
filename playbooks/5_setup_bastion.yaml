@@ -1,105 +1,114 @@
 ---
 
 - name: Copy ssh key to jumphost if network is NAT and jumphost defined, and add jumphost section to ssh config.
-  hosts: localhost
+  hosts: controller
   tags: ssh, ssh_copy_id, section_1
-  connection: local
   gather_facts: false
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
-    ssh_target: ["{{ env.jumphost.ip }}", "{{ env.jumphost.user }}", "{{ env.jumphost.pass }}", "{{ path_to_key_pair }}"]
+    nat_hypervisor_any: groups['hypervisors'] | map('extract', hostvars, ['network_mode']) | map('upper') | select('equalto', 'NAT') | list | length > 0
+    ssh_target: "{{ 'jumphost' if (nat_hypervisor_any | default(False)) else '' }}"
+  pre_tasks:
+    - name: Set ssh_target variable conditionally
+      set_fact:
+        ssh_target: "{{ hostvars['jumphost'].ansible_host }}"
+      when: nat_hypervisor_any and 'jumphost' in hostvars
   roles:
-    - { role: ssh_copy_id, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
-    - { role: ssh_add_config, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
+    - { role: ssh_copy_id, when: nat_hypervisor_any and 'jumphost' in hostvars }
+    - { role: ssh_add_config, when: nat_hypervisor_any and 'jumphost' in hostvars }
 
 - name: Configure jumphost if network mode == 'NAT'
   hosts: jumphost
   tags: ssh, ssh_copy_id, section_1
   gather_facts: true
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
-    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}","{{ env.jumphost.path_to_keypair }}"]
+    ssh_target: bastion
+    nat_hypervisor_any: groups['hypervisors'] | map('extract', hostvars, ['network_mode']) | map('upper') | select('equalto', 'NAT') | list | length > 0
   pre_tasks:
     - name: Generate an OpenSSH keypair with the default values (4096 bits, RSA), if using jumphost for NAT.
-      tags: ssh_key_gen, ssh, section_1
+      tags: ssh_key_gen, ssh
       community.crypto.openssh_keypair:
-        path: "{{ env.jumphost.path_to_keypair.split('.')[:-1] | join('.') }}"
+        path: "{{ hostvars['jumphost'].ssh_jumphost_private_key_file }}"
         passphrase: ""
         regenerate: never
-      when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none )
+      when: nat_hypervisor_any and 'jumphost' in hostvars
+
     - block:
         - name: Check if 'expect' is installed on jumphost, for use in ssh-copy-id role for NAT.
           package_facts:
           failed_when: "'expect' not in ansible_facts.packages"
-          when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none )
+          when: nat_hypervisor_any and 'jumphost' in hostvars
+
       rescue:
         - name: Package 'expect' must be installed on the jumphost, attempting to install it. #Using 'block' and 'rescue' to avoid running the 'package' module (which requires 'sudo') unless necessary.
           become: true
           package:
             name: expect
-          when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none )
-  roles:
-    - { role: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
-  post_tasks:
+          when: nat_hypervisor_any and 'jumphost' in hostvars
+
+    - name: Copy SSH key from jumphost to bastion using expect script.
+      tags: ssh_copy_id, ssh
+      include_role: 
+        name: ssh_copy_id
+        tasks_from: jumphost.yaml
+      when: nat_hypervisor_any and 'jumphost' in hostvars
+
     - meta: clear_facts
 
-- name: 5 setup bastion - copy SSH key from localhost to access bastion.
-  hosts: localhost
-  tags: ssh, ssh_copy_id, section_1
-  gather_facts: true
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
+- import_playbook: connect_hosts.yaml
   vars:
-    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}","{{ path_to_key_pair }}"]
-  roles:
-    - ssh_copy_id
+    ssh_target: bastion
 
 - name: 5 setup bastion - configure bastion node with essential services
   hosts: bastion
   tags: services, section_2
-  become: true
-  vars:
-    packages: "{{ env.pkgs.bastion }}"
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
+  become: True
   pre_tasks:
-    - import_role:
+    - name: Setup /etc/resolv.conf for bastion to pull packages.
+      import_role:
         name: dns
         tasks_from: initial-resolv.yaml
+
+    - name: Generate SSH keypair for cluster access.
+      tags: ssh_key_gen
+      import_role: 
+        name: ssh_key_gen
+        tasks_from: cluster_key_gen.yaml
+
   roles:
-    - { role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined }
+    - { role: attach_subscription, when: "rh_username is defined and rh_pass is defined" }
     - install_packages
-    - ssh_ocp_key_gen
     - set_firewall
-    - { role: dns, when: env.bastion.options.dns }
+    - { role: dns, when: "setup_dns" }
     - check_dns
-    - { role: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
+    - { role: haproxy, when: "setup_lb" }
     - httpd
 
-- hosts: bastion
+- name: Setup OpenVPN (1/5)
+  hosts: bastion
   tags: services, section_2, openvpn
-  become: true
+  become: True
+  gather_facts: True
   vars:
     openvpn_role: "server"
   roles:
-    #- { role: robertdebock.bootstrap, tags: openvpn, when: env.z.high_availability == True }
-    - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True }
-    - { role: robertdebock.openvpn, tags: openvpn, when: env.z.high_availability == True }
+    #- { role: robertdebock.bootstrap, tags: openvpn, when: setup_openvpn }
+    - { role: robertdebock.epel, tags: openvpn, when: setup_openvpn }
+    - { role: robertdebock.openvpn, tags: openvpn, when: setup_openvpn }
 
-- hosts: localhost
+- name: Setup OpenVPN (2/5)
+  hosts: controller
   tags: services, section_2, openvpn
-  gather_facts: false
+  gather_facts: True
   tasks:
     - name: Create landing directories on controller for certificates and keys.
       tags: openvpn
       file:
         state: directory
-        path: tmp
-      when: env.z.high_availability == True
+        path: "{{ playbook_dir }}/tmp"
+      when: hostvars['bastion'].setup_openvpn
 
-- hosts: bastion
+- name: Setup OpenVPN (3/5)
+  hosts: bastion
   tags: services, section_2, openvpn
   become: true
   tasks:
@@ -107,29 +116,35 @@
       tags: openvpn
       fetch:
         src: /etc/openvpn/easy-rsa/pki/{{ item }}
-        dest: tmp/
+        dest: "{{ playbook_dir }}/tmp/"
         flat: yes
       loop:
         - ca.crt
         - issued/client.crt
         - private/client.key
         - ta.key
-      when: env.z.high_availability == True
+      when: setup_openvpn
 
-- name: setup OpenVPN on KVM host(s).
-  hosts: kvm_host
-  tags: services, section_3, openvpn
-  become: true
-  gather_facts: false
+- name: Gather facts from bastion.
+  hosts: bastion
+  tags: services, section_2, openvpn
+  gather_facts: True
+
+- name: Setup OpenVPN (4/5)
+  hosts: hypervisors
+  tags: services, section_2, openvpn
+  become: True
+  gather_facts: False
   vars:
     openvpn_role: "client"
-    openvpn_client_server: "{{ env.bastion.networking.ip }}"
+    openvpn_client_server: "{{ hostvars['bastion'].bastion_ip }}"
   pre_tasks:
+
     - name: Gather facts.
       setup:
-      when: env.z.high_availability == True
+      when: hostvars['bastion'].setup_openvpn
 
-    - name: Create landing directories for certificates and keys on KVM hosts.
+    - name: Create landing directories for certificates and keys on hypervisors.
       tags: openvpn
       file:
         state: directory
@@ -138,12 +153,12 @@
       loop:
         - issued
         - private
-      when: env.z.high_availability == True
+      when: hostvars['bastion'].setup_openvpn
 
-    - name: Copy certificates and keys from controller to KVM hosts.
+    - name: Copy certificates and keys from controller to hypervisors.
       tags: openvpn
       copy:
-        src: tmp/{{ item }}
+        src: "{{ playbook_dir }}/tmp/{{ item }}"
         dest: /etc/openvpn/client/{{ item }}
         mode: '600'
       loop:
@@ -151,12 +166,12 @@
         - client.crt
         - client.key
         - ta.key
-      when: env.z.high_availability == True
+      when: hostvars['bastion'].setup_openvpn
   roles:
-    - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True }
-    - { role: robertdebock.openvpn, tags: openvpn, when: env.z.high_availability == True }
+    - { role: robertdebock.epel, tags: openvpn, when: "hostvars['bastion'].setup_openvpn" }
+    - { role: robertdebock.openvpn, tags: openvpn, when: "hostvars['bastion'].setup_openvpn" }
 
-- hosts: localhost
+- hosts: controller
   tags: services, section_2, openvpn
   gather_facts: false
   tasks:
@@ -164,14 +179,12 @@
       tags: openvpn
       file:
         state: absent
-        path: tmp
-      when: env.z.high_availability == True
+        path: "{{ playbook_dir }}/tmp"
+      when: hostvars['bastion'].setup_openvpn
 
 - hosts: bastion
   tags: get_ocp, section_3
-  become: true
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
+  become: True
   roles:
     - common
     - get_ocp
