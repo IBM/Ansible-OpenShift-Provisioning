@@ -62,5 +62,5 @@
 
 
 - name: Add route to bastion from kvm_host
-  shell: ip route add {{ hypershift.bastion_hypershift }} via {{ hypershift.gateway}}
+  command: "ip route add {{ hypershift.bastion_hypershift }} via {{ hypershift.gateway }}"
   ignore_errors: yes
