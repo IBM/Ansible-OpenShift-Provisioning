@@ -44,9 +44,11 @@
     - name: Setting host
       set_fact:
         host: 'bastion_hypershift'
+        
     - name: Install Prereqs
       import_role:
         name: install_prerequisites_host_hypershift
+        
     - name: Configure Bastion
       import_role:
         name: install_prereqs_bastion_hypershift
