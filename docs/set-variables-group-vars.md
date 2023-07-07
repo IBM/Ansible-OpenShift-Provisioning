@@ -197,7 +197,7 @@
 **hypershift.bastion_parms.interface** | Interface for bastion | enc1
 **hypershift.bastion_parms.hostname** | Hostname for bastion | bastion
 **hypershift.bastion_parms.base_domain** | DNS base domain for the bastion. | ihost.com
-**hypershift.bastion_parms.os_variant** | rhel os variant for creating bastion | 8.4
+**hypershift.bastion_parms.os_variant** | rhel os variant for creating bastion | 8.7
 **hypershift.bastion_parms.nameserver** | Nameserver for creating bastion | 192.168.10.1
 **hypershift.bastion_parms.gateway** | Gateway IP for creating bastion <br /> This is how it well be used ip=<ipv4 address>::<nameserver>:<subnet mask> | 192.168.10.1
 **hypershift.bastion_parms.subnet_mask** |  IPv4 address of subnetmask | 255.255.255.0
