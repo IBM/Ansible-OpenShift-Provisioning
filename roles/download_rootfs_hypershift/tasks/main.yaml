@@ -30,8 +30,11 @@
   set_fact:
     rootfs_url: "{{ ipxe_script.stdout_lines[2].split(' ')[3].split('url=')[1] }}"
 
-- name: Download rootfs image 
-  shell: curl -k -L -o /var/www/html/rootfs.img "{{ rootfs_url }}"
+- name: Download rootfs.img
+  get_url:
+    url: "{{ rootfs_url }}"
+    dest: /var/www/html/rootfs.img
+    validate_certs: false
 
 - name: restart httpd 
   service:

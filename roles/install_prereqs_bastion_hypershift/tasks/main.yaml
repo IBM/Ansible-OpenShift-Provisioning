@@ -15,10 +15,6 @@
     path: /root/ansible_workdir
     state: directory
 
-#-----------------------------------------------------------
-# Installing Go
-#-----------------------------------------------------------
-
 - name: Download Latest Go 
   get_url:
     url: "https://golang.org/dl/go{{ hypershift.go_version }}.linux-s390x.tar.gz"
@@ -103,10 +99,6 @@
     content: "{{ hypershift.hcp.pull_secret }}"
     dest: /root/ansible_workdir/auth_file
 
-#-----------------------------------------------------------
-# Configuring haproxy 
-#-----------------------------------------------------------
-
 - name: create /etc/haproxy
   file:
     path: /etc/haproxy
@@ -118,7 +110,6 @@
     src: haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
 
-
 - name: Get the number of Management Cluster Worker Nodes 
   shell: oc get no -o wide --no-headers|grep -i worker| awk '{print $6}' | wc -l
   register: mgmt_workers_count
@@ -128,7 +119,6 @@
   shell: oc get no -o wide --no-headers|grep -i worker| awk '{print $6}' 
   register: mgmt_workers
   changed_when: false
-
 
 - name: Add Management Cluster Worker IPs to Haproxy 
   lineinfile:
@@ -145,7 +135,6 @@
   with_items:
   - internal
   - public
-
 
 - name: allow https traffic 
   firewalld:
