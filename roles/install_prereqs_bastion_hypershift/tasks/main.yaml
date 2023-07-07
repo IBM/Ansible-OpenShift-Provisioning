@@ -198,7 +198,10 @@
   - public
 
 - name: turn on haproxy_connect_any 
-  command: setsebool -P haproxy_connect_any on
+  ansible.posix.seboolean: 
+    name: haproxy_connect_any
+    persistent: true
+    state: true
 
 
 - name: restart haproxy 
