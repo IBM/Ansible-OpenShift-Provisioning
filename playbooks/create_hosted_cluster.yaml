@@ -12,8 +12,6 @@
       import_role:
         name:  install_prerequisites_host_hypershift
 
-
-
 - name: Create macvtap network
   hosts: kvm_host_hypershift
   tasks:
