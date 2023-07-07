@@ -93,7 +93,7 @@
   when: hypershift_check.rc != 0
 
 - name: Install Hypershift Latest
-  ansible.builtin.command:
+  command:
     chdir: /root/ansible_workdir/hypershift
     cmd: sudo install -m 0755 bin/hypershift /usr/local/bin/hypershift
   when: hypershift_check.rc != 0
