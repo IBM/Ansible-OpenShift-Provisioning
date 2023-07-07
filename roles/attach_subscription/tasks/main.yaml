@@ -4,8 +4,8 @@
   tags: attach_subscription
   community.general.redhat_subscription:
     state: present
-    username: "{{ env.redhat.username }}"
-    password: "{{ env.redhat.password }}"
+    username: "{{ rh_username }}"
+    password: "{{ rh_pass }}"
     auto_attach: true
   register: registration
   retries: 2

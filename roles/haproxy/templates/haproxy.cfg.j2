@@ -27,26 +27,38 @@ frontend stats
   stats hide-version
   stats refresh 30s
   stats show-node
-  stats show-desc Stats for {{env.cluster.networking.metadata_name}} cluster
-  stats auth admin:{{env.cluster.networking.metadata_name}}
+  stats show-desc Stats for {{ metadata_name }} cluster
+  stats auth admin:{{ metadata_name }}
   stats uri /stats
 listen api-server-6443
   bind *:6443
   mode tcp
   #6443 section
-  server {{ env.cluster.nodes.bootstrap.hostname }} {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:6443 check inter 1s backup
+  server {{ hostvars['bootstrap_node'].hostname }} {{ hostvars['bootstrap_node'].hostname }}.{{ metadata_name }}.{{ base_domain }}:6443 check inter 1s backup
+  {% for node in groups['control_nodes'] %}
+    server {{ hostvars[node].hostname }} {{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }}:6443 check inter 1s
+  {% endfor %}
 listen machine-config-server-22623
   bind *:22623
   mode tcp
   #22623 section
-  server {{ env.cluster.nodes.bootstrap.hostname }} {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:22623 check inter 1s backup
+  server {{ hostvars['bootstrap_node'].hostname }} {{ hostvars['bootstrap_node'].hostname }}.{{ metadata_name }}.{{ base_domain }}:22623 check inter 1s backup
+  {% for node in groups['control_nodes'] %}
+    server {{ hostvars[node].hostname }} {{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }}:22623 check inter 1s
+  {% endfor %}
 listen ingress-router-443
   bind *:443
   mode tcp
   balance source
   #443 section
+  {% for node in groups['compute_nodes'] %}
+    server {{ hostvars[node].hostname }} {{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }}:443 check inter 1s
+  {% endfor %}
 listen ingress-router-80
   bind *:80
   mode tcp
   balance source
   #80 section
+  {% for node in groups['compute_nodes'] %}
+    server {{ hostvars[node].hostname }} {{ hostvars[node].hostname }}.{{ metadata_name }}.{{ base_domain }}:80 check inter 1s
+  {% endfor %}

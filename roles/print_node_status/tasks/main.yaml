@@ -1,9 +1,2 @@
----
-# Paranoia check. This task should be executed only from one host
-- name: Check parameters
-  ansible.builtin.fail:
-    msg: "Too many hosts defined in ansible play: {{ ansible_play_hosts }}"
-  when: ((ansible_play_hosts | length)  > 1)
-
 - name: Get and print nodes status
-  ansible.builtin.include_tasks: "{{ role_path }}/../common/tasks/print_ocp_node_status.yaml"
+  include_tasks: "{{ role_path }}/../common/tasks/print_ocp_node_status.yaml"

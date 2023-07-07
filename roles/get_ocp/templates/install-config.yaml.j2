@@ -1,42 +1,42 @@
-apiVersion: {{ env.install_config.api_version }}
-baseDomain: {{ env.cluster.networking.base_domain }}
+apiVersion: {{ hostvars['bootstrap_node'].api_version }}
+baseDomain: {{ base_domain }}
 {% if use_proxy == true %}
 {{ 'proxy: ' }}
-{{ '  httpProxy: ' + env.proxy.http }}
-{{ '  httpsProxy: ' + env.proxy.https }}
-{{ '  noProxy: ' + env.proxy.no + ',' + '127.0.0.1,' + 'localhost,' +
-env.bastion.networking.ip + ',' +
-env.cluster.nodes.bootstrap.ip + ',' +
-env.cluster.nodes.control.ip|join(',') + ',' +
-env.cluster.nodes.compute.ip|join(',') + ',' +
-env.cluster.nodes.infra.ip|join(',')+ ',' +
-'etcd-0.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' +
-('etcd-1.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' if env.cluster.nodes.control.ip[1] is defined else '' ) +
-('etcd-2.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' if env.cluster.nodes.control.ip[2] is defined else '' ) +
-'api-int.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' +
-'api.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' +
-'.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain }}
+{{ '  httpProxy: ' + hostvars['bastion'].proxy_env.http_proxy }}
+{{ '  httpsProxy: ' + hostvars['bastion'].proxy_env.https_proxy }}
+{{ '  noProxy: ' + hostvars['bastion'].proxy_env.no_proxy + ',' + '127.0.0.1,' + 'localhost,' +
+hostvars['bastion'].bastion_ip + ',' +
+hostvars['bootstrap_node'].node_ip + ',' +
+(groups['control_nodes'] | map('extract', hostvars, 'node_ip') | join(',')) + ',' +
+(groups['compute_nodes'] | map('extract', hostvars, 'node_ip') | join(',')) + ',' +
+'etcd-0.' + metadata_name + '.' + base_domain + ',' +
+('etcd-1.' + metadata_name + '.' + base_domain + ',' if groups['control_nodes'][1] is defined else '' ) +
+('etcd-2.' + metadata_name + '.' + base_domain + ',' if groups['control_nodes'][2] is defined else '' ) +
+'api-int.' + metadata_name + '.' + base_domain + ',' +
+'api.' + metadata_name + '.' + base_domain + ',' +
+'.' + metadata_name + '.' + base_domain }}
 {% endif %}
 compute:
-- hyperthreading: {{ env.install_config.compute.hyperthreading }}
+- hyperthreading: {{ hostvars['compute_1'].hyperthreading }}
   name: worker
-  replicas: {{(env.cluster.nodes.compute.ip | length)}}
-  architecture: {{ env.install_config.compute.architecture }}
+  replicas: {{ groups['compute_nodes'] | length }}
+  architecture: {{ hostvars['compute_1'].architecture }}
 controlPlane:
-  hyperthreading: {{ env.install_config.control.hyperthreading }}
+  hyperthreading: {{ hostvars['control_1'].hyperthreading }}
   name: master
-  replicas: {{(env.cluster.nodes.control.ip | length)}}
-  architecture: {{ env.install_config.control.architecture }}
+  replicas: {{ groups['control_nodes'] | length }}
+  architecture: {{ hostvars['control_1'].architecture }}
 metadata:
-  name: {{ env.cluster.networking.metadata_name }}
+  name: {{ metadata_name }}
 networking:
   clusterNetwork:
-  - cidr: {{ env.install_config.cluster_network.cidr }}
-    hostPrefix: {{ env.install_config.cluster_network.host_prefix }}
-  networkType: {{ env.install_config.cluster_network.type }}
+  - cidr: {{ hostvars['bootstrap_node'].cidr }}
+    hostPrefix: {{ hostvars['bootstrap_node'].host_prefix }}
+  networkType: {{ hostvars['bootstrap_node'].net_type }}
   serviceNetwork:
-  - {{ env.install_config.service_network }}
+  - {{ hostvars['bootstrap_node'].service_network }}
 platform:
   none: {}
-fips: {{ env.install_config.fips }}
-pullSecret: '{{ env.redhat.pull_secret }}'
+fips: {{ hostvars['bootstrap_node'].fips | lower }}
+pullSecret: '{{ rh_pull_secret | tojson }}'
+sshKey: '{{ ocp_pub_key.stdout }}'

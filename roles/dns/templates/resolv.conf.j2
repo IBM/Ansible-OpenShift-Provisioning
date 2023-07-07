@@ -1,3 +1,4 @@
-search {{ env.cluster.networking.base_domain }}
-nameserver {{ env.bastion.networking.nameserver1 }}
-{{ ('nameserver ' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }}
+search {{ hostvars['bastion'].fqdn.split('.')[1:] | join('.') }}
+{% for ns in hostvars['bastion'].nameservers %}
+nameserver {{ ns }}
+{% endfor %}

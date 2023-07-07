@@ -2,12 +2,12 @@
 - name: Get and print nodes status
   ansible.builtin.include_tasks: "{{ role_path }}/../common/tasks/print_ocp_node_status.yaml"
 
-- name: Make sure control and compute nodes are 'Ready' before continuing (retry every 20s)
+- name: Make sure all control and compute nodes are 'Ready' before continuing (retry every 20s)
   tags: check_nodes
   ansible.builtin.shell: |
     set -o pipefail
-    oc get nodes | grep "^{{ node | lower }}" | awk '{print $2}'
-  loop: "{{ env.cluster.nodes.control.hostname + env.cluster.nodes.compute.hostname }}"
+    oc get nodes | grep "^{{ hostvars[node].hostname | lower }}" | awk '{print $2}'
+  loop: "{{ groups['control_nodes'] + groups['compute_nodes'] }}"
   loop_control:
     loop_var: node
   register: cmd_output

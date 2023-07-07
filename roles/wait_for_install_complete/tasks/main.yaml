@@ -5,30 +5,32 @@
   blockinfile:
     create: true
     backup: true
-    marker: "# {mark} ANSIBLE MANAGED BLOCK FOR OCP CLUSTER: {{ env.cluster.networking.metadata_name }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK FOR OCP CLUSTER: {{ metadata_name }}"
     path: /etc/hosts
     block: |
-      {{ env.bastion.networking.ip }} oauth-openshift.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
-      {{ env.bastion.networking.ip }} console-openshift-console.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
-      {{ env.bastion.networking.ip }} api.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
-  delegate_to: 127.0.0.1
+      {{ hostvars['bastion'].bastion_ip }} oauth-openshift.apps.{{ metadata_name }}.{{ base_domain }}
+      {{ hostvars['bastion'].bastion_ip }} console-openshift-console.apps.{{ metadata_name }}.{{ base_domain }}
+      {{ hostvars['bastion'].bastion_ip }} api.{{ metadata_name }}.{{ base_domain }}
+  delegate_to: controller
 
 - name: Get OCP URL
   tags: wait_for_install_complete
   set_fact:
-    ocp_url: https://console-openshift-console.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
+    ocp_url: https://console-openshift-console.apps.{{ metadata_name }}.{{ base_domain }}
 
 - name: Get OCP temporary password
   tags: wait_for_install_complete
   command: "cat /root/ocpinst/auth/kubeadmin-password"
-  register: ocp_passwd
+  register: ocp_pass
   changed_when: false
 
 - name: "Additional step, if using NAT"
   tags: wait_for_install_complete
-  debug:
-    msg: "NAT USERS ONLY: Create SSH tunnel to cluster, i.e run command in terminal window from controller: 'sshuttle -r {{ env.bastion.access.user }}@{{ env.bastion.networking.ip }} 192.168.122.0/15 --dns'"
-  when: ( env.network_mode | upper == "NAT" )
+  vars:
+    nat_hypervisor_any: groups['hypervisors'] | map('extract', hostvars, ['network_mode']) | map('upper') | select('equalto', 'NAT') | list | length > 0
+  debug: 
+    msg: "NAT USERS ONLY: Create SSH tunnel to cluster, i.e run command in terminal window from controller: 'sshuttle -r {{ hostvars['bastion'].bastion_user }}@{{ hostvars['bastion'].bastion_ip }} 192.168.122.0/15 --dns'"
+  when: nat_hypervisor_any
   changed_when: false
 
 - name: Congratulations! OpenShift installation complete. Use the information below for first-time login via web browser.
@@ -37,5 +39,5 @@
   loop:
     - " URL: {{ ocp_url }} "
     - " Username: kubeadmin "
-    - " Password: {{ ocp_passwd.stdout }} "
+    - " Password: {{ ocp_pass.stdout }} "
   changed_when: false
