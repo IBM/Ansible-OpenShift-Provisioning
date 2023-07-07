@@ -199,7 +199,7 @@
 **hypershift.bastion_parms.base_domain** | Basedomain for bastion | lnxero1.boe
 **hypershift.bastion_parms.os_variant** | rhel os variant for creating bastion | 8.4
 **hypershift.bastion_parms.nameserver** | Nameserver for creating bastion | 192.168.10.1
-**hypershift.bastion_parms.gate_way** | Gateway IP for creating bastion <br /> This is how it well be used ip=<ipv4 address>::<nameserver>:<subnet mask> | 192.168.10.1
+**hypershift.bastion_parms.gateway** | Gateway IP for creating bastion <br /> This is how it well be used ip=<ipv4 address>::<nameserver>:<subnet mask> | 192.168.10.1
 **hypershift.bastion_parms.subnet_mask** |  IPv4 address of subnetmask | 255.255.255.0
 **hypershift.mgmt_cluster_nameserver** | IP Address of Nameserver of Management Cluster | 192.168.10.1
 **hypershift.go_version** | Version of go you want to install on kvm_host <br /> ( It will replace existing go with this version ) | 1.19.5
