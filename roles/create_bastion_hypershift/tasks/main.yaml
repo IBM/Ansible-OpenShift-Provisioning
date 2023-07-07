@@ -1,0 +1,68 @@
+---
+- name: Get ssh key of local host
+  ansible.builtin.shell: cat ~/.ssh/{{ env.ansible_key_name }}.pub
+  register: ssh_output
+  delegate_to: localhost
+
+- name: Load ssh_key into a variable
+  set_fact:
+    ssh_key: "{{ ssh_output.stdout_lines[0] }}"
+
+- name: Create Directory for images and bastion.ks
+  file: 
+    path: /home/libvirt/images/
+    recurse: true
+    state: directory
+
+- name: Create bastion.ks file
+  template:
+    src: ../create_bastion/templates/bastion-ks.cfg.j2
+    dest: /home/libvirt/bastion.ks
+
+- name: Removing network configurations
+  lineinfile:
+    path: /home/libvirt/bastion.ks
+    state: absent
+    regexp: '^network*'
+
+- name: Adding root password for bastion to bastion.ks
+  lineinfile:
+    path: /home/libvirt/bastion.ks
+    insertafter: '^lang.*'
+    line: "rootpw {{ bastion_root_pw }}"
+
+- name: Adding ssh key to bastion
+  blockinfile:
+    path: /home/libvirt/bastion.ks
+    insertafter: '^echo.*'
+    block: |
+      mkdir -p /root/.ssh
+      echo "{{ ssh_key }}" > /root/.ssh/authorized_keys
+      chmod 0700 /root/.ssh
+      chmod 0600 /root/.ssh/authorized_keys
+
+- name: Create qemu image for bastion
+  command: qemu-img create -f qcow2 /home/libvirt/images/{{ hypershift.hcp.hosted_cluster_name }}-bastion.qcow2 100G
+
+- name: Create bastion 
+  shell: |
+    virt-install \ 
+    --name {{ hypershift.hcp.hosted_cluster_name }}-bastion \
+    --memory 4096 \
+    --vcpus sockets=1,cores=4,threads=1 \
+    --disk /home/libvirt/images/{{ hypershift.hcp.hosted_cluster_name }}-bastion.qcow2,format=qcow2,bus=virtio,cache=none \
+    --os-variant "rhel{{hypershift.bastion_parms.os_variant}}" \
+    --network network:{{ env.bridge_name }} \
+    --location '{{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}/{{ env.file_server.iso_mount_dir }}/' \
+    --rng=/dev/urandom --initrd-inject /home/libvirt/bastion.ks \
+    --extra-args="ks=file:/bastion.ks ip={{ hypershift.bastion_hypershift }}::{{hypershift.bastion_parms.gateway}}:{{hypershift.bastion_parms.subnet_mask}}:{{ hypershift.bastion_parms.hostname }}.{{ hypershift.bastion_parms.base_domain }}:{{ hypershift.bastion_parms.interface }}:none console=ttysclp0 nameserver={{hypershift.bastion_parms.nameserver}}" \
+    --noautoconsole \
+    --wait -1
+
+- name: Waiting 1 minute for automated bastion installation and configuration to complete
+  ansible.builtin.pause:
+    minutes: 1
+
+- name: Add route to bastion from kvm_host
+  command: "ip route add {{ hypershift.bastion_hypershift }} via {{ hypershift.gateway }}"
+  ignore_errors: yes

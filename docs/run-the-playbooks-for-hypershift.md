@@ -5,9 +5,12 @@
 * MCE instance created and hypershift-preview component enabled.
 * KVM host with root user access
 
+## Note: 
+* As of now we are supporting only macvtap for hypershift Agent based installation.
+
 ## Initial Setup for Hypershift
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
-
+* Update all the variables in Section-16 ( Hypershift ) and Section-3 ( File Server ) before running the playbooks.
 * First playbook to be run is setup_for_hypershift.yaml which will create inventory file for hypershift and will add ssh key to the kvm host.
 ###### Note:
 * If you are running this first time, it will prompt for the password for kvm host for the selected user.
@@ -19,7 +22,7 @@ ansible-playbook playbooks/setup_for_hypershift.yaml
 
 ## Setup Ansible Vault for Management Cluster Credentials
 ### Overview
-* Creating an encrypted file for storing Management Cluster Credentials.
+* Creating an encrypted file for storing Management Cluster Credentials and other passwords.
 ### Steps:
 * The ansible-vault create command is used to create the encrypted file.
 * Create an encrypted file in playbooks directory and set the Vault password ( Below command will prompt for setting Vault password).
@@ -29,6 +32,7 @@ ansible-vault create playbooks/secrets.yaml
 
 * Give the credentials of Management Cluster in the encrypted file (created above) in following format.
 ```
+bastion_root_pw: '<password_you_want_to_keep_for_bastion>'
 api_server: '<api-server-url>:<port>'
 user_name: '<username>'
 password: '<password>'
@@ -66,10 +70,16 @@ ansible-playbook playbooks/create_hosted_cluster.yaml --ask-vault-pass
 
 ## create_hosted_cluster Playbook
 ### Overview
-* Creating AgentServiceConfig, HostedControlPlane , InfraEnv Resources
+* Creates and configures bastion
+* Creating AgentServiceConfig, HostedControlPlane, InfraEnv Resources, Download Images
 ### Outcomes
+* Install prerequisites on kvm_host
+* Create bastion
+* Configure bastion
 * Log in to Management Cluster
-* Creates AgentServiceConfig resource and required configmaps.
-* Deploys HostedControlPlane and .
-* Creates InfraEnv resource and wait till ISO generation.
+* Creates AgentServiceConfig resource and required configmaps
+* Deploys HostedControlPlane
+* Creates InfraEnv resource and wait till ISO generation
+* Download required Images to kvm_host (initrd.img and kernel.img)
+* Download rootfs.img and configure httpd on bastion.
 
