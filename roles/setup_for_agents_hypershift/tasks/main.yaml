@@ -4,7 +4,6 @@
   shell: curl -k -L $(oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} get InfraEnv {{ hypershift.hcp.hosted_cluster_name }} -ojsonpath="{.status.bootArtifacts.ipxeScript}")
   register: ipxe_script
 
-
 - name: Create Installation directory
   file:
     path: /var/lib/libvirt/images/pxeboot
@@ -20,7 +19,6 @@
     url: "{{ initrd_url }}"
     dest: /var/lib/libvirt/images/pxeboot/initrd.img
     validate_certs: false
-
 
 - name: Get URL for kernel.img
   set_fact:

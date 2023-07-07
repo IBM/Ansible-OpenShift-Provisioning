@@ -28,17 +28,10 @@
     state: present
   loop: "{{ env.pkgs.hypershift }}"
 
-#-----------------------------------------------------------
-# Installing OC Client
-#-----------------------------------------------------------
-
-
-
 - name: Check if OC installed 
   command: oc
   register: oc_installed
   ignore_errors: yes
-
 
 - name: Download OC Client
   get_url:
@@ -54,17 +47,11 @@
   shell: cp oc /usr/local/bin/oc
   when: oc_installed.rc != 0
 
-#-----------------------------------------------------------
-
 - name: Add Management Cluster Nameserver to /etc/resolv.conf
   lineinfile:
     dest: /etc/resolv.conf
     insertbefore: BOF
     line: nameserver {{ hypershift.mgmt_cluster_nameserver }}
 
-
-#-----------------------------------------------------------
-# Login to Management Cluster
-#-----------------------------------------------------------
 - name: Login to Management Cluster 
   command: oc login {{ api_server }} -u {{ user_name }} -p {{ password }} --insecure-skip-tls-verify=true

@@ -1,5 +1,4 @@
 ---
-
 - name: Install Prerequisites on kvm_host
   hosts: kvm_host_hypershift
   vars_files:
@@ -22,8 +21,6 @@
     - name:  Creating macvtap network
       import_role:
         name: macvtap
-
-
 
 - name: Create bastion for hypershift
   hosts: kvm_host_hypershift
@@ -53,8 +50,6 @@
       import_role:
         name: install_prereqs_bastion_hypershift
 
-
-
 - name: Create AgentServiceConfig Hosted Control Plane and InfraEnv
   hosts: bastion_hypershift
   vars_files:
@@ -63,14 +58,10 @@
   - create_agentserviceconfig_hypershift
   - create_hcp_InfraEnv_hypershift
 
-
-
 - name: Download Required images for booting Agents
   hosts: kvm_host_hypershift
   roles:
   - setup_for_agents_hypershift
-
-
 
 - name: Configure httpd on bastion for hosting rootfs
   hosts: bastion_hypershift

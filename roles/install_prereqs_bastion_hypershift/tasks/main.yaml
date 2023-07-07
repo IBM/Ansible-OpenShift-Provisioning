@@ -8,8 +8,8 @@
   package:
     name: "{{ env.pkgs.bastion }}"
     state: present
-# Creating one directory for Storing Files
 
+# Creating one directory for Storing Files
 - name: Create Work Directory
   file:
     path: /root/ansible_workdir
@@ -20,7 +20,6 @@
     url: "https://golang.org/dl/go{{ hypershift.go_version }}.linux-s390x.tar.gz"
     dest: "/root/ansible_workdir/"
 
-
 - name: Unzip the go tar.gz package 
   unarchive:
     src: "/root/ansible_workdir/go{{ hypershift.go_version }}.linux-s390x.tar.gz"
@@ -28,7 +27,6 @@
     remote_src: yes
     extra_opts: ["-z"]
     creates: "/usr/local/go{{ hypershift.go_version }}"
-
 
 - name: Set Environment Variables
   lineinfile:
@@ -64,15 +62,10 @@
     mode: '755'
     state: 'file'
 
-#-----------------------------------------------------------
-# Installing Hypershift Binary
-#-----------------------------------------------------------
-
 - name: check if hypershift installed
   command: hypershift -v
   register: hypershift_check
   ignore_errors: yes
-
 
 - name: Download Latest hypershift
   git:
@@ -103,7 +96,6 @@
   file:
     path: /etc/haproxy
     state: directory
-
 
 - name: create /etc/haproxy/haproxy.cfg 
   template:
@@ -191,7 +183,6 @@
     name: haproxy_connect_any
     persistent: true
     state: true
-
 
 - name: restart haproxy 
   service:

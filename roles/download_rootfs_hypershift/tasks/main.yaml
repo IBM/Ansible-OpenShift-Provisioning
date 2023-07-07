@@ -21,7 +21,6 @@
   - internal
   - public
 
-
 - name: Download ipxe script 
   shell: curl -k -L $(oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} get InfraEnv {{ hypershift.hcp.hosted_cluster_name }} -ojsonpath="{.status.bootArtifacts.ipxeScript}")
   register: ipxe_script
