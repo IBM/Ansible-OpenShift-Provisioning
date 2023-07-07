@@ -237,7 +237,7 @@ hypershift:
     base_domain: 
     os_variant: 
     nameserver:
-    gate_way: 
+    gateway: 
     subnet_mask: 
 
   mgmt_cluster_nameserver:  
