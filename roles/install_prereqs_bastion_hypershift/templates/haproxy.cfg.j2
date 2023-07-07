@@ -34,6 +34,6 @@ frontend {{ hypershift.hcp.hosted_cluster_name }}-api-server
     bind {{hypershift.bastion_hypershift}}:30000-33000
     default_backend {{hypershift.hcp.hosted_cluster_name}}-api-server
 
-backend {{hypershift.hcp.hosted_cluster_name}}-api-server
+backend {{ hypershift.hcp.hosted_cluster_name }}-api-server
     mode tcp
     balance source
