@@ -218,7 +218,7 @@
 **hypershift.asc.ocp_version** | OCP Version for AgentServiceConfig | 4.13.0-ec.4
 **hypershift.asc.iso_url** | Give URL for ISO image | https://... <br /> ...s390x-live.s390x.iso
 **hypershift.asc.root_fs_url** | Give URL for rootfs image | https://... <br /> ... live-rootfs.s390x.img
-**hypershift.asc.mce_namespace** | Namespace where your Multicluster Engine Operator is installed <br /> Recommended Namespace for MCE is 'multicluster-engine' <br /> Change this only if MCE is installed in other namespace | multicluster-engine
+**hypershift.asc.mce_namespace** | Namespace where your Multicluster Engine Operator is installed. <br /> Recommended Namespace for MCE is 'multicluster-engine'. <br /> Change this only if MCE is installed in other namespace. | multicluster-engine
 
 ## 17 - (Optional) Create compute node in a day-2 operation
 
