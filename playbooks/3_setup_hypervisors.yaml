@@ -1,0 +1,32 @@
+---
+
+- import_playbook: connect_hosts.yaml
+  vars:
+    ssh_target: hypervisors
+
+- name: Prepare KVM host(s)
+  hosts: hypervisors
+  tags: setup
+  become: true
+  roles:
+    - attach_subscription
+    - install_packages
+    - libvirt
+    - configure_storage
+    - { role: macvtap, become: false, when: network_mode | upper != 'NAT' }
+  post_tasks:
+    - name: Enable cockpit console
+      tags: cockpit, post_tasks
+      ansible.builtin.command: systemctl enable --now cockpit.socket
+
+    - name: Configure ip_forward in case of network "NAT"
+      tags: cfg_ip_forward, post_tasks
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: "{{ ip_forward }}"
+        sysctl_set: true
+        state: present
+        reload: true
+      when: network_mode | upper == 'NAT' 
+
+    
