@@ -6,7 +6,7 @@
 
 - name: Load ssh_key into a variable
   set_fact:
-    ssh_key: "{{ ssh_output.stdout_lines }}"
+    ssh_key: "{{ ssh_output.stdout_lines[0] }}"
 
 - name: Create Directory for images and bastion.ks
   file: 
@@ -58,6 +58,10 @@
     --extra-args="ks=file:/bastion.ks ip={{ hypershift.bastion_hypershift }}::{{hypershift.bastion_parms.gateway}}:{{hypershift.bastion_parms.subnet_mask}}:{{ hypershift.bastion_parms.hostname }}.{{ hypershift.bastion_parms.base_domain }}:{{ hypershift.bastion_parms.interface }}:none console=ttysclp0 nameserver={{hypershift.bastion_parms.nameserver}}" \
     --noautoconsole \
     --wait -1
+
+- name: Waiting 1 minute for automated bastion installation and configuration to complete
+  ansible.builtin.pause:
+    minutes: 1
 
 - name: Add route to bastion from kvm_host
   command: "ip route add {{ hypershift.bastion_hypershift }} via {{ hypershift.gateway }}"

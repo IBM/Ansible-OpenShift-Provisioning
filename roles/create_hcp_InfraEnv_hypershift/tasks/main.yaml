@@ -25,7 +25,7 @@
  
 - name: Load ssh_key into a variable
   set_fact:
-    ssh_key: "{{ ssh_output.stdout_lines }}"
+    ssh_key: "{{ ssh_output.stdout_lines[0] }}"
 
 - name: Create a Hosted Cluster
   command: >
