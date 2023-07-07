@@ -217,17 +217,33 @@ rhcos_live_kernel: "rhcos-4.12.3-s390x-live-kernel-s390x"
 rhcos_live_initrd: "rhcos-4.12.3-s390x-live-initramfs.s390x.img"
 rhcos_live_rootfs: "rhcos-4.12.3-s390x-live-rootfs.s390x.img"
 
-# Section 16 - Hypershift
+# Section 16 - Hypershift ( Optional )
 
 hypershift:
   kvm_host:
   kvm_host_user:
   bastion_hypershift:
   bastion_hypershift_user:
-  mgmt_cluster_nameserver:
 
-  go_version: "1.19.5"  # Change this if you want to install any other version  of go
-  oc_url:
+  create_bastion: 'true'
+  networking_device: enc1100
+
+  gateway: 
+  branch_for_cli: 
+
+  bastion_parms:
+    interface: 
+    hostname: 
+    base_domain: 
+    os_variant: 
+    nameserver:
+    gateway: 
+    subnet_mask: 
+
+  mgmt_cluster_nameserver:  
+
+  go_version: "1.20.3"  # Change this if you want to install any other version of go
+  oc_url: 
 
   #Hosted Control Plane Parameters
 
@@ -237,7 +253,7 @@ hypershift:
     basedomain:
     pull_secret_file: /root/ansible_workdir/auth_file
     ocp_release:
-    machine_cidr:
+    machine_cidr: 192.168.122.0/24
     arch:
     # Make sure to enclose pull_secret in 'single quotes'
     pull_secret:
@@ -246,8 +262,8 @@ hypershift:
 
   asc:
     url_for_ocp_release_file:
-    db_volume_size:
-    fs_volume_size:
+    db_volume_size: "10Gi"
+    fs_volume_size: "10Gi"
     ocp_version:
     iso_url:
     root_fs_url:

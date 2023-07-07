@@ -1,0 +1,197 @@
+---
+- name: Install ansible-kubernetes module
+  pip:
+    name: kubernetes
+    extra_args: --ignore-installed PyYAML
+
+- name: Install Packages on bastion
+  package:
+    name: "{{ env.pkgs.bastion }}"
+    state: present
+
+# Creating one directory for Storing Files
+- name: Create Work Directory
+  file:
+    path: /root/ansible_workdir
+    state: directory
+
+- name: Download Latest Go 
+  get_url:
+    url: "https://golang.org/dl/go{{ hypershift.go_version }}.linux-s390x.tar.gz"
+    dest: "/root/ansible_workdir/"
+
+- name: Unzip the go tar.gz package 
+  unarchive:
+    src: "/root/ansible_workdir/go{{ hypershift.go_version }}.linux-s390x.tar.gz"
+    dest: "/usr/local"
+    remote_src: yes
+    extra_opts: ["-z"]
+    creates: "/usr/local/go{{ hypershift.go_version }}"
+
+- name: Set Environment Variables
+  lineinfile:
+    path: "~/.bash_profile"
+    line: "export PATH=$PATH:/usr/local/go/bin"
+    state: present
+
+- name: Set Environment Variables
+  lineinfile:
+    path: "~/.bash_profile"
+    line: "export GOPATH=/root/"
+    state: present
+
+- name: Copy go to /usr/bin/
+  copy: 
+    src: /usr/local/go/bin/go
+    dest: /usr/bin/
+
+- name: Copy go to /usr/local/bin/
+  copy:
+    src: /usr/local/go/bin/go
+    dest: /usr/local/bin/
+
+- name: Set permissions to go 
+  file:
+    path: /usr/bin/go
+    mode: '755'
+    state: 'file'
+
+- name: Set permissions to go
+  file:
+    path: /usr/local/bin/go
+    mode: '755'
+    state: 'file'
+
+- name: check if hypershift installed
+  command: hypershift -v
+  register: hypershift_check
+  ignore_errors: yes
+
+- name: Download Latest hypershift
+  git:
+    repo: https://github.com/openshift/hypershift.git
+    dest: /root/ansible_workdir/hypershift
+    clone: yes
+    version: "{{ hypershift.branch_for_cli }}"
+  when: hypershift_check.rc != 0
+
+- name: Build  Hypershift Latest
+  community.general.make:
+    target: build
+    chdir: /root/ansible_workdir/hypershift
+  when: hypershift_check.rc != 0
+
+- name: Install Hypershift Latest
+  command:
+    chdir: /root/ansible_workdir/hypershift
+    cmd: sudo install -m 0755 bin/hypershift /usr/local/bin/hypershift
+  when: hypershift_check.rc != 0
+
+- name: Copy pull secret to ansible_workdir
+  copy:
+    content: "{{ hypershift.hcp.pull_secret }}"
+    dest: /root/ansible_workdir/auth_file
+
+- name: create /etc/haproxy
+  file:
+    path: /etc/haproxy
+    state: directory
+
+- name: create /etc/haproxy/haproxy.cfg 
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+
+- name: Get the number of Management Cluster Worker Nodes 
+  shell: oc get no -o wide --no-headers|grep -i worker| awk '{print $6}' | wc -l
+  register: mgmt_workers_count
+  changed_when: false
+
+- name: Get the IPs of Management Cluster Workers 
+  shell: oc get no -o wide --no-headers|grep -i worker| awk '{print $6}' 
+  register: mgmt_workers
+  changed_when: false
+
+- name: Add Management Cluster Worker IPs to Haproxy 
+  lineinfile:
+    path: /etc/haproxy/haproxy.cfg
+    line: "    server worker-{{item}} {{ mgmt_workers.stdout_lines[item]}}"
+  loop: "{{ range(mgmt_workers_count.stdout|int) | list }}"
+ 
+- name: allow http traffic 
+  firewalld:
+    service: http
+    permanent: yes
+    zone: "{{ item }}"
+    state: enabled
+  with_items:
+  - internal
+  - public
+
+- name: allow https traffic 
+  firewalld:
+    service: https
+    permanent: yes
+    zone: "{{ item }}"
+    state: enabled
+  with_items:
+  - internal
+  - public
+
+- name: allow traffic at port 443
+  firewalld:
+    port: 443/tcp
+    permanent: yes
+    zone: "{{ item }}"
+    state: enabled
+  with_items:
+  - internal
+  - public
+
+- name: allow traffic at port 80 
+  firewalld:
+    port: 80/tcp
+    permanent: yes
+    zone: "{{ item }}"
+    state: enabled
+  with_items:
+  - internal
+  - public
+
+- name: allow traffic at port 6443 
+  firewalld:
+    port: 6443/tcp
+    permanent: yes
+    zone: "{{ item }}"
+    state: enabled
+  with_items:
+  - internal
+  - public
+
+- name: allow traffic at ports 30000-33000 
+  firewalld:
+    port: 30000-33000/tcp
+    permanent: yes
+    zone: "{{ item }}"
+    state: enabled
+  with_items:
+  - internal
+  - public
+
+- name: turn on haproxy_connect_any 
+  ansible.posix.seboolean: 
+    name: haproxy_connect_any
+    persistent: true
+    state: true
+
+- name: restart haproxy 
+  service:
+    name: haproxy.service
+    state: restarted
+    enabled: true
+
+- name: Restart firewalld.service
+  service:
+    name: firewalld.service
+    state: restarted
+    enabled: true

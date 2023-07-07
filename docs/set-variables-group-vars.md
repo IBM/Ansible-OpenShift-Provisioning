@@ -183,31 +183,42 @@
 **rhcos_live_initrd** | CoreOS initramfs to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-initramfs.s390x.img
 **rhcos_live_rootfs** | CoreOS rootfs to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-rootfs.s390x.img
 
-## 16 - Hypershift
+## 16 - Hypershift ( Optional )
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**hypershift.kvm_host** | IPv4 address of KVM host for hypershift <br /> ( kvm host where you want to run all oc commands and create VMs)| 192.168.10.1
+**hypershift.kvm_host** | IPv4 address of KVM host for hypershift <br /> (kvm host where you want to run all oc commands and create VMs)| 192.168.10.1
 **hypershift.kvm_host_user** | User for KVM host | root
 **hypershift.bastion_hypershift** | IPv4 address for bastion of Hosted Cluster | 192.168.10.1
 **hypershift.bastion_hypershift_user** | User for bastion of Hosted Cluster | root
+**hypershift.create_bastion** | True or False - create bastion with the provided IP (hypershift.bastion_hypershift) | True
+**hypershift.networking_device** | The network interface card from Linux's perspective. <br /> Usually enc and then a number that comes from the dev_num of the network adapter. | enc1100
+**hypershift.gateway** | IPv4 Address for gateway from where the kvm_host and bastion are reachable  <br /> This for adding ip route from kvm_host to bastion through gateway  | 192.168.10.1
+**hypershift.branch_for_cli** | Git branch for latest release of hypershift | release-4.13
+**hypershift.bastion_parms.interface** | Interface for bastion | enc1
+**hypershift.bastion_parms.hostname** | Hostname for bastion | bastion
+**hypershift.bastion_parms.base_domain** | DNS base domain for the bastion. | ihost.com
+**hypershift.bastion_parms.os_variant** | rhel os variant for creating bastion | 8.7
+**hypershift.bastion_parms.nameserver** | Nameserver for creating bastion | 192.168.10.1
+**hypershift.bastion_parms.gateway** | Gateway IP for creating bastion <br /> This is how it well be used ip=<ipv4 address>::<nameserver>:<subnet mask> | 192.168.10.1
+**hypershift.bastion_parms.subnet_mask** |  IPv4 address of subnetmask | 255.255.255.0
 **hypershift.mgmt_cluster_nameserver** | IP Address of Nameserver of Management Cluster | 192.168.10.1
 **hypershift.go_version** | Version of go you want to install on kvm_host <br /> ( It will replace existing go with this version ) | 1.19.5
 **hypershift.oc_url** | URL for OC Client that you want to install on the host | https://...<br /> ..openshift-client-linux-4.13.0-ec.4.tar.gz
-**hypershift.hcp.CLUSTERS_NAMESPACE** | Namespace for Creating Hosted Control Plane | clusters
-**hypershift.hcp.HOSTED_CLUSTER_NAME** | Name for the Hosted Cluster  | hosted0
-**hypershift.hcp.BASEDOMAIN** | Base domain for Hosted Cluster | example.com
-**hypershift.hcp.PULL_SECRET_FILE | Path for the pull secret <br /> No need to change this as we are copying the pullsecret to same file <br /> /root/ansible_workdir/auth_file | /root/ansible_workdir/auth_file
-**hypershift.hcp.OCP_RELEASE** | OCP Release version for Hosted Control Cluster and Nodepool | 4.13.0-rc.4-multi
-**hypershift.hcp.MACHINE_CIDR** | Machines CIDR for Hosted Cluster | 192.168.122.0/24
-**hypershift.hcp.ARCH** | Architecture for InfraEnv and AgentServiceConfig" | s390x
-**hypershift.hcp.PULL_SECRET** | Pull Secret of Management Cluster <br /> Make sure to enclose pull_secret in 'single quotes' | '{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}'
-**hypershift.asc.URL_FOR_OCP_RELEASE_FILE** | Add URL for OCP release.txt File | https://... <br /> ..../release.txt
-**hypershift.asc.DB_VOLUME_SIZE** | DatabaseStorage Volume Size | 10Gi
-**hypershift.asc.FS_VOLUME_SIZE** | FileSystem Storage Volume Size | 10Gi
-**hypershift.asc.OCP_VERSION** | OCP Version for AgentServiceConfig | 4.13.0-ec.4
-**hypershift.asc.ISO_URL** | Give URL for ISO image | https://... <br /> ...s390x-live.s390x.iso
-**hypershift.asc.ROOT_FS_URL** | Give URL for rootfs image | https://... <br /> ... live-rootfs.s390x.img
- *hypershift.asc.mce_namespace** | Namespace where your Multicluster Engine Operator is installed <br /> Recommended Namespace for MCE is 'multicluster-engine' <br /> Change this only if MCE is installed in other namespace | multicluster-engine
+**hypershift.hcp.clusters_namespace** | Namespace for Creating Hosted Control Plane | clusters
+**hypershift.hcp.hosted_cluster_name** | Name for the Hosted Cluster  | hosted0
+**hypershift.hcp.basedomain** | Base domain for Hosted Cluster | example.com
+**hypershift.hcp.pull_secret_file** | Path for the pull secret <br /> No need to change this as we are copying the pullsecret to same file <br /> /root/ansible_workdir/auth_file | /root/ansible_workdir/auth_file
+**hypershift.hcp.ocp_release** | OCP Release version for Hosted Control Cluster and Nodepool | 4.13.0-rc.4-multi
+**hypershift.hcp.machine_cidr** | Machines CIDR for Hosted Cluster | 192.168.122.0/24
+**hypershift.hcp.arch** | Architecture for InfraEnv and AgentServiceConfig" | s390x
+**hypershift.hcp.pull_secret** | Pull Secret of Management Cluster <br /> Make sure to enclose pull_secret in 'single quotes' | '{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}'
+**hypershift.asc.url_for_ocp_release_file** | Add URL for OCP release.txt File | https://... <br /> ..../release.txt
+**hypershift.asc.db_volume_size** | DatabaseStorage Volume Size | 10Gi
+**hypershift.asc.fs_volume_size** | FileSystem Storage Volume Size | 10Gi
+**hypershift.asc.ocp_version** | OCP Version for AgentServiceConfig | 4.13.0-ec.4
+**hypershift.asc.iso_url** | Give URL for ISO image | https://... <br /> ...s390x-live.s390x.iso
+**hypershift.asc.root_fs_url** | Give URL for rootfs image | https://... <br /> ... live-rootfs.s390x.img
+**hypershift.asc.mce_namespace** | Namespace where your Multicluster Engine Operator is installed. <br /> Recommended Namespace for MCE is 'multicluster-engine'. <br /> Change this only if MCE is installed in other namespace. | multicluster-engine
 
 ## 17 - (Optional) Create compute node in a day-2 operation
 
