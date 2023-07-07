@@ -1,0 +1,31 @@
+---
+
+- hosts: controller
+  tags: create_lpar, setup
+  vars:
+    create_lpar_any: groups['hypervisors'] | map('extract', hostvars, ['create']) | list | any
+  tasks:
+    - name: Install required python packages.
+      tags: pkgs
+      ansible.builtin.pip:
+        name: "{{ item }}"
+      loop:
+        - requests
+        - zhmcclient
+        - cryptography
+        - packaging 
+        - PyYAML
+        - netaddr
+      when: create_lpar_any
+
+- hosts: hypervisors
+  tags: create_lpar, create
+  vars:
+    ansible_host: 127.0.0.1 #Using HMC API
+    ansible_connection: local
+  tasks:
+    - name: Create Logical Partiion(s).
+      tags: create
+      include_role:
+        name: create_lpar
+      when: create
