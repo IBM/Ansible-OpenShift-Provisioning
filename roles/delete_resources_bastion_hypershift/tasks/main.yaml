@@ -74,4 +74,9 @@
     name: "{{ hypershift.hcp.clusters_namespace }}"
     state: absent
 
-
+- name: Delete AgentServiceConfig
+  k8s:
+    api_version: agent-install.openshift.io/v1beta1
+    kind: AgentServiceConfig
+    name: agent
+    state: absent

@@ -125,5 +125,6 @@ ansible-playbook playbooks/destroy_cluster_hypershift.yaml --ask-vault-pass
 * Deletes the agents 
 * Deletes InfraEnv Resource
 * Destroys the Hosted Control Plane
+* Deletes AgentServiceConfig
 * Deletes the images downloaded on kvm host
 * Destroys VMs of Bastion and Agents
