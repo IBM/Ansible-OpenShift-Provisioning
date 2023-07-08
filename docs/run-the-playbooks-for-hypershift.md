@@ -101,3 +101,29 @@ ansible-playbook playbooks/hypershift.yaml --ask-vault-pass
 * Configure HAProxy for Hosted workers
 * Monitor the Cluster operators
 * Display Login Credentials for Hosted Cluster
+
+
+
+# Destroy the Hosted Cluser
+
+### Overview
+* Destroy the Hosted Control Plane and other resources created as part of installation
+
+### Procedure
+* Run the playbook [destroy_cluster_hypershift.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/destroy_cluster_hypershift.yaml) to destroy all the resources created while installation
+```
+ansible-playbook playbooks/destroy_cluster_hypershift.yaml --ask-vault-pass
+```
+
+## destroy_cluster_hypershift Playbook
+### Overview
+* Delete all the resources on Hosted Cluster
+* Destroy the Hosted Control Plane
+### Outcomes
+* Scale in the nodepool to 0 
+* Monitors the deletion of workers, agent machines and machines.
+* Deletes the agents 
+* Deletes InfraEnv Resource
+* Destroys the Hosted Control Plane
+* Deletes the images downloaded on kvm host
+* Destroys VMs of Bastion and Agents
