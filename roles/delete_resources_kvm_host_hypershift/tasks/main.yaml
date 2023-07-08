@@ -1,0 +1,37 @@
+---
+
+- name: Destroy Agent VMs
+  command: virsh destroy {{ hypershift.hcp.hosted_cluster_name }}-agent-{{ item }}
+  loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+
+- name: Undefine Agents
+  command: virsh undefine {{ hypershift.hcp.hosted_cluster_name }}-agent-{{ item }}
+  loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+
+- name: Remove qcow disk for Agents
+  file:
+    path: /home/libvirt/images/{{ hypershift.hcp.hosted_cluster_name }}-agent{{ item }}.qcow2
+    state: absent
+  loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+
+- name: Delete  initrd.img
+  file:
+    path: /var/lib/libvirt/images/pxeboot/initrd.img
+    state: absent
+
+- name: Delete  kernel.img
+  file:
+    path: /var/lib/libvirt/images/pxeboot/kernel.img
+    state: absent
+
+- name: Destroy bastion
+  command: virsh destroy {{ hypershift.hcp.hosted_cluster_name }}-bastion
+
+- name: Undefine bastion
+  command: virsh undefine {{ hypershift.hcp.hosted_cluster_name }}-bastion
+
+- name: Remove qcow disk for bastion
+  file:
+    path: /home/libvirt/images/{{ hypershift.hcp.hosted_cluster_name }}-bastion.qcow2
+    state: absent
+

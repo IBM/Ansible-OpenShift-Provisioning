@@ -1,0 +1,11 @@
+- name: Delete Cluster Resources 
+  hosts: bastion_hypershift
+  vars_files:
+    - "{{playbook_dir}}/secrets.yaml"
+  roles:
+  - delete_resources_bastion_hypershift
+
+- name: Delete Resources on kvm host
+  hosts: kvm_host_hypershift
+  roles:
+  - delete_resources_kvm_host_hypershift
