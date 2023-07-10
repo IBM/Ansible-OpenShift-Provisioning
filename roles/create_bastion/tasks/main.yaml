@@ -40,7 +40,7 @@
     --autostart \
     --memory={{ hostvars['bastion'].ram }} \
     --vcpus={{ hostvars['bastion'].vcpu }} \
-    --location {{ hostvars['file_server'].protocol }}://{{ hostvars['file_server'].fs_user + ':' + hostvars['file_server'].ansible_become_password + '@' if hostvars['file_server'].protocol == 'ftp' else '' }}{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].iso_mount_dir }} \
+    --location {{ hostvars['file_server'].protocol }}://{{ hostvars['file_server'].fs_user + ':' + hostvars['file_server'].fs_pass + '@' if hostvars['file_server'].protocol == 'ftp' else '' }}{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].iso_mount_dir }} \
     --disk pool={{ pool_name }},size={{ hostvars['bastion'].disk_size }} \
     --network network={{ network_name }} \
     --graphics=none \

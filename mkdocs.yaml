@@ -31,7 +31,7 @@ nav:
       - 5 Setup Bastion: 'run/5-setup-bastion.md'
       - 6 Create Nodes: 'run/6-create-nodes.md'
       - 7 OCP Verification: 'run/7-ocp-verification.md'
-      - HyperShift - Create Hosted Cluster: 'run/hypershift-create-hosted-cluster.md'
+      - HyperShift: 'run/hypershift.md'
       - Site (Master Playbook): 'run/site.md'
       - Pre-Existing Site: 'run/pre-existing-site.md'
       - Reinstall Cluster: 'run/reinstall-cluster.md'

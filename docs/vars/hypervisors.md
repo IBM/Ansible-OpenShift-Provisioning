@@ -44,7 +44,7 @@
 **hostname** | DNS short hostname of the hypervisor. | hv-1
 **netmask** | Subnet size for the hypervisor's IP in dotted decimal notation. | 255.255.255.0
 **gateway** | IP address that acts as the exit point for the hypervisor to</br > reach other networks. | 192.168.1.1
-**nameservers** | List of DNS nameservers for this hypervisor. | - 192.168.1.254<br />- 192.168.1.253
+**nameservers** | List of DNS nameserver(s) for this hypervisor. | - 192.168.1.254<br />- 192.168.1.253
 **device1** | Name of the network device (from Linux perspective) used</br > for connecting the hypervisor to the network. | enc1
 **device2** | A second, optional name of a network device (from Linux</br > perspective) used for connecting the hypervisor to the network. | enc2
 **root_pass** | Change the 'X' to match the hypervisor's inventory hostname</br > number. Set in Ansible Vault (next step) - Hypervisor's root SSH password. | "{{ vault_hypervisor_X_root_pass }}"

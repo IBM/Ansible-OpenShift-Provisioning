@@ -13,7 +13,7 @@
     properties:
       boot_ftp_host: "{{ hostvars['file_server'].fs_ip }}"
       boot_ftp_username: "{{ hostvars['file_server'].fs_user }}"
-      boot_ftp_password: "{{ hostvars['file_server'].ansible_become_password }}"
+      boot_ftp_password: "{{ hostvars['file_server'].fs_pass }}"
       boot_ftp_insfile: "{{ hostvars['file_server'].cfgs_dir }}/{{ hostname }}/hypervisor.ins"
       boot_device: "ftp"
     state: active

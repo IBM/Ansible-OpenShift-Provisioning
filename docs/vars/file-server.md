@@ -10,9 +10,10 @@
 :--- | :--- | :---
 **fs_ip** | IPv4 address of the file server. | 192.168.1.220
 **fs_user** | User to fetch files as. | ftp-user
+**fs_pass** | Do not change. Set in Ansible Vault (next step) - Password to</br > authenticate as fs_user. | "{{ vault_file_server_pass }}"
 **ansible_host** | IP or hostname for Ansible to connect to via SSH, keep as is to</br > use fs_ip. | "{{ fs_ip }}"
 **ansible_user** | Username for Ansible to connect as via SSH. Leave as is to </br >use same value as fs_user. | "{{ fs_user }}"
-**ansible_become_password** | Do not change. Set in Ansible Vault (next step) - File server</br > user's SSH password. | "{{ vault_file_server_pass }}"
+**ansible_become_password** | Password for Ansible to authenticate via SSH.</br > Leave as is to use same value as fs_user. | "{{ fs_pass }}"
 **protocol** | 'http' or 'ftp' - Which transfer protocol would you like to use? | http
 **iso_os_variant** | RHEL version closest to ISO file used to install hypervisors</br > and/or bastion. | rhel8.7
 **doc_root** | Absolute path of document root for file server. | /var/www/html

@@ -68,15 +68,15 @@ all:
     file_server:
       fs_ip: #X
       fs_user: #X 
+      fs_pass: "{{ vault_file_server_pass }}"
       ansible_host: "{{ fs_ip }}"
       ansible_user: "{{ fs_user }}"
-      ansible_become_password: "{{ vault_file_server_pass }}"
+      ansible_become_password: "{{ fs_pass }}"
       protocol: http
       iso_os_variant: rhel8.7
       doc_root: /var/www/html
       iso_mount_dir: #X 
       cfgs_dir: #X 
-
 
     #jumphost: #Section only required if hypervisor network_mode is set to 'NAT'
       #ansible_host: 
@@ -196,40 +196,64 @@ all:
               #vm_name: infra_1
               #hostname: infra_1
 
-    hypershift:
-      hosts:
-        hypervisor_hypershift:
-          hypervisor_ip: #X
-          hypervisor_user: #X
-          ansible_become_password: "{{ vault_hypervisor_hypershift_pass }}"
-          ansible_host: "{{ hypervisor_ip }}"
-          ansible_user: "{{ hypervisor_user }}"
-          pkgs: [ make, jq, git, virt-install, libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
-        bastion_hypershift:
-          bastion_ip: #X
-          bastion_user: #X
-          ansible_become_password: "{{ vault_bastion_hypershift_pass }}"
-          ansible_host: "{{ bastion_ip }}"
-          ansible_user: "{{ bastion_user }}"
-      vars:
-        mgmt_cluster_nameserver: #X
-        go_version: "1.19.5"  # Change this if you want to install any other version  of go
-        oc_url: #X
-        hcp:
-          clusters_namespace: #X
-          hosted_cluster_name: #X
-          basedomain: #X
-          pull_secret_file: /root/ansible_workdir/auth_file
-          ocp_release: #X
-          machine_cidr: #X
-          arch: #X
-          ssh_private_key_file: /root/.ssh/id_rsa
-          pull_secret: "{{ vault_hypershift_pull_secret }}"
-        asc:
-          url_for_ocp_release_file: #X
-          db_volume_size: #X
-          fs_volume_size: #X
-          ocp_version: #X
-          iso_url: #X
-          root_fs_url: #X
-          mce_namespace: "multicluster-engine" # Recommended
+    #hypershift: # Variables in this section are only required if setting up HyperShift.
+      #hosts:
+        #hypervisor_hypershift:
+          #hypervisor_ip: #X
+          #hypervisor_user: #X
+          #ansible_become_password: "{{ vault_hypervisor_hypershift_pass }}"
+          #ansible_host: "{{ hypervisor_ip }}"
+          #ansible_user: "{{ hypervisor_user }}"
+          #pkgs: [ make, jq, git, virt-install, libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
+          #network_interface: "{{ ansible_default_ipv4.interface }}"
+          #bridge_name: macvtap
+          #gateway: "{{ ansible_default_ipv4.gateway }}"
+        #bastion_hypershift:
+          #bastion_ip: #X
+          #bastion_user: #X
+          #ansible_become_password: "{{ vault_bastion_hypershift_pass }}"
+          #ansible_host: "{{ bastion_ip }}"
+          #ansible_user: "{{ bastion_user }}"
+          #pkgs: [ make, jq, git, virt-install, haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
+          #create: True
+          # The rest of the variables for bastion_hypershift below are only required if 'create' above is True.
+          #vm_name: "{{ hcp.hosted_cluster_name }}-bastion"
+          #disk_size: 100
+          #vcpu: 4
+          #ram: 4096
+          #interface: 
+          #hostname: 
+          #base_domain: 
+          #os_variant: rhel8.7
+          #nameservers:
+            #- 
+            #- #Optional 
+          #gateway: 
+          #subnet_mask: 
+          #root_pass: 
+      #vars:
+        #branch_for_cli: 
+        #mgmt_cluster_nameserver: #X
+        #go_version: "1.19.5"  # Change this if you want to install any other version  of go
+        #oc_url: #X
+        #hcp:
+          #clusters_namespace: #X
+          #hosted_cluster_name: #X
+          #basedomain: #X
+          #pull_secret_file: /root/ansible_workdir/auth_file
+          #ocp_release: #X
+          #machine_cidr: #X
+          #arch: #X
+          #ssh_private_key_file: /root/.ssh/id_rsa
+          #pull_secret: "{{ vault_hcp_pull_secret }}"
+          #api_server: 
+          #user_name: kubeadmin
+          #password: "{{ vault_hcp_pass }}"
+        #asc:
+          #url_for_ocp_release_file: #X
+          #db_volume_size: #X
+          #fs_volume_size: #X
+          #ocp_version: #X
+          #iso_url: #X
+          #root_fs_url: #X
+          #mce_namespace: multicluster-engine # Recommended

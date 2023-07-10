@@ -17,4 +17,5 @@ vault_hypervisor_1_pass: #X
 #vault_jumphost_pass: # Only required if any hypervisor's 'network_mode' is set to 'nat'
 #vault_hypervisor_hypershift_pass: # Only required if setting up HyperShift.
 #vault_bastion_hypershift_pass: # Only required if setting up HyperShift.
-#vault_hypershift_pull_secret: # Only required if setting up HyperShift.
+#vault_hcp_pull_secret: # Only required if setting up HyperShift.
+#vault_hcp_pass: # Only required if setting up HyperShift.

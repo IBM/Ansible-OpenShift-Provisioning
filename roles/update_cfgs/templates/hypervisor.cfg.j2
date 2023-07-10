@@ -15,7 +15,7 @@ dd if=/dev/zero of=/dev/mapper/mpathh bs=512 count=10
 reboot
 
 # Use network installation
-url --url=ftp://{{ hostvars['file_server'].fs_user }}:{{ hostvars['file_server'].ansible_become_password }}@{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].iso_mount_dir }}
+url --url=ftp://{{ hostvars['file_server'].fs_user }}:{{ hostvars['file_server'].fs_pass }}@{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].iso_mount_dir }}
 
 # Use text mode install
 text

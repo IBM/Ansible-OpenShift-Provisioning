@@ -20,14 +20,13 @@ block:
         name: "{{ hosted_control_plane_namespace }}"
         state: present
 
-- name: Get SSH public key for host.
-  slurp:
-    src: "{{ ssh_private_key_file }}.pub"
-  register: remote_content_encoded
+- name: Get ssh key 
+  shell: "cat {{ ssh_private_key_file }}.pub"
+  register: ssh_output
 
-- name: Decode the ssh key.
+- name: Load ssh_key into a variable.
   set_fact:
-    ssh_key: "{{ remote_content_encoded.content | b64decode | replace('\n','') }}"
+    ssh_key: "{{ ssh_output.stdout }}"
 
 - name: Create a Hosted Cluster.
   command: >
@@ -38,7 +37,7 @@ block:
     --namespace={{ hcp.clusters_namespace }} 
     --base-domain= {{ hcp.basedomain }} 
     --api-server-address=api.{{ hcp.hosted_cluster_name }}.{{ hcp.basedomain }} 
-    --ssh-key {{ ssh_private_key_file }}.pub
+    --ssh-key {{ ssh_key }}
     --release-image=quay.io/openshift-release-dev/ocp-release:{{ hcp.ocp_release }} 
 
 - name: Waiting for Hosted Control Plane to be available

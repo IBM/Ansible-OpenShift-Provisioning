@@ -1,10 +1,9 @@
 ---
-
 - name: Get OCP Release Version
   shell: curl -s {{ asc.url_for_ocp_release_file }}  | awk '/machine-os / { print $2 }'
   register: ocp_release_version
 
-- name: Create Config map mirror-config ( For updating AgentServiceConfig with the brew mirror information )
+- name: Create Config map mirror-config (for updating AgentServiceConfig with the brew mirror information).
   template: 
     src: mirror-config.yml.j2
     dest: /root/ansible_workdir/mirror-config.yaml
@@ -35,7 +34,12 @@
   command: oc annotate --overwrite AgentServiceConfig agent unsupported.agent-install.openshift.io/assisted-service-configmap=my-assisted-service-config
 
 - name: Rollout new deployment for assisted-service
-  command: "oc rollout restart deployment/assisted-service -n {{ asc.mce_namespace }}"
+  command: oc rollout restart deployment/assisted-service -n {{ asc.mce_namespace }}
+  register: assisted_service
+  until: assisted_service.rc == 0
+  retries: 5
+  delay: 15
+
 
 - name: Wait for Agent Service Deployment to be Succeeded
   shell: oc get AgentServiceConfig agent -o json | jq -r '.status | .conditions[] | .status' | grep False | wc -l

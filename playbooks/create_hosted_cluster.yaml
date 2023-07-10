@@ -1,8 +1,43 @@
 ---
 
-- name: Install Prerequisites and create AgentServiceConfig Hosted Control Plane and InfraEnv.
+- import_playbook: connect_hosts.yaml
+  vars:
+    ssh_target: hypervisor_hypershift
+
+- name: Install prerequisites on HyperShift hypervisor.
   hosts: hypervisor_hypershift
   roles:
-    - install_prerequisites_host_hypershift
+    - install_prereqs_hypershift
+    - macvtap
+    - { role: create_bastion_hypershift, when: hostvars['bastion_hypershift'].create }
+
+- import_playbook: connect_hosts.yaml
+  vars:
+    ssh_target: bastion_hypershift
+
+- name: Configuring Bastion
+  hosts: bastion_hypershift
+  become: true
+  roles: 
+    - install_prereqs_hypershift
+  post_tasks:
+    - name: Install HyperShift prereqs specific to bastion.
+      import_role:
+        name: install_prereqs_hypershift
+        tasks_from: bastion.yaml
+
+- name: Create AgentServiceConfig Hosted Control Plane and InfraEnv.
+  hosts: bastion_hypershift
+  roles:
     - create_agentserviceconfig_hypershift
     - create_hcp_InfraEnv_hypershift
+
+- name: Download Required images for booting Agents.
+  hosts: hypervisor_hypershift
+  roles:
+    - setup_for_agents_hypershift
+
+- name: Configure httpd on bastion for hosting rootfs.
+  hosts: bastion_hypershift
+  roles:
+    - download_rootfs_hypershift

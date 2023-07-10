@@ -12,7 +12,7 @@
 **ansible_become_password** | Do not change. Set in Ansible Vault (next step) - Bastion</br > user's SSH password. | "{{ vault_bastion_pass }}"
 **pkgs** | Packages to be installed on host. | [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
 **fqdn** | Fully-qualified domain name of the bastion. | bastion123.ocp_na_east.ihost.com
-**nameservers** | List of DNS nameservers for this host. If 'setup_dns'</br > is True (below) this should be set to "{{ bastion_ip }}" | - 192.168.1.254<br />- 192.168.1.253
+**nameservers** | List of DNS nameserver(s) for this host. If 'setup_dns'</br > is True (below) this should be set to "{{ bastion_ip }}" | - 192.168.1.254<br />- 192.168.1.253
 **forwarder** | IPv4 address of DNS forwarder for external name resolution. | 1.1.1.1
 **setup_dns** | True or False - setup bastion host as the DNS nameserver</br > for the cluster. | True
 **setup_lb** | True or False - setup bastion host as the loadbalancer</br > for the cluster. If 'False' must fill in next two vars. | True

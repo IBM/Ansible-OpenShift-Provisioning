@@ -1,4 +1,5 @@
 # Step 4: Run the Playbooks
+
 ## HyperShift - Create Hosted Cluster Playbook
 * Run this shell command to run the [create_hosted_cluster.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_hosted_cluster.yaml) playbook:
 ```
