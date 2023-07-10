@@ -43,7 +43,7 @@
     --memory {{ hostvars['bastion_hypershift'].ram }} \
     --vcpus sockets=1,cores={{ hostvars['bastion_hypershift'].vcpu }},threads=1 \
     --disk /home/libvirt/images/{{ hostvars['bastion_hypershift'].vm_name }}.qcow2,format=qcow2,bus=virtio,cache=none \
-    --os-variant "rhel{{ hostvars['bastion_hypershift'].os_variant }}" \
+    --os-variant rhel{{ hostvars['bastion_hypershift'].os_variant }} \
     --network network:{{ bridge_name }} \
     --location '{{ hostvars['file_server'].protocol }}://{{ hostvars['file_server'].fs_user + ':' + hostvars['file_server'].fs_pass + '@' if hostvars['file_server'].protocol == 'ftp' else '' }}{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].iso_mount_dir }}/' \
     --rng=/dev/urandom --initrd-inject /home/libvirt/bastion.ks \

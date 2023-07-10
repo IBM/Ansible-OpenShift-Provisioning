@@ -5,7 +5,7 @@ These variables apply to all hosts defined in Ansible inventory.
 :--- | :--- | :---
 **ansible_ssh_private_key_file** | Absolute path to the private SSH key on your Ansible controller to be used for connecting to hosts. | /home/user/.ssh/id_rsa
 **rh_username** | Red Hat username. | redhat.user
-**env.rh_pass** | Password to above Red Hat user's account. | rEdHatPa$s!
+**rh_pass** | Password to above Red Hat user's account. | rEdHatPa$s!
 **rh_pull_secret** | Pull secret for above Red Hat user. | {"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}
 **timezone** | Desired timezone for VMs using 'TZ database' (Area/City) format. | America/New_York
 **language** | Desired locale identifier for VMs. | en_US.UTF-8
@@ -20,6 +20,6 @@ These variables apply to all hosts defined in Ansible inventory.
 **rhcos_live_kernel** | Name of CoreOS live kernel file to be downloaded. | rhcos-4.12.3-s390x-live-kernel-s390x
 **rhcos_live_initrd** | Name of CoreOS live initial ram disk file to be downloaded. | rhcos-4.12.3-s390x-live-initramfs.s390x.img
 **rhcos_live_rootfs** | Name of CoreOS live root file system file to be downloaded. | rhcos-4.12.3-s390x-live-rootfs.s390x.img
-**rhcos_os_variant** | Version of RHEL closest to desired CoreOS version. | rhel8.6
+**os_variant** | Version of RHEL closest to desired CoreOS version. | rhel8.6
 **metadata_name** | Overarching name for OpenShift cluster, used in many plases. | ocp_na_east
 **base_domain** | Base domain for the cluster, will be combined with metadata_name to create cluster URL. | ihost.com
