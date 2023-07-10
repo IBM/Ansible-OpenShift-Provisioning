@@ -21,7 +21,7 @@ repo --install --name="AppStream" --baseurl={{ hostvars['file_server'].protocol 
 repo --install --name="BaseOS" --baseurl={{ hostvars['file_server'].protocol }}://{{ hostvars['file_server'].fs_user + ':' + hostvars['file_server'].fs_pass + '@' if hostvars['file_server'].protocol == 'ftp' else '' }}{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].iso_mount_dir }}/BaseOS
 
 # Keyboard layouts
-keyboard --vckeymap={{ env.keyboard }} --xlayouts='{{ env.keyboard }}'
+keyboard --vckeymap={{ keyboard }} --xlayouts='{{ keyboard }}'
 
 # System language
 lang {{ hostvars['bastion'].language }}
@@ -61,26 +61,6 @@ part pv.01 --fstype="lvmpv" --grow --size=1 --ondisk=vda
 volgroup vgsystem --pesize=4096 pv.01
 logvol swap --fstype=swap --name=swap --vgname=vgsystem --size={{ hostvars['bastion'].swap }}
 logvol / --fstype=xfs --name=root --vgname=vgsystem --size=1 --grow
-
-# Packages selection
-%packages --multilib --ignoremissing
-@^minimal-environment
-bind-utils
-curl
-jq
-mc
-net-tools
-# TODO: python3.6 is not supported anymore on RHEL8
-python3
-python3-pip
-rsync
-vim
-wget
-network-scripts
-%end
-
-%addon com_redhat_kdump --disable
-%end
 
 %post --log=/root/post.log
 #!/usr/bin/env bash

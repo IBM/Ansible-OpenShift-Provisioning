@@ -13,6 +13,7 @@ all:
 
     timezone: America/New_York
     language: en_US.UTF-8
+    keyboard: us
 
     #proxy_env:
       #http_proxy: #optional
@@ -51,7 +52,7 @@ all:
       ansible_host: "{{ bastion_ip }}"
       ansible_user: "{{ bastion_user }}"
       ansible_become_password: "{{ vault_bastion_pass }}"
-      pkgs: [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
+      pkgs: [ @^minimal-environment, haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3, python3-pip python3-policycoreutils, rsync, curl, jq, mc, net-tools, wget, network-scripts ]
       fqdn: #X
       nameservers:
         - "{{ bastion_ip }}" # Will be same as bastion's bastion_ip var if setup_dns is True
