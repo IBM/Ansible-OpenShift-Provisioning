@@ -33,7 +33,7 @@
     path: /root/ansible_workdir
     state: directory
 
-block:
+- block:
   - name: Check if oc binary is already installed.
     command: oc
 
