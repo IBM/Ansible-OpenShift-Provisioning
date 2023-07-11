@@ -62,6 +62,14 @@ volgroup vgsystem --pesize=4096 pv.01
 logvol swap --fstype=swap --name=swap --vgname=vgsystem --size={{ hostvars['bastion'].swap }}
 logvol / --fstype=xfs --name=root --vgname=vgsystem --size=1 --grow
 
+# Packages selection
+%packages --multilib --ignoremissing
+@^minimal-environment
+%end
+
+%addon com_redhat_kdump --disable
+%end
+
 %post --log=/root/post.log
 #!/usr/bin/env bash
 #

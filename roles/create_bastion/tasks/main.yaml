@@ -36,6 +36,7 @@
     virsh undefine {{ hostvars['bastion'].vm_name }} --remove-all-storage || true
     virt-install \
     --name {{ hostvars['bastion'].vm_name }} \
+    --connect qemu:///system \
     --os-variant={{ hostvars['file_server'].iso_os_variant | lower }} \
     --autostart \
     --memory={{ hostvars['bastion'].ram }} \
