@@ -36,18 +36,19 @@
 - name: Create qemu image for bastion
   command: qemu-img create -f qcow2 /home/libvirt/images/{{ hostvars['bastion_hypershift'].vm_name }}.qcow2 {{ hostvars['bastion_hypervisor'].disk_size }}G
 
-- name: Create bastion 
+- name: Create bastion
   shell: |
-    virt-install \ 
+    virt-install \
     --name {{ hostvars['bastion_hypershift'].vm_name }} \
     --memory {{ hostvars['bastion_hypershift'].ram }} \
     --vcpus sockets=1,cores={{ hostvars['bastion_hypershift'].vcpu }},threads=1 \
     --disk /home/libvirt/images/{{ hostvars['bastion_hypershift'].vm_name }}.qcow2,format=qcow2,bus=virtio,cache=none \
-    --os-variant rhel{{ hostvars['bastion_hypershift'].os_variant }} \
+    --os-variant {{ hostvars['bastion_hypershift'].os_variant }} \
     --network network:{{ network_name }} \
-    --location '{{ hostvars['file_server'].protocol }}://{{ hostvars['file_server'].fs_user + ':' + hostvars['file_server'].fs_pass + '@' if hostvars['file_server'].protocol == 'ftp' else '' }}{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].iso_mount_dir }}/' \
-    --rng=/dev/urandom --initrd-inject /home/libvirt/bastion.ks \
-    --extra-args="ks=file:/bastion.ks ip={{ hostvars['bastion_hypershift'].bastion_ip }}::{{ hostvars['bastion_hypershift'].gateway }}:{{ hostvars['bastion_hypershift'].subnet_mask }}:{{ hostvars['bastion_hypershift'].hostname }}.{{ hostvars['bastion_hypershift'].base_domain }}:{{ hostvars['bastion_hypershift'].interface }}:none console=ttysclp0 {% for ns in hostvars['bastion_hypershift'].nameservers %}nameserver={{ ns }} {% endfor %} \
+    --location "{{ hostvars['file_server'].protocol }}://{{ hostvars['file_server'].fs_user + ':' + hostvars['file_server'].fs_pass + '@' if hostvars['file_server'].protocol == 'ftp' else '' }}{{ hostvars['file_server'].fs_ip }}/{{ hostvars['file_server'].iso_mount_dir }}/" \
+    --rng=/dev/urandom \
+    --initrd-inject /home/libvirt/bastion.ks \
+    --extra-args="ks=file:/bastion.ks ip={{ hostvars['bastion_hypershift'].bastion_ip }}::{{ hostvars['bastion_hypershift'].gateway }}:{{ hostvars['bastion_hypershift'].subnet_mask }}:{{ hostvars['bastion_hypershift'].hostname }}.{{ hostvars['bastion_hypershift'].base_domain }}:{{ hostvars['bastion_hypershift'].interface }}:none console=ttysclp0 {% for ns in hostvars['bastion_hypershift'].nameservers %}nameserver={{ ns }}{% endfor %}" \
     --noautoconsole \
     --wait -1
 
