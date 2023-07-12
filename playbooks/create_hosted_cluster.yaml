@@ -9,7 +9,7 @@
   roles:
     - install_prereqs_hypershift
     - macvtap
-    - { role: create_bastion_hypershift, when: hostvars['bastion_hypershift'].create }
+    - { role: create_bastion_hypershift, when: "{{ hostvars['bastion_hypershift'].create }}" }
 
 - import_playbook: connect_hosts.yaml
   vars:
