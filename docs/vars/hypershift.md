@@ -37,7 +37,7 @@
 **nameservers** | List of DNS nameserver(s) for this host. | - 192.168.1.254<br />- 192.168.1.253
 **gateway** | IP address that acts as the exit point for the bastion to reach other networks. | 192.168.1.1
 **subnet_mask** | Subnet size for the bastion's IP in dotted decimal notation. | 255.255.255.0
-**root_pass** | Do not change. Set in Ansible Vault (next step) - Bastion's root SSH password. | "{{ vault_bastion_root_pass }}"
+**root_pass** | Do not change. Set in Ansible Vault (next step) - Bastion's root SSH password. | "{{ vault_bastion_hypershift_root_pass }}"
 
 ## HyperShift General
 **Variable Name** | **Description** | **Example**

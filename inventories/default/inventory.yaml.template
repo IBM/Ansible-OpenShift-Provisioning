@@ -231,7 +231,7 @@ all:
             #- #Optional 
           #gateway: 
           #subnet_mask: 
-          #root_pass: 
+          #root_pass: "{{ vault_bastion_hypershift_root_pass }}"
       #vars:
         #branch_for_cli: 
         #mgmt_cluster_nameserver: #X

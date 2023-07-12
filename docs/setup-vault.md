@@ -35,5 +35,8 @@ ansible-vault encrypt group_vars/all/vault.yaml
 **vault_hmc_1_pass** | The password that the HMC API call will use to authenticate</br > for the first LPAR. | Pa$sw0rd!
 **vault_hmc_2_pass** | Only required if creating two LPARs. The password that the</br > HMC API call will use to authenticate for the second LPAR. | Pa$sw0rd!
 **vault_hmc_3_pass** | Only required if creating three LPARs. The password that</br > the HMC API call will use to authenticate for the third LPAR. | Pa$sw0rd!
+**vault_hypervisor_hypershift_pass** | Only required if setting up HyperShift. HyperShift hypervisor's password. | Pa$sw0rd!
+**vault_bastion_hypershift_pass** | Only required if setting up HyperShift. HyperShift bastion's password.
+**vault_bastion_hypershift_root_pass** | Required only if setting up HyperShift and creating</br > the bastion. HyperShift bastion's root password. | Pa$sw0rd!
 **vault_hcp_pull_secret** | Only required if configuring HyperShift. Pull secret for Managed Cluster. | {"auths":[...]@gmail.com"}}}
 **vault_hcp_password** | Only required if configuring HyperShift. Password to authenticate to the Managed Cluster. | Pa$sw0rd!
