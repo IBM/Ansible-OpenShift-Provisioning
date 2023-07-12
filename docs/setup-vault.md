@@ -12,7 +12,7 @@ echo 'vault-password' > .password.txt && chmod 600 .password.txt
 ```
 ###### 5. Encrypt the Ansible Vault by running the following command:
 ```
-ansible-vault encrypt group_vars/all/vault.yaml
+ansible-vault encrypt inventories/default/group_vars/all/vault.yaml
 ```
 
 * For more on working with Ansible Vault, please see [Ansible's documentation](https://docs.ansible.com/ansible/latest/vault_guide/index.html).
