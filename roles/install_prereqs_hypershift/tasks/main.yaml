@@ -49,39 +49,6 @@
         dest: /usr/local/bin/oc
         remote_src: true
 
-- name: Download latest Go.
-  get_url:
-    url: "https://golang.org/dl/go{{ go_version }}.linux-{{ ansible_architecture }}.tar.gz"
-    dest: "/root/ansible_workdir/"
-
-- name: Unzip the go tar.gz package.
-  unarchive: 
-    src: /root/ansible_workdir/go{{ go_version }}.linux-{{ ansible_architecture }}.tar.gz
-    dest: /usr/local
-    remote_src: true
-
-- name: Add Go binary to PATH in bash_profile.
-  lineinfile:
-    path: "~/.bash_profile"
-    line: "export PATH=$PATH:/usr/local/go/bin"
-    state: present
-
-- name: Export GOPATH in bash_profile.
-  lineinfile:
-    path: "~/.bash_profile"
-    line: "export GOPATH=/root/"
-    state: present
-
-- name: Copy go to /usr/local/bin/ folder.
-  copy:
-    src: /usr/local/go/bin/go
-    dest: /usr/local/bin/
-
-- name: Set permissions for go binary.
-  file:
-    path: /usr/local/bin/go
-    mode: "0755"
-
 block:
   - name: Check if HyperShift is already installed.
     command: hypershift -v
