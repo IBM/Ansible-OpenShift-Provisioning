@@ -7,7 +7,7 @@
 
     - block:
 
-      - name: Check if all hosts from inventory are reachable.
+      - name: Check if all hosts from inventory are reachable. Disregard an error here, it just triggers tasks that copy your SSH key to unreachable host(s).
         tags: check
         ansible.builtin.wait_for_connection:
           connect_timeout: 5
