@@ -13,7 +13,7 @@
 **ansible_user** | Username for Ansible to connect as via SSH. Leave</br > as is to use same value as hypervisor_user var. | "{{ hypervisor_user }}"
 **pkgs** | Packages to be installed on host. | [ make, jq, ..., lvm2 ]
 **network_interface** | The interface to be used for the virtual network bridge. | "{{ ansible_default_ipv4.interface }}"
-**bridge_name** | Name of virtual network to be defined</br > that the VM guests will use. | macvtap-net
+**network_name** | Name of virtual network to be defined</br > that the VM guests will use. | macvtap-net
 **gateway** | IP address that acts as the exit point</br > to reach other networks.  | "{{ ansible_default_ipv4.gateway }}"
 
 ## HyperShift Bastion

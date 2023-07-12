@@ -207,7 +207,7 @@ all:
           #ansible_user: "{{ hypervisor_user }}"
           #pkgs: [ make, jq, git, virt-install, libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
           #network_interface: "{{ ansible_default_ipv4.interface }}"
-          #bridge_name: macvtap
+          #network_name: macvtap
           #gateway: "{{ ansible_default_ipv4.gateway }}"
         #bastion_hypershift:
           #bastion_ip: #X
