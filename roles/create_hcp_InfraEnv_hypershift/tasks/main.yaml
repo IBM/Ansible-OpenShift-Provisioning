@@ -46,7 +46,7 @@
 - name: Wait for pods to come up in Hosted Cluster Namespace
   shell: oc get pods -n {{ hosted_control_plane_namespace }} | wc -l
   register: pod_count
-  until: pod_count.stdout > '25'
+  until: pod_count.stdout | int > 30
   retries: 40
   delay: 10
 
