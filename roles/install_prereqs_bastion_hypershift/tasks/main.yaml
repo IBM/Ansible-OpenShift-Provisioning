@@ -44,11 +44,13 @@
   copy: 
     src: /usr/local/go/bin/go
     dest: /usr/bin/
+    remote_src: true
 
 - name: Copy go to /usr/local/bin/
   copy:
     src: /usr/local/go/bin/go
     dest: /usr/local/bin/
+    remote_src: true
 
 - name: Set permissions to go 
   file:
