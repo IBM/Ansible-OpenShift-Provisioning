@@ -1,4 +1,5 @@
 ---
+
 - name: Install ansible-kubernetes module
   pip:
     name:
