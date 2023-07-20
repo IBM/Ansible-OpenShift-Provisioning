@@ -1,0 +1,15 @@
+- name: Create Agents
+  hosts: kvm_host_hypershift
+  roles:
+  - boot_agents_hypershift
+
+- name: Scale Nodepool & Configure Haproxy on bastion for hosted workers
+  hosts: bastion_hypershift
+  roles:
+  - scale_nodepool_and_wait_for_workers_hypershift
+  - add_hc_workers_to_haproxy_hypershift
+
+- name: Wait for all Console operators to come up
+  hosts: bastion_hypershift
+  roles:
+  - wait_for_hc_to_complete_hypershift
