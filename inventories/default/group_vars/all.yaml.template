@@ -269,6 +269,15 @@ hypershift:
     root_fs_url:
     mce_namespace: "multicluster-engine" # This is the Recommended Namespace for Multicluster Engine operator
 
+  agents_parms:
+    agents_count: 
+    # Give the list of macaddress for agents here separated by ,
+    agent_mac_addr: [  ]
+    disk_size: 100G
+    ram: 16384
+    vcpus: 4
+    nameserver:
+
 # Section 17 - (Optional) Create additional compute node in a day-2 operation
 
 day2_compute_node:

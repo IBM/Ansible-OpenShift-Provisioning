@@ -28,4 +28,4 @@
   when: ssh_key.stat.exists == false
 
 - name: Add ssh-key to kvm_host Authorised Keys
-  shell: ssh-copy-id {{ hypershift.kvm_host_user }}@{{hypershift.kvm_host}}
+  shell: ssh-copy-id -i ~/.ssh/{{ env.ansible_key_name }}.pub {{ hypershift.kvm_host_user }}@{{hypershift.kvm_host}}

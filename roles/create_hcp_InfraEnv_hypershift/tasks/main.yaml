@@ -38,6 +38,11 @@
     --api-server-address=api.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }} 
     --ssh-key ~/.ssh/{{ env.ansible_key_name }}.pub
     --release-image=quay.io/openshift-release-dev/ocp-release:{{ hypershift.hcp.ocp_release }} 
+    {% set release_image = lookup('env', 'HCP_RELEASE_IMAGE') %}
+    {% if release_image is defined and release_image != '' %}
+    --release-image={{ release_image }}
+    {% else %}
+    --release-image=quay.io/openshift-release-dev/ocp-release:{{ hypershift.hcp.ocp_release }}
 
 
 - name: Waiting for Hosted Control Plane to be available
@@ -46,7 +51,7 @@
 - name: Wait for pods to come up in Hosted Cluster Namespace
   shell: oc get pods -n {{ hosted_control_plane_namespace }} | wc -l
   register: pod_count
-  until: pod_count.stdout > '25'
+  until: pod_count.stdout | int > 30
   retries: 40
   delay: 10
 
