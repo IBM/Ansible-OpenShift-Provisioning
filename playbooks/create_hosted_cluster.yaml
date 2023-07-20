@@ -50,6 +50,10 @@
       import_role:
         name: install_prereqs_bastion_hypershift
 
+    - name: Add ansible SSH key to ssh-agent
+      import_role:
+        name: ssh_agent
+
 - name: Create AgentServiceConfig Hosted Control Plane and InfraEnv
   hosts: bastion_hypershift
   vars_files:

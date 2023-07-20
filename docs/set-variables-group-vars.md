@@ -219,6 +219,12 @@
 **hypershift.asc.iso_url** | Give URL for ISO image | https://... <br /> ...s390x-live.s390x.iso
 **hypershift.asc.root_fs_url** | Give URL for rootfs image | https://... <br /> ... live-rootfs.s390x.img
 **hypershift.asc.mce_namespace** | Namespace where your Multicluster Engine Operator is installed. <br /> Recommended Namespace for MCE is 'multicluster-engine'. <br /> Change this only if MCE is installed in other namespace. | multicluster-engine
+**hypershift.agents_parms.agents_count** | Number of agents for the hosted cluster <br /> The same number of compute nodes will be attached to Hosted Cotrol Plane | 2
+**hypershift.agents_parms.agent_mac_addr** | Give here list of macaddresses for the agents <br /> These mac addresses should be configured in DHCP if you are using dynamic IPs for Agents | [ 52:54:00:d9:5b:d9 , 52:54:00:ba:d3:f7 ]
+**hypershift.agents_parms.disk_size** | Disk size for agents | 100G
+**hypershift.agents_parms.ram** | RAM for agents | 16384
+**hypershift.agents_parms.vcpus** | vCPUs for agents | 4
+**hypershift.agents_parms.nameserver** | Nameserver to be used for agents | 192.168.10.1
 
 ## 17 - (Optional) Create compute node in a day-2 operation
 

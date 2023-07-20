@@ -1,0 +1,82 @@
+---
+
+- name: Login to Management Cluster
+  command: oc login {{ api_server }} -u {{ user_name }} -p {{ password }} --insecure-skip-tls-verify=true
+
+- name: Scale in  Nodepool
+  command: oc -n {{ hypershift.hcp.clusters_namespace }} scale nodepool {{ hypershift.hcp.hosted_cluster_name }} --replicas 0
+
+- name: Wait for Worker Nodes to Detach
+  k8s_info:
+    api_version: v1
+    kind: Node
+    kubeconfig: "/root/ansible_workdir/{{ hypershift.hcp.hosted_cluster_name }}-kubeconfig"
+  register: nodes
+  until: nodes.resources | length == 0
+  retries: 30
+  delay: 10
+
+- name: Wait for Agentmachines to delete
+  k8s_info:
+    api_version: capi-provider.agent-install.openshift.io/v1alpha1
+    kind: AgentMachine
+  register: agent_machines
+  until: agent_machines.resources | length == 0
+  retries: 30
+  delay: 10
+
+- name: Wait for Machines to delete
+  k8s_info:
+    api_version: cluster.x-k8s.io/v1beta1
+    kind: Machine
+  register: machines
+  until: machines.resources | length == 0
+  retries: 30
+  delay: 10
+
+- name: Get agent names
+  command: oc get agents -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} --no-headers
+  register: agents_info
+
+- name: Create List for agents
+  set_fact:
+    agents: []
+
+- name: Get a List of agents
+  set_fact:
+    agents: "{{ agents + [agents_info.stdout.split('\n')[item].split(' ')[0]] }}"
+  loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+
+- name: Delete Agents
+  command: oc delete agent {{ agents[item] }} -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} 
+  loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+  
+- name: Remove workdir
+  file:
+    path: /root/ansible_workdir
+    state: absent
+
+- name: Delete InfraEnv resource
+  k8s:
+    state: absent
+    api_version: agent-install.openshift.io/v1beta1
+    kind: InfraEnv
+    name: "{{ hypershift.hcp.hosted_cluster_name }}"
+    namespace: "{{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}"
+
+- name: Destroy Hosted Control Plane
+  command: hypershift destroy cluster agent --name {{ hypershift.hcp.hosted_cluster_name }} --namespace {{ hypershift.hcp.clusters_namespace }}
+
+- name: Delete Clusters Namespace
+  k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ hypershift.hcp.clusters_namespace }}"
+    state: absent
+
+- name: Delete AgentServiceConfig
+  k8s:
+    api_version: agent-install.openshift.io/v1beta1
+    kind: AgentServiceConfig
+    name: agent
+    state: absent
