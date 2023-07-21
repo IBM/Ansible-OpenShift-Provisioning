@@ -270,9 +270,16 @@ hypershift:
     mce_namespace: "multicluster-engine" # This is the Recommended Namespace for Multicluster Engine operator
 
   agents_parms:
+    static_ip_parms:
+      static_ip: 'true' 
+      ip:     # Required only if static_ip is true
+      - #
+
+      interface: 'eth0'
+
     agents_count: 
     # Give the list of macaddress for agents here separated by ,
-    agent_mac_addr: [  ]
+    agent_mac_addr: [  ]   # Required only if static_ip is false
     disk_size: 100G
     ram: 16384
     vcpus: 4

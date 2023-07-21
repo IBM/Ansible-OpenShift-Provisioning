@@ -190,7 +190,7 @@
 **hypershift.kvm_host_user** | User for KVM host | root
 **hypershift.bastion_hypershift** | IPv4 address for bastion of Hosted Cluster | 192.168.10.1
 **hypershift.bastion_hypershift_user** | User for bastion of Hosted Cluster | root
-**hypershift.create_bastion** | True or False - create bastion with the provided IP (hypershift.bastion_hypershift) | True
+**hypershift.create_bastion** | true or false - create bastion with the provided IP (hypershift.bastion_hypershift) | true
 **hypershift.networking_device** | The network interface card from Linux's perspective. <br /> Usually enc and then a number that comes from the dev_num of the network adapter. | enc1100
 **hypershift.gateway** | IPv4 Address for gateway from where the kvm_host and bastion are reachable  <br /> This for adding ip route from kvm_host to bastion through gateway  | 192.168.10.1
 **hypershift.branch_for_cli** | Git branch for latest release of hypershift | release-4.13
@@ -219,6 +219,9 @@
 **hypershift.asc.iso_url** | Give URL for ISO image | https://... <br /> ...s390x-live.s390x.iso
 **hypershift.asc.root_fs_url** | Give URL for rootfs image | https://... <br /> ... live-rootfs.s390x.img
 **hypershift.asc.mce_namespace** | Namespace where your Multicluster Engine Operator is installed. <br /> Recommended Namespace for MCE is 'multicluster-engine'. <br /> Change this only if MCE is installed in other namespace. | multicluster-engine
+**hypershift.agents_parms.static_ip_parms.static_ip** | true or false - set to true if you want to use static IPs for agents using NMState | true
+**hypershift.agents_parms.static_ip_parms.ip** | Give here list of IP addresses for agents | 192.168.10.1
+**hypershift.agents_parms.static_ip_parms.interface** | Interface for agents for configuring NMStateConfig | eth0
 **hypershift.agents_parms.agents_count** | Number of agents for the hosted cluster <br /> The same number of compute nodes will be attached to Hosted Cotrol Plane | 2
 **hypershift.agents_parms.agent_mac_addr** | Give here list of macaddresses for the agents <br /> These mac addresses should be configured in DHCP if you are using dynamic IPs for Agents | [ 52:54:00:d9:5b:d9 , 52:54:00:ba:d3:f7 ]
 **hypershift.agents_parms.disk_size** | Disk size for agents | 100G
