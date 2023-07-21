@@ -128,3 +128,10 @@ ansible-playbook playbooks/destroy_cluster_hypershift.yaml --ask-vault-pass
 * Deletes AgentServiceConfig
 * Deletes the images downloaded on kvm host
 * Destroys VMs of Bastion and Agents
+
+## Notes
+#### Overriding OCP Release Image for HCP 
+* If you want to use any other image as OCP release image for HCP , you can override it by environment variable.
+```
+export HCP_RELEASE_IMAGE="<image_url>"
+```
