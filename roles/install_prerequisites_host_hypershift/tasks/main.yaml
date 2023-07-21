@@ -4,8 +4,13 @@
     path: "~/.ssh/{{ env.ansible_key_name }}.pub"
   register: ssh_key
 
-- name: Generate SSH key
-  command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ env.ansible_key_name }}"
+- name: Generate an OpenSSH keypair with the default values (4096 bits, RSA)
+  community.crypto.openssh_keypair:
+    path: "~/.ssh/{{ env.ansible_key_name }}"
+    passphrase: ""
+    comment: "Ansible-OpenShift-Provisioning SSH key"
+    regenerate: full_idempotence
+  register: ssh_key_creation
   when: ssh_key.stat.exists == false
 
 - name: Create Work Directory

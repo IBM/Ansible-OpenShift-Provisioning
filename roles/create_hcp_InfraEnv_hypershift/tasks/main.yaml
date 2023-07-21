@@ -43,7 +43,7 @@
     --release-image={{ release_image }}
     {% else %}
     --release-image=quay.io/openshift-release-dev/ocp-release:{{ hypershift.hcp.ocp_release }}
-
+    {% endif %}
 
 - name: Waiting for Hosted Control Plane to be available
   command: oc wait --timeout=30m --for=condition=Available --namespace={{ hypershift.hcp.clusters_namespace }} hostedcluster/{{ hypershift.hcp.hosted_cluster_name }}
