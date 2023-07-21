@@ -18,27 +18,6 @@
 
 - name: Deploy AgentServiceConfig
   command: oc apply -f /root/ansible_workdir/agentserviceconfig.yaml
- 
-- name: Create Config map for ISO_IMAGE_TYPE 
-  k8s:
-    definition:
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: my-assisted-service-config
-        namespace: "{{ hypershift.asc.mce_namespace }}"
-      data:
-        ISO_IMAGE_TYPE: 'full'
-
-- name: Add the annotation to the AgentServiceConfig
-  shell: oc annotate --overwrite AgentServiceConfig agent unsupported.agent-install.openshift.io/assisted-service-configmap=my-assisted-service-config
-
-- name: Rollout new deployment for assisted-service
-  command: oc rollout restart deployment/assisted-service -n {{ hypershift.asc.mce_namespace }}
-  register: assisted_service
-  until: assisted_service.rc == 0
-  retries: 5
-  delay: 15
 
 - name: Wait for Agent Service Deployment to be Succeeded
   shell: oc get AgentServiceConfig agent -o json | jq -r '.status|.conditions[]|.status' | grep False | wc -l
