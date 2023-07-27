@@ -4,7 +4,7 @@ metadata:
   name: "{{ hypershift.hcp.hosted_cluster_name }}"
   namespace: "{{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}"
 spec:
-{% if hypershift.agents_parms.static_ip_parms.static_ip == 'true' %}
+{% if hypershift.agents_parms.static_ip_parms.static_ip == true %}
   nmStateConfigLabelSelector:
     matchLabels:
       infraenv: "static-ip-{{ hypershift.hcp.hosted_cluster_name }}"

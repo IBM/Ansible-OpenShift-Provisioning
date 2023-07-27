@@ -5,7 +5,7 @@
 
 - name: Boot Agents
   shell: |
-    {% if hypershift.agents_parms.static_ip_parms.static_ip == 'true' %}
+    {% if hypershift.agents_parms.static_ip_parms.static_ip == true %}
     mac_address=$(oc get NmStateConfig static-ip-nmstate-config-{{ hypershift.hcp.hosted_cluster_name }}-{{ item }} -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} -o json | jq -r '.spec.interfaces[] | .macAddress')
     {% else %}
     mac_address="{{ hypershift.agents_parms.agent_mac_addr[item] }}"

@@ -225,7 +225,7 @@ hypershift:
   bastion_hypershift:
   bastion_hypershift_user:
 
-  create_bastion: 'true'
+  create_bastion: true
   networking_device: enc1100
 
   gateway: 
