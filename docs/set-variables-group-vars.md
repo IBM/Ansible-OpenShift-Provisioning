@@ -219,10 +219,10 @@
 **hypershift.asc.iso_url** | Give URL for ISO image | https://... <br /> ...s390x-live.s390x.iso
 **hypershift.asc.root_fs_url** | Give URL for rootfs image | https://... <br /> ... live-rootfs.s390x.img
 **hypershift.asc.mce_namespace** | Namespace where your Multicluster Engine Operator is installed. <br /> Recommended Namespace for MCE is 'multicluster-engine'. <br /> Change this only if MCE is installed in other namespace. | multicluster-engine
-**hypershift.agents_parms.static_ip_parms.static_ip** | true or false - set to true if you want to use static IPs for agents using NMState | true
-**hypershift.agents_parms.static_ip_parms.ip** | Give here list of IP addresses for agents | 192.168.10.1
+**hypershift.agents_parms.static_ip_parms.static_ip** | true or false - use static IPs for agents using NMState | true
+**hypershift.agents_parms.static_ip_parms.ip** | List of IP addresses for agents | 192.168.10.1
 **hypershift.agents_parms.static_ip_parms.interface** | Interface for agents for configuring NMStateConfig | eth0
-**hypershift.agents_parms.static_ip_parms.generate_mac_addr** | true or false - set to false if you want to use a specific mac addresses for agents in case of static IP configuration | true
+**hypershift.agents_parms.static_ip_parms.generate_mac_addr** | true or false - randomly generate mac addresses for agents or manually specify them | true
 **hypershift.agents_parms.agents_count** | Number of agents for the hosted cluster <br /> The same number of compute nodes will be attached to Hosted Cotrol Plane | 2
 **hypershift.agents_parms.agent_mac_addr** | List of macaddresses for the agents. <br /> Configure in DHCP if you are using dynamic IPs for Agents. | - 52:54:00:ba:d3:f7 
 **hypershift.agents_parms.disk_size** | Disk size for agents | 100G
