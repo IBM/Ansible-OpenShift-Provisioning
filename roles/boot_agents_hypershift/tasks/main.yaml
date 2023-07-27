@@ -12,7 +12,7 @@
     {% endif %}
 
     virt-install \
-    --name "{{ hypershift.hcp.hosted_cluster_name }}-agent-{{item}}" \
+    --name "{{ hypershift.hcp.hosted_cluster_name }}-agent-{{ item }}" \
     --autostart \
     --ram="{{ hypershift.agents_parms.ram }}" \
     --cpu host \
