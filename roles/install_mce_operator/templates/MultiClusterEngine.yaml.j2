@@ -1,0 +1,6 @@
+apiVersion: multicluster.openshift.io/v1
+kind: MultiClusterEngine
+metadata:
+  name: {{ hypershift.mce.instance_name }}
+  namespace: "{{ hypershift.asc.mce_namespace }}"
+spec: {}

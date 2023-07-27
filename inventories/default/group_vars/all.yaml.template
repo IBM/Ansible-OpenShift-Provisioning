@@ -258,6 +258,12 @@ hypershift:
     # Make sure to enclose pull_secret in 'single quotes'
     pull_secret:
 
+  # MultiClusterEngine Parameters
+  mce:
+    version: 
+    instance_name: 'engine'
+    delete_mce_while_deleting_resources: false
+
   # AgentServiceConfig Parameters
 
   asc:

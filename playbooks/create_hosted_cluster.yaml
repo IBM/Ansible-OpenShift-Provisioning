@@ -59,6 +59,7 @@
   vars_files:
     - "{{playbook_dir}}/secrets.yaml"
   roles:
+  - install_mce_operator
   - create_agentserviceconfig_hypershift
   - create_hcp_InfraEnv_hypershift
 
