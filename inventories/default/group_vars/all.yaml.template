@@ -279,7 +279,7 @@ hypershift:
     agents_count: 
     # Give the list of macaddress for agents here if you want to use specific mac addresses
     agent_mac_addr:  
-    - #
+      #- 
     disk_size: 100G
     ram: 16384
     vcpus: 4
