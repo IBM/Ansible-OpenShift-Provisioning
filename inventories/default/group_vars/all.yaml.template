@@ -276,7 +276,6 @@ hypershift:
         #- 
         #- 
       interface: eth0
-      generate_mac_addr: true
     agents_count: 
     # Give the list of macaddress for agents here if you want to use specific mac addresses
     agent_mac_addr:  

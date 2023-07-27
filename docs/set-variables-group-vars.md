@@ -222,7 +222,6 @@
 **hypershift.agents_parms.static_ip_parms.static_ip** | true or false - use static IPs for agents using NMState | true
 **hypershift.agents_parms.static_ip_parms.ip** | List of IP addresses for agents | 192.168.10.1
 **hypershift.agents_parms.static_ip_parms.interface** | Interface for agents for configuring NMStateConfig | eth0
-**hypershift.agents_parms.static_ip_parms.generate_mac_addr** | true or false - randomly generate mac addresses for agents or manually specify them | true
 **hypershift.agents_parms.agents_count** | Number of agents for the hosted cluster <br /> The same number of compute nodes will be attached to Hosted Cotrol Plane | 2
 **hypershift.agents_parms.agent_mac_addr** | List of macaddresses for the agents. <br /> Configure in DHCP if you are using dynamic IPs for Agents. | - 52:54:00:ba:d3:f7 
 **hypershift.agents_parms.disk_size** | Disk size for agents | 100G

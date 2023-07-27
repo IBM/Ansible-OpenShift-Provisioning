@@ -78,12 +78,12 @@
 - name: Getting mac addresss for agents
   set_fact:
     agent_mac_addr: "{{ hypershift.agents_parms.agent_mac_addr }}"
-  when: ( hypershift.agents_parms.static_ip_parms.static_ip == true ) and ( hypershift.agents_parms.static_ip_parms.generate_mac_addr == false )
+  when: ( hypershift.agents_parms.static_ip_parms.static_ip == true ) and ( hypershift.agents_parms.agent_mac_addr | length != 0 )
 
 - name: Generate mac addresses for agents
   set_fact:
     agent_mac_addr: "{{ agent_mac_addr +  ['52:54:00' | community.general.random_mac] }}"
-  when: ( hypershift.agents_parms.static_ip_parms.static_ip == true ) and ( hypershift.agents_parms.static_ip_parms.generate_mac_addr == true )
+  when: ( hypershift.agents_parms.static_ip_parms.static_ip == true ) and ( hypershift.agents_parms.agent_mac_addr | length == 0 )
   loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
 
 - name: Create NMState Configs
