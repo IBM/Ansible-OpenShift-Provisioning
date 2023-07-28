@@ -30,7 +30,7 @@
     - name: Creating Bastion
       include_role:
         name: create_bastion_hypershift
-      when: hypershift.create_bastion == 'true'
+      when: hypershift.create_bastion == true
 
 - name: Configuring Bastion
   hosts: bastion_hypershift
@@ -59,6 +59,7 @@
   vars_files:
     - "{{playbook_dir}}/secrets.yaml"
   roles:
+  - install_mce_operator
   - create_agentserviceconfig_hypershift
   - create_hcp_InfraEnv_hypershift
 

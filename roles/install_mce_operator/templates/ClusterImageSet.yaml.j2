@@ -1,0 +1,6 @@
+apiVersion: hive.openshift.io/v1
+kind: ClusterImageSet
+metadata:
+  name: img{{ hypershift.hcp.ocp_release }}-appsub
+spec:
+  releaseImage: quay.io/openshift-release-dev/ocp-release:{{ hypershift.hcp.ocp_release }}

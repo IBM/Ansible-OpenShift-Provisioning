@@ -62,19 +62,41 @@
   retries: 30
   delay: 10
 
-- name: Create InfraEnv Resource
-  k8s:
-    namespace: "{{ hosted_control_plane_namespace }}"
-    definition:
-      apiVersion: agent-install.openshift.io/v1beta1
-      kind: InfraEnv
-      metadata:
-        name: "{{ hypershift.hcp.hosted_cluster_name }}"
-      spec:
-        cpuArchitecture: "{{ hypershift.hcp.arch }}"
-        pullSecretRef:
-          name: pull-secret
-        sshAuthorizedKey: "{{ ssh_key }}"
+- name: Create InfraEnv.yaml
+  template:
+    src: InfraEnv.yaml.j2
+    dest: /root/ansible_workdir/InfraEnv.yaml
+
+- name: Deploy InfraEnv Resource
+  command: oc apply -f /root/ansible_workdir/InfraEnv.yaml
+
+- name: Creating list of mac addresses
+  set_fact:
+    agent_mac_addr: []
+  when: hypershift.agents_parms.static_ip_parms.static_ip == true
+
+- name: Getting mac addresss for agents
+  set_fact:
+    agent_mac_addr: "{{ hypershift.agents_parms.agent_mac_addr }}"
+  when: ( hypershift.agents_parms.static_ip_parms.static_ip == true ) and ( hypershift.agents_parms.agent_mac_addr != None )
+
+- name: Generate mac addresses for agents
+  set_fact:
+    agent_mac_addr: "{{ agent_mac_addr +  ['52:54:00' | community.general.random_mac] }}"
+  when: ( hypershift.agents_parms.static_ip_parms.static_ip == true ) and ( hypershift.agents_parms.agent_mac_addr == None )
+  loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+
+- name: Create NMState Configs
+  template:
+    src:  nmStateConfig.yaml.j2
+    dest: /root/ansible_workdir/nmStateConfig-agent-{{ item }}.yaml
+  when: hypershift.agents_parms.static_ip_parms.static_ip == true
+  loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+
+- name: Deploy NMState Configs
+  command: oc apply -f /root/ansible_workdir/nmStateConfig-agent-{{ item }}.yaml
+  when: hypershift.agents_parms.static_ip_parms.static_ip == true
+  loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
 
 - name: Wait for ISO to generate in InfraEnv 
   shell: oc get InfraEnv -n  {{ hosted_control_plane_namespace }} --no-headers
