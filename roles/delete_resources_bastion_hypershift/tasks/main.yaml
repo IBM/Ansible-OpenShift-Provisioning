@@ -80,27 +80,27 @@
     kind: AgentServiceConfig
     name: agent
     state: absent
-  when: hypershift.mce.delete_mce_while_deleting_resources == true
+  when: hypershift.mce.delete == true
 
 - name: Delete Provisioning
   command: oc delete Provisioning provisioning-configuration
-  when: hypershift.mce.delete_mce_while_deleting_resources == true
+  when: hypershift.mce.delete == true
 
 - name: Delete ClusterImageSet
   command: oc delete ClusterImageSet img{{ hypershift.hcp.ocp_release }}-appsub
-  when: hypershift.mce.delete_mce_while_deleting_resources == true
+  when: hypershift.mce.delete == true
 
 - name: Delete MCE Instance
   command: oc delete mce {{ hypershift.mce.instance_name }}
-  when: hypershift.mce.delete_mce_while_deleting_resources == true
+  when: hypershift.mce.delete == true
 
 - name: Delete MCE Subscription
   command: oc delete Subscription multicluster-engine -n {{ hypershift.asc.mce_namespace }}
-  when: hypershift.mce.delete_mce_while_deleting_resources == true
+  when: hypershift.mce.delete == true
 
 - name: Delete Operator Group - MCE 
   command: oc delete OperatorGroup multicluster-engine -n {{ hypershift.asc.mce_namespace }}
-  when: hypershift.mce.delete_mce_while_deleting_resources == true
+  when: hypershift.mce.delete == true
 
 - name: Delete MCE Namespace
   k8s:
@@ -108,4 +108,4 @@
     kind: Namespace
     name: "{{ hypershift.asc.mce_namespace }}"
     state: absent
-  when: hypershift.mce.delete_mce_while_deleting_resources == true
+  when: hypershift.mce.delete == true

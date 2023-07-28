@@ -262,7 +262,7 @@ hypershift:
   mce:
     version: 
     instance_name: engine
-    delete_mce_while_deleting_resources: false
+    delete: false
 
   # AgentServiceConfig Parameters
 
