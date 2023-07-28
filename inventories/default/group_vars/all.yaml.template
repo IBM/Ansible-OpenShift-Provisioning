@@ -225,7 +225,7 @@ hypershift:
   bastion_hypershift:
   bastion_hypershift_user:
 
-  create_bastion: 'true'
+  create_bastion: true
   networking_device: enc1100
 
   gateway: 
@@ -258,6 +258,12 @@ hypershift:
     # Make sure to enclose pull_secret in 'single quotes'
     pull_secret:
 
+  # MultiClusterEngine Parameters
+  mce:
+    version: 
+    instance_name: engine
+    delete: false
+
   # AgentServiceConfig Parameters
 
   asc:
@@ -267,12 +273,19 @@ hypershift:
     ocp_version:
     iso_url:
     root_fs_url:
-    mce_namespace: "multicluster-engine" # This is the Recommended Namespace for Multicluster Engine operator
+    mce_namespace: multicluster-engine # This is the Recommended Namespace for Multicluster Engine operator
 
   agents_parms:
+    static_ip_parms:
+      static_ip: true
+      ip:     # Required only if static_ip is true
+        #- 
+        #- 
+      interface: eth0
     agents_count: 
-    # Give the list of macaddress for agents here separated by ,
-    agent_mac_addr: [  ]
+    # If you want to use specific mac addresses, provide them here
+    agent_mac_addr:  
+      #- 
     disk_size: 100G
     ram: 16384
     vcpus: 4

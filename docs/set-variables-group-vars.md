@@ -190,7 +190,7 @@
 **hypershift.kvm_host_user** | User for KVM host | root
 **hypershift.bastion_hypershift** | IPv4 address for bastion of Hosted Cluster | 192.168.10.1
 **hypershift.bastion_hypershift_user** | User for bastion of Hosted Cluster | root
-**hypershift.create_bastion** | True or False - create bastion with the provided IP (hypershift.bastion_hypershift) | True
+**hypershift.create_bastion** | true or false - create bastion with the provided IP (hypershift.bastion_hypershift) | true
 **hypershift.networking_device** | The network interface card from Linux's perspective. <br /> Usually enc and then a number that comes from the dev_num of the network adapter. | enc1100
 **hypershift.gateway** | IPv4 Address for gateway from where the kvm_host and bastion are reachable  <br /> This for adding ip route from kvm_host to bastion through gateway  | 192.168.10.1
 **hypershift.branch_for_cli** | Git branch for latest release of hypershift | release-4.13
@@ -212,6 +212,9 @@
 **hypershift.hcp.machine_cidr** | Machines CIDR for Hosted Cluster | 192.168.122.0/24
 **hypershift.hcp.arch** | Architecture for InfraEnv and AgentServiceConfig" | s390x
 **hypershift.hcp.pull_secret** | Pull Secret of Management Cluster <br /> Make sure to enclose pull_secret in 'single quotes' | '{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}'
+**hypershift.mce.version** | version for multicluster-engine Operator | 2.4
+**hypershift.mce.instance_name** | name of the MultiClusterEngine instance | engine
+**hypershift.mce.delete** | true or false - deletes mce and related resources while running deletion playbook | true
 **hypershift.asc.url_for_ocp_release_file** | Add URL for OCP release.txt File | https://... <br /> ..../release.txt
 **hypershift.asc.db_volume_size** | DatabaseStorage Volume Size | 10Gi
 **hypershift.asc.fs_volume_size** | FileSystem Storage Volume Size | 10Gi
@@ -219,8 +222,11 @@
 **hypershift.asc.iso_url** | Give URL for ISO image | https://... <br /> ...s390x-live.s390x.iso
 **hypershift.asc.root_fs_url** | Give URL for rootfs image | https://... <br /> ... live-rootfs.s390x.img
 **hypershift.asc.mce_namespace** | Namespace where your Multicluster Engine Operator is installed. <br /> Recommended Namespace for MCE is 'multicluster-engine'. <br /> Change this only if MCE is installed in other namespace. | multicluster-engine
+**hypershift.agents_parms.static_ip_parms.static_ip** | true or false - use static IPs for agents using NMState | true
+**hypershift.agents_parms.static_ip_parms.ip** | List of IP addresses for agents | 192.168.10.1
+**hypershift.agents_parms.static_ip_parms.interface** | Interface for agents for configuring NMStateConfig | eth0
 **hypershift.agents_parms.agents_count** | Number of agents for the hosted cluster <br /> The same number of compute nodes will be attached to Hosted Cotrol Plane | 2
-**hypershift.agents_parms.agent_mac_addr** | Give here list of macaddresses for the agents <br /> These mac addresses should be configured in DHCP if you are using dynamic IPs for Agents | [ 52:54:00:d9:5b:d9 , 52:54:00:ba:d3:f7 ]
+**hypershift.agents_parms.agent_mac_addr** | List of macaddresses for the agents. <br /> Configure in DHCP if you are using dynamic IPs for Agents. | - 52:54:00:ba:d3:f7 
 **hypershift.agents_parms.disk_size** | Disk size for agents | 100G
 **hypershift.agents_parms.ram** | RAM for agents | 16384
 **hypershift.agents_parms.vcpus** | vCPUs for agents | 4

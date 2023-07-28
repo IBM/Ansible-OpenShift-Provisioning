@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: multicluster-engine
+  namespace: "{{ hypershift.asc.mce_namespace }}"
+spec:
+  targetNamespaces:
+  - "{{ hypershift.asc.mce_namespace }}"
