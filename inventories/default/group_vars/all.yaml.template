@@ -283,7 +283,7 @@ hypershift:
         #- 
       interface: eth0
     agents_count: 
-    # Give the list of macaddress for agents here if you want to use specific mac addresses
+    # If you want to use specific mac addresses, provide them here
     agent_mac_addr:  
       #- 
     disk_size: 100G
