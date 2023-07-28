@@ -1,8 +1,6 @@
 # Run the Playbooks
 ## Prerequisites
-* Running OCP Cluster ( Management Cluster ) 
-* Multi Cluster Engine (MCE) Operator installed on Management Cluster.
-* MCE instance created and hypershift-preview component enabled.
+* Running OCP Cluster ( Management Cluster )  
 * KVM host with root user access
 
 ### Network Prerequisites

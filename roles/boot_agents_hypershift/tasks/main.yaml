@@ -5,15 +5,21 @@
 
 - name: Boot Agents
   shell: |
+    {% if hypershift.agents_parms.static_ip_parms.static_ip == true %}
+    mac_address=$(oc get NmStateConfig static-ip-nmstate-config-{{ hypershift.hcp.hosted_cluster_name }}-{{ item }} -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} -o json | jq -r '.spec.interfaces[] | .macAddress')
+    {% else %}
+    mac_address="{{ hypershift.agents_parms.agent_mac_addr[item] }}"
+    {% endif %}
+
     virt-install \
-    --name "{{ hypershift.hcp.hosted_cluster_name }}-agent-{{item}}" \
+    --name "{{ hypershift.hcp.hosted_cluster_name }}-agent-{{ item }}" \
     --autostart \
     --ram="{{ hypershift.agents_parms.ram }}" \
     --cpu host \
     --vcpus="{{ hypershift.agents_parms.vcpus }}"  \
     --location "/var/lib/libvirt/images/pxeboot/,kernel=kernel.img,initrd=initrd.img" \
     --disk /home/libvirt/images/{{ hypershift.hcp.hosted_cluster_name }}-agent{{ item }}.qcow2 \
-    --network network:{{ env.bridge_name }},mac={{ hypershift.agents_parms.agent_mac_addr[item] }} \
+    --network network:{{ env.bridge_name }},mac=$mac_address \
     --graphics none \
     --noautoconsole  \
     --wait=-1 \
