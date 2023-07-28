@@ -214,7 +214,7 @@
 **hypershift.hcp.pull_secret** | Pull Secret of Management Cluster <br /> Make sure to enclose pull_secret in 'single quotes' | '{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}'
 **hypershift.mce.version** | version for multicluster-engine Operator | 2.4
 **hypershift.mce.instance_name** | name of the MultiClusterEngine instance | engine
-**hypershift.mce.delete_mce_while_deleting_resources** | true or false - deletes mce and related resources while running deletion playbook | true
+**hypershift.mce.delete** | true or false - deletes mce and related resources while running deletion playbook | true
 **hypershift.asc.url_for_ocp_release_file** | Add URL for OCP release.txt File | https://... <br /> ..../release.txt
 **hypershift.asc.db_volume_size** | DatabaseStorage Volume Size | 10Gi
 **hypershift.asc.fs_volume_size** | FileSystem Storage Volume Size | 10Gi
