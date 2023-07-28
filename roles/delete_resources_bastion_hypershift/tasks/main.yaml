@@ -83,23 +83,48 @@
   when: hypershift.mce.delete == true
 
 - name: Delete Provisioning
-  command: oc delete Provisioning provisioning-configuration
+  k8s:
+    name: provisioning-configuration
+    api_version: metal3.io/v1alpha1
+    kind: Provisioning
+    state: absent 
   when: hypershift.mce.delete == true
 
 - name: Delete ClusterImageSet
-  command: oc delete ClusterImageSet img{{ hypershift.hcp.ocp_release }}-appsub
+  k8s:
+    name: "img{{ hypershift.hcp.ocp_release }}-appsub"
+    api_version: hive.openshift.io/v1
+    kind: ClusterImageSet
+    state: absent
   when: hypershift.mce.delete == true
 
 - name: Delete MCE Instance
-  command: oc delete mce {{ hypershift.mce.instance_name }}
+  k8s:
+    name: "{{ hypershift.mce.instance_name }}"
+    namespace: "{{ hypershift.asc.mce_namespace }}"
+    api_version: multicluster.openshift.io/v1
+    kind: MultiClusterEngine
+    state: absent
+    wait: yes
+    wait_timeout: 400
   when: hypershift.mce.delete == true
 
 - name: Delete MCE Subscription
-  command: oc delete Subscription multicluster-engine -n {{ hypershift.asc.mce_namespace }}
+  k8s:
+    name: multicluster-engine
+    namespace: "{{ hypershift.asc.mce_namespace }}"
+    api_version: operators.coreos.com/v1alpha1
+    kind: Subscription
+    state: absent
   when: hypershift.mce.delete == true
 
 - name: Delete Operator Group - MCE 
-  command: oc delete OperatorGroup multicluster-engine -n {{ hypershift.asc.mce_namespace }}
+  k8s:
+    name: multicluster-engine
+    namespace: "{{ hypershift.asc.mce_namespace }}"
+    api_version: operators.coreos.com/v1
+    kind: OperatorGroup
+    state: absent
   when: hypershift.mce.delete == true
 
 - name: Delete MCE Namespace
