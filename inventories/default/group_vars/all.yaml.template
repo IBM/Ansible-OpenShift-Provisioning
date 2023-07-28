@@ -261,7 +261,7 @@ hypershift:
   # MultiClusterEngine Parameters
   mce:
     version: 
-    instance_name: 'engine'
+    instance_name: engine
     delete_mce_while_deleting_resources: false
 
   # AgentServiceConfig Parameters
