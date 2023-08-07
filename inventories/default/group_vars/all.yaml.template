@@ -227,9 +227,7 @@ hypershift:
 
   create_bastion: true
   networking_device: enc1100
-
   gateway: 
-  branch_for_cli: 
 
   bastion_parms:
     interface: 
