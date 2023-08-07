@@ -193,7 +193,6 @@
 **hypershift.create_bastion** | true or false - create bastion with the provided IP (hypershift.bastion_hypershift) | true
 **hypershift.networking_device** | The network interface card from Linux's perspective. <br /> Usually enc and then a number that comes from the dev_num of the network adapter. | enc1100
 **hypershift.gateway** | IPv4 Address for gateway from where the kvm_host and bastion are reachable  <br /> This for adding ip route from kvm_host to bastion through gateway  | 192.168.10.1
-**hypershift.branch_for_cli** | Git branch for latest release of hypershift | release-4.13
 **hypershift.bastion_parms.interface** | Interface for bastion | enc1
 **hypershift.bastion_parms.hostname** | Hostname for bastion | bastion
 **hypershift.bastion_parms.base_domain** | DNS base domain for the bastion. | ihost.com
