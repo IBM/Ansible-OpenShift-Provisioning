@@ -27,6 +27,29 @@
   set_fact:
     ssh_key: "{{ ssh_output.stdout_lines[0] }}"
 
+- name: Get pod name for hypershift-cli-download
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: "{{ hypershift.asc.mce_namespace }}"
+    label_selectors:
+      - app= hypershift-cli-download
+  register: hypershift_pod_name
+
+- name: Get hypershift.tar.gz file from pod
+  kubernetes.core.k8s_cp:
+    namespace: "{{ hypershift.asc.mce_namespace }}"
+    pod: "{{ hypershift_pod_name.resources[0].metadata.name }}"
+    remote_path: "/opt/app-root/src/linux/s390x/"
+    local_path: "/root/ansible_workdir"
+    state: from_pod
+
+- name: Extract binary from hypershift.tar.gz
+  unarchive:
+    src: /root/ansible_workdir/hypershift.tar.gz
+    dest: /usr/local/bin/
+    remote_src: true
+
 - name: Create a Hosted Cluster
   command: >
     hypershift create cluster agent 
