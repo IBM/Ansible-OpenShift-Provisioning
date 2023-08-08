@@ -27,5 +27,11 @@
   command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ env.ansible_key_name }}"
   when: ssh_key.stat.exists == false
 
+- name: Create expect file
+  template:
+    src: ssh-key.exp.j2
+    dest: "{{ find_project.stdout }}{{ find_inventory.stdout }}/ssh-key.exp.sh"
+    mode: "+rx"
+
 - name: Add ssh-key to kvm_host Authorised Keys
-  shell: ssh-copy-id -i ~/.ssh/{{ env.ansible_key_name }}.pub {{ hypershift.kvm_host_user }}@{{hypershift.kvm_host}}
+  shell: "{{ find_project.stdout }}{{ find_inventory.stdout }}/ssh-key.exp.sh"

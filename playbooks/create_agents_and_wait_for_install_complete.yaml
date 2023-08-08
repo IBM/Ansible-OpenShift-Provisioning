@@ -1,5 +1,6 @@
 - name: Create Agents
   hosts: kvm_host_hypershift
+  become: true
   roles:
   - boot_agents_hypershift
 
