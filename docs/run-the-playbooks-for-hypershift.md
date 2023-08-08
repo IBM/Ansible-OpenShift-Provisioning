@@ -41,7 +41,7 @@ ansible-vault edit playbooks/secrets.yaml
 ## Step-3: Create Hosted Cluster 
 * Run each part step-by-step by running one playbook at a time, or all at once using [hypershift.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/hypershift.yaml).
 * Here's the full list of playbooks to be run in order, full descriptions of each can be found further down the page:
-    * setup_for_hypershift.yaml ([code] (https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/setup_for_hypershift.yaml))
+    * setup_for_hypershift.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/setup_for_hypershift.yaml))
     * create_hosted_cluster.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_hosted_cluster.yaml))
     * create_agents_and_wait_for_install_complete.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_agents_and_wait_for_install_complete.yaml))
 

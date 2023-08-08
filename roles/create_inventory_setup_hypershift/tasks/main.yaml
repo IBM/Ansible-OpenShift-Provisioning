@@ -34,4 +34,10 @@
     mode: "+rx"
 
 - name: Add ssh-key to kvm_host Authorised Keys
-  shell: "{{ find_project.stdout }}{{ find_inventory.stdout }}/ssh-key.exp.sh"
+  block:
+  - name: Adding ssh key
+    shell: "{{ find_project.stdout }}{{ find_inventory.stdout }}/ssh-key.exp.sh"
+  rescue:
+    - name: Key already added
+      debug:
+        msg: "ssh-key already added"
