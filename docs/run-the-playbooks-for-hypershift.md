@@ -41,7 +41,7 @@ ansible-vault edit playbooks/secrets.yaml
 
 * Run this shell command:
 ```
-ansible-playbook playbooks/setup_for_hypershift.yaml
+ansible-playbook playbooks/setup_for_hypershift.yaml --ask-vault-pass
 ```
 
 ## Step-3: Create Hosted Cluster 
