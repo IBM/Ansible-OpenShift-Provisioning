@@ -63,13 +63,6 @@
 - name: Enable hypershift-preview component in MCE
   command: oc patch mce {{ hypershift.mce.instance_name }} -p '{"spec":{"overrides":{"components":[{"name":"hypershift-preview","enabled":true}]}}}' --type merge
 
-- name: Wait for hypershift pods to come up
-  shell: oc get mce --no-headers | awk  '{print $2}'
-  register: mce_status
-  until: mce_status.stdout == "Available"
-  retries: 40
-  delay: 10
-
 - name: Create ClusterImageSet.yaml
   template:
     src: ClusterImageSet.yaml.j2
