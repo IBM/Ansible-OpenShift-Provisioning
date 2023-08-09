@@ -40,4 +40,4 @@
   rescue:
     - name: Key already added
       debug:
-        msg: "ssh-key already added"
+        msg: "Ignore the above error if ssh-key already added"
