@@ -25,3 +25,10 @@
   until: asc.stdout == '0'
   retries: 60
   delay: 20
+
+- name: Wait for MCE to be available
+  shell: oc get mce --no-headers | awk  '{print $2}'
+  register: mce_status
+  until: mce_status.stdout == "Available"
+  retries: 40
+  delay: 10

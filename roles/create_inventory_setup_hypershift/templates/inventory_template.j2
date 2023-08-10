@@ -1,5 +1,5 @@
 [kvm_host_hypershift]
-kvm_host_hypershift ansible_host={{ hypershift.kvm_host }} ansible_user={{ hypershift.kvm_host_user }}
+kvm_host_hypershift ansible_host={{ hypershift.kvm_host }} ansible_user={{ hypershift.kvm_host_user }} ansible_become_password={{ kvm_host_password }}
 
 
 
