@@ -8,7 +8,6 @@
 - name: Find absolute path to project.
   tags: set_inventory
   shell: |
-    set -o pipefail
     ansible_config="{{ ansible_config_file }}"
     echo "${ansible_config%/*}/"
   register: find_project
@@ -27,5 +26,20 @@
   command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ env.ansible_key_name }}"
   when: ssh_key.stat.exists == false
 
+- name: Adding ssh-key agent
+  shell: eval $(ssh-agent) ; ssh-add ~/.ssh/"{{ env.ansible_key_name }}"
+
+- name: Create expect file
+  template:
+    src: ssh-key.exp.j2
+    dest: "{{ find_project.stdout }}{{ find_inventory.stdout }}/ssh-key.exp.sh"
+    mode: "+rx"
+
 - name: Add ssh-key to kvm_host Authorised Keys
-  shell: ssh-copy-id -i ~/.ssh/{{ env.ansible_key_name }}.pub {{ hypershift.kvm_host_user }}@{{hypershift.kvm_host}}
+  block:
+  - name: Adding ssh key
+    shell: "{{ find_project.stdout }}{{ find_inventory.stdout }}/ssh-key.exp.sh"
+  rescue:
+    - name: Key already added
+      debug:
+        msg: "Ignore the above error if ssh-key already added"

@@ -48,8 +48,12 @@
   command: tar -vxzf /root/ansible_workdir/{{ hypershift.oc_url.split('/')[-1] }}
   when: oc_installed.rc != 0
 
-- name: Copy oc to /usr/local/bin/oc 
+- name: Copy oc to /usr/local/bin/
   shell: cp oc /usr/local/bin/oc
+  when: oc_installed.rc != 0
+
+- name: Copy oc to /usr/bin/
+  shell: cp oc /usr/bin/oc
   when: oc_installed.rc != 0
 
 - name: Add Management Cluster Nameserver to /etc/resolv.conf
