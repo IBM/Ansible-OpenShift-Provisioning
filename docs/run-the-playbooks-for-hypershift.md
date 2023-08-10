@@ -1,7 +1,7 @@
 # Run the Playbooks
 ## Prerequisites
 * Running OCP Cluster ( Management Cluster )  
-* KVM host with root user access
+* KVM host with root user access or user with sudo privileges
 
 ### Network Prerequisites
 * DNS entry to resolve api.${cluster}.${domain} , api-int.${cluster}.${domain} , *apps.${cluster}.${domain} to a load balancer deployed to redirect incoming traffic to the ingresses pod  ( Bastion ).
@@ -9,19 +9,7 @@
 ## Note: 
 * As of now we are supporting only macvtap for hypershift Agent based installation.
 
-## Step-1: Initial Setup for Hypershift
-* Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
-* Update all the variables in Section-16 ( Hypershift ) and Section-3 ( File Server : ip , protocol and iso_mount_dir ) in [all.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template) before running the playbooks.
-* First playbook to be run is setup_for_hypershift.yaml which will create inventory file for hypershift and will add ssh key to the kvm host.
-###### Note:
-* If you are running this first time, it will prompt for the password for kvm host for the selected user.
-* Enter password of kvm host to establish SSH key-based authentication.
-* Run this shell command:
-```
-ansible-playbook playbooks/setup_for_hypershift.yaml
-```
-
-## Step-2: Setup Ansible Vault for Management Cluster Credentials
+## Step-1: Setup Ansible Vault for Management Cluster Credentials
 ### Overview
 * Creating an encrypted file for storing Management Cluster Credentials and other passwords.
 ### Steps:
@@ -29,10 +17,11 @@ ansible-playbook playbooks/setup_for_hypershift.yaml
 * Create an encrypted file in playbooks directory and set the Vault password ( Below command will prompt for setting Vault password).
 ```
 ansible-vault create playbooks/secrets.yaml
-``` 
+```
 
 * Give the credentials of Management Cluster in the encrypted file (created above) in following format.
 ```
+kvm_host_password: '<password for kvm host for the specified user>'
 bastion_root_pw: '<password_you_want_to_keep_for_bastion>'
 api_server: '<api-server-url>:<port>'
 user_name: '<username>'
@@ -42,14 +31,24 @@ password: '<password>'
 * You can edit the encrypted file using below command
 ```
 ansible-vault edit playbooks/secrets.yaml
-``` 
+```
 * Make sure you entered Manamegement cluster credenitails properly ,incorrect credentails will cause problem while logging in to the cluster in further steps.
+
+## Step-2: Initial Setup for Hypershift
+* Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
+* Update all the variables in Section-16 ( Hypershift ) and Section-3 ( File Server : ip , protocol and iso_mount_dir ) in [all.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template) before running the playbooks.
+* First playbook to be run is setup_for_hypershift.yaml which will create inventory file for hypershift and will add ssh key to the kvm host.
+
+* Run this shell command:
+```
+ansible-playbook playbooks/setup_for_hypershift.yaml --ask-vault-pass
+```
 
 ## Step-3: Create Hosted Cluster 
 * Run each part step-by-step by running one playbook at a time, or all at once using [hypershift.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/hypershift.yaml).
 * Here's the full list of playbooks to be run in order, full descriptions of each can be found further down the page:
     * create_hosted_cluster.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_hosted_cluster.yaml))
-    * create_agents_and_wait_for_install_complete.yaml ([code](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_agents_and_wait_for_install_complete.yaml))
+    * create_agents_and_wait_for_install_complete.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_agents_and_wait_for_install_complete.yaml))
 
 * Watch Ansible as it completes the installation, correcting errors if they arise.
 * To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml

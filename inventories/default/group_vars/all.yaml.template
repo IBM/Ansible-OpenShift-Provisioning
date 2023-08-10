@@ -239,8 +239,6 @@ hypershift:
     subnet_mask: 
 
   mgmt_cluster_nameserver:  
-
-  go_version: "1.20.3"  # Change this if you want to install any other version of go
   oc_url: 
 
   #Hosted Control Plane Parameters
