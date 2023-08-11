@@ -1,6 +1,6 @@
 ---
 - name: Get ssh key of local host
-  ansible.builtin.shell: cat ~/.ssh/{{ env.ansible_key_name }}.pub
+  ansible.builtin.shell: cat {{ lookup('env', 'HOME') }}/.ssh/{{ env.ansible_key_name }}.pub
   register: ssh_output
   delegate_to: localhost
 
