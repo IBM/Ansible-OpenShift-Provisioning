@@ -57,7 +57,7 @@
     --pull-secret={{ hypershift.hcp.pull_secret_file }} 
     --agent-namespace={{ hosted_control_plane_namespace }} 
     --namespace={{ hypershift.hcp.clusters_namespace }} 
-    --base-domain= {{ hypershift.hcp.basedomain }} 
+    --base-domain={{ hypershift.hcp.basedomain }} 
     --api-server-address=api.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }} 
     --ssh-key ~/.ssh/{{ env.ansible_key_name }}.pub
     --release-image=quay.io/openshift-release-dev/ocp-release:{{ hypershift.hcp.ocp_release }} 
