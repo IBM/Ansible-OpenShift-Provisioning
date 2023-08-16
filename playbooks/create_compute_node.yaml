@@ -9,11 +9,6 @@
 #   hostname: <KVM host name where the VM is created>
 #   host_arch: <KVM host architecture>
 #
-# rhcos_download_url: <your rhcos download url>
-# rhcos_live_kernel: <your live kernel filename>
-# rhcos_live_initrd: <your live initrd filename>
-# rhcos_live_rootfs: <your live rootfs filename>
-#
 # Execute the playbook with '--extra-vars' option.
 # E.g.:
 # ansible-playbook playbooks/add_compute_node.yaml --extra-vars "@extra-cnode1.yml"
@@ -36,6 +31,46 @@
         - name: Abort playbook
           ansible.builtin.fail:
             msg: "See above error!"
+
+    - name: Get RHCOS iso download url from machine-config-operator
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
+        | jq -r '.architectures.{{ day2_compute_node.host_arch }}.artifacts.metal.formats.iso.disk.location'
+      register: _rhcos_iso_dl_url
+
+    - name: Get RHCOS kernel download url from machine-config-operator
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
+        | jq -r '.architectures.{{ day2_compute_node.host_arch }}.artifacts.metal.formats.pxe.kernel.location'
+      register: _rhcos_kernel_dl_url
+
+    - name: Get RHCOS initrd download url from machine-config-operator
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
+        | jq -r '.architectures.{{ day2_compute_node.host_arch }}.artifacts.metal.formats.pxe.initramfs.location'
+      register: _rhcos_initrd_dl_url
+
+    - name: Get RHCOS rootfs download url from machine-config-operator
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
+        | jq -r '.architectures.{{ day2_compute_node.host_arch }}.artifacts.metal.formats.pxe.rootfs.location'
+      register: _rhcos_rootfs_dl_url
+
+    - name: Redefine RHCOS variables
+      ansible.builtin.set_fact:
+        rhcos_live_kernel: "{{ (_rhcos_kernel_dl_url.stdout | split('/') | last) }}"
+        rhcos_live_initrd: "{{ (_rhcos_initrd_dl_url.stdout | split('/') | last) }}"
+        rhcos_live_rootfs: "{{ (_rhcos_rootfs_dl_url.stdout | split('/') | last) }}"
+        rhcos_live_iso: "{{ (_rhcos_iso_dl_url.stdout.split('/')[-1]) }}"
+
+    - name: Redefine RHCOS download url
+      ansible.builtin.set_fact:
+        # Assume all images have same download location
+        rhcos_download_url: "{{ (_rhcos_rootfs_dl_url.stdout | replace(rhcos_live_rootfs, '')) }}"
 
   roles:
     - role: common
