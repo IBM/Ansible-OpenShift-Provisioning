@@ -26,6 +26,17 @@
   with_items:
   - internal
   - public
+  
+- name: allow traffic at 8443 for apache 
+  tags: firewall
+  firewalld:
+    port: 8443/tcp
+    zone: "{{ item }}"
+    state: enabled
+    permanent: true
+  with_items:
+  - internal
+  - public
 
 - name: Download ipxe script 
   shell: curl -k -L $(oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} get InfraEnv {{ hypershift.hcp.hosted_cluster_name }} -ojsonpath="{.status.bootArtifacts.ipxeScript}")
