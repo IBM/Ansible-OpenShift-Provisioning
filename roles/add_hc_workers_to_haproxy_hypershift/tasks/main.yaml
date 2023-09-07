@@ -19,9 +19,6 @@
     line: "    server {{ hypershift.hcp.hosted_cluster_name }}-worker-{{item}} {{ hosted_workers.stdout_lines[item]}}"
   loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
 
-- name: Kill the process on 443 port if present
-  shell: kill $(netstat -tlnp | grep ":443 " | awk '{print $7}' | awk -F '/' '{print $1}')
-
 - name: restart haproxy
   service:
     name: haproxy.service
