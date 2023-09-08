@@ -13,9 +13,9 @@ nav:
     - 2 Set Variables (group_vars): 'set-variables-group-vars.md'
     - 3 Set Variables (host_vars): 'set-variables-host-vars.md'
     - 4 Run the Playbooks: 'run-the-playbooks.md'
+    - Run the Playbooks (HyperShift): 'run-the-playbooks-for-hypershift.md'
   - Misc:
     - Troubleshooting: 'troubleshooting.md'
-    - Change Log: 'CHANGELOG.md'
     - Acknowledgements: 'acknowledgements.md'
 
 theme:

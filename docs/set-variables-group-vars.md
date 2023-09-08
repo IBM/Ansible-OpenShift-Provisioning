@@ -136,7 +136,6 @@
 ## 12 - OpenShift Settings
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**env.openshift.version** | Version of OpenShift you would like to download and install. Use major.minor.patch naming convention. | 4.12.0
 **env.install_config.api_version** | Kubernetes API version for the cluster. These install_config variables will be passed to the OCP<br /> install_config file. This file is templated in the get_ocp role during the setup_bastion playbook.<br /> To make more fine-tuned adjustments to the install_config, you can find it at<br /> roles/get_ocp/templates/install-config.yaml.j2 | v1
 **env.install_config.compute.architecture** | Computing architecture for the compute nodes. Must be s390x for clusters on IBM zSystems. | s390x
 **env.install_config.compute.hyperthreading** | Enable or disable hyperthreading on compute nodes. Recommended enabled. | Enabled
@@ -160,6 +159,7 @@
 :--- | :--- | :---
 **env.language** | What language would you like Red Hat Enterprise Linux to use? In UTF-8 language code.<br /> Available languages and their corresponding codes can be found [here](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/5/html-single/international_language_support_guide/index), in the "Locale" column of Table 2.1. | en_US.UTF-8
 **env.timezone** | Which timezone would you like Red Hat Enterprise Linux to use? A list of available timezone<br /> options can be found [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). | America/New_York
+**env.keyboard** | Which keyboard layout would you like Red Hat Enterprise Linux to use?  | us
 **env.ansible_key_name** | (Optional) Name of the SSH key that Ansible will use to connect to hosts. | ansible-ocpz
 **env.ocp_key_name** | Comment to describe the SSH key used for OCP. Arbitrary value. | OCPZ-01 key
 **env.bridge_name** | (Optional) Name of the macvtap bridge that will be created on the KVM host or in case of NAT the name of the NAT network defenition (usually it is 'default'). If NAT is being used and a jumphost is needed, the parameters network_mode, jumphost.name, jumphost.user and jumphost.pass must be specified, too. In case of default (NAT) network verify that the configured IP ranges does not interfere with the IPs defined for the controle and compute nodes. Modify the default network (dhcp range setting) to prevent issues with VMs using dhcp and OCP nodes having fixed IPs.| macvtap-net
@@ -169,3 +169,73 @@
 **env.jumphost.user** | (Optional) The user name to login to the jumphost. | admin
 **env.jumphost.pass** | (Optional) The password for user to login to the jumphost. | ch4ngeMe!
 **env.jumphost.path_to_keypair** | (Optional) The absolute path to the public key file on the jumphost to be copied to the bastion. | /home/admin/.ssh/id_rsa.pub
+
+## 15 - OCP and RHCOS (CoreOS)
+
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**ocp_download_url** | Link to the mirror for the OpenShift client and installer from Red Hat. | https://mirror.openshift.com<br />/pub/openshift-v4/multi<br />/clients/ocp/4.13.1/s390x/
+**ocp_client_tgz** | OpenShift client filename (tar.gz). | openshift-client-linux.tar.gz
+**ocp_install_tgz** | OpenShift installer filename (tar.gz). | openshift-install-linux.tar.gz
+**rhcos_download_url** | Link to the CoreOS files to be used for the bootstrap, control and compute nodes.<br /> Feel free to change to a different version. | https://mirror.openshift.com<br />/pub/openshift-v4/s390x<br />/dependencies/rhcos<br />/4.12/4.12.3/
+**rhcos_os_variant** | CoreOS base OS. Use the OS string as defined in 'osinfo-query os -f short-id' | rhel8.6
+**rhcos_live_kernel** | CoreOS kernel filename to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-kernel-s390x
+**rhcos_live_initrd** | CoreOS initramfs to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-initramfs.s390x.img
+**rhcos_live_rootfs** | CoreOS rootfs to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-rootfs.s390x.img
+
+## 16 - Hypershift ( Optional )
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**hypershift.kvm_host** | IPv4 address of KVM host for hypershift <br /> (kvm host where you want to run all oc commands and create VMs)| 192.168.10.1
+**hypershift.kvm_host_user** | User for KVM host | root
+**hypershift.bastion_hypershift** | IPv4 address for bastion of Hosted Cluster | 192.168.10.1
+**hypershift.bastion_hypershift_user** | User for bastion of Hosted Cluster | root
+**hypershift.create_bastion** | true or false - create bastion with the provided IP (hypershift.bastion_hypershift) | true
+**hypershift.networking_device** | The network interface card from Linux's perspective. <br /> Usually enc and then a number that comes from the dev_num of the network adapter. | enc1100
+**hypershift.gateway** | IPv4 Address for gateway from where the kvm_host and bastion are reachable  <br /> This for adding ip route from kvm_host to bastion through gateway  | 192.168.10.1
+**hypershift.bastion_parms.interface** | Interface for bastion | enc1
+**hypershift.bastion_parms.hostname** | Hostname for bastion | bastion
+**hypershift.bastion_parms.base_domain** | DNS base domain for the bastion. | ihost.com
+**hypershift.bastion_parms.os_variant** | rhel os variant for creating bastion | 8.7
+**hypershift.bastion_parms.nameserver** | Nameserver for creating bastion | 192.168.10.1
+**hypershift.bastion_parms.gateway** | Gateway IP for creating bastion <br /> This is how it well be used ip=<ipv4 address>::<nameserver>:<subnet mask> | 192.168.10.1
+**hypershift.bastion_parms.subnet_mask** |  IPv4 address of subnetmask | 255.255.255.0
+**hypershift.mgmt_cluster_nameserver** | IP Address of Nameserver of Management Cluster | 192.168.10.1
+**hypershift.oc_url** | URL for OC Client that you want to install on the host | https://...<br /> ..openshift-client-linux-4.13.0-ec.4.tar.gz
+**hypershift.hcp.clusters_namespace** | Namespace for Creating Hosted Control Plane | clusters
+**hypershift.hcp.hosted_cluster_name** | Name for the Hosted Cluster  | hosted0
+**hypershift.hcp.basedomain** | Base domain for Hosted Cluster | example.com
+**hypershift.hcp.pull_secret_file** | Path for the pull secret <br /> No need to change this as we are copying the pullsecret to same file <br /> /root/ansible_workdir/auth_file | /root/ansible_workdir/auth_file
+**hypershift.hcp.ocp_release** | OCP Release version for Hosted Control Cluster and Nodepool | 4.13.0-rc.4-multi
+**hypershift.hcp.machine_cidr** | Machines CIDR for Hosted Cluster | 192.168.122.0/24
+**hypershift.hcp.arch** | Architecture for InfraEnv and AgentServiceConfig" | s390x
+**hypershift.hcp.pull_secret** | Pull Secret of Management Cluster <br /> Make sure to enclose pull_secret in 'single quotes' | '{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}'
+**hypershift.mce.version** | version for multicluster-engine Operator | 2.4
+**hypershift.mce.instance_name** | name of the MultiClusterEngine instance | engine
+**hypershift.mce.delete** | true or false - deletes mce and related resources while running deletion playbook | true
+**hypershift.asc.url_for_ocp_release_file** | Add URL for OCP release.txt File | https://... <br /> ..../release.txt
+**hypershift.asc.db_volume_size** | DatabaseStorage Volume Size | 10Gi
+**hypershift.asc.fs_volume_size** | FileSystem Storage Volume Size | 10Gi
+**hypershift.asc.ocp_version** | OCP Version for AgentServiceConfig | 4.13.0-ec.4
+**hypershift.asc.iso_url** | Give URL for ISO image | https://... <br /> ...s390x-live.s390x.iso
+**hypershift.asc.root_fs_url** | Give URL for rootfs image | https://... <br /> ... live-rootfs.s390x.img
+**hypershift.asc.mce_namespace** | Namespace where your Multicluster Engine Operator is installed. <br /> Recommended Namespace for MCE is 'multicluster-engine'. <br /> Change this only if MCE is installed in other namespace. | multicluster-engine
+**hypershift.agents_parms.static_ip_parms.static_ip** | true or false - use static IPs for agents using NMState | true
+**hypershift.agents_parms.static_ip_parms.ip** | List of IP addresses for agents | 192.168.10.1
+**hypershift.agents_parms.static_ip_parms.interface** | Interface for agents for configuring NMStateConfig | eth0
+**hypershift.agents_parms.agents_count** | Number of agents for the hosted cluster <br /> The same number of compute nodes will be attached to Hosted Cotrol Plane | 2
+**hypershift.agents_parms.agent_mac_addr** | List of macaddresses for the agents. <br /> Configure in DHCP if you are using dynamic IPs for Agents. | - 52:54:00:ba:d3:f7 
+**hypershift.agents_parms.disk_size** | Disk size for agents | 100G
+**hypershift.agents_parms.ram** | RAM for agents | 16384
+**hypershift.agents_parms.vcpus** | vCPUs for agents | 4
+**hypershift.agents_parms.nameserver** | Nameserver to be used for agents | 192.168.10.1
+
+## 17 - (Optional) Create compute node in a day-2 operation
+
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**day2_compute_node.vm_name** | Name of the compute node VM.  | compute-4
+**day2_compute_node.vm_hostname** | Hostnames for compute node. | compute-4
+**day2_compute_node.vm_vm_ip** | IPv4 address of the compute node. | 192.168.10.99
+**day2_compute_node.hostname** | The hostname of the KVM host | kvm-host-01
+**day2_compute_node.host_arch** | KVM host architecture.  | s390x
