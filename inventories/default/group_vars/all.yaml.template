@@ -44,7 +44,7 @@ env:
   redhat:
     username: #X
     password: #X
-    manage_subscription: attach
+    attach_subscription: true
     # Make sure to enclose pull_secret in 'single quotes'
     pull_secret: #'X'
 
