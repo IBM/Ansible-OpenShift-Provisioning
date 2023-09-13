@@ -11,7 +11,7 @@ env:
 # Section 2 - LPAR(s)
   z:
     high_availability: False
-    ip_forward: #X
+    ip_forward: "{{ 1 if network_mode | upper == 'NAT' else 0 }}"
     lpar1:
       create: True
       hostname: #X
@@ -44,6 +44,7 @@ env:
   redhat:
     username: #X
     password: #X
+    attach_subscription: true
     # Make sure to enclose pull_secret in 'single quotes'
     pull_secret: #'X'
 
