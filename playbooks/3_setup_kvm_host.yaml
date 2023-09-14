@@ -71,7 +71,7 @@
   vars:
     packages: "{{ env.pkgs.kvm }}"
   roles:
-    - { role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined }
+    - { role: attach_subscription, when:  env.redhat.attach_subscription }
     - install_packages
     - httpd
   post_tasks:
@@ -106,10 +106,30 @@
         line: 'group = "libvirt"'
         backup: true
 
+    - name: Get user home directory 
+      tags: libvirt
+      shell: >
+             getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
+      changed_when: false
+      register: user_home
+
+    - name: Check if directory {{ user_home.stdout }}/.config/libvirt exists
+      tags: libvirt
+      ansible.builtin.stat:
+        path: "{{ user_home.stdout }}/.config/libvirt" 
+      register: home_config_libvirt
+
+    - name: Create directory {{ user_home.stdout }}/.config/libvirt
+      tags: libvirt
+      file: 
+        path: "{{ user_home.stdout }}/.config/libvirt"
+        state: directory
+      when: home_config_libvirt.stat.exists == false
+
     - name: Create file for user's custom libvirt configurations.
       tags: libvirt
       ansible.builtin.file:
-        path: "/home/{{ ansible_user }}/.config/libvirt/libvirt.conf"
+        path: "{{ user_home.stdout }}/.config/libvirt/libvirt.conf"
         state: touch
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
@@ -123,7 +143,7 @@
         backup: true
       loop:
         - /etc/libvirt/qemu.conf
-        - "/home/{{ ansible_user }}/.config/libvirt/libvirt.conf"
+        - "{{ user_home.stdout }}/.config/libvirt/libvirt.conf"
         - /etc/libvirt/libvirt.conf
 
     - name: Ensure KVM admin user is part of groups 'kvm', 'libvirt'.
