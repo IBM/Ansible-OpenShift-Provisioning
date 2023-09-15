@@ -16,11 +16,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
+
+    - name: Fetch Latest gh-pages Branch
+      run: |
+        git fetch origin gh-pages
+        git checkout gh-pages
+        git pull origin gh-pages
+        git checkout main
 
       - name: Install mkdocs
         run: pip install mkdocs
