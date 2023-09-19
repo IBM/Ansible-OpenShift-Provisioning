@@ -92,7 +92,7 @@
 
 - name: Delete ClusterImageSet
   k8s:
-    name: "img{{ hypershift.hcp.ocp_release }}-appsub"
+    name: "img{{ hypershift.hcp.hosted_cluster_name }}-appsub"
     api_version: hive.openshift.io/v1
     kind: ClusterImageSet
     state: absent
