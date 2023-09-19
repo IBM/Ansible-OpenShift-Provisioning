@@ -65,9 +65,11 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   pre_tasks:
-    - import_role:
+    - name: Import initial-resolv.yaml
+      ansible.builtin.import_role:
         name: dns
         tasks_from: initial-resolv.yaml
+      when: env.bastion.options.dns is defined and env.bastion.options.dns
   roles:
     - { role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined }
     - install_packages
