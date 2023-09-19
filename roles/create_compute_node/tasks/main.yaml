@@ -32,7 +32,7 @@
       tags: create_compute_node
       ansible.builtin.shell: |
         virsh destroy {{ param_compute_node.vm_name }} || true
-        virsh undefine {{ param_compute_node.vm_name }} --remove-all-storage || true
+        virsh undefine {{ param_compute_node.vm_name }} --remove-all-storage --nvram || true
 
     - name: Get and print virsh list
       block:
@@ -51,13 +51,16 @@
 
         - name: "Create compute node VM on {{ param_compute_node.host_arch }}"
           ansible.builtin.shell: |
+            CPU_MODEL="--cpu host"
+            # CPU host model is not supported on arm64 yet, we need to disable it
+            {{ ("CPU_MODEL=''") if param_compute_node.host_arch == 'aarch64' }}
             virt-install \
             --name {{ param_compute_node.vm_name }} \
             --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
             --autostart \
             --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }}  \
             --ram {{ env.cluster.nodes.compute.ram }} \
-            --cpu host \
+            ${CPU_MODEL} \
             --vcpus {{ env.cluster.nodes.compute.vcpu }} \
             --network network={{ env.bridge_name }} \
             --graphics none \
