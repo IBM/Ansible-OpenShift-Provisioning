@@ -9,6 +9,9 @@
         set -o pipefail
         oc get nodes -o wide | awk -F '  +' '{ printf "%-24s %-26s %-22s %-7s %-17s %-29s %-15s\n", $1, $2, $3, $4, $5, $9, $6 }'
       register: oc_get_nodes
+      until: oc_get_nodes.rc == 0
+      retries: 3
+      delay: 5
       changed_when: false
 
     - name: Print OCP nodes status
