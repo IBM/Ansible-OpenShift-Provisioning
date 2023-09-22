@@ -1,0 +1,79 @@
+---
+- name: Delete OCP download directory for idempotency.
+  tags: mirror_artifacts
+  become: true
+  file:
+    path: /root/ocpinst
+    state: absent
+
+- name: Create OCP download directory
+  tags: mirror_artifacts
+  file:
+    path: /root/ocpinst
+    state: directory
+
+- name: Unzip OCP client and oc-mirror
+  tags: mirror_artifacts
+  ansible.builtin.unarchive:
+    src: "{{ item }}"
+    dest: /root/ocpinst/
+    remote_src: yes
+  loop:
+    - "{{ disconnected.mirroring.client_download.ocp_download_url }}{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+    - "{{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
+
+- name: Copy kubectl, oc, and oc-mirror binaries to /usr/local/sbin
+  tags: mirror_artifacts
+  become: true
+  ansible.builtin.copy:
+    src: /root/ocpinst/{{ item }}
+    dest: /usr/sbin/{{ item }}
+    owner: root
+    group: root
+    mode: "755"
+    remote_src: yes
+  loop:
+    - kubectl
+    - oc
+    - oc-mirror
+
+- name: create pull secret file for mirroring
+  tags: mirror_artifacts
+  ansible.builtin.template:
+    src: mirror-secret.json.j2
+    dest: /root/ocpinst/mirror-secret.json
+    force: yes
+
+- name: create ca cert file for adding to ca trust when ca is not trusted
+  tags: mirror_artifacts
+  become: true
+  ansible.builtin.template:
+    src: ca.crt.j2
+    dest: /etc/pki/ca-trust/source/anchors/registry.crt
+    force: yes
+  when: disconnected.enabled == True and disconnected.registry.ca_trusted == False
+
+- name: update ca trust
+  tags: mirror_artifacts
+  become: true
+  ansible.builtin.shell: |
+    set -o pipefail
+    update-ca-trust
+  when: disconnected.enabled == True and disconnected.registry.ca_trusted == False
+
+- name: mirror the platform the legacy way if legacy mode is enabled
+  tags: mirror_artifacts
+  block:
+    - name: run the oc adm release mirror command
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc adm -a /root/ocpinst/mirror-secret.json release mirror \
+         --from={{ disconnected.mirroring.legacy.ocp_release_image }} \
+         --to={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }} \
+         --to-release-image={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }}:{{ disconnected.mirroring.legacy.ocp_tag }}
+      when: disconnected.enabled == True and disconnected.mirroring.legacy.platform == True
+      register: cmd_oc_legacy_mirroring
+    - name: print the output of the mirroring
+      ansible.builtin.debug:
+        var: cmd_oc_legacy_mirroring.stdout_lines
+
