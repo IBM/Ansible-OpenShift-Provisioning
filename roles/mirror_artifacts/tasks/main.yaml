@@ -48,12 +48,12 @@
   tags: mirror_artifacts
   become: true
   block:
-    - name: create ca cert file
+    - name: create ca cert file when ca is untrusted
       ansible.builtin.template:
         src: ca.crt.j2
         dest: /etc/pki/ca-trust/source/anchors/registry.crt
         force: yes
-    - name: update ca trust
+    - name: update ca trust with the cert file
       ansible.builtin.shell: |
         set -o pipefail
         update-ca-trust
