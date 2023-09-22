@@ -44,21 +44,19 @@
     dest: /root/ocpinst/mirror-secret.json
     force: yes
 
-- name: create ca cert file for adding to ca trust when ca is not trusted
+- name: create ca cert file for adding to ca trust when ca is not trusted and updating ca trust
   tags: mirror_artifacts
   become: true
-  ansible.builtin.template:
-    src: ca.crt.j2
-    dest: /etc/pki/ca-trust/source/anchors/registry.crt
-    force: yes
-  when: disconnected.enabled == True and disconnected.registry.ca_trusted == False
-
-- name: update ca trust
-  tags: mirror_artifacts
-  become: true
-  ansible.builtin.shell: |
-    set -o pipefail
-    update-ca-trust
+  block:
+    - name: create ca cert file
+      ansible.builtin.template:
+        src: ca.crt.j2
+        dest: /etc/pki/ca-trust/source/anchors/registry.crt
+        force: yes
+    - name: update ca trust
+      ansible.builtin.shell: |
+        set -o pipefail
+        update-ca-trust
   when: disconnected.enabled == True and disconnected.registry.ca_trusted == False
 
 - name: mirror the platform the legacy way if legacy mode is enabled
