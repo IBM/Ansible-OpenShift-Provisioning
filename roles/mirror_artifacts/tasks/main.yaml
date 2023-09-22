@@ -71,9 +71,9 @@
          --from={{ disconnected.mirroring.legacy.ocp_release_image }} \
          --to={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }} \
          --to-release-image={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }}:{{ disconnected.mirroring.legacy.ocp_tag }}
-      when: disconnected.enabled == True and disconnected.mirroring.legacy.platform == True
       register: cmd_oc_legacy_mirroring
     - name: print the output of the mirroring
       ansible.builtin.debug:
         var: cmd_oc_legacy_mirroring.stdout_lines
+  when: disconnected.enabled == True and disconnected.mirroring.legacy.platform == True
 
