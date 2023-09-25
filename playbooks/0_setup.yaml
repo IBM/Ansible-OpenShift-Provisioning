@@ -6,7 +6,7 @@
   become: false
   gather_facts: true
   roles:
-    - disconnected_mirror_check_vars
+    - disconnected_check_vars
     - set_inventory
 
   post_tasks:

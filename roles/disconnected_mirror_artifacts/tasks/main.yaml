@@ -66,7 +66,7 @@
       ansible.builtin.shell: |
         set -o pipefail
         oc adm -a /root/ocpinst/mirror-secret.json release mirror \
-         --from={{ disconnected.mirroring.legacy.ocp_release_image }} \
+         --from={{ disconnected.mirroring.legacy.ocp_release_image.repo }}:{{ disconnected.mirroring.legacy.ocp_release_image.tag }} \
          --to={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }} \
          --to-release-image={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }}:{{ disconnected.mirroring.legacy.ocp_tag }}
       register: cmd_oc_legacy_mirroring

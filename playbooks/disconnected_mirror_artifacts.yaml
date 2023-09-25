@@ -5,6 +5,6 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
-    - disconnected_mirror_check_vars
+    - disconnected_check_vars
     - disconnected_mirror_artifacts
 
