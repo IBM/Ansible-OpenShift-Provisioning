@@ -6,8 +6,6 @@
       assert:
         that:
           - disconnected.registry.url is defined and disconnected.registry.url != None
-          - disconnected.registry.user is defined and disconnected.registry.user != None
-          - disconnected.registry.pass is defined and disconnected.registry.pass != None
           - disconnected.registry.pull_secret is defined and disconnected.registry.pull_secret != None
           - disconnected.registry.mirror_pull_secret is defined and disconnected.registry.mirror_pull_secret != None
           - disconnected.mirroring.host.name is defined and disconnected.mirroring.host.name != None
