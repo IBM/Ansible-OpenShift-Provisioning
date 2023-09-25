@@ -1,22 +1,29 @@
 ---
+- name: Get user home directory
+  tags: libvirt
+  shell: >
+      getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
+  changed_when: false
+  register: user_home
+
 - name: Delete OCP download directory for idempotency.
   tags: mirror_artifacts
   become: true
   file:
-    path: /root/ocpinst
+    path: "{{ user_home.stdout }}/ocpinst"
     state: absent
 
 - name: Create OCP download directory
   tags: mirror_artifacts
   file:
-    path: /root/ocpinst
+    path: "{{ user_home.stdout }}/ocpinst"
     state: directory
 
 - name: Unzip OCP client and oc-mirror
   tags: mirror_artifacts
   ansible.builtin.unarchive:
     src: "{{ item }}"
-    dest: /root/ocpinst/
+    dest: "{{ user_home.stdout }}/ocpinst/"
     remote_src: yes
   loop:
     - "{{ disconnected.mirroring.client_download.ocp_download_url }}{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
@@ -26,7 +33,7 @@
   tags: mirror_artifacts
   become: true
   ansible.builtin.copy:
-    src: /root/ocpinst/{{ item }}
+    src: "{{ user_home.stdout }}/ocpinst/{{ item }}"
     dest: /usr/sbin/{{ item }}
     owner: root
     group: root
@@ -37,11 +44,25 @@
     - oc
     - oc-mirror
 
+- name: Check if directory {{ user_home.stdout }}/.docker exists
+  tags: mirror_artifacts
+  ansible.builtin.stat:
+    path: "{{ user_home.stdout }}/.docker"
+  register: home_docker
+
+- name: Create directory {{ user_home.stdout }}/.docker
+  tags: mirror_artifacts
+  file:
+    path: "{{ user_home.stdout }}/.docker"
+    state: directory
+  when: home_docker.stat.exists == false
+
 - name: create pull secret file for mirroring
   tags: mirror_artifacts
   ansible.builtin.template:
     src: mirror-secret.json.j2
-    dest: /root/ocpinst/mirror-secret.json
+    dest: "{{ user_home.stdout }}/.docker/config.json"
+    backup: yes
     force: yes
 
 - name: create ca cert file for adding to ca trust when ca is not trusted and updating ca trust
@@ -65,8 +86,8 @@
     - name: run the oc adm release mirror command
       ansible.builtin.shell: |
         set -o pipefail
-        oc adm -a /root/ocpinst/mirror-secret.json release mirror \
-         --from={{ disconnected.mirroring.legacy.ocp_release_image.repo }}:{{ disconnected.mirroring.legacy.ocp_release_image.tag }} \
+        oc adm -a {{ user_home.stdout }}/.docker/config.json release mirror \
+         --from={{ disconnected.mirroring.legacy.ocp_release_image.repo }}:{{ disconnected.mirroring.legacy.ocp_release_image.tag  }} \
          --to={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }} \
          --to-release-image={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }}:{{ disconnected.mirroring.legacy.ocp_tag }}
       register: cmd_oc_legacy_mirroring
@@ -74,4 +95,3 @@
       ansible.builtin.debug:
         var: cmd_oc_legacy_mirroring.stdout_lines
   when: disconnected.enabled == True and disconnected.mirroring.legacy.platform == True
-
