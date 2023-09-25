@@ -18,4 +18,5 @@
           - disconnected.mirroring.file_server.oc_mirror_tgz is defined and disconnected.mirroring.file_server.oc_mirror_tgz != None
           - disconnected.mirroring.client_download.ocp_download_url is defined and disconnected.mirroring.client_download.ocp_download_url != None
           - disconnected.mirroring.client_download.ocp_client_tgz is defined and disconnected.mirroring.client_download.ocp_client_tgz != None
+          - disconnected.mirroring.oc_mirror.image_set is defined and disconnected.mirroring.oc_mirror.image_set != None
   when: disconnected.enabled
