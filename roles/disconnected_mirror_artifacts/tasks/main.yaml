@@ -1,6 +1,6 @@
 ---
 - name: Get user home directory
-  tags: libvirt
+  tags: mirror_artifacts
   shell: >
       getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
   changed_when: false
@@ -95,3 +95,42 @@
       ansible.builtin.debug:
         var: cmd_oc_legacy_mirroring.stdout_lines
   when: disconnected.enabled == True and disconnected.mirroring.legacy.platform == True
+
+- name: prepare image set for oc-mirror mirroring
+  tags: mirror_artifacts
+  ansible.builtin.template:
+    src: imageset.yaml.j2
+    dest: "{{ user_home.stdout }}/ocpinst/imageset.yaml"
+  when: disconnected.enabled == True
+
+- name: mirror the imageset to registry
+  tags: mirror_artifacts
+  block:
+    - name: mirror the imageset to registry
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc mirror --config {{ user_home.stdout }}/ocpinst/imageset.yaml docker://{{ disconnected.registry.url}} --ignore-history {{ ' --continue-on-error' if disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error == True }} \
+         {{ ' --source-skip-tls' if disconnected.mirroring.oc_mirror.oc_mirror_args.source_skip_tls == True }}
+      # ignore-history set by default for idempotency
+      register: cmd_oc_mirror
+      args:
+        chdir: "{{ user_home.stdout }}/ocpinst"
+    - name: print output of image set mirroring
+      ansible.builtin.debug:
+        var: cmd_oc_mirror
+  when: disconnected.enabled == True
+
+- name: Fetch the files that need to be applied on the cluster to the controller
+  tags: mirror_artifacts
+  block:
+    - name: get mirror results directory name
+      ansible.builtin.shell: |
+        set -o pipefail
+        ls {{ user_home.stdout }}/ocpinst/oc-mirror-workspace/ | grep results
+      register: oc_mirror_results_dir_name
+    - name: fetch the files that need to be applied on the cluster to the controller
+      ansible.posix.synchronize:
+        mode: pull
+        src: "{{ user_home.stdout }}/ocpinst/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/*"
+        dest: "../.oc-mirror-results"
+  when: disconnected.enabled == True
