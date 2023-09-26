@@ -333,9 +333,7 @@ disconnected:
       ocp_client_tgz: 'openshift-client-linux.tar.gz' # name of the oc binary. Should be a tar.gz file
     legacy:
       platform: True # if true then platform is mirrored in the old way and install config will be patched with the imagecontentsourcepolicy
-      ocp_release_image:
-        repo: 'quay.io/openshift-release-dev/ocp-release'
-        tag: '4.13.1-s390x'
+      ocp_quay_release_image_tag: '4.13.1-s390x'
       ocp_org: 'ocp4'
       ocp_repo: 'openshift4'
       ocp_tag: 'v4.13.1' #  platform images will be pushed to {tegistry_url}/{ocp_org}/{ocp_repo}:{ocp_tag

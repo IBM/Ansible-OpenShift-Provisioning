@@ -87,7 +87,7 @@
       ansible.builtin.shell: |
         set -o pipefail
         oc adm -a {{ user_home.stdout }}/.docker/config.json release mirror \
-         --from={{ disconnected.mirroring.legacy.ocp_release_image.repo }}:{{ disconnected.mirroring.legacy.ocp_release_image.tag  }} \
+         --from=quay.io/openshift-release-dev/ocp-release:{{ disconnected.mirroring.legacy.ocp_quay_release_image_tag }} \
          --to={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }} \
          --to-release-image={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }}:{{ disconnected.mirroring.legacy.ocp_tag }}
       register: cmd_oc_legacy_mirroring
