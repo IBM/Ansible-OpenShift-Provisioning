@@ -96,7 +96,7 @@
         var: cmd_oc_legacy_mirroring.stdout_lines
   when: disconnected.enabled == True and disconnected.mirroring.legacy.platform == True
 
-- name: prepare image set for oc-mirror mirroring
+- name: prepare imageset for oc-mirror mirroring
   tags: mirror_artifacts
   ansible.builtin.template:
     src: imageset.yaml.j2
@@ -115,7 +115,7 @@
       register: cmd_oc_mirror
       args:
         chdir: "{{ user_home.stdout }}/ocpinst"
-    - name: print output of image set mirroring
+    - name: print output of imageset mirroring
       ansible.builtin.debug:
         var: cmd_oc_mirror
   when: disconnected.enabled == True
