@@ -109,7 +109,7 @@
     - name: mirror the imageset to registry
       ansible.builtin.shell: |
         set -o pipefail
-        oc mirror --config {{ user_home.stdout }}/ocpinst/imageset.yaml docker://{{ disconnected.registry.url}} --ignore-history {{ ' --continue-on-error' if disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error == True }} \
+        oc mirror --config {{ user_home.stdout }}/ocpinst/imageset.yaml docker://{{ disconnected.registry.url}} --ignore-history{{ ' --continue-on-error' if disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error == True }} \
          {{ ' --source-skip-tls' if disconnected.mirroring.oc_mirror.oc_mirror_args.source_skip_tls == True }}
       # ignore-history set by default for idempotency
       register: cmd_oc_mirror
