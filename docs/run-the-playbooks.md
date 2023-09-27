@@ -16,6 +16,8 @@ ansible-playbook playbooks/0_setup.yaml
     * 5_setup_bastion.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/5_setup_bastion.yaml))
     * 6_create_nodes.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/6_create_nodes.yaml))
     * 7_ocp_verification.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/7_ocp_verification.yaml))
+    * disconnected_mirror_artifacts.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/disconnected_mirror_artifacts.yaml))
+    * disconnected_apply_operator_manifests.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/disconnected_apply_operator_manifests.yaml))
 * Watch Ansible as it completes the installation, correcting errors if they arise.
 * To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml
 * Alternatively, to run all the playbooks at once, start the master playbook by running this shell command:
@@ -79,6 +81,19 @@ Creates the bastion KVM guest on the first KVM host. The bastion hosts essential
 * This can be a particularly sticky part of the process.
 * If any of the variables used in the virt-install or kickstart are off, the bastion won't be able to boot.
 * Recommend watching it come up from the first KVM host's cockpit. Go to http://kvm-ip-here:9090 via web-browser to view it. You'll have to sign in, enable administrative access (top right), and then click on the virtual machines tab on the left-hand toolbar.
+## (Skip if not disconnected) Disconnected Mirror Artifacts
+### Overview
+Mirror the ocp platform and other nessasary images to the mirror registry
+### Outcomes
+* Download `oc` and `oc-mirror` to the mirror host.
+* Template the mirror pull secret to the mirror host
+* Add the ca cert to the mirror host anchors if ca is not trusted
+* Mirror the platform images using `oc adm release mirror` if legacy mirrorng is enabled.
+* Template the image set to mirror host and then mirror it using `oc-mirror` plogin.
+* Copy the results on the `oc-mirror` to ansible controller to apply to cluster in future steps.
+### Notes
+* Currenly, platform can only be mirroring the legacy way. While the image set can contain platform mirroring configs, it will NOT be applied to cluster. 
+* Please make sure to run this BEFORE the setup of bastion.
 ## 5 Setup Bastion Playbook
 ### Overview
 Configuration of the bastion to host essential infrastructure services for the cluster. Can be first-time setup or use an existing server.
@@ -94,7 +109,7 @@ Configuration of the bastion to host essential infrastructure services for the c
 * CoreOS roofts is pulled to the bastion if not already there.
 * OCP client and installer are pulled down if not there already.
 * oc, kubectl and openshift-install binaries are installed.
-* OCP install-config is templated and backed up.
+* OCP install-config is templated and backed up. In disconnected mode, if platform is mirrored (currenly only legacy), image content source policy and additionalTrustBundle is also patched.
 * Manfifests are created.
 * OCP install directory found at /root/ocpinst/ is created and populated with necessary files.
 * Ignition files for the bootstrap, control, and compute nodes are transferred to HTTP-accessible directory for booting nodes.
@@ -127,6 +142,13 @@ Final steps of waiting for and verifying the OpenShift cluster to complete its i
 * If you made it this far, congratulations!
 * To install a new cluster, copy your inventory directory, change the default in the ansible.cfg, change the variables, and start again. With all the customizations to the playbooks you made along the way still intact.
 
+# (Skip if not disconnected) Disconnected apply oc mirror manifests to cluster
+### Overview
+Post cluster creation, `oc-mirror` manifests are applied to the cluster
+### Outcomes
+* Copy the `oc-mirror` results manifests to the bastion
+* Apply the copied manifests to the cluster
+* Disable default content sources
 # Additional Playbooks
 
 ## Create additional compute nodes (create_compute_node.yaml) and delete compute nodes (delete_compute_node.yaml)
