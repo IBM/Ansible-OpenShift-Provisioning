@@ -1,14 +1,7 @@
 # Use this if you want to re-install nodes with a new OCP version
 ---
 
-- name: Re-Install cluster - Verify disconnected vars
-  hosts: localhost
-  gather_facts: true
-  gather_facts: true
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
-  roles:
-    - disconnected_check_vars
+- import_playbook: 0_setup.yaml
 
 - name: Re-Install cluster - Copy SSH key from localhost to access bastion
   hosts: localhost
