@@ -5,6 +5,7 @@
       getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
   changed_when: false
   register: user_home
+  when: disconnected.enabled
 
 - name: Delete OCP download directory for idempotency.
   tags: mirror_artifacts
@@ -12,12 +13,14 @@
   file:
     path: "{{ user_home.stdout }}/ocpinst"
     state: absent
+  when: disconnected.enabled
 
 - name: Create OCP download directory
   tags: mirror_artifacts
   file:
     path: "{{ user_home.stdout }}/ocpinst"
     state: directory
+  when: disconnected.enabled
 
 - name: Unzip OCP client and oc-mirror
   tags: mirror_artifacts
@@ -28,6 +31,7 @@
   loop:
     - "{{ disconnected.mirroring.client_download.ocp_download_url }}{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
     - "{{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
+  when: disconnected.enabled
 
 - name: Copy kubectl, oc, and oc-mirror binaries to /usr/local/sbin
   tags: mirror_artifacts
@@ -43,19 +47,21 @@
     - kubectl
     - oc
     - oc-mirror
+  when: disconnected.enabled
 
 - name: Check if directory {{ user_home.stdout }}/.docker exists
   tags: mirror_artifacts
   ansible.builtin.stat:
     path: "{{ user_home.stdout }}/.docker"
   register: home_docker
+  when: disconnected.enabled
 
 - name: Create directory {{ user_home.stdout }}/.docker
   tags: mirror_artifacts
   file:
     path: "{{ user_home.stdout }}/.docker"
     state: directory
-  when: home_docker.stat.exists == false
+  when: disconnected.enabled and not home_docker.stat.exists
 
 - name: create pull secret file for mirroring
   tags: mirror_artifacts
@@ -64,6 +70,7 @@
     dest: "{{ user_home.stdout }}/.docker/config.json"
     backup: yes
     force: yes
+  when: disconnected.enabled
 
 - name: create ca cert file for adding to ca trust when ca is not trusted and updating ca trust
   tags: mirror_artifacts
@@ -78,7 +85,7 @@
       ansible.builtin.shell: |
         set -o pipefail
         update-ca-trust
-  when: disconnected.enabled == True and disconnected.registry.ca_trusted == False
+  when: disconnected.enabled and not disconnected.registry.ca_trusted
 
 - name: mirror the platform the legacy way if legacy mode is enabled
   tags: mirror_artifacts
@@ -94,14 +101,14 @@
     - name: print the output of the mirroring
       ansible.builtin.debug:
         var: cmd_oc_legacy_mirroring.stdout_lines
-  when: disconnected.enabled == True and disconnected.mirroring.legacy.platform == True
+  when: disconnected.enabled and disconnected.mirroring.legacy.platform
 
 - name: prepare imageset for oc-mirror mirroring
   tags: mirror_artifacts
   ansible.builtin.template:
     src: imageset.yaml.j2
     dest: "{{ user_home.stdout }}/ocpinst/imageset.yaml"
-  when: disconnected.enabled == True
+  when: disconnected.enabled
 
 - name: mirror the imageset to registry
   tags: mirror_artifacts
@@ -118,7 +125,7 @@
     - name: print output of imageset mirroring
       ansible.builtin.debug:
         var: cmd_oc_mirror
-  when: disconnected.enabled == True
+  when: disconnected.enabled
 
 - name: Fetch the files that need to be applied on the cluster to the controller
   tags: mirror_artifacts
@@ -133,4 +140,4 @@
         mode: pull
         src: "{{ user_home.stdout }}/ocpinst/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/*"
         dest: "../.oc-mirror-results"
-  when: disconnected.enabled == True
+  when: disconnected.enabled
