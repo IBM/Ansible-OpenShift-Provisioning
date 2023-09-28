@@ -55,6 +55,8 @@
       sudo mkdir /var/www/html/clients
       ```
     Make sure this directory contains a pre-downloaded `oc-mirror` binary in `tar.gz` formal. Currently the supported binary is available for `amd64` on Red Hat Customer portal openshift [downloads](https://console.redhat.com/openshift/downloads) page. It can also be found on mirror.openshift.com from `4.14` onwards for other architectures.
+
+    **NOTE**: At this stage, only oc-mirror binary is fetched from here, so it is expected that the lpar for disconnected cluster can atleat reach `mirror.openshift.com` to download the other artifacts for cluster installation.
 ## Ansible Controller
 * The computer/virtual machine running Ansible, sometimes referred to as localhost.
 * Must be running on with MacOS or Linux operating systems.
