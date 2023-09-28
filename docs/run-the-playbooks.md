@@ -93,7 +93,7 @@ Mirror the ocp platform and other nessasary images to the mirror registry
 * Copy the results on the `oc-mirror` to ansible controller to apply to cluster in future steps.
 ### Notes
 * Currenly, platform can **only** be mirrored the legacy way. While the image set can contain platform mirroring configs, it will **not** be applied to cluster. 
-* This playbook can be run at any stage after the **0 Setup** playbook. Make sure to run this before the cluster staring pulling at the images from the registry 
+* This playbook can be run at any stage after the **0 Setup** playbook. Make sure to run this before the cluster starts pulling at the images from the registry 
   which typically happens where the **Create Nodes Playbook** is run.
 ## 5 Setup Bastion Playbook
 ### Overview
