@@ -107,7 +107,7 @@ yum install python3
 ## Disconnected cluster preperation
 * If you wish to install disconnected cluster, then please make sure the following pre-requisites are met. This is on top of the requirements mentioned under **File Server**.
     * Make sure that you have a working registry to be used for mirroring. If the CA of this registry is not automatically trusted, then keep the CA cert content handy to update in inventory file. The CA cert is the file with which, do dont need to skip tls to access the registry.
-    * Make sure you have required pull secrets handy. You will need 2 pull secrets, one to apply on the cluster and another which will be used for mirroring. The mirroring  pull secret MUST have push access to the mirror registry as well as must give you access to Red Hat registries. A good way to create this would to create this would be to take this pull secret would be to put the Red Hat pull secret from **Get Info** page and do a podman login with creds having write access.
+    * Make sure you have required pull secrets handy. You will need 2 pull secrets, one to apply on the cluster and another which will be used for mirroring. The mirroring  pull secret MUST have push access to the mirror registry as well as must give you access to Red Hat registries. A good way to create this would be take the Red Hat pull secret from **Get Info page** and do a podman login with creds having write access.
     ```
     cp -avrf /path/to/redhat-pull-secrets.json ./mirror-secret.json
     podman login -u admin -p admin <mirror_registry> --tls-verify=false --authfile=./mirror-secret.json
