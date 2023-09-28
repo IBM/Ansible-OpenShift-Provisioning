@@ -111,7 +111,7 @@ yum install python3
     ```
     cp -avrf /path/to/redhat-pull-secrets.json ./mirror-secret.json
     podman login -u admin -p admin <mirror_registry> --tls-verify=false --authfile=./mirror-secret.json
-    cat ./mirror-secret.json jq -r tostring
+    cat ./mirror-secret.json | jq -r tostring
     <copy htis output>
     ```
     * A host for doing the mirroring. This host should be able to access the Red Hat registries (registry.redhat.io, quay.io etc) as well as the mirroing registry.
