@@ -39,6 +39,10 @@
         | jq -r '.architectures.{{ day2_compute_node.host_arch }}.artifacts.metal.formats.iso.disk.location'
       register: _rhcos_iso_dl_url
 
+    - name: Check variable '_rhcos_iso_dl_url' is not 'null'
+      ansible.builtin.fail:
+      when: _rhcos_iso_dl_url.stdout == "null"
+
     - name: Get RHCOS kernel download url from machine-config-operator
       ansible.builtin.shell: |
         set -o pipefail
