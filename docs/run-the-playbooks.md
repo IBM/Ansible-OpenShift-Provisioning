@@ -13,10 +13,10 @@ ansible-playbook playbooks/0_setup.yaml
     * 2_create_kvm_host.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/2_create_kvm_host.yaml))
     * 3_setup_kvm_host.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml))
     * 4_create_bastion.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/4_create_bastion.yaml))
+    * disconnected_mirror_artifacts.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/disconnected_mirror_artifacts.yaml))
     * 5_setup_bastion.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/5_setup_bastion.yaml))
     * 6_create_nodes.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/6_create_nodes.yaml))
     * 7_ocp_verification.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/7_ocp_verification.yaml))
-    * disconnected_mirror_artifacts.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/disconnected_mirror_artifacts.yaml))
     * disconnected_apply_operator_manifests.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/disconnected_apply_operator_manifests.yaml))
 * Watch Ansible as it completes the installation, correcting errors if they arise.
 * To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml
@@ -93,7 +93,7 @@ Mirror the ocp platform and other nessasary images to the mirror registry
 * Copy the results on the `oc-mirror` to ansible controller to apply to cluster in future steps.
 ### Notes
 * Currenly, platform can **only** be mirrored the legacy way. While the image set can contain platform mirroring configs, it will **not** be applied to cluster. 
-* Please make sure to run this **before** the setup of bastion.
+* This playbook can be run at any stage after the **0 Setup** playbook as long as the mirror host is ready. Please just make sure to run this **before** the setup of bastion.
 ## 5 Setup Bastion Playbook
 ### Overview
 Configuration of the bastion to host essential infrastructure services for the cluster. Can be first-time setup or use an existing server.
