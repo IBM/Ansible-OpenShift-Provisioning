@@ -19,5 +19,5 @@
 
 {% if ( disconnected.enabled )  %}
 {{ '[mirrorhost]' }}
-{{ disconnected.mirroring.host.name | string + ' ansible_host=' + disconnected.mirroring.host.ip | string + ' ansoble_user=' + disconnected.mirroring.host.user | string + ' ansible_become_password=' + disconnected.mirroring.host.pass | string }}
+{{ disconnected.mirroring.host.name | string + ' ansible_host=' + disconnected.mirroring.host.ip | string + ' ansible_user=' + disconnected.mirroring.host.user | string + ' ansible_become_password=' + disconnected.mirroring.host.pass | string }}
 {% endif -%}
