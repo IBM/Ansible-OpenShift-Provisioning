@@ -88,7 +88,7 @@ Mirror the ocp platform and other nessasary images to the mirror registry
 * Download `oc` and `oc-mirror` to the mirror host.
 * Template the mirror pull secret to the mirror host
 * Add the ca cert to the mirror host anchors if ca is not trusted
-* Mirror the platform images using `oc adm release mirror` if legacy mirrorng is enabled.
+* Mirror the platform images using `oc adm release mirror` if legacy mirroring is enabled.
 * Template the image set to mirror host and then mirror it using `oc-mirror` plogin.
 * Copy the results on the `oc-mirror` to ansible controller to apply to cluster in future steps.
 ### Notes
