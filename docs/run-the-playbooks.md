@@ -92,8 +92,8 @@ Mirror the ocp platform and other nessasary images to the mirror registry
 * Template the image set to mirror host and then mirror it using `oc-mirror` plogin.
 * Copy the results on the `oc-mirror` to ansible controller to apply to cluster in future steps.
 ### Notes
-* Currenly, platform can only be mirroring the legacy way. While the image set can contain platform mirroring configs, it will NOT be applied to cluster. 
-* Please make sure to run this BEFORE the setup of bastion.
+* Currenly, platform can **only** be mirrored the legacy way. While the image set can contain platform mirroring configs, it will **not** be applied to cluster. 
+* Please make sure to run this **before** the setup of bastion.
 ## 5 Setup Bastion Playbook
 ### Overview
 Configuration of the bastion to host essential infrastructure services for the cluster. Can be first-time setup or use an existing server.
