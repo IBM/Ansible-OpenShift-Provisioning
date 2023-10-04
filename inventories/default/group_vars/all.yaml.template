@@ -325,7 +325,7 @@ disconnected:
       ip: x.x.x.x
       user: mirroruser # with become access
       pass: mirrorpassword
-    file_server: # in disconnected mode, the client binaries and rhcos will be put on env.file_server and then downloaded to the final destination from there.
+    file_server: # in disconnected mode, the client binaries and rhcos will be put on env.file_server and then downloaded to the final destination from there. For now, its only oc-mirror. Rest of artifacts will be downloaded from urls
       clients_dir: 'clients'
       oc_mirror_tgz: 'oc-mirror.tar.gz' # name of oc-mirror plugin binary in clients_dir. should be a tar.gz file. You must place this in your ftp server after downloading it yourself from https://console.redhat.com/openshift/downloads for amd64 (or building it yourself if your mirror host is s390x)
     client_download: # this will download oc binary to the mirror host for use on the mirror host for mirroring
