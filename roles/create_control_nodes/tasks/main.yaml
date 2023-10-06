@@ -13,7 +13,7 @@
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} ip={{ env.cluster.nodes.control.ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.control.hostname[i] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign {{ _vm_console }}" \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} ip={{ env.cluster.nodes.control.ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.control.hostname[i] }}:{{ env.cluster.networking.interface }}:none:1500 {{ ('ip=[' + env.cluster.nodes.control.ipv6[i] + ']::[' + env.cluster.networking.ipv6_gateway +']:' + env.cluster.networking.ipv6_prefix | string + '::' + env.cluster.networking.interface + ':none' ) if env.use_ipv6 == True else '' }} nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign {{ _vm_console }}" \
     --graphics none \
     --console pty,target_type=serial \
     --wait=-1 \
@@ -24,6 +24,7 @@
     extended: yes
     index_var: i
   when: env.z.high_availability == False and inventory_hostname == env.z.lpar1.hostname
+#    {{ ('ip=[' + env.cluster.nodes.control.ipv6[i] + ']::[' + env.cluster.networking.ipv6_gateway +']:' + env.cluster.networking.ipv6_prefix | string + '::' + env.cluster.networking.interface + ':none' ) if env.use_ipv6 == True else '' }} \
 
 - name: Create the first CoreOS control node on the first KVM host, if cluster is to be highly available.
   tags: create_control_nodes
@@ -38,7 +39,9 @@
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} ip={{ env.cluster.nodes.control.ip[0] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.control.hostname[0] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign {{ _vm_console }}" \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} ip={{ env.cluster.nodes.control.ip[0] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.control.hostname[0] }}:{{ env.cluster.networking.interface }}:none:1500 \ 
+    {{ ('ip=[' + env.cluster.nodes.control.ipv6[0] + ']::[' + env.cluster.networking.ipv6_gateway +']:' + env.cluster.networking.ipv6_prefix | string + '::' + env.cluster.networking.interface + ':none' ) if env.use_ipv6 == True else '' }} \
+    nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign {{ _vm_console }}" \
     --graphics none \
     --wait=-1 \
     --noautoconsole
@@ -57,7 +60,9 @@
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} ip={{ env.cluster.nodes.control.ip[1] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.control.hostname[1] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign {{ _vm_console }}" \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} ip={{ env.cluster.nodes.control.ip[1] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.control.hostname[1] }}::none:1500 \
+    {{ ('ip=[' + env.cluster.nodes.control.ipv6[1] + ']::[' + env.cluster.networking.ipv6_gateway +']:' + env.cluster.networking.ipv6_prefix | string + '::' env.cluster.networking.interface + ':none' ) if env.use_ipv6 == True else '' }} \
+    nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign {{ _vm_console }}" \
     --graphics none \
     --wait=-1 \
     --noautoconsole
@@ -76,7 +81,9 @@
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
-    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} ip={{ env.cluster.nodes.control.ip[2] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.control.hostname[2] }}::none:1500 nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign {{ _vm_console }}" \
+    --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} ip={{ env.cluster.nodes.control.ip[2] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.control.hostname[2] }}::none:1500 \ 
+    {{ ('ip=[' + env.cluster.nodes.control.ipv6[2] + ']::[' + env.cluster.networking.ipv6_gateway +']:' + env.cluster.networking.ipv6_prefix | string + '::' env.cluster.networking.interface ':none' ) if env.use_ipv6 == True else '' }} \
+    nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign {{ _vm_console }}" \
     --graphics none \
     --wait=-1 \
     --noautoconsole

@@ -6,6 +6,7 @@
 #   vm_name: <your VM name>
 #   vm_hostname: <your VM host name>
 #   vm_ip: <your VM IP address>
+#   vm_ipv6: <your VM IPv6 address>
 #   hostname: <KVM host name where the VM is created>
 #   host_arch: <KVM host architecture>
 #

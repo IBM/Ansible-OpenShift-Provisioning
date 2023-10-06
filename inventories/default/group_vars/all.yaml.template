@@ -59,10 +59,13 @@ env:
       vcpu: 4
     networking:
       ip: #X
+      ipv6: #X
       hostname: #X
       base_domain: #X
       subnetmask: #X
       gateway: #X
+      ipv6_gateway: #X
+      ipv6_prefix: #X
       nameserver1: #X
 #      nameserver2:
       forwarder: 1.1.1.1
@@ -85,9 +88,12 @@ env:
       base_domain: #X
       subnetmask: #X
       gateway: #X
+      ipv6_gateway: #X
+      ipv6_prefix: #X
       nameserver1: #X
 #      nameserver2:
       forwarder: 1.1.1.1
+      interface: #X
 
 # Section 7 - Bootstrap Node
     nodes:
@@ -97,6 +103,7 @@ env:
         vcpu: 4
         vm_name: #X
         ip: #X
+        ipv6: #X
         hostname: #X
 
 # Section 8 - Control Nodes
@@ -109,6 +116,10 @@ env:
           - #X
           - #X
         ip:
+          - #X
+          - #X
+          - #X
+        ipv6:
           - #X
           - #X
           - #X
@@ -128,6 +139,9 @@ env:
         ip:
           - #X
           - #X
+        ipv6:
+          - #X
+          - #X
         hostname:
           - #X
           - #X
@@ -143,6 +157,9 @@ env:
 #        ip:
 #          - 1.1.1.1
 #          - 1.1.1.2
+#        ipv6:
+#          - fd00::11
+#          - fd00::12
 #        hostname:
 #          - infra1
 #          - infra2
@@ -190,6 +207,7 @@ env:
   ocp_ssh_key_comment: OpenShift key
   bridge_name: macvtap
   network_mode:
+  use_ipv6: True
 
 #jumphost if network mode is NAT
   jumphost:
@@ -294,5 +312,6 @@ day2_compute_node:
   vm_name:
   vm_hostname:
   vm_ip:
+  vm_ipv6:
   hostname:
   host_arch:
