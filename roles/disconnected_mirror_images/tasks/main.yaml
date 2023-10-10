@@ -127,17 +127,18 @@
         var: cmd_oc_mirror
   when: disconnected.enabled
 
+- name: Get the results directory from oc mirror operation
+  tags: mirror_artifacts
+  ansible.builtin.shell: |
+    set -o pipefail
+    ls {{ user_home.stdout }}/ocpinst/oc-mirror-workspace/ | grep results
+  register: oc_mirror_results_dir_name
+  when: disconnected.enabled
+
 - name: Fetch the files that need to be applied on the cluster to the controller
   tags: mirror_artifacts
-  block:
-    - name: get mirror results directory name
-      ansible.builtin.shell: |
-        set -o pipefail
-        ls {{ user_home.stdout }}/ocpinst/oc-mirror-workspace/ | grep results
-      register: oc_mirror_results_dir_name
-    - name: fetch the files that need to be applied on the cluster to the controller
-      ansible.posix.synchronize:
-        mode: pull
-        src: "{{ user_home.stdout }}/ocpinst/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/*"
-        dest: "../.oc-mirror-results"
+  ansible.posix.synchronize:
+    mode: pull
+    src: "{{ user_home.stdout }}/ocpinst/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/*"
+    dest: "../.oc-mirror-results"
   when: disconnected.enabled
