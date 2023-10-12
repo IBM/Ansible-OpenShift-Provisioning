@@ -76,7 +76,7 @@
     - ssh_ocp_key_gen
     - set_firewall
     - { role: dns, when: env.bastion.options.dns }
-    - check_dns
+    - { role: check_dns, when env.bastion.options.dns is defined and env.bastion.options.dns }
     - { role: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
     - httpd
 
