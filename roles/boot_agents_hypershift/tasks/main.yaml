@@ -13,6 +13,7 @@
 
     virt-install \
     --name "{{ hypershift.hcp.hosted_cluster_name }}-agent-{{ item }}" \
+    --osinfo detect=on,require=off \
     --autostart \
     --ram="{{ hypershift.agents_parms.ram }}" \
     --cpu host \
