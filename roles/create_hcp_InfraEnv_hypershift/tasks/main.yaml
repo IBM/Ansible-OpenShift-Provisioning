@@ -60,6 +60,8 @@
     --base-domain={{ hypershift.hcp.basedomain }} 
     --api-server-address=api.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }} 
     --ssh-key ~/.ssh/{{ env.ansible_key_name }}.pub
+    --control-plane-availability-policy "SingleReplica"
+    --infra-availability-policy "SingleReplica"
     --release-image=quay.io/openshift-release-dev/ocp-release:{{ hypershift.hcp.ocp_release }} 
     {% set release_image = lookup('env', 'HCP_RELEASE_IMAGE') %}
     {% if release_image is defined and release_image != '' %}
