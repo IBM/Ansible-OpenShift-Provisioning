@@ -1,0 +1,33 @@
+---
+
+- name: Delete bootstrap node, if exists
+  tags: delete_nodes
+  ansible.builtin.shell: |
+    set -o pipefail
+    virsh destroy "{{ env.cluster.nodes.bootstrap.vm_name }}" || true
+    virsh undefine "{{ env.cluster.nodes.bootstrap.vm_name }}" --remove-all-storage || true
+  register: delete_bootstrap
+  changed_when: "('destroyed' in delete_bootstrap.stdout) or ('undefined' in delete_bootstrap.stdout)"
+
+- name: Delete control, compute and infra nodes, if exists
+  tags: delete_nodes
+  ansible.builtin.shell: |
+    set -o pipefail
+    virsh destroy {{ item }} || true
+    virsh undefine {{ item }} --remove-all-storage || true
+  loop: "{{ env.cluster.nodes.control.vm_name + env.cluster.nodes.compute.vm_name \
+    if env.cluster.nodes.infra.vm_name is not defined \
+    else env.cluster.nodes.control.vm_name + env.cluster.nodes.compute.vm_name + env.cluster.nodes.infra.vm_name }}"
+  register: delete_nodes
+  changed_when: "('destroyed' in delete_nodes.stdout) or ('undefined' in delete_nodes.stdout)"
+
+- name: Get and print virsh list
+  tags: delete_nodes
+  block:
+    - name: Get virsh list
+      ansible.builtin.command: virsh list
+      register: cmd_virsh_list
+
+    - name: Print virsh list
+      ansible.builtin.debug:
+        var: cmd_virsh_list.stdout_lines

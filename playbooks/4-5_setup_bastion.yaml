@@ -1,0 +1,179 @@
+---
+
+- name: Copy ssh key to jumphost if network is NAT and jumphost defined, and add jumphost section to ssh config.
+  hosts: localhost
+  tags: ssh, ssh_copy_id, section_1
+  connection: local
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  vars:
+    ssh_target: ["{{ env.jumphost.ip }}", "{{ env.jumphost.user }}", "{{ env.jumphost.pass }}", "{{ path_to_key_pair }}"]
+  roles:
+    - { role: ssh_copy_id, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
+    - { role: ssh_add_config, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
+
+- name: Configure jumphost if network mode == 'NAT'
+  hosts: jumphost
+  tags: ssh, ssh_copy_id, section_1
+  gather_facts: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  vars:
+    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}","{{ env.jumphost.path_to_keypair }}"]
+  pre_tasks:
+    - name: Generate an OpenSSH keypair with the default values (4096 bits, RSA), if using jumphost for NAT.
+      tags: ssh_key_gen, ssh, section_1
+      community.crypto.openssh_keypair:
+        path: "{{ env.jumphost.path_to_keypair.split('.')[:-1] | join('.') }}"
+        passphrase: ""
+        regenerate: never
+      when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none )
+    - block:
+        - name: Check if 'expect' is installed on jumphost, for use in ssh-copy-id role for NAT.
+          package_facts:
+          failed_when: "'expect' not in ansible_facts.packages"
+          when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none )
+      rescue:
+        - name: Package 'expect' must be installed on the jumphost, attempting to install it. #Using 'block' and 'rescue' to avoid running the 'package' module (which requires 'sudo') unless necessary.
+          become: true
+          package:
+            name: expect
+          when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none )
+  roles:
+    - { role: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
+  post_tasks:
+    - meta: clear_facts
+
+- name: 5 setup bastion - copy SSH key from localhost to access bastion.
+  hosts: localhost
+  tags: ssh, ssh_copy_id, section_1
+  gather_facts: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  vars:
+    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}","{{ path_to_key_pair }}"]
+  roles:
+    - ssh_copy_id
+
+- name: 5 setup bastion - configure bastion node with essential services
+  hosts: bastion
+  tags: services, section_2
+  become: true
+  vars:
+    packages: "{{ env.pkgs.bastion }}"
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  pre_tasks:
+    - name: Import initial-resolv.yaml
+      ansible.builtin.import_role:
+        name: dns
+        tasks_from: initial-resolv.yaml
+      when: env.bastion.options.dns is defined and env.bastion.options.dns
+  roles:
+    - { role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined }
+    - install_packages
+    - ssh_ocp_key_gen
+    - set_firewall
+    - { role: dns, when: env.bastion.options.dns }
+    - check_dns
+    - { role: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
+    - httpd
+
+- hosts: bastion
+  tags: services, section_2, openvpn
+  become: true
+  vars:
+    openvpn_role: "server"
+  roles:
+    #- { role: robertdebock.bootstrap, tags: openvpn, when: env.z.high_availability == True }
+    - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True }
+    - { role: robertdebock.openvpn, tags: openvpn, when: env.z.high_availability == True }
+
+- hosts: localhost
+  tags: services, section_2, openvpn
+  gather_facts: false
+  tasks:
+    - name: Create landing directories on controller for certificates and keys.
+      tags: openvpn
+      file:
+        state: directory
+        path: tmp
+      when: env.z.high_availability == True
+
+- hosts: bastion
+  tags: services, section_2, openvpn
+  become: true
+  tasks:
+    - name: Fetch certificates and keys from bastion.
+      tags: openvpn
+      fetch:
+        src: /etc/openvpn/easy-rsa/pki/{{ item }}
+        dest: tmp/
+        flat: yes
+      loop:
+        - ca.crt
+        - issued/client.crt
+        - private/client.key
+        - ta.key
+      when: env.z.high_availability == True
+
+- name: setup OpenVPN on KVM host(s).
+  hosts: kvm_host
+  tags: services, section_3, openvpn
+  become: true
+  gather_facts: false
+  vars:
+    openvpn_role: "client"
+    openvpn_client_server: "{{ env.bastion.networking.ip }}"
+  pre_tasks:
+    - name: Gather facts.
+      setup:
+      when: env.z.high_availability == True
+
+    - name: Create landing directories for certificates and keys on KVM hosts.
+      tags: openvpn
+      file:
+        state: directory
+        path: /etc/openvpn/client/{{ item }}
+        mode: '700'
+      loop:
+        - issued
+        - private
+      when: env.z.high_availability == True
+
+    - name: Copy certificates and keys from controller to KVM hosts.
+      tags: openvpn
+      copy:
+        src: tmp/{{ item }}
+        dest: /etc/openvpn/client/{{ item }}
+        mode: '600'
+      loop:
+        - ca.crt
+        - client.crt
+        - client.key
+        - ta.key
+      when: env.z.high_availability == True
+  roles:
+    - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True }
+    - { role: robertdebock.openvpn, tags: openvpn, when: env.z.high_availability == True }
+
+- hosts: localhost
+  tags: services, section_2, openvpn
+  gather_facts: false
+  tasks:
+    - name: Clean up tmp directories on controller for certificates and keys.
+      tags: openvpn
+      file:
+        state: absent
+        path: tmp
+      when: env.z.high_availability == True
+
+- hosts: bastion
+  tags: get_ocp, section_3
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - common
+    - get_ocp

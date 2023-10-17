@@ -1,0 +1,16 @@
+---
+
+- name: Get and print nodes status
+  ansible.builtin.include_tasks: "{{ role_path }}/../common/tasks/print_ocp_node_status.yaml"
+
+- name: "Make sure node is 'Ready' (retry every 20s, wait for '{{ wait_for_node_name }}')"
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get nodes --no-headers=true | grep "^{{ wait_for_node_name | lower }}" | awk '{print $2}'
+  register: cmd_output
+  until: ("Ready" == cmd_output.stdout)
+  retries: 30
+  delay: 20
+
+- name: Get and print nodes status
+  ansible.builtin.include_tasks: "{{ role_path }}/../common/tasks/print_ocp_node_status.yaml"

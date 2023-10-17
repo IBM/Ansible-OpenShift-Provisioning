@@ -1,0 +1,67 @@
+---
+
+- name: Start LPAR
+  tags: create_kvm_host
+  ibm.ibm_zhmc.zhmc_partition:
+    hmc_host: "{{ hmc.host }}"
+    hmc_auth:
+      userid: "{{ hmc.auth.user }}"
+      password: "{{ hmc.auth.pass }}"
+      verify: false
+    cpc_name: "{{ cpc_name }}"
+    name: "{{ lpar.name }}"
+    properties:
+      boot_ftp_host: "{{ env.file_server.ip }}"
+      boot_ftp_username: "{{ env.file_server.user }}"
+      boot_ftp_password: "{{ env.file_server.pass }}"
+      boot_ftp_insfile: "{{ env.file_server.cfgs_dir }}/{{ networking.hostname }}/kvm_host.ins"
+      boot_device: "ftp"
+    state: active
+  register: _create_instances
+  async: 600
+  poll: 0
+
+- name: Wait for creation to finish
+  tags: create_kvm_host
+  async_status:
+    jid: "{{ _create_instances.ansible_job_id }}"
+  register: _jobs
+  until: _jobs.finished
+  delay: 15  # Check every 15 seconds
+  retries: 40  # Retry up to 40 times
+
+#- name: Template hmccreds.yaml for use with os_messages.py
+#  tags: create_kvm_host, test2
+#  template:
+#    src: hmccreds.yaml.j2
+#    dest: "{{ role_path }}/files/hmccreds.yaml"
+
+#- name: Execute os_messages.py
+#  tags: create_kvm_host, test2
+#  command: "{{ role_path }}/files/os_messages.py {{ role_path }}/files/hmcclient.yaml"
+#  register: os_messages_output
+
+#- name: Show LPAR OS messages from HMC.
+#  tags: create_kvm_host, test2
+#  debug:
+#    msg: "{{ os_messages_output }}"
+#  until: "'login:' in os_messages_output"
+
+- name: Wait 7 minutes for automated RHEL installation and configuration to complete.
+  tags: create_kvm_host
+  pause:
+    minutes: 7
+
+#- name: Change LPAR's boot source to storage adapter instead of FTP for future booting
+#  tags: create_kvm_host
+#  ibm.ibm_zhmc.zhmc_partition:
+#    hmc_host: "{{ hmc.host }}"
+#    hmc_auth:
+#      userid: "{{ hmc.auth.user }}"
+#      password: "{{ hmc.auth.pass }}"
+#      verify: false
+#    cpc_name: "{{ cpc_name }}"
+#    name: "{{ lpar.name }}"
+#    properties:
+#      boot_device: "storage-adapter"
+#    state: active

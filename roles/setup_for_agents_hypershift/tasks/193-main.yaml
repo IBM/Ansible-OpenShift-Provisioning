@@ -1,0 +1,34 @@
+---
+
+- name: Download ipxe script
+  shell: curl -k -L $(oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} get InfraEnv {{ hypershift.hcp.hosted_cluster_name }} -ojsonpath="{.status.bootArtifacts.ipxeScript}")
+  register: ipxe_script
+
+- name: Create Installation directory
+  file:
+    path: /var/lib/libvirt/images/pxeboot
+    state: directory
+    mode: '0755'
+
+- name: Get URL for initrd
+  set_fact:
+    initrd_url: "{{ ipxe_script.stdout_lines[1].split(' ')[3] }}"
+
+- name: Download initrd.img 
+  get_url:
+    url: "{{ initrd_url }}"
+    dest: /var/lib/libvirt/images/pxeboot/initrd.img
+    validate_certs: false
+
+- name: Get URL for kernel.img
+  set_fact:
+    kernel_url: "{{ ipxe_script.stdout_lines[2].split(' ')[1] }}"
+
+- name: Download kernel.img
+  get_url:
+    url: "{{ kernel_url }}"
+    dest: /var/lib/libvirt/images/pxeboot/kernel.img
+    validate_certs: false
+
+
+

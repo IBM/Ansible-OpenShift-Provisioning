@@ -1,0 +1,34 @@
+---
+
+- name: Delete compute node from OCP cluster and print command output
+  tags: delete_compute_node
+  delegate_to: "{{ groups['bastion'][0] }}"
+  block:
+    - name: Delete compute node from OCP cluster
+      ansible.builtin.shell: |
+        set -o pipefail
+        if ! oc get nodes --no-headers=true | grep "^{{ param_compute_node.vm_hostname | lower }}" ; then
+            echo "INFO: Node '{{ param_compute_node.vm_hostname }}' not found or is already deleted"
+            exit 0
+        fi
+        oc adm cordon {{ param_compute_node.vm_hostname | lower }}
+        oc adm drain {{ param_compute_node.vm_hostname | lower }} --force --delete-emptydir-data --ignore-daemonsets --timeout=30s
+        oc delete nodes {{ param_compute_node.vm_hostname | lower }}
+      register: cmd_output
+    - name: Print cmd output
+      ansible.builtin.debug:
+        var: cmd_output.stdout_lines
+
+- name: Delete compute node VM on KVM host and print command output
+  tags: delete_compute_node
+  delegate_to: "{{ param_compute_node.hostname }}"
+  block:
+    - name: Delete compute node VM on KVM host
+      ansible.builtin.shell: |
+        set -o pipefail
+        virsh destroy {{ param_compute_node.vm_name }} || true
+        virsh undefine {{ param_compute_node.vm_name }} --remove-all-storage || true
+      register: cmd_output
+    - name: Print cmd output
+      ansible.builtin.debug:
+        var: cmd_output.stdout_lines

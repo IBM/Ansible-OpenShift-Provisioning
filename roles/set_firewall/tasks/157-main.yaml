@@ -1,0 +1,55 @@
+---
+
+- name: start firewalld service
+  service:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Add ports to firewall
+  tags: set_firewall
+  firewalld:
+    port: "{{ item }}"
+    permanent: yes
+    state: enabled
+  loop:
+    - 8080/tcp
+    - 80/tcp
+    - 443/tcp
+    - 4443/tcp
+    - 6443/tcp
+    - 22623/tcp
+    - 53/tcp
+    - 53/udp
+
+- name: Permit traffic in default zone for http and https
+  tags: set_firewall
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    permanent: yes
+    state: enabled
+  loop:
+    - http
+    - https
+
+- name: Ensure the default Apache port is 8080
+  tags: set_firewall
+  replace:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^Listen 80$'
+    replace: 'Listen 8080'
+    backup: yes
+
+- name: Ensure the SSL default port is 4443
+  tags: set_firewall
+  replace:
+    path: /etc/httpd/conf.d/ssl.conf
+    regexp: '^Listen 443 https'
+    replace: 'Listen 4443 https'
+    backup: yes
+
+- name: reload firewalld to reflect changes
+  tags: set_firewall
+  systemd:
+    name: firewalld
+    state: reloaded

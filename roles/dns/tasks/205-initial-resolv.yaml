@@ -1,0 +1,24 @@
+- name: Template out bastion's resolv.conf file for initial installation.
+  tags: resolv
+  ansible.builtin.template:
+    src: initial-resolv.conf.j2
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: "644"
+
+# NetworkManager modifies our /etc/resolv.conf file on next restart or reboot, we need to disable it
+- name: Disable management of /etc/resolv.conf by NetworkManager
+  tags: resolv
+  ansible.builtin.copy:
+    src: 90-dns-none.conf
+    dest: /etc//NetworkManager/conf.d/90-dns-none.conf
+    group: root
+    owner: root
+    mode: "644"
+
+- name: Restart network to update changes made to /etc/resolv.conf
+  tags: resolv
+  ansible.builtin.service:
+    name: network
+    state: restarted

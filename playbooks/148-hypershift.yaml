@@ -1,0 +1,4 @@
+---
+
+- import_playbook: create_hosted_cluster.yaml
+- import_playbook: create_agents_and_wait_for_install_complete.yaml

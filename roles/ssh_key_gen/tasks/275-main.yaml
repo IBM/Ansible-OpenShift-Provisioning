@@ -1,0 +1,37 @@
+---
+
+- name: Check to see if local SSH directory exists
+  tags: ssh_key_gen, ssh
+  stat:
+    path: "~/.ssh"
+  register: ssh_directory_exists_check
+
+- name: Create SSH local directory if it doesn't already exist
+  tags: ssh_key_gen, ssh
+  file:
+    path: "~/.ssh"
+    state: directory
+    mode: '700'
+  register: ssh_directory_creation
+  when: ssh_directory_exists_check.stat.exists == false
+
+- name: Generate an OpenSSH keypair with the default values (4096 bits, RSA)
+  tags: ssh_key_gen, ssh
+  community.crypto.openssh_keypair:
+    path: "~/.ssh/{{ env.ansible_key_name }}"
+    passphrase: ""
+    comment: "Ansible-OpenShift-Provisioning SSH key"
+    regenerate: full_idempotence
+  register: ssh_key_creation
+
+- name: Print results of ssh key pair creation
+  tags: ssh_key_gen, ssh
+  debug:
+    var: ssh_key_creation
+
+- name: Save path to key pair for use in ssh-copy-id role
+  tags: ssh_key_gen, ssh
+  lineinfile:
+    search_string: "path_to_key_pair:"
+    line: "path_to_key_pair: {{ ssh_key_creation.filename }}.pub"
+    path: "{{ inventory_dir }}/group_vars/all.yaml"

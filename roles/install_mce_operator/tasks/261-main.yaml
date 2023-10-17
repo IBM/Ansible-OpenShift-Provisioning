@@ -1,0 +1,80 @@
+---
+- name: Check if multicluster-engine Namespace exists 
+  k8s_info:
+    api_version: v1
+    kind: Namespace
+    name: "{{ hypershift.asc.mce_namespace }}"
+  register: namespace_check
+  ignore_errors: yes
+
+- name: Create multicluster-engine  Namespace 
+  k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ hypershift.asc.mce_namespace }}"
+    state: present
+  when: namespace_check.resources | length == 0 
+
+- name: Create OperatorGroup.yaml
+  template: 
+    src: OperatorGroup.yaml.j2
+    dest: /root/ansible_workdir/OperatorGroup.yaml
+
+- name: Deploy OperatorGroup
+  command: oc apply -f /root/ansible_workdir/OperatorGroup.yaml
+
+- name: Create Subscription.yaml
+  template:
+    src: Subscription.yaml.j2
+    dest: /root/ansible_workdir/Subscription.yaml
+
+- name: Deploy Subscription for MCE
+  command: oc apply -f /root/ansible_workdir/Subscription.yaml
+
+- name: Wait for MCE deployment to be created
+  shell: oc get all -n {{ hypershift.asc.mce_namespace }} | grep -i  deployment | grep -i multicluster-engine | wc -l
+  register: mce_deploy
+  until: mce_deploy.stdout == '1'
+  retries: 20
+  delay: 5
+
+- name: Wait for MCE deployment to be available
+  shell: oc get deployment multicluster-engine-operator -n {{ hypershift.asc.mce_namespace }} -o=jsonpath='{.status.replicas}{" "}{.status.availableReplicas}'
+  register: mce_pod_status
+  until: mce_pod_status.stdout.split(' ')[0] == mce_pod_status.stdout.split(' ')[1]
+  retries: 20
+  delay: 5
+
+- name: Create MultiClusterEngine.yaml
+  template:
+    src: MultiClusterEngine.yaml.j2
+    dest: /root/ansible_workdir/MultiClusterEngine.yaml
+
+- name: Deploy MCE Instance
+  command: oc apply -f /root/ansible_workdir/MultiClusterEngine.yaml
+
+- name: Wait for MCE to be Available
+  shell: oc get mce --no-headers | awk  '{print $2}' 
+  register: mce_status
+  until: mce_status.stdout == "Available"
+  retries: 40
+  delay: 10 
+
+- name: Enable hypershift-preview component in MCE
+  command: oc patch mce {{ hypershift.mce.instance_name }} -p '{"spec":{"overrides":{"components":[{"name":"hypershift-preview","enabled":true}]}}}' --type merge
+
+- name: Create ClusterImageSet.yaml
+  template:
+    src: ClusterImageSet.yaml.j2
+    dest: /root/ansible_workdir/ClusterImageSet.yaml
+
+- name: Deploy ClusterImageSet 
+  command: oc apply -f /root/ansible_workdir/ClusterImageSet.yaml
+
+- name: Create Provisioning.yaml
+  template:
+    src: Provisioning.yaml.j2
+    dest: /root/ansible_workdir/Provisioning.yaml
+
+- name: Deploy Provisioning 
+  command: oc apply -f /root/ansible_workdir/Provisioning.yaml

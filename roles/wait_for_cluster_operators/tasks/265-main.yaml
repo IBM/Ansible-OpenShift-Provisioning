@@ -1,0 +1,25 @@
+---
+
+- name: Wait for cluster operators
+  tags: wait_for_cluster_operators
+  ansible.builtin.include_tasks: check_co.yaml
+  with_items:
+    - "First"
+    - "Second"
+    - "Third"
+    - "Fourth"
+    - "Fifth and last"
+  loop_control:
+    loop_var: loop_count
+
+- name: Get and print final cluster operator status
+  tags: wait_for_cluster_operators
+  block:
+    - name: Get final cluster operators
+      ansible.builtin.command: oc get co
+      register: oc_get_co
+      changed_when: false
+
+    - name: Print final cluster operators
+      ansible.builtin.debug:
+        var: oc_get_co.stdout_lines

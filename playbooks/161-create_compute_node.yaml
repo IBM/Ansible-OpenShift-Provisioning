@@ -1,0 +1,99 @@
+---
+###################################################################################################
+#  To execute this playbook you need to create a node config yaml fiile with these parameters:
+# ---
+# day2_compute_node:
+#   vm_name: <your VM name>
+#   vm_hostname: <your VM host name>
+#   vm_ip: <your VM IP address>
+#   hostname: <KVM host name where the VM is created>
+#   host_arch: <KVM host architecture>
+#
+# Execute the playbook with '--extra-vars' option.
+# E.g.:
+# ansible-playbook playbooks/add_compute_node.yaml --extra-vars "@extra-cnode1.yml"
+
+- name: Add an additional compute node
+  # Select bastion host
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  pre_tasks:
+    - name: Check required variables
+      when: (day2_compute_node is not defined)
+      block:
+        - name: Check required variables
+          ansible.builtin.debug:
+            msg:
+              - "ERROR: Variable 'day2_compute_node' is not defined!"
+              - "Execute: 'ansible-playbook playbooks/add_compute_node.yaml --extra-vars \"@extra-cnode.yml\"'"
+        - name: Abort playbook
+          ansible.builtin.fail:
+            msg: "See above error!"
+
+    - name: Get RHCOS iso download url from machine-config-operator
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
+        | jq -r '.architectures.{{ day2_compute_node.host_arch }}.artifacts.metal.formats.iso.disk.location'
+      register: _rhcos_iso_dl_url
+
+    - name: Check variable '_rhcos_iso_dl_url' is not 'null'
+      ansible.builtin.fail:
+      when: _rhcos_iso_dl_url.stdout == "null"
+
+    - name: Get RHCOS kernel download url from machine-config-operator
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
+        | jq -r '.architectures.{{ day2_compute_node.host_arch }}.artifacts.metal.formats.pxe.kernel.location'
+      register: _rhcos_kernel_dl_url
+
+    - name: Get RHCOS initrd download url from machine-config-operator
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
+        | jq -r '.architectures.{{ day2_compute_node.host_arch }}.artifacts.metal.formats.pxe.initramfs.location'
+      register: _rhcos_initrd_dl_url
+
+    - name: Get RHCOS rootfs download url from machine-config-operator
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
+        | jq -r '.architectures.{{ day2_compute_node.host_arch }}.artifacts.metal.formats.pxe.rootfs.location'
+      register: _rhcos_rootfs_dl_url
+
+    - name: Redefine RHCOS variables
+      ansible.builtin.set_fact:
+        rhcos_live_kernel: "{{ (_rhcos_kernel_dl_url.stdout | split('/') | last) }}"
+        rhcos_live_initrd: "{{ (_rhcos_initrd_dl_url.stdout | split('/') | last) }}"
+        rhcos_live_rootfs: "{{ (_rhcos_rootfs_dl_url.stdout | split('/') | last) }}"
+        rhcos_live_iso: "{{ (_rhcos_iso_dl_url.stdout.split('/')[-1]) }}"
+
+    - name: Redefine RHCOS download url
+      ansible.builtin.set_fact:
+        # Assume all images have same download location
+        rhcos_download_url: "{{ (_rhcos_rootfs_dl_url.stdout | replace(rhcos_live_rootfs, '')) }}"
+
+  roles:
+    - role: common
+    - role: print_node_status
+    - role: update_ignition_files
+
+    - role: dns_update
+      when: env.bastion.options.dns is defined and env.bastion.options.dns
+      param_dns_cmd: add
+      param_dns_hostname: "{{ day2_compute_node.vm_hostname }}"
+      param_dns_ip: "{{ day2_compute_node.vm_ip }}"
+
+    - role: create_compute_node
+      # Some tasks will be delegated to the bastion host and target KVM host
+      param_compute_node: "{{ day2_compute_node }}"
+
+    - role: approve_certs
+    - role: wait_for_node
+      wait_for_node_name: "{{ day2_compute_node.vm_hostname }}"
+    - role: approve_certs
+      approve_certs_cleanup: true
+    - role: print_node_status

@@ -1,0 +1,28 @@
+---
+
+- name: Change permissive domain for httpd
+  tags: httpd
+  selinux_permissive:
+    name: httpd_t
+    permissive: true
+
+- name: Allow httpd to listen on tcp port 4443
+  tags: httpd
+  community.general.seport:
+    ports: 4443
+    proto: tcp
+    setype: http_port_t
+    state: present
+    reload: yes
+
+- name: enable httpd
+  tags: httpd
+  systemd:
+    name: httpd
+    enabled: yes
+
+- name: restart httpd
+  tags: httpd
+  service:
+    name: httpd
+    state: restarted

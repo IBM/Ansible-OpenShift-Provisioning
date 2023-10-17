@@ -1,0 +1,80 @@
+---
+
+# Paranoia check. This task should be executed only from ONE host
+- name: Check role/task parameters
+  tags: create_compute_node
+  ansible.builtin.fail:
+    msg: "Error: too many hosts defined in ansible play: {{ ansible_play_hosts }}"
+  when: ((ansible_play_hosts | length)  > 1)
+
+- name: "If not available, download Red Hat CoreOS rootfs for {{ param_compute_node.host_arch }}"
+  tags: create_compute_node
+  delegate_to: "{{ groups['bastion'][0] }}"
+  # Need sudo or root access to write the file
+  become: true
+  block:
+    - name: Load variables based on target architecture
+      ansible.builtin.include_vars: "{{ role_path }}/../common/vars/{{ param_compute_node.host_arch }}/vars.yaml"
+
+    - name: "If not available, download Red Hat CoreOS rootfs file {{ rhcos_live_rootfs }}"
+      ansible.builtin.get_url:
+        url: "{{ item.baseurl }}{{ item.file }}"
+        dest: "/var/www/html/bin/{{ item.file }}"
+        mode: "0644"
+      loop:
+        - { baseurl: "{{ rhcos_download_url }}", file: "{{ rhcos_live_rootfs }}" }
+
+- name: "Create compute node on KVM host {{ param_compute_node.hostname }}"
+  tags: create_compute_node
+  delegate_to: "{{ param_compute_node.hostname }}"
+  block:
+    - name: Delete compute node VM, if already exists
+      tags: create_compute_node
+      ansible.builtin.shell: |
+        virsh destroy {{ param_compute_node.vm_name }} || true
+        virsh undefine {{ param_compute_node.vm_name }} --remove-all-storage --nvram || true
+
+    - name: Get and print virsh list
+      block:
+        - name: Get virsh list
+          community.libvirt.virt:
+            command: list_vms
+          register: cmd_virsh_list
+        - name: Print virsh list
+          ansible.builtin.debug:
+            var: cmd_virsh_list
+
+    - name: Create compute node VM and print results
+      block:
+        - name: Load variables based on architecture
+          ansible.builtin.include_vars: "{{ role_path }}/../common/vars/{{ param_compute_node.host_arch }}/vars.yaml"
+
+        - name: "Create compute node VM on {{ param_compute_node.host_arch }}"
+          ansible.builtin.shell: |
+            CPU_MODEL="--cpu host"
+            # CPU host model is not supported on arm64 yet, we need to disable it
+            {{ ("CPU_MODEL=''") if param_compute_node.host_arch == 'aarch64' }}
+            virt-install \
+            --name {{ param_compute_node.vm_name }} \
+            --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
+            --autostart \
+            --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }}  \
+            --ram {{ env.cluster.nodes.compute.ram }} \
+            ${CPU_MODEL} \
+            --vcpus {{ env.cluster.nodes.compute.vcpu }} \
+            --network network={{ env.bridge_name }} \
+            --graphics none \
+            --console pty,target_type=serial \
+            --wait -1 \
+            --noautoconsole \
+            --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
+            --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda \
+            ip={{ param_compute_node.vm_ip }}::{{ env.bastion.networking.gateway }}:{{ env.bastion.networking.subnetmask }}:{{ param_compute_node.vm_hostname }}::none:1500 \
+            nameserver={{ env.cluster.networking.nameserver1 }}{{ (',' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} \
+            coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} \
+            coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign {{ _vm_console }}"
+          timeout: 300
+          register: cmd_output
+        - name: Debug, print above command output
+          ansible.builtin.debug:
+            var: cmd_output
