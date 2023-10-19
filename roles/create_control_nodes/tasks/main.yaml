@@ -18,7 +18,7 @@
     --console pty,target_type=serial \
     --wait=-1 \
     --noautoconsole
-  timeout: 300
+  timeout: 360
   with_sequence: start=0 end={{ (env.cluster.nodes.control.hostname | length) - 1 }} stride=1
   loop_control:
     extended: yes
