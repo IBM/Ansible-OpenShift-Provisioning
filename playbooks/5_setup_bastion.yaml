@@ -71,7 +71,7 @@
         tasks_from: initial-resolv.yaml
       when: env.bastion.options.dns is defined and env.bastion.options.dns
   roles:
-    - { role: attach_subscription, when: env.redhat.username is defined and env.redhat.password is defined }
+    - { role: attach_subscription, when: env.redhat.manage_subscription }
     - install_packages
     - ssh_ocp_key_gen
     - set_firewall
