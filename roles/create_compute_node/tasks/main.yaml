@@ -68,12 +68,13 @@
             --wait -1 \
             --noautoconsole \
             --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
-            --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda \
-            ip={{ param_compute_node.vm_ip }}::{{ env.bastion.networking.gateway }}:{{ env.bastion.networking.subnetmask }}:{{ param_compute_node.vm_hostname }}:{{ param_compute_node.vm_interface }}:none:1500 \
-            {{ ('ip=[' + param_compute_node.vm_ipv6 + ']::[' + env.cluster.networking.ipv6_gateway +']:' + env.cluster.networking.ipv6_prefix | string + '::' + param_compute_node.vm_interface + ':none' ) if env.use_ipv6 == True else '' }} \
-            nameserver={{ env.cluster.networking.nameserver1 }}{{ (',' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} \
-            coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} \
-            coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign {{ _vm_console }}"
+            --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda" \
+            --extra-args "ip={{ param_compute_node.vm_ip }}::{{ env.bastion.networking.gateway }}:{{ env.bastion.networking.subnetmask }}:{{ param_compute_node.vm_hostname }}:{{ param_compute_node.vm_interface }}:none:1500" \
+            --extra-args "{{ ('ip=[' + param_compute_node.vm_ipv6 + ']::[' + env.cluster.networking.ipv6_gateway +']:' + env.cluster.networking.ipv6_prefix | string + '::' + param_compute_node.vm_interface + ':none' ) if env.use_ipv6 == True else '' }}" \
+            --extra-args "nameserver={{ env.cluster.networking.nameserver1 }}{{ (',' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }}" \
+            --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }}" \
+            --extra-args "coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
+            --extra-args "{{ _vm_console }}"
           timeout: 360
           register: cmd_output
         - name: Debug, print above command output
