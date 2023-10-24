@@ -24,8 +24,8 @@
     coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/bootstrap.ign {{ _vm_console }}" \
     --graphics none \
     --console pty,target_type=serial \
-    --noautoconsole \
-    --wait=-1
+    --wait=-1 \
+    --noautoconsole
   timeout: 300
   register: cmd_output
 
