@@ -307,7 +307,7 @@ hypershift:
     nameserver:
 
 # Section 17 - (Optional) Setup disconnected clusters
-# Warning: currently, the oc-mirror plugin is officially downloadable to am464 only.
+# Warning: currently, the oc-mirror plugin is officially downloadable to amd64 only.
 disconnected:
   enabled: False
   registry:
@@ -336,7 +336,7 @@ disconnected:
       ocp_quay_release_image_tag: '4.13.1-s390x'
       ocp_org: 'ocp4'
       ocp_repo: 'openshift4'
-      ocp_tag: 'v4.13.1' #  platform images will be pushed to {tegistry_url}/{ocp_org}/{ocp_repo}:{ocp_tag
+      ocp_tag: 'v4.13.1' #  platform images will be pushed to {tegistry_url}/{ocp_org}/{ocp_repo}:{ocp_tag}
     oc_mirror:
       oc_mirror_args:
         continue_on_error: False
@@ -370,6 +370,6 @@ day2_compute_node:
   vm_hostname:
   vm_ip:
   vm_ipv6:
-  vm_interface: 
+  vm_interface:
   hostname:
   host_arch:
