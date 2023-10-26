@@ -81,20 +81,6 @@ Creates the bastion KVM guest on the first KVM host. The bastion hosts essential
 * This can be a particularly sticky part of the process.
 * If any of the variables used in the virt-install or kickstart are off, the bastion won't be able to boot.
 * Recommend watching it come up from the first KVM host's cockpit. Go to http://kvm-ip-here:9090 via web-browser to view it. You'll have to sign in, enable administrative access (top right), and then click on the virtual machines tab on the left-hand toolbar.
-## (Skip if not disconnected) Disconnected Mirror Artifacts
-### Overview
-Mirror the ocp platform and other nessasary images to the mirror registry
-### Outcomes
-* Download `oc` and `oc-mirror` to the mirror host.
-* Template the mirror pull secret to the mirror host
-* Add the ca cert to the mirror host anchors if ca is not trusted
-* Mirror the platform images using `oc adm release mirror` if legacy mirroring is enabled.
-* Template the image set to mirror host and then mirror it using `oc-mirror` plogin.
-* Copy the results on the `oc-mirror` to ansible controller to apply to cluster in future steps.
-### Notes
-* Currenly, platform can **only** be mirrored the legacy way. While the image set can contain platform mirroring configs, it will **not** be applied to cluster. 
-* This playbook can be run at any stage after the **0 Setup** playbook. Make sure to run this before the cluster starts pulling at the images from the registry 
-  which typically happens where the **Create Nodes Playbook** is run.
 ## 5 Setup Bastion Playbook
 ### Overview
 Configuration of the bastion to host essential infrastructure services for the cluster. Can be first-time setup or use an existing server.
@@ -143,13 +129,6 @@ Final steps of waiting for and verifying the OpenShift cluster to complete its i
 * If you made it this far, congratulations!
 * To install a new cluster, copy your inventory directory, change the default in the ansible.cfg, change the variables, and start again. With all the customizations to the playbooks you made along the way still intact.
 
-# (Skip if not disconnected) Disconnected apply oc mirror manifests to cluster
-### Overview
-Post cluster creation, `oc-mirror` manifests are applied to the cluster
-### Outcomes
-* Copy the `oc-mirror` results manifests to the bastion
-* Apply the copied manifests to the cluster
-* Disable default content sources
 # Additional Playbooks
 
 ## Create additional compute nodes (create_compute_node.yaml) and delete compute nodes (delete_compute_node.yaml)
