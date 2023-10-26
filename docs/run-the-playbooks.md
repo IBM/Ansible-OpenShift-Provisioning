@@ -13,11 +13,9 @@ ansible-playbook playbooks/0_setup.yaml
     * 2_create_kvm_host.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/2_create_kvm_host.yaml))
     * 3_setup_kvm_host.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml))
     * 4_create_bastion.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/4_create_bastion.yaml))
-    * disconnected_mirror_artifacts.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/disconnected_mirror_artifacts.yaml))
     * 5_setup_bastion.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/5_setup_bastion.yaml))
     * 6_create_nodes.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/6_create_nodes.yaml))
     * 7_ocp_verification.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/7_ocp_verification.yaml))
-    * disconnected_apply_operator_manifests.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/disconnected_apply_operator_manifests.yaml))
 * Watch Ansible as it completes the installation, correcting errors if they arise.
 * To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml
 * Alternatively, to run all the playbooks at once, start the master playbook by running this shell command:
