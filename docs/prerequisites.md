@@ -45,18 +45,6 @@
         ```
         sudo mkdir /var/www/html/ocp-config
         ```
-* For disconnected mode, make sure to have a directory housing the clients
-    * For FTP:
-      ```
-      sudo mkdir /home/<username>/clients
-      ```
-    * or HTTP:
-      ```
-      sudo mkdir /var/www/html/clients
-      ```
-    Make sure this directory contains a pre-downloaded `oc-mirror` binary in `tar.gz` formal. Currently the supported binary is available for `x86_64` on Red Hat Customer portal openshift [downloads](https://console.redhat.com/openshift/downloads) page. It can also be found on mirror.openshift.com from `4.14` onwards for other architectures.
-
-    **NOTE**: At this stage, only oc-mirror binary is fetched from here, so it is expected that the lpar for disconnected cluster can at least reach `mirror.openshift.com` to download the other artifacts for cluster installation.
 ## Ansible Controller
 * The computer/virtual machine running Ansible, sometimes referred to as localhost.
 * Must be running on with MacOS or Linux operating systems.
@@ -104,14 +92,3 @@ In addition make sure that python3 is installed on the jumphost otherwise ansibl
 ```
 yum install python3 
 ```
-## Disconnected cluster preperation
-* If you wish to install disconnected cluster, then please make sure the following pre-requisites are met. This is on top of the requirements mentioned under **File Server**.
-    * Make sure that you have a working registry to be used for mirroring. If the CA of this registry is not automatically trusted, then keep the CA cert content handy to update in inventory file. The CA cert is the file with which, do dont need to skip tls to access the registry.
-    * Make sure you have required pull secrets handy. You will need 2 pull secrets, one to apply on the cluster and another which will be used for mirroring. The mirroring  pull secret MUST have push access to the mirror registry as well as must give you access to Red Hat registries. A good way to create this would be take the Red Hat pull secret from **Get Info page** and do a podman login with creds having write access.
-    ```
-    cp -avrf /path/to/redhat-pull-secrets.json ./mirror-secret.json
-    podman login -u admin -p admin <mirror_registry> --tls-verify=false --authfile=./mirror-secret.json
-    cat ./mirror-secret.json | jq -r tostring
-    <copy htis output>
-    ```
-    * A host for doing the mirroring. This host should be able to access the Red Hat registries (registry.redhat.io, quay.io etc) as well as the mirroring registry.
