@@ -7,6 +7,11 @@
   gather_facts: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
-  roles:
-    - disconnected_check_vars
-    - disconnected_apply_operator_manifests_to_cluster
+  tasks:
+    - name: apply operator manifests when cluster is disconnected
+      ansible.builtin.include_role:
+        name: '{{ item }}'
+      loop:
+        - disconnected_check_vars
+        - disconnected_apply_operator_manifests_to_cluster
+      when: disconnected.enabled
