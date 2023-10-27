@@ -71,7 +71,7 @@
   vars:
     packages: "{{ env.pkgs.kvm }}"
   roles:
-    - { role: attach_subscription, when:  env.redhat.attach_subscription }
+    - { role: attach_subscription, when:  env.redhat.manage_subscription }
     - install_packages
     - httpd
   post_tasks:

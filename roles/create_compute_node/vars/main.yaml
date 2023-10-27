@@ -3,5 +3,7 @@ param_compute_node:
   # vm_name:
   # vm_hostname:
   # vm_ip:
+  # vm_ipv6:
+  # vm_interface:
   # hostname:
   # host_arch:

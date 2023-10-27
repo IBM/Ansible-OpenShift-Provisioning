@@ -18,14 +18,15 @@
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda \
     coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} \
-    ip={{ env.cluster.nodes.bootstrap.ip }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}::none:1500 \
+    ip={{ env.cluster.nodes.bootstrap.ip }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ env.cluster.networking.interface }}:none:1500 \
     nameserver={{ env.cluster.networking.nameserver1 }} {{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }} \
+    {{ ('ip=[' + env.cluster.nodes.bootstrap.ipv6 + ']::[' + env.cluster.networking.ipv6_gateway + ']:' + env.cluster.networking.ipv6_prefix | string + '::' + env.cluster.networking.interface + ':none' ) if env.use_ipv6 == True else '' }} \
     coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/bootstrap.ign {{ _vm_console }}" \
     --graphics none \
     --console pty,target_type=serial \
     --wait=-1 \
     --noautoconsole
-  timeout: 300
+  timeout: 360
   register: cmd_output
 
 - name: Debug, print above command output

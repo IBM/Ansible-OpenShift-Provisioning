@@ -48,7 +48,7 @@
 :--- | :--- | :---
 **env.redhat.username** | Red Hat username with a valid license or free trial to Red Hat<br /> OpenShift Container Platform (RHOCP), which comes with<br /> necessary licenses for Red Hat Enterprise Linux (RHEL) and<br /> Red Hat CoreOS (RHCOS). | redhat.user
 **env.redhat.password** | Password to Red Hat above user's account. Used to auto-attach<br /> necessary subscriptions to KVM Host, bastion VM, and pull live<br /> images for OpenShift. | rEdHatPa$s!
-**env.redhat.attach_subscription** | True or False. Would you like to subscribe the server with Red Hat? | True 
+**env.redhat.manage_subscription** | True or False. Would you like to subscribe the server with Red Hat? | True 
 **env.redhat.pull_secret** | Pull secret for OpenShift, comes from Red Hat's [Hybrid Cloud Console](https://console.redhat.com/openshift/install/ibmz/user-provisioned).<br /> Make sure to enclose in 'single quotes'.<br />  | '{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}'
 
 ## 5 - Bastion
@@ -61,10 +61,13 @@
 **env.bastion.resources.swap** | How much swap storage would you like to allocate the bastion (in<br /> megabytes)? Recommended 4096 or more. | 4096
 **env.bastion.resources.vcpu** | How many virtual CPUs would you like to allocate to the bastion? Recommended 4 or more. | 4
 **env.bastion.networking.ip** | IPv4 address for the bastion. | 192.168.10.3
+**env.bastion.networking.ipv6** | IPv6 address for the bastion if use_ipv6 variable is 'True'. | fd00::3
 **env.bastion.networking.hostname** | Hostname of the bastion. Will be combined with<br /> env.bastion.networking.base_domain to create a Fully Qualified Domain Name (FQDN). | ocpz-bastion
 **env.bastion.networking.base_<br />domain** | Base domain that, when combined with the hostname, creates a fully-qualified<br /> domain name (FQDN) for the bastion? | ihost.com
 **env.bastion.networking.<br />subnetmask** | Subnet of the bastion. | 255.255.255.0
 **env.bastion.networking.gateway** | IPv4 of he bastion's gateway server. | 192.168.10.0
+**env.bastion.networking.ipv6_gateway** | IPv6 of he bastion's gateway server. | fd00::1
+**env.bastion.networking.ipv6_prefix** | IPv6 prefix. | 64
 **env.bastion.networking.name<br />server1** | IPv4 address of the server that resolves the bastion's hostname. | 192.168.10.200
 **env.bastion.networking.name<br />server2** | <b>(Optional)</b> A second IPv4 address that resolves the bastion's hostname. | 192.168.10.201
 **env.bastion.networking.forwarder** | What IPv4 address will be used to make external DNS calls for the bastion? Can use 1.1.1.1 or 8.8.8.8 as defaults. | 8.8.8.8
@@ -81,10 +84,13 @@
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **env.cluster.networking.metadata_name** | Name to describe the cluster as a whole, can be anything if DNS will be hosted on the bastion. If<br /> DNS is not on the bastion, must match your DNS configuration. Will be combined with the base_domain<br /> and hostnames to create Fully Qualified Domain Names (FQDN). | ocpz
-**env.cluster.networking.base_domain** | The site name, where is the cluster being hosted? This will be combined with the metadata_name<br /> and hostnames to create FQDNs.  | ihost.com
+**env.cluster.networking.base_domain** | The site name, where is the cluster being hosted? This will be combined with the metadata_name<br /> and hostnames to create FQDNs.  | host.com
+**env.bastion.networking.ipv6_gateway** | IPv6 of he bastion's gateway server. | fd00::1
+**env.bastion.networking.ipv6_prefix** | IPv6 prefix. | 64
 **env.cluster.networking.nameserver1** | IPv4 address that the cluster get its hostname resolution from. If env.bastion.options.dns<br /> is True, this should be the IP address of the bastion. | 192.168.10.200
 **env.cluster.networking.nameserver2** | <b>(Optional)</b> A second IPv4 address will the cluster get its hostname resolution from? If env.bastion.options.dns<br /> is True, this should be left commented out. | 192.168.10.201
 **env.cluster.networking.forwarder** | What IPv4 address will be used to make external DNS calls for the cluster? Can use 1.1.1.1 or 8.8.8.8 as defaults. | 8.8.8.8
+**env.cluster.networking.interface** | Name of the networking interface on the bastion from Linux's perspective. Most likely enc1. | enc1
 
 ## 7 - Bootstrap Node
 **Variable Name** | **Description** | **Example**
@@ -94,6 +100,7 @@
 **env.cluster.nodes.bootstrap.vcpu** | How many virtual CPUs would you like to allocate to the temporary bootstrap node?<br /> Recommended 4 or more. | 4
 **env.cluster.nodes.bootstrap.vm_name** | Name of the temporary bootstrap node VM. Arbitrary value. | bootstrap
 **env.cluster.nodes.bootstrap.ip** | IPv4 address of the temporary bootstrap node. | 192.168.10.4
+**env.cluster.nodes.bootstrap.ipv6** | IPv6 address for the bootstrap if use_ipv6 variable is 'True'. | fd00::4
 **env.cluster.nodes.bootstrap.hostname** | Hostname of the temporary boostrap node. If DNS is hosted on the bastion, this can be anything.<br /> If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the<br /> metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN). | bootstrap-ocpz
 
 ## 8 - Control Nodes
@@ -104,6 +111,7 @@
 **env.cluster.nodes.control.vcpu** | How many virtual CPUs would you like to allocate to each control node? Recommended 4 or more. | 4
 **env.cluster.nodes.control.vm_name** | Name of the control node VMs. Arbitrary values. Usually no more or less than 3 are used. Must match<br /> the total number of IP addresses and hostnames for control nodes. Use provided list format. | control-1<br />control-2<br />control-3
 **env.cluster.nodes.control.ip** | IPv4 address of the control nodes. Use provided<br /> list formatting. | 192.168.10.5<br />192.168.10.6<br />192.168.10.7
+**env.cluster.nodes.control.ipv6** | IPv6 address for the control nodes. Use iprovided<br /> list formatting (if use_ipv6 variable is 'True'). | fd00::5<br />fd00::6<br />fd00::7
 **env.cluster.nodes.control.hostname** | Hostnames for control nodes. Must match the total number of IP addresses for control nodes<br /> (usually 3). If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere,<br /> this must match DNS definition. This will be combined with the metadata_name and<br /> base_domain to create a Fully Qualififed Domain Name (FQDN). | control-01<br />control-02<br />control-03
 
 ## 9 - Compute Nodes
@@ -114,6 +122,7 @@
 **env.cluster.nodes.compute.vcpu** | How many virtual CPUs would you like to allocate to each compute node? Recommended 2 or more. | 2
 **env.cluster.nodes.compute.vm_name** | Name of the compute node VMs. Arbitrary values. This list can be expanded to any<br /> number of nodes, minimum 2. Must match the total number of IP<br /> addresses and hostnames for compute nodes. Use provided list format. | compute-1<br />compute-2
 **env.cluster.nodes.compute.ip** | IPv4 address of the compute nodes. Must match the total number of VM names and<br /> hostnames for compute nodes. Use provided list formatting. | 192.168.10.8<br />192.168.10.9
+**env.cluster.nodes.control.ipv6** | IPv6 address for the compute nodes. Use iprovided<br /> list formatting (if use_ipv6 variable is 'True'). | fd00::8<br />fd00::9
 **env.cluster.nodes.compute.hostname** | Hostnames for compute nodes. Must match the total number of IP addresses and<br /> VM names for compute nodes. If DNS is hosted on the bastion, this can be anything.<br /> If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the<br /> metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN). | compute-01<br />compute-02
 
 ## 10 - Infra Nodes
@@ -123,7 +132,8 @@
 **env.cluster.nodes.infra.ram** | <b>(Optional)</b> How much memory would you like to allocate to the each infra node (in<br /> megabytes)? Recommended 16384 or more. | 16384
 **env.cluster.nodes.infra.vcpu** | <b>(Optional)</b> How many virtual CPUs would you like to allocate to each infra node?<br /> Recommended 2 or more. | 2
 **env.cluster.nodes.infra.vm_name** | <b>(Optional)</b> Name of additional infra node VMs. Arbitrary values. This list can be<br /> expanded to any number of nodes, minimum 2. Must match the total<br /> number of IP addresses and hostnames for infra nodes. Use provided list format. | infra-1<br />infra-2
-**env.cluster.nodes.infra.ip** | <b>(Optional)</b> IPv4 address of the infra nodes. This list can be expanded to any number of nodes,<br /> minimum 2. Use provided list formatting. | 192.168.10.8<br />192.168.10.9
+**env.cluster.nodes.infra.ip** | <b>(Optional)</b> IPv4 address of the infra nodes. This list can be expanded to any number of nodes,<br /> minimum 2. Use provided list formatting. | 192.168.10.10<br />192.168.10.11
+**env.cluster.nodes.infra.ipv6** | <b>(Optional)</b> IPv6 address of the infra nodes. iThis list can be expanded to any number of nodes,<br /> minimum 2. Use provided list formatting (if use_ipv6 variable is 'True'). | fd00::10<br />fd00::11
 **env.cluster.nodes.infra.hostname** | <b>(Optional)</b> Hostnames for infra nodes. Must match the total number of IP addresses for infra nodes.<br /> If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match<br /> DNS definition. This will be combined with the metadata_name and base_domain<br /> to create a Fully Qualififed Domain Name (FQDN). | infra-01<br />infra-02
 
 ## 11 - (Optional) Packages
@@ -165,6 +175,7 @@
 **env.ocp_key_name** | Comment to describe the SSH key used for OCP. Arbitrary value. | OCPZ-01 key
 **env.bridge_name** | (Optional) Name of the macvtap bridge that will be created on the KVM host or in case of NAT the name of the NAT network defenition (usually it is 'default'). If NAT is being used and a jumphost is needed, the parameters network_mode, jumphost.name, jumphost.user and jumphost.pass must be specified, too. In case of default (NAT) network verify that the configured IP ranges does not interfere with the IPs defined for the controle and compute nodes. Modify the default network (dhcp range setting) to prevent issues with VMs using dhcp and OCP nodes having fixed IPs.| macvtap-net
 **env.network_mode** | (Optional) In case the network mode will be NAT and the installation will be executed from remote (e.g. your laptop), a jumphost needs to be defined to let the installation access the bastion host. If macvtap for networking is being used this variable should be empty. | NAT
+**env.use_ipv6** | If ipv6 addresses should be assigned to the controle and compute nodes, this variable should be true (default) and the matching ipv6 settings should be specified. | True
 **env.jumphost.name** | (Optional) If env.network.mode is set to 'NAT' the name of the jumphost (e.g. the name of KVM host if used as jumphost) should be specified. | kvm-host-01
 **env.jumphost.ip** | (Optional) The ip of the jumphost. | 192.168.10.1
 **env.jumphost.user** | (Optional) The user name to login to the jumphost. | admin
@@ -238,5 +249,7 @@
 **day2_compute_node.vm_name** | Name of the compute node VM.  | compute-4
 **day2_compute_node.vm_hostname** | Hostnames for compute node. | compute-4
 **day2_compute_node.vm_vm_ip** | IPv4 address of the compute node. | 192.168.10.99
+**day2_compute_node.vm_vm_ipv6** | IPv6 address of the compute node. | fd00::99
+**day2_compute_node.vm_vm_interface** | The network interface used for given IP addresses of the compute node. | enc1
 **day2_compute_node.hostname** | The hostname of the KVM host | kvm-host-01
 **day2_compute_node.host_arch** | KVM host architecture.  | s390x
