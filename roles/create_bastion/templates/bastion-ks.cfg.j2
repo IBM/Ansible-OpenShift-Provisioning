@@ -33,7 +33,7 @@ timezone {{ env.timezone }}
 eula --agreed
 
 # Network information
-network --bootproto=static --device={{ env.bastion.networking.interface }} --ip={{ env.bastion.networking.ip }} --gateway={{ env.bastion.networking.gateway }} --netmask={{ env.bastion.networking.subnetmask }} {{'--ipv6=' + env.bastion.networking.ipv6 if env.use_ipv6 else --noipv6}} {{'--ipv6gateway=' + env.bastion.networking.ipv6_gateway if env.use_ipv6 else ''}} --nameserver={{ env.bastion.networking.nameserver1 }}{{ (',' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} --activate
+network --bootproto=static --device={{ env.bastion.networking.interface }} --ip={{ env.bastion.networking.ip }} --gateway={{ env.bastion.networking.gateway }} --netmask={{ env.bastion.networking.subnetmask }} {{'--ipv6=' + env.bastion.networking.ipv6 if env.use_ipv6 else '--noipv6' }} {{'--ipv6gateway=' + env.bastion.networking.ipv6_gateway if env.use_ipv6 else ''}} --nameserver={{ env.bastion.networking.nameserver1 }}{{ (',' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} --activate
 network --hostname={{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}
 
 # Firewall and SELinux
