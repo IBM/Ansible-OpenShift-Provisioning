@@ -70,8 +70,9 @@
     --console pty,target_type=serial \
     --noautoconsole --wait=-1 \
     --initrd-inject "/{{ kvm_host_home.stdout }}/{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg" \
-    --extra-args "inst.ks=file:/bastion-ks.cfg ip={{ env.bastion.networking.ip }}::{{ env.bastion.networking.gateway }}\
-    :{{ env.bastion.networking.subnetmask }}:{{ env.bastion.networking.hostname }}::none {{ _vm_console }}"
+    --extra-args "inst.ks=file:/bastion-ks.cfg" \
+    --extra-args "ip={{ env.bastion.networking.ip }}::{{ env.bastion.networking.gateway }}:{{ env.bastion.networking.subnetmask }}:{{ env.bastion.networking.hostname }}::none" \
+    --extra-args "{{ _vm_console }}"
   timeout: 420
   register: cmd_output
 
