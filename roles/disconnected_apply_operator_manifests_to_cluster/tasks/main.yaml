@@ -1,0 +1,17 @@
+---
+- name: disconnected apply operator manifests
+  tags: disconnected_apply_operator_manifests
+  block:
+    - name: sync the image set results to install directory
+      tags: disconnected_apply_operator_manifests
+      become: true
+      ansible.posix.synchronize:
+        src: "../.oc-mirror-results"
+        dest: /root/ocpinst
+    - name: apply the manifests on the cluster
+      tags: disconnected_apply_operator_manifests
+      ansible.builtin.command: oc apply -f /root/ocpinst/.oc-mirror-results
+    - name: disable default content sources
+      tags: disconnected_apply_operator_manifests
+      ansible.builtin.command: "oc patch OperatorHub cluster --type json -p '[{\"op\": \"add\", \"path\": \"/spec/disableAllDefaultSources\", \"value\": true}]'"
+  when: disconnected.enabled

@@ -94,7 +94,7 @@ Configuration of the bastion to host essential infrastructure services for the c
 * CoreOS roofts is pulled to the bastion if not already there.
 * OCP client and installer are pulled down if not there already.
 * oc, kubectl and openshift-install binaries are installed.
-* OCP install-config is templated and backed up.
+* OCP install-config is templated and backed up. In disconnected mode, if platform is mirrored (currently only legacy), image content source policy and additionalTrustBundle is also patched.
 * Manfifests are created.
 * OCP install directory found at /root/ocpinst/ is created and populated with necessary files.
 * Ignition files for the bootstrap, control, and compute nodes are transferred to HTTP-accessible directory for booting nodes.

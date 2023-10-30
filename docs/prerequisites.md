@@ -41,7 +41,7 @@
         ```
         sudo mkdir /home/<username>/ocp-config
         ```
-        or HTTP:
+    * or HTTP:
         ```
         sudo mkdir /var/www/html/ocp-config
         ```

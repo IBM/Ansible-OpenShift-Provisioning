@@ -1,0 +1,19 @@
+---
+
+- name: 'Check mandatory variables are defined for disconnected'
+  block:
+    - name: "check mandatory variables for disconnected are set"
+      assert:
+        that:
+          - disconnected.registry.url is defined and disconnected.registry.url != None
+          - disconnected.registry.pull_secret is defined and disconnected.registry.pull_secret != None
+          - disconnected.registry.mirror_pull_secret is defined and disconnected.registry.mirror_pull_secret != None
+          - disconnected.mirroring.host.name is defined and disconnected.mirroring.host.name != None
+          - disconnected.mirroring.host.ip is defined and disconnected.mirroring.host.ip != None
+          - disconnected.mirroring.host.user is defined and disconnected.mirroring.host.user != None
+          - disconnected.mirroring.host.pass is defined and disconnected.mirroring.host.pass != None
+          - disconnected.mirroring.file_server.clients_dir is defined and disconnected.mirroring.file_server.clients_dir != None
+          - disconnected.mirroring.file_server.oc_mirror_tgz is defined and disconnected.mirroring.file_server.oc_mirror_tgz != None
+          - disconnected.mirroring.client_download.ocp_download_url is defined and disconnected.mirroring.client_download.ocp_download_url != None
+          - disconnected.mirroring.client_download.ocp_client_tgz is defined and disconnected.mirroring.client_download.ocp_client_tgz != None
+          - disconnected.mirroring.oc_mirror.image_set is defined and disconnected.mirroring.oc_mirror.image_set != None

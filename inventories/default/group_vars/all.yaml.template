@@ -246,19 +246,19 @@ hypershift:
 
   create_bastion: true
   networking_device: enc1100
-  gateway: 
+  gateway:
 
   bastion_parms:
-    interface: 
-    hostname: 
-    base_domain: 
-    os_variant: 
+    interface:
+    hostname:
+    base_domain:
+    os_variant:
     nameserver:
-    gateway: 
-    subnet_mask: 
+    gateway:
+    subnet_mask:
 
-  mgmt_cluster_nameserver:  
-  oc_url: 
+  mgmt_cluster_nameserver:
+  oc_url:
 
   #Hosted Control Plane Parameters
 
@@ -275,7 +275,7 @@ hypershift:
 
   # MultiClusterEngine Parameters
   mce:
-    version: 
+    version:
     instance_name: engine
     delete: false
 
@@ -294,25 +294,82 @@ hypershift:
     static_ip_parms:
       static_ip: true
       ip:     # Required only if static_ip is true
-        #- 
-        #- 
+        #-
+        #-
       interface: eth0
-    agents_count: 
+    agents_count:
     # If you want to use specific mac addresses, provide them here
-    agent_mac_addr:  
-      #- 
+    agent_mac_addr:
+      #-
     disk_size: 100G
     ram: 16384
     vcpus: 4
     nameserver:
 
-# Section 17 - (Optional) Create additional compute node in a day-2 operation
+# Section 17 - (Optional) Setup disconnected clusters
+# Warning: currently, the oc-mirror plugin is officially downloadable to amd64 only.
+disconnected:
+  enabled: False
+  registry:
+    url: 'registry url'
+    pull_secret: '' # this is similar to env.redhat.pull_secret but it will only contain secrets to be applied to the cluster in disconnected mode.
+    mirror_pull_secret: '' # this should contain a pull secret that contains the combination of env.redhat.pull_secret and pull secret  with push access to mirror registry for mirroring
+    ca_trusted: False
+    ca_cert: |
+      -----BEGIN CERTIFICATE-----
+      if ca_trusted is False, then this ca will be added to mirror host anchors as well as to the install config of cluster
+      -----END CERTIFICATE-----
+  mirroring:
+    host: # this is the host that can access the internet as well as the registry
+      name: hosname
+      ip: x.x.x.x
+      user: mirroruser # with become access
+      pass: mirrorpassword
+    file_server: # in disconnected mode, the client binaries and rhcos will be put on env.file_server and then downloaded to the final destination from there. For now, its only oc-mirror. Rest of artifacts will be downloaded from urls
+      clients_dir: 'clients'
+      oc_mirror_tgz: 'oc-mirror.tar.gz' # name of oc-mirror plugin binary in clients_dir. should be a tar.gz file. You must place this in your ftp server after downloading it yourself from https://console.redhat.com/openshift/downloads for amd64 (or building it yourself if your mirror host is s390x)
+    client_download: # this will download oc binary to the mirror host for use on the mirror host for mirroring
+      ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/amd64/"
+      ocp_client_tgz: 'openshift-client-linux.tar.gz' # name of the oc binary. Should be a tar.gz file
+    legacy:
+      platform: True # if true then platform is mirrored in the old way and install config will be patched with the imagecontentsourcepolicy
+      ocp_quay_release_image_tag: '4.13.1-s390x'
+      ocp_org: 'ocp4'
+      ocp_repo: 'openshift4'
+      ocp_tag: 'v4.13.1' #  platform images will be pushed to {tegistry_url}/{ocp_org}/{ocp_repo}:{ocp_tag}
+    oc_mirror:
+      oc_mirror_args:
+        continue_on_error: False
+        source_skip_tls: False
+      image_set: # this field is a standard image set from oc-mirror documentation. The only exception is the storageConfig which is altered to allow substitution of disconnected.registry.url
+        storageConfig:
+          registry:
+            enabled: True # use registry storage backend. Currently only method supproted
+            imageURL: # the final value will be {imageURL: disconnected.registry.url/org/repo}
+              org: mirror
+              repo: oc-mirror-metadata
+            skipTLS: false # standard field form oc-mirror schema
+        mirror: # this field is also atandard from the oc-mirror schema. It will be substituted as is into the final image set # WARNING: platform mirroring through oc-mirror is currently not supported, use legacy
+          operators:
+            - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.13
+              full: false
+              packages:
+              - name: serverless-operator
+                channels:
+                - name: stable
+                  #minVersion: '2.4.1-0'
+                  #maxVersion: '2.4.1-0'
+          additionalImages:
+          - name: registry.redhat.io/ubi8/ubi:latest
+          helm: {}
+
+# Section 18 - (Optional) Create additional compute node in a day-2 operation
 
 day2_compute_node:
   vm_name:
   vm_hostname:
   vm_ip:
   vm_ipv6:
-  vm_interface: 
+  vm_interface:
   hostname:
   host_arch:

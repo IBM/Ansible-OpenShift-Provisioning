@@ -1,0 +1,17 @@
+---
+- name: Disconnected apply operator manifests
+  hosts: bastion
+  become: true
+  environment:
+    KUBECONFIG: "{{ '/home/' if (env.bastion.access.user != 'root') else '/'}}{{ env.bastion.access.user }}/.kube/config"
+  gather_facts: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  tasks:
+    - name: apply operator manifests when cluster is disconnected
+      ansible.builtin.include_role:
+        name: '{{ item }}'
+      loop:
+        - disconnected_check_vars
+        - disconnected_apply_operator_manifests_to_cluster
+      when: disconnected.enabled

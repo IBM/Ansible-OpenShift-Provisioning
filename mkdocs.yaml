@@ -3,7 +3,7 @@ repo_url: https://github.com/IBM/Ansible-OpenShift-Provisioning
 site_url: https://ibm.github.io/Ansible-OpenShift-Provisioning/
 edit_uri: edit/main/docs
 
-nav: 
+nav:
   - Home: 'index.md'
   - Read Me:
     - Before You Begin: 'before-you-begin.md'
@@ -13,6 +13,7 @@ nav:
     - 2 Set Variables (group_vars): 'set-variables-group-vars.md'
     - 3 Set Variables (host_vars): 'set-variables-host-vars.md'
     - 4 Run the Playbooks: 'run-the-playbooks.md'
+    - Run the Playbooks (Disconnected): 'run-the-playbooks-for-disconnected.md'
     - Run the Playbooks (HyperShift): 'run-the-playbooks-for-hypershift.md'
   - Misc:
     - Troubleshooting: 'troubleshooting.md'
@@ -37,4 +38,4 @@ markdown_extensions:
   - toc:
       permalink: "#"
   - attr_list
-      
+
