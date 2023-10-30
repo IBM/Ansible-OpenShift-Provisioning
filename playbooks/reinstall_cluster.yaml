@@ -1,6 +1,8 @@
 # Use this if you want to re-install nodes with a new OCP version
 ---
 
+- import_playbook: 0_setup.yaml
+
 - name: Re-Install cluster - Copy SSH key from localhost to access bastion
   hosts: localhost
   tags: ssh, ssh_copy_id, section_1
@@ -73,6 +75,9 @@
         name: ssh_copy_id
       when: env.z.lpar3.hostname is defined
 
+- import_playbook: disconnected_mirror_artifacts.yaml
+  when: disconnected.enabled
+
 - name: Re-Install cluster - Update ignitions and other install files
   hosts: bastion
   become: true
@@ -84,3 +89,5 @@
 
 - import_playbook: 6_create_nodes.yaml
 - import_playbook: 7_ocp_verification.yaml
+- import_playbook: disconnected_apply_operator_manifests.yaml
+  when: disconnected.enabled

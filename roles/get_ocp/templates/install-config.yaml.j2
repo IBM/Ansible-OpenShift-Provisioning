@@ -39,4 +39,16 @@ networking:
 platform:
   none: {}
 fips: {{ env.install_config.fips }}
-pullSecret: '{{ env.redhat.pull_secret }}'
+pullSecret: '{{ env.redhat.pull_secret if not disconnected.enabled else disconnected.registry.pull_secret }}'
+{% if disconnected.enabled and disconnected.mirroring.legacy.platform %}
+{{ 'imageContentSources: ' }}
+{{ '- mirrors:'}}
+{{ '  - ' + disconnected.registry.url + '/' + disconnected.mirroring.legacy.ocp_org + '/' + disconnected.mirroring.legacy.ocp_repo }}
+{{ '  source: quay.io/openshift-release-dev/ocp-release' }}
+{{ '- mirrors:'}}
+{{ '  - ' + disconnected.registry.url + '/' + disconnected.mirroring.legacy.ocp_org + '/' + disconnected.mirroring.legacy.ocp_repo }}
+{{ '  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev' }}
+{% endif %}
+{% if disconnected.enabled and not disconnected.registry.ca_trusted %}
+{{ 'additionalTrustBundle: |' }}{% for line in disconnected.registry.ca_cert.split('\n') %}{{ '\n  ' + line }}{% endfor %}
+{% endif %}

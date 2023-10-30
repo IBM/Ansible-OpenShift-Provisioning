@@ -1,0 +1,11 @@
+kind: ImageSetConfiguration
+apiVersion: mirror.openshift.io/v1alpha2
+archiveSize: 4
+storageConfig:
+{% if ( disconnected.enabled ) and ( disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.enabled ) %}
+  registry:
+    imageURL: {{ disconnected.registry.url | string + '/' + disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.imageURL.org | string + '/' + disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.imageURL.repo | string }}
+    skipTLS: {{ disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.skipTLS }}
+{% endif %}
+mirror:
+{{ disconnected.mirroring.oc_mirror.image_set.mirror | to_nice_yaml | indent(2, true) }}

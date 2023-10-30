@@ -6,6 +6,10 @@
 - import_playbook: 2_create_kvm_host.yaml
 - import_playbook: 3_setup_kvm_host.yaml
 - import_playbook: 4_create_bastion.yaml
+- import_playbook: disconnected_mirror_artifacts.yaml
+  when: disconnected.enabled
 - import_playbook: 5_setup_bastion.yaml
 - import_playbook: 6_create_nodes.yaml
 - import_playbook: 7_ocp_verification.yaml
+- import_playbook: disconnected_apply_operator_manifests.yaml
+  when: disconnected.enabled

@@ -242,7 +242,36 @@
 **hypershift.agents_parms.vcpus** | vCPUs for agents | 4
 **hypershift.agents_parms.nameserver** | Nameserver to be used for agents | 192.168.10.1
 
-## 17 - (Optional) Create compute node in a day-2 operation
+## 17 - (Optional) Disconnected cluster setup
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**disconnected.enabled** | True or False, to enable disconnected mode | False
+**disconnected.registry.url** | String containing url of disconnected registry with or without port and without protocol | registry.tt.testing:5000
+**disconnected.registry.pull_secret** | String containing pull secret of the disconnected registry to be applied on the *cluster*. <br /> Make sure to enclose pull_secret in 'single quotes' and it has appropriate pull access. | '{"auths":{"registry.tt.<br />.testing:5000":{"auth":"b3Blb<br />...<br />4yQQ==","email":"test.<br />user@example.com"}}}'
+**disconnected.registry.mirror_pull_ecret** | String containing pull secret to use for mirroring. Contains Red Hat secret and registry pull <br /> secret. Make sure to enclose pull_secret in 'single quotes' and must be able to push to mirror<br /> registry. | '{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com", "registry.tt..testing:5000":<br />...<br />user@example.com"}}}'
+**disconnected.registry.ca_trusted** | True or False to indicate that mirror registry CA is implicitly trusted or needs to be made<br /> trusted on mirror host and cluster. | False
+**disconnected.registry.ca_cert** | Multiline string containing the mirror registry CA bundle | -----BEGIN CERTIFICATE-----<br />MIIDqDCCApCgAwIBAgIULL+d1HTYsiP+8jeWnqBis3N4BskwDQYJKoZIhvcNAQEF<br />...<br />-----END CERTIFICATE-----
+**disconnected.mirroring.host.name** | String containing the hostname of the host, which will be used for mirroring | mirror-host-1
+**disconnected.mirroring.host.ip** | String containing ip of the host, which will be used for mirroring | 192.168.10.99
+**disconnected.mirroring.host.user** | String containing the username of the host, which will be used for mirroring | mirroruser
+**disconnected.mirroring.host.pass** | String containing the password of the host, which will be used for mirroring | mirrorpassword
+**disconnected.mirroring.file_server.clients_dir** | Directory path relative to the HTTP/FTP accessible directory on **env.file_server**<br /> where client binary tarballs are kept | clients
+**disconnected.mirroring.file_server.oc_mirror_tgz** | Name of oc-mirror tarball on **env.file_server** in **disconnected.mirroring.file_server.clients_dir** | oc-mirror.tar.gz
+**disconnected.mirroring.legacy.platform** | True or False if the platform should be mirrored using `oc adm release mirror`. | True
+**disconnected.mirroring.legacy.ocp_quay_release_image_tag** | The tag of the release image *quay.io/openshift-release-dev/ocp-release* to mirror and use | 4.13.1-s390x
+**disconnected.mirroring.legacy.ocp_org** | The org part of the repo on the mirror registry where the release image will be pushed | ocp4
+**disconnected.mirroring.legacy.ocp_repo** | The repo part of the repo on the mirror registry where the release image will be pushed | openshift4
+**disconnected.mirroring.legacy.ocp_tag** | The tag part of the repo on the mirror registry where the release image will be pushed.<br /> Full image would be as below.:<br /><br /> disconnected.registry.url/disconnected.mirroring.legacy.ocp_org/disconnected...ocp_repo<br />:disconnected..ocp_tag | v4.13.1
+**disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error** | True or False to give `--continue-on-error` flag to `oc-mirror` | False
+**disconnected.mirroring.oc_mirror.oc_mirror_args.source_skip_tls** | True or False to give `--source-skip-tls` flag to `oc-mirror` | False
+**disconnected.mirroring.oc_mirror.image_set** | YAML fields containing a standard `oc-mirror` [image set](https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-creating-image-set-config_installing-mirroring-disconnected) with some minor changes to schema. <br /> Differences are documented as needed. Used to generate final image set. | see template
+**disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.enabled** | True or False to use registry storage backend for pushing mirrored content directly to the registry. <br /> Currently only this backend is supported.| True
+**disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.imageURL.org** | The org part of registry imageURL from standard image set. | mirror
+**disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.imageURL.repo** | The repo part of registry imageURL from standard image set. <br /> Final imageURL will be as below:<br /> <br /> disconnected.registry.url/disconnected.mirroring.oc_mirror.image_set.storageConfig<br />.registry.imageURL.org/disconnected...imageURL.repo | oc-mirror-metadata
+**disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.skipTLS** | True of False same purpose served as in standard image set i.e. skip the tls for the registry<br />   during mirroring.| false
+**disconnected.mirrroing.oc_mirror.image_set.mirror** | YAML containing a list of what needs to be mirrored. See the oc mirror image set documentation. <br /> *WARNING*: Platform mirroring in this way is not supported. Use legacy way of platform mirroring | see oc-mirror [image set](https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-creating-image-set-config_installing-mirroring-disconnected)   documentation
+
+## 18 - (Optional) Create compute node in a day-2 operation
 
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---

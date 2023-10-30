@@ -16,3 +16,8 @@
 {{ '[jumphost]' }}
 {{ env.jumphost.name | string + ' ansible_host=' + env.jumphost.ip | string + ' ansible_user=' + env.jumphost.user | string + ' ansible_become_password=' + env.jumphost.pass | string }}
 {% endif -%}
+
+{% if ( disconnected.enabled )  %}
+{{ '[mirrorhost]' }}
+{{ disconnected.mirroring.host.name | string + ' ansible_host=' + disconnected.mirroring.host.ip | string + ' ansible_user=' + disconnected.mirroring.host.user | string + ' ansible_become_password=' + disconnected.mirroring.host.pass | string }}
+{% endif -%}

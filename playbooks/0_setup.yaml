@@ -8,6 +8,13 @@
   roles:
     - set_inventory
 
+  pre_tasks:
+    - name: Check disconnected variables if disconnected cluster will be installed.
+      tags: disconnected
+      ansible.builtin.include_role:
+        name: disconnected_check_vars
+      when: disconnected.enabled
+
   post_tasks:
     - name: Ensure Ansible Galaxy collections have been installed.
       tags: galaxy

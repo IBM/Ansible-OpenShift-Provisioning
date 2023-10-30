@@ -1,0 +1,124 @@
+---
+- name: mirror artifacts in disconnected mode
+  tags: mirror_artifacts
+  block:
+    - name: Get user home directory
+      tags: mirror_artifacts
+      shell: >
+          getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
+      changed_when: false
+      register: user_home
+    - name: Delete OCP download directory for idempotency.
+      tags: mirror_artifacts
+      become: true
+      file:
+        path: "{{ user_home.stdout }}/ocpinst"
+        state: absent
+    - name: Create OCP download directory
+      tags: mirror_artifacts
+      file:
+        path: "{{ user_home.stdout }}/ocpinst"
+        state: directory
+    - name: Unzip OCP client and oc-mirror
+      tags: mirror_artifacts
+      ansible.builtin.unarchive:
+        src: "{{ item }}"
+        dest: "{{ user_home.stdout }}/ocpinst/"
+        remote_src: yes
+      loop:
+        - "{{ disconnected.mirroring.client_download.ocp_download_url }}{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+        - "{{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
+    - name: Copy kubectl, oc, and oc-mirror binaries to /usr/local/sbin
+      tags: mirror_artifacts
+      become: true
+      ansible.builtin.copy:
+        src: "{{ user_home.stdout }}/ocpinst/{{ item }}"
+        dest: /usr/sbin/{{ item }}
+        owner: root
+        group: root
+        mode: "755"
+        remote_src: yes
+      loop:
+        - kubectl
+        - oc
+        - oc-mirror
+    - name: Check if directory {{ user_home.stdout }}/.docker exists
+      tags: mirror_artifacts
+      ansible.builtin.stat:
+        path: "{{ user_home.stdout }}/.docker"
+      register: home_docker
+    - name: Create directory {{ user_home.stdout }}/.docker
+      tags: mirror_artifacts
+      file:
+        path: "{{ user_home.stdout }}/.docker"
+        state: directory
+      when: not home_docker.stat.exists
+    - name: create pull secret file for mirroring
+      tags: mirror_artifacts
+      ansible.builtin.template:
+        src: mirror-secret.json.j2
+        dest: "{{ user_home.stdout }}/.docker/config.json"
+        backup: yes
+        force: yes
+    - name: create ca cert file for adding to ca trust when ca is not trusted and updating ca trust
+      tags: mirror_artifacts
+      become: true
+      block:
+        - name: create ca cert file when ca is untrusted
+          ansible.builtin.template:
+            src: ca.crt.j2
+            dest: /etc/pki/ca-trust/source/anchors/registry.crt
+            force: yes
+        - name: update ca trust with the cert file
+          ansible.builtin.shell: |
+            set -o pipefail
+            update-ca-trust
+      when: not disconnected.registry.ca_trusted
+    - name: mirror the platform the legacy way if legacy mode is enabled
+      tags: mirror_artifacts
+      block:
+        - name: run the oc adm release mirror command
+          ansible.builtin.shell: |
+            set -o pipefail
+            oc adm -a {{ user_home.stdout }}/.docker/config.json release mirror \
+             --from=quay.io/openshift-release-dev/ocp-release:{{ disconnected.mirroring.legacy.ocp_quay_release_image_tag }} \
+             --to={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }} \
+             --to-release-image={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }}:{{ disconnected.mirroring.legacy.ocp_tag }}
+          register: cmd_oc_legacy_mirroring
+        - name: print the output of the mirroring
+          ansible.builtin.debug:
+            var: cmd_oc_legacy_mirroring.stdout_lines
+      when: disconnected.mirroring.legacy.platform
+    - name: prepare imageset for oc-mirror mirroring
+      tags: mirror_artifacts
+      ansible.builtin.template:
+        src: imageset.yaml.j2
+        dest: "{{ user_home.stdout }}/ocpinst/imageset.yaml"
+    - name: mirror the imageset to registry
+      tags: mirror_artifacts
+      block:
+        - name: mirror the imageset to registry
+          ansible.builtin.shell: |
+            set -o pipefail
+            oc mirror --config {{ user_home.stdout }}/ocpinst/imageset.yaml docker://{{ disconnected.registry.url}} --ignore-history{{ ' --continue-on-error' if disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error == True }} \
+             {{ ' --source-skip-tls' if disconnected.mirroring.oc_mirror.oc_mirror_args.source_skip_tls == True }}
+          # ignore-history set by default for idempotency
+          register: cmd_oc_mirror
+          args:
+            chdir: "{{ user_home.stdout }}/ocpinst"
+        - name: print output of imageset mirroring
+          ansible.builtin.debug:
+            var: cmd_oc_mirror
+    - name: Get the results directory from oc mirror operation
+      tags: mirror_artifacts
+      ansible.builtin.shell: |
+        set -o pipefail
+        ls {{ user_home.stdout }}/ocpinst/oc-mirror-workspace/ | grep results
+      register: oc_mirror_results_dir_name
+    - name: Fetch the files that need to be applied on the cluster to the controller
+      tags: mirror_artifacts
+      ansible.posix.synchronize:
+        mode: pull
+        src: "{{ user_home.stdout }}/ocpinst/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/*"
+        dest: "../.oc-mirror-results"
+  when: disconnected.enabled
