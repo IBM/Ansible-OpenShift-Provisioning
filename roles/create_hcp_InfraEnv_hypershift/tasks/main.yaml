@@ -27,32 +27,32 @@
   set_fact:
     ssh_key: "{{ ssh_output.stdout_lines[0] }}"
 
-- name: Get pod name for hypershift-cli-download
+- name: Get pod name for hcp-cli-download
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Pod
     namespace: "{{ hypershift.asc.mce_namespace }}"
     label_selectors:
-      - app= hypershift-cli-download
-  register: hypershift_pod_name
+      - app= hcp-cli-download
+  register: hcp_pod_name
 
-- name: Get hypershift.tar.gz file from pod
+- name: Get hcp.tar.gz file from pod
   kubernetes.core.k8s_cp:
     namespace: "{{ hypershift.asc.mce_namespace }}"
-    pod: "{{ hypershift_pod_name.resources[0].metadata.name }}"
+    pod: "{{ hcp_pod_name.resources[0].metadata.name }}"
     remote_path: "/opt/app-root/src/linux/s390x/"
     local_path: "/root/ansible_workdir"
     state: from_pod
 
-- name: Extract binary from hypershift.tar.gz
+- name: Extract binary from hcp.tar.gz
   unarchive:
-    src: /root/ansible_workdir/hypershift.tar.gz
+    src: /root/ansible_workdir/hcp.tar.gz
     dest: /usr/local/bin/
     remote_src: true
 
 - name: Create a Hosted Cluster
   command: >
-    hypershift create cluster agent 
+    hcp create cluster agent 
     --name={{ hypershift.hcp.hosted_cluster_name }} 
     --pull-secret={{ hypershift.hcp.pull_secret_file }} 
     --agent-namespace={{ hosted_control_plane_namespace }} 
@@ -60,6 +60,8 @@
     --base-domain={{ hypershift.hcp.basedomain }} 
     --api-server-address=api.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }} 
     --ssh-key ~/.ssh/{{ env.ansible_key_name }}.pub
+    --control-plane-availability-policy "SingleReplica"
+    --infra-availability-policy "SingleReplica"
     --release-image=quay.io/openshift-release-dev/ocp-release:{{ hypershift.hcp.ocp_release }} 
     {% set release_image = lookup('env', 'HCP_RELEASE_IMAGE') %}
     {% if release_image is defined and release_image != '' %}

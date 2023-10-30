@@ -48,7 +48,7 @@
   delay: 10
 
 - name: Create Kubeconfig for Hosted Cluster
-  shell: hypershift create kubeconfig --namespace {{ hypershift.hcp.clusters_namespace }} --name {{ hypershift.hcp.hosted_cluster_name }} > /root/ansible_workdir/{{ hypershift.hcp.hosted_cluster_name }}-kubeconfig
+  shell: hcp create kubeconfig --namespace {{ hypershift.hcp.clusters_namespace }} --name {{ hypershift.hcp.hosted_cluster_name }} > /root/ansible_workdir/{{ hypershift.hcp.hosted_cluster_name }}-kubeconfig
 
 - name: Wait for Worker Nodes to Join 
   k8s_info:
