@@ -65,7 +65,7 @@
     namespace: "{{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}"
 
 - name: Destroy Hosted Control Plane
-  command: hypershift destroy cluster agent --name {{ hypershift.hcp.hosted_cluster_name }} --namespace {{ hypershift.hcp.clusters_namespace }}
+  command: hcp destroy cluster agent --name {{ hypershift.hcp.hosted_cluster_name }} --namespace {{ hypershift.hcp.clusters_namespace }}
 
 - name: Delete Clusters Namespace
   k8s:
