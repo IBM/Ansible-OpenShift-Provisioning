@@ -1,0 +1,3 @@
+---
+param_haproxy_cmd: add
+param_haproxy_hostname:
