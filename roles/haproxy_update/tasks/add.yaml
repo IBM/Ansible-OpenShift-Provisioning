@@ -1,0 +1,17 @@
+---
+- name: Add haproxy for port 80 and 443
+  become: true
+  block:
+    - name: Add haproxy for port 80
+      ansible.builtin.lineinfile:
+        path: /etc/haproxy/haproxy.cfg
+        insertafter: "#80 section"
+        line: "  server {{ param_haproxy_hostname }} {{ param_haproxy_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:80 check inter 1s"
+        state: present
+
+    - name: Add haproxy for 443 port
+      ansible.builtin.lineinfile:
+        path: /etc/haproxy/haproxy.cfg
+        insertafter: "#443 section"
+        line: "  server {{ param_haproxy_hostname }} {{ param_haproxy_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:443 check inter 1s"
+        state: present
