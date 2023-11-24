@@ -1,0 +1,10 @@
+---
+
+- name: Load haproxy update task
+  ansible.builtin.include_tasks: "{{ param_haproxy_cmd }}.yaml"
+
+- name: Restart 'haproxy' service to update changes
+  become: true
+  ansible.builtin.systemd:
+    name: haproxy
+    state: restarted
