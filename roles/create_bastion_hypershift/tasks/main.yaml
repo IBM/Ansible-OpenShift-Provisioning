@@ -14,6 +14,12 @@
     recurse: true
     state: directory
 
+- name: Removing network configurations
+  lineinfile:
+    path: ../create_bastion/templates/bastion-ks.cfg.j2
+    state: absent
+    regexp: '^network*'
+
 - name: Create bastion.ks file
   template:
     src: ../create_bastion/templates/bastion-ks.cfg.j2

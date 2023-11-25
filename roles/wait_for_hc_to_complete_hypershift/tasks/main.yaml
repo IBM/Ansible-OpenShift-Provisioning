@@ -26,6 +26,11 @@
   shell: echo "{{cluster_password_encoded.stdout_lines[0].split(' ')[-1]}}" | base64 --decode
   register: cluster_password_decoded
 
+- name: Saving the password in bastion 
+  copy:
+    content: "{{ cluster_password_decoded.stdout_lines[0] }}"
+    dest: /root/ansible_workdir/kubeadmin-password
+
 - name: Get api server of Hosted Cluster
   shell: "cat /root/ansible_workdir/{{ hypershift.hcp.hosted_cluster_name }}-kubeconfig | grep -i server:"
   register: api_server
