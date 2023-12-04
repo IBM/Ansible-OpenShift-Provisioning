@@ -1,13 +1,14 @@
 # Run the Playbooks
 ## Prerequisites
 * Running OCP Cluster ( Management Cluster )  
-* KVM host with root user access or user with sudo privileges
+* KVM host with root user access or user with sudo privileges if compute nodes are KVM.
+* zvm host ( bastion ) and nodes if compute nodes are zVM.
 
 ### Network Prerequisites
 * DNS entry to resolve api.${cluster}.${domain} , api-int.${cluster}.${domain} , *apps.${cluster}.${domain} to a load balancer deployed to redirect incoming traffic to the ingresses pod  ( Bastion ).
 * If using dynamic IP for agents, make sure you have entries in DHCP Server for macaddresses you are using in installation to map to  IPv4 addresses and along with this DHCP server should make your IPs to use nameserver which you have configured.
 ## Note: 
-* As of now we are supporting only macvtap for hypershift Agent based installation.
+* As of now we are supporting only macvtap for hypershift Agent based installation for KVM compute nodes.
 
 ## Step-1: Setup Ansible Vault for Management Cluster Credentials
 ### Overview
