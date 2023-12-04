@@ -1,0 +1,9 @@
+---
+- name: Clone tessia-baselib repository
+  git:
+    repo: https://gitlab.com/tessia-project/tessia-baselib.git
+    dest: /root/ansible_workdir/tessia-baselib
+
+- name: Change directory to tessia-baselib and install dependencies using pip3
+  shell: cd /root/ansible_workdir/tessia-baselib ; pip3 install -U .
+

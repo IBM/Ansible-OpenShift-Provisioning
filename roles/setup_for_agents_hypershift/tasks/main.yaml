@@ -30,5 +30,9 @@
     dest: /var/lib/libvirt/images/pxeboot/kernel.img
     validate_certs: false
 
-
-
+- name: Generate param files
+  template:
+    src: parm-file.parm.j2
+    dest: /root/ansible_workdir/agent-{{ item }}.parm
+  when: hypershift.compute_node_type == 'zvm'
+  loop: "{{ range(hypershift.agents_parms.agents_count | int) | list }}"
