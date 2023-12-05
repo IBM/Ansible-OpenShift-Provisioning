@@ -40,13 +40,13 @@ platform:
   none: {}
 fips: {{ env.install_config.fips }}
 pullSecret: '{{ env.redhat.pull_secret if not disconnected.enabled else disconnected.registry.pull_secret }}'
-{% if disconnected.enabled and disconnected.mirroring.legacy.platform %}
+{% if disconnected.enabled %}
 {{ 'imageContentSources: ' }}
 {{ '- mirrors:'}}
-{{ '  - ' + disconnected.registry.url + '/' + disconnected.mirroring.legacy.ocp_org + '/' + disconnected.mirroring.legacy.ocp_repo }}
+{{ '  - ' + disconnected.registry.url + '/' }}{{ disconnected.mirroring.legacy.ocp_org if disconnected.mirroring.legacy.platform else 'openshift' }}{{ '/' }}{{ disconnected.mirroring.legacy.ocp_repo if disconnected.mirroring.legacy.platform else 'release-images' }}
 {{ '  source: quay.io/openshift-release-dev/ocp-release' }}
 {{ '- mirrors:'}}
-{{ '  - ' + disconnected.registry.url + '/' + disconnected.mirroring.legacy.ocp_org + '/' + disconnected.mirroring.legacy.ocp_repo }}
+{{ '  - ' + disconnected.registry.url + '/' }}{{ disconnected.mirroring.legacy.ocp_org if disconnected.mirroring.legacy.platform else 'openshift' }}{{ '/' }}{{ disconnected.mirroring.legacy.ocp_repo if disconnected.mirroring.legacy.platform else 'release' }}
 {{ '  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev' }}
 {% endif %}
 {% if disconnected.enabled and not disconnected.registry.ca_trusted %}

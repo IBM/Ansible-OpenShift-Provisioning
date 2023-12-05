@@ -332,7 +332,7 @@ disconnected:
       ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/amd64/"
       ocp_client_tgz: 'openshift-client-linux.tar.gz' # name of the oc binary. Should be a tar.gz file
     legacy:
-      platform: True # if true then platform is mirrored in the old way and install config will be patched with the imagecontentsourcepolicy
+      platform: False # if true then platform is mirrored in the old way and install config will be patched with the imagecontentsourcepolicy
       ocp_quay_release_image_tag: '4.13.1-s390x'
       ocp_org: 'ocp4'
       ocp_repo: 'openshift4'
@@ -341,6 +341,7 @@ disconnected:
       oc_mirror_args:
         continue_on_error: False
         source_skip_tls: False
+      release_image_tag: '4.13.1-multi'
       image_set: # this field is a standard image set from oc-mirror documentation. The only exception is the storageConfig which is altered to allow substitution of disconnected.registry.url
         storageConfig:
           registry:
@@ -350,6 +351,14 @@ disconnected:
               repo: oc-mirror-metadata
             skipTLS: false # standard field form oc-mirror schema
         mirror: # this field is also atandard from the oc-mirror schema. It will be substituted as is into the final image set # WARNING: platform mirroring through oc-mirror is currently not supported, use legacy
+          platform:
+            architectures:
+            - multi # note: while image tags such as `multi-s390x` are also available on quay, we cannot mirror these, so list can only contain archs such as `s390x` or use `multi`
+            channels:
+            - name: stable-4.13
+              full: false
+              minVersion: 4.13.1
+              maxVersion: 4.13.1
           operators:
             - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.13
               full: false

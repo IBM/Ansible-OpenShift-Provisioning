@@ -257,11 +257,12 @@
 **disconnected.mirroring.host.pass** | String containing the password of the host, which will be used for mirroring | mirrorpassword
 **disconnected.mirroring.file_server.clients_dir** | Directory path relative to the HTTP/FTP accessible directory on **env.file_server**<br /> where client binary tarballs are kept | clients
 **disconnected.mirroring.file_server.oc_mirror_tgz** | Name of oc-mirror tarball on **env.file_server** in **disconnected.mirroring.file_server.clients_dir** | oc-mirror.tar.gz
-**disconnected.mirroring.legacy.platform** | True or False if the platform should be mirrored using `oc adm release mirror`. | True
+**disconnected.mirroring.legacy.platform** | True or False if the platform should be mirrored using `oc adm release mirror`. | False
 **disconnected.mirroring.legacy.ocp_quay_release_image_tag** | The tag of the release image *quay.io/openshift-release-dev/ocp-release* to mirror and use | 4.13.1-s390x
 **disconnected.mirroring.legacy.ocp_org** | The org part of the repo on the mirror registry where the release image will be pushed | ocp4
 **disconnected.mirroring.legacy.ocp_repo** | The repo part of the repo on the mirror registry where the release image will be pushed | openshift4
 **disconnected.mirroring.legacy.ocp_tag** | The tag part of the repo on the mirror registry where the release image will be pushed.<br /> Full image would be as below.:<br /><br /> disconnected.registry.url/disconnected.mirroring.legacy.ocp_org/disconnected...ocp_repo<br />:disconnected..ocp_tag | v4.13.1
+**disconnected.mirroring.oc_mirror.release_image_tag** | The ocp release image tag you want to install the cluster with. Used when legacy platform <br /> mirroring is disabled and image_set contains platform entries. |  4.13.1-multi
 **disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error** | True or False to give `--continue-on-error` flag to `oc-mirror` | False
 **disconnected.mirroring.oc_mirror.oc_mirror_args.source_skip_tls** | True or False to give `--source-skip-tls` flag to `oc-mirror` | False
 **disconnected.mirroring.oc_mirror.image_set** | YAML fields containing a standard `oc-mirror` [image set](https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-creating-image-set-config_installing-mirroring-disconnected) with some minor changes to schema. <br /> Differences are documented as needed. Used to generate final image set. | see template
