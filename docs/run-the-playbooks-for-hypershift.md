@@ -37,7 +37,7 @@ ansible-vault edit playbooks/secrets.yaml
 
 ## Step-2: Initial Setup for Hypershift
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
-* Update all the variables in Section-16 ( Hypershift ) and Section-3 ( File Server : ip , protocol and iso_mount_dir ) in [all.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template) before running the playbooks.
+* Update variables as per the compute node type (zKVM /zVM) in Section-16 ( Hypershift ) and Section-3 ( File Server : ip , protocol and iso_mount_dir ) in [all.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template) before running the playbooks.
 * First playbook to be run is setup_for_hypershift.yaml which will create inventory file for hypershift and will add ssh key to the kvm host.
 
 * Run this shell command:
