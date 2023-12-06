@@ -1,4 +1,21 @@
 ---
+- name: Install Packages on zvm host
+  yum:
+    name:
+      - "{{ item }}"
+    state: present
+  loop: "{{ env.pkgs.zvm }}"
+
+- name: Install setuptools_rust using pip
+  pip:
+    name: setuptools_rust
+    executable: pip3
+
+- name: Install cryptography using pip
+  pip:
+    name: cryptography
+    executable: pip3
+
 - name: Clone tessia-baselib repository
   git:
     repo: https://gitlab.com/tessia-project/tessia-baselib.git
