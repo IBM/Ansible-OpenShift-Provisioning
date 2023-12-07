@@ -148,7 +148,7 @@
   when: hypershift.compute_node_type == 'zvm'
 
 - name: Delete rootfs.img
-   file:
+  file:
     path: /var/www/html/rootfs.img
     state: absent
   when: hypershift.compute_node_type == 'zvm'

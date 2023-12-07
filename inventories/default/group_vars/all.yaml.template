@@ -240,7 +240,7 @@ rhcos_live_rootfs: "rhcos-4.12.3-s390x-live-rootfs.s390x.img"
 # Section 16 - Hypershift ( Optional )
 
 hypershift:
-  compute_node_type:       # zkvm / zvm
+  compute_node_type:       # KVM or zVM
 
   kvm_host:
   kvm_host_user:
@@ -299,7 +299,7 @@ hypershift:
   agents_parms:
     agents_count:
      
-    # zkvm specific parameters
+    # KVM specific parameters - KVM on s390x
  
     static_ip_parms:
       static_ip: true
@@ -317,7 +317,7 @@ hypershift:
  
 
 
-    # zvm specific parameters  
+    # zVM specific parameters - s390x
   
     zvm_parameters:
       network_mode: vswitch   # Supported modes: vswitch
