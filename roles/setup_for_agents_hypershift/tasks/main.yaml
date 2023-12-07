@@ -29,5 +29,5 @@
   template:
     src: parm-file.parm.j2
     dest: /root/ansible_workdir/agent-{{ item }}.parm
-  when: hypershift.compute_node_type == 'zvm'
+  when: "{{ hypershift.compute_node_type | lower }}" == 'zvm'
   loop: "{{ range(hypershift.agents_parms.agents_count | int) | list }}"

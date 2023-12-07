@@ -1,5 +1,5 @@
 #!/usr/bin/expect
-{% if hypershift.compute_node_type != 'zvm' %}
+{% if hypershift.compute_node_type | lower != 'zvm' %}
 set password "{{ kvm_host_password }}"
 spawn ssh-copy-id -i {{ lookup('env', 'HOME') }}/.ssh/{{ env.ansible_key_name }} {{ hypershift.kvm_host_user }}@{{ hypershift.kvm_host }}
 expect "{{ hypershift.kvm_host_user }}@{{ hypershift.kvm_host }}'s password:"
