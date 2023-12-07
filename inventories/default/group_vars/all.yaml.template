@@ -350,7 +350,7 @@ disconnected:
               org: mirror
               repo: oc-mirror-metadata
             skipTLS: false # standard field form oc-mirror schema
-        mirror: # this field is also atandard from the oc-mirror schema. It will be substituted as is into the final image set # WARNING: platform mirroring through oc-mirror is currently not supported, use legacy
+        mirror: # this field is also atandard from the oc-mirror schema. It will be substituted as is into the final image set.
           platform:
             architectures:
             - multi # note: while image tags such as `multi-s390x` are also available on quay, we cannot mirror these, so list can only contain pure architecture names such as `s390x` or the multiarch `multi`
