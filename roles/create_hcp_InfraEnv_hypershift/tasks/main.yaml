@@ -107,7 +107,7 @@
     agent_mac_addr: "{{ hypershift.agents_parms.agent_mac_addr }}"
   when: 
     - ( hypershift.agents_parms.static_ip_parms.static_ip == true ) and ( hypershift.agents_parms.agent_mac_addr != None )
-    - "{{hypershift. compute_node_type | lower }}" != 'zvm'
+    - "{{hypershift.compute_node_type | lower }}" != 'zvm'
 
 - name: Generate mac addresses for agents
   set_fact:
