@@ -62,14 +62,14 @@
       backend {{ hypershift.hcp.hosted_cluster_name }}-machine-config-server
         mode tcp
         balance source
-  when: "{{ hypershift.compute_node_type | lower }}" == 'zvm'
+  when: hypershift.compute_node_type | lower == 'zvm'
 
 - name: Add Management Cluster Worker IPs to Haproxy
   lineinfile:
     path: /etc/haproxy/haproxy.cfg
     line: "    server worker{{item}} {{ mgmt_workers.stdout_lines[item]}}"
   loop: "{{ range(mgmt_workers_count.stdout|int) | list }}"
-  when: "{{ hypershift.compute_node_type | lower }}" == 'zvm'
+  when: hypershift.compute_node_type | lower == 'zvm'
  
 - name: allow http traffic 
   firewalld:
