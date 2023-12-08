@@ -90,7 +90,7 @@
   tags: get_ocp
   ansible.builtin.shell: |
     set -o pipefail
-    {{ 'export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE=quay.io/openshift-release-dev/ocp-release:' + disconnected.mirroring.legacy.ocp_quay_release_image_tag if disconnected.enabled and disconnected.mirroring.legacy.platform }}
+    {{ 'export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE=quay.io/openshift-release-dev/ocp-release:' if disconnected.enabled }}{{ disconnected.mirroring.oc_mirror.release_image_tag if disconnected.enabled and not disconnected.mirroring.legacy.platform }}{{ disconnected.mirroring.legacy.ocp_quay_release_image_tag if disconnected.enabled and disconnected.mirroring.legacy.platform }}
     /root/ocpinst/openshift-install create manifests --dir=/root/ocpinst/
   become: true
 
@@ -127,7 +127,7 @@
   become: true
   ansible.builtin.shell: |
     set -o pipefail
-    {{ 'export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE=quay.io/openshift-release-dev/ocp-release:' + disconnected.mirroring.legacy.ocp_quay_release_image_tag if disconnected.enabled and disconnected.mirroring.legacy.platform }}
+    {{ 'export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE=quay.io/openshift-release-dev/ocp-release:' if disconnected.enabled }}{{ disconnected.mirroring.oc_mirror.release_image_tag if disconnected.enabled and not disconnected.mirroring.legacy.platform }}{{ disconnected.mirroring.legacy.ocp_quay_release_image_tag if disconnected.enabled and disconnected.mirroring.legacy.platform }}
     /root/ocpinst/openshift-install create ignition-configs  --dir=/root/ocpinst/
 
 - name: Set ownership to root and permissions of ignitions and related files.
