@@ -62,6 +62,7 @@
       backend {{ hypershift.hcp.hosted_cluster_name }}-machine-config-server
         mode tcp
         balance source
+    marker: "# machine-config-server"
   when: hypershift.compute_node_type | lower == 'zvm'
 
 - name: Add Management Cluster Worker IPs to Haproxy

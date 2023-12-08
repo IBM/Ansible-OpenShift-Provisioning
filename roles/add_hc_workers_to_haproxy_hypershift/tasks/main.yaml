@@ -12,6 +12,7 @@
           mode tcp
           bind {{ hypershift.bastion_hypershift }}:443
           bind {{ hypershift.bastion_hypershift }}:80
+    marker: "# console"
 
 - name: Add Hosted Cluster Worker IPs to Haproxy
   lineinfile:
