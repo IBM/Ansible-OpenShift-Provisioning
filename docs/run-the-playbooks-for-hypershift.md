@@ -54,6 +54,7 @@ ansible-playbook playbooks/setup_for_hypershift.yaml --ask-vault-pass
 * Watch Ansible as it completes the installation, correcting errors if they arise.
 * To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml
 * Alternatively, to run all the playbooks at once, start the master playbook by running this shell command:
+* After installation , you can find the details of cluster like kubeconfig and password in the installation directory ( $HOME/ansible_workdir/ ) 
 ```
 ansible-playbook playbooks/hypershift.yaml --ask-vault-pass
 ```
