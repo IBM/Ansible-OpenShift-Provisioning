@@ -98,29 +98,39 @@
 - name: Creating list of mac addresses
   set_fact:
     agent_mac_addr: []
-  when: hypershift.agents_parms.static_ip_parms.static_ip == true
+  when:
+    - hypershift.agents_parms.static_ip_parms.static_ip == true
+    - hypershift.compute_node_type | lower != 'zvm'
 
 - name: Getting mac addresss for agents
   set_fact:
     agent_mac_addr: "{{ hypershift.agents_parms.agent_mac_addr }}"
-  when: ( hypershift.agents_parms.static_ip_parms.static_ip == true ) and ( hypershift.agents_parms.agent_mac_addr != None )
+  when: 
+    - ( hypershift.agents_parms.static_ip_parms.static_ip == true ) and ( hypershift.agents_parms.agent_mac_addr != None )
+    - hypershift.compute_node_type | lower != 'zvm'
 
 - name: Generate mac addresses for agents
   set_fact:
     agent_mac_addr: "{{ agent_mac_addr +  ['52:54:00' | community.general.random_mac] }}"
-  when: ( hypershift.agents_parms.static_ip_parms.static_ip == true ) and ( hypershift.agents_parms.agent_mac_addr == None )
+  when:
+    - ( hypershift.agents_parms.static_ip_parms.static_ip == true ) and ( hypershift.agents_parms.agent_mac_addr == None )
+    - hypershift.compute_node_type | lower != 'zvm'
   loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
 
 - name: Create NMState Configs
   template:
     src:  nmStateConfig.yaml.j2
     dest: /root/ansible_workdir/nmStateConfig-agent-{{ item }}.yaml
-  when: hypershift.agents_parms.static_ip_parms.static_ip == true
+  when: 
+    - hypershift.agents_parms.static_ip_parms.static_ip == true
+    - hypershift.compute_node_type | lower != 'zvm'
   loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
 
 - name: Deploy NMState Configs
   command: oc apply -f /root/ansible_workdir/nmStateConfig-agent-{{ item }}.yaml
-  when: hypershift.agents_parms.static_ip_parms.static_ip == true
+  when:
+    - hypershift.agents_parms.static_ip_parms.static_ip == true
+    - hypershift.compute_node_type | lower != 'zvm'
   loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
 
 - name: Wait for ISO to generate in InfraEnv 

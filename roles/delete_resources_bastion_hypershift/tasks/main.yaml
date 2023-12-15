@@ -134,3 +134,21 @@
     name: "{{ hypershift.asc.mce_namespace }}"
     state: absent
   when: hypershift.mce.delete == true
+
+- name: Delete  initrd.img
+  file:
+    path: /var/lib/libvirt/images/pxeboot/initrd.img
+    state: absent
+  when: hypershift.compute_node_type | lower == 'zvm'
+
+- name: Delete  kernel.img
+  file:
+    path: /var/lib/libvirt/images/pxeboot/kernel.img
+    state: absent
+  when: hypershift.compute_node_type | lower == 'zvm'
+
+- name: Delete rootfs.img
+  file:
+    path: /var/www/html/rootfs.img
+    state: absent
+  when: hypershift.compute_node_type | lower == 'zvm'

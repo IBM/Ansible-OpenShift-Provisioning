@@ -38,17 +38,13 @@
   - internal
   - public
 
-- name: Download ipxe script 
-  shell: curl -k -L $(oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} get InfraEnv {{ hypershift.hcp.hosted_cluster_name }} -ojsonpath="{.status.bootArtifacts.ipxeScript}")
-  register: ipxe_script
-
-- name: Get URL for rootfs
-  set_fact:
-    rootfs_url: "{{ ipxe_script.stdout_lines[2].split(' ')[3].split('url=')[1] }}"
+- name: Get URL for rootfs.img
+  shell: oc -n "{{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}" get InfraEnv "{{ hypershift.hcp.hosted_cluster_name }}" -ojsonpath="{.status.bootArtifacts.rootfs}"
+  register: rootfs
 
 - name: Download rootfs.img
   get_url:
-    url: "{{ rootfs_url }}"
+    url: "{{ rootfs.stdout }}"
     dest: /var/www/html/rootfs.img
     validate_certs: false
 

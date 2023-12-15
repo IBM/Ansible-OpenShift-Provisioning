@@ -8,9 +8,12 @@
     - name: Setting host
       set_fact:
         host: 'kvm_host_hypershift'
+      when: hypershift.compute_node_type | lower != 'zvm'
+
     - name: Install Prereqs on host
       import_role:
         name:  install_prerequisites_host_hypershift
+      when: hypershift.compute_node_type | lower != 'zvm'
 
 - name: Create macvtap network
   hosts: kvm_host_hypershift
@@ -20,9 +23,12 @@
       set_fact:
         networking:
           device1: "{{ hypershift.networking_device }}"
+      when: hypershift.compute_node_type | lower != 'zvm'
+
     - name:  Creating macvtap network
       import_role:
         name: macvtap
+      when: hypershift.compute_node_type | lower != 'zvm'
 
 - name: Create bastion for hypershift
   hosts: kvm_host_hypershift
@@ -33,7 +39,9 @@
     - name: Creating Bastion
       include_role:
         name: create_bastion_hypershift
-      when: hypershift.create_bastion == true
+      when: 
+        - hypershift.create_bastion == true
+        - hypershift.compute_node_type | lower != 'zvm'
 
 - name: Configuring Bastion
   hosts: bastion_hypershift
@@ -67,7 +75,7 @@
   - create_hcp_InfraEnv_hypershift
 
 - name: Download Required images for booting Agents
-  hosts: kvm_host_hypershift
+  hosts: "{{ 'kvm_host_hypershift' if 'kvm_host_hypershift' in groups['all'] else 'bastion_hypershift' }}"
   become: true
   roles:
   - setup_for_agents_hypershift

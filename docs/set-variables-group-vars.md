@@ -198,6 +198,7 @@
 ## 16 - Hypershift ( Optional )
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
+**hypershift.compute_node_type** | Select the compute node type for HCP , either zKVM or zVM | zvm
 **hypershift.kvm_host** | IPv4 address of KVM host for hypershift <br /> (kvm host where you want to run all oc commands and create VMs)| 192.168.10.1
 **hypershift.kvm_host_user** | User for KVM host | root
 **hypershift.bastion_hypershift** | IPv4 address for bastion of Hosted Cluster | 192.168.10.1
@@ -232,15 +233,23 @@
 **hypershift.asc.iso_url** | Give URL for ISO image | https://... <br /> ...s390x-live.s390x.iso
 **hypershift.asc.root_fs_url** | Give URL for rootfs image | https://... <br /> ... live-rootfs.s390x.img
 **hypershift.asc.mce_namespace** | Namespace where your Multicluster Engine Operator is installed. <br /> Recommended Namespace for MCE is 'multicluster-engine'. <br /> Change this only if MCE is installed in other namespace. | multicluster-engine
+**hypershift.agents_parms.agents_count** | Number of agents for the hosted cluster <br /> The same number of compute nodes will be attached to Hosted Cotrol Plane | 2
 **hypershift.agents_parms.static_ip_parms.static_ip** | true or false - use static IPs for agents using NMState | true
 **hypershift.agents_parms.static_ip_parms.ip** | List of IP addresses for agents | 192.168.10.1
 **hypershift.agents_parms.static_ip_parms.interface** | Interface for agents for configuring NMStateConfig | eth0
-**hypershift.agents_parms.agents_count** | Number of agents for the hosted cluster <br /> The same number of compute nodes will be attached to Hosted Cotrol Plane | 2
 **hypershift.agents_parms.agent_mac_addr** | List of macaddresses for the agents. <br /> Configure in DHCP if you are using dynamic IPs for Agents. | - 52:54:00:ba:d3:f7 
 **hypershift.agents_parms.disk_size** | Disk size for agents | 100G
 **hypershift.agents_parms.ram** | RAM for agents | 16384
 **hypershift.agents_parms.vcpus** | vCPUs for agents | 4
 **hypershift.agents_parms.nameserver** | Nameserver to be used for agents | 192.168.10.1
+**hypershift.agents_parms.zvm_parameters.network_mode** | Network mode for zvm nodes <br /> Supported modes: vswitch |  vswitch
+**hypershift.agents_parms.zvm_parameters.disk_type** | Disk type for zvm nodes <br /> Supported disk types: fcp, dasd | dasd
+**hypershift.agents_parms.zvm_parameters.vcpus** | CPUs for each zvm node | 4
+**hypershift.agents_parms.zvm_parameters.memory** | RAM for each zvm node | 16384
+**hypershift.agents_parms.zvm_parameters.nameserver** | Nameserver for compute nodes | 192.168.10.1
+**hypershift.agents_parms.zvm_parameters.subnetmask** | Subnet mask for compute nodes | 255.255.255.0
+**hypershift.agents_parms.zvm_parameters.gateway** | Gateway for compute nodes | 192.168.10.1
+**hypershift.agents_parms.zvm_parameters.nodes** | Set of parameters for zvm nodes <br /> Give the details of each zvm node here | 
 
 ## 17 - (Optional) Disconnected cluster setup
 **Variable Name** | **Description** | **Example**
