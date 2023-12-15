@@ -40,3 +40,8 @@
     - name: Key already added
       debug:
         msg: "Ignore the above error if ssh-key already added"
+
+- name: Delete expect file
+  file:
+    path: "{{ find_project.stdout }}{{ find_inventory.stdout }}/ssh-key.exp.sh"
+    state: absent

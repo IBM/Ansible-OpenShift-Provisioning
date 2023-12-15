@@ -18,13 +18,19 @@
     path: /root/ansible_workdir
     state: directory
 
+- name: Getting rhel version
+  shell: awk -F 'release ' '{print $2}' /etc/redhat-release | awk '{print $1}'
+  register: rhel_version
+
 - name: Install Packages on kvm_host
   yum: 
     name:
       - "{{ item }}"
     state: present
   loop: "{{ env.pkgs.kvm }}"
-  when: host != 'bastion_hypershift'
+  when:
+    - host != 'bastion_hypershift'
+    - ( rhel_version.stdout| float < 9.0 ) or rhel_version.stdout| float >= 9.0 and  'devel' not in  item
 
 - name: Install Packages for Hypershift
   package:
