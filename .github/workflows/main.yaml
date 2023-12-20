@@ -1,7 +1,7 @@
 name: Publish docs via GitHub Pages
 on:
   workflow_dispatch:
-  
+
   push:
     branches:
       - main
@@ -24,13 +24,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
-
-      - name: Fetch Latest gh-pages Branch
-        run: |
-          git fetch origin gh-pages
-          git checkout gh-pages
-          git pull origin gh-pages
-          git checkout main
 
       - name: Install mkdocs
         run: pip install mkdocs
