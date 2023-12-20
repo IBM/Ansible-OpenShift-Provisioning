@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/prerequisites/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Prerequisites - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Prerequisites";
+        var mkdocs_page_input_path = "prerequisites.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/prerequisites/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/ansible-logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Read Me</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../before-you-begin/">Before You Begin</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Prerequisites</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#red-hat">Red Hat</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#ibm-zsystems">IBM zSystems</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#file-server">File Server</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#ansible-controller">Ansible Controller</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#jumphost-for-nat-network">Jumphost for NAT network</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation Instructions</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hypershift/">Run the Playbooks (HyperShift)</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Misc</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgements/">Acknowledgements</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Read Me</li>
+      <li class="breadcrumb-item active">Prerequisites</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/prerequisites.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h1>
+<h2 id="red-hat">Red Hat<a class="headerlink" href="#red-hat" title="Permanent link">#</a></h2>
+<ul>
+<li>Account (<a href="https://www.redhat.com/wapps/ugc/register.html?_flowId=register-flow&amp;_flowExecutionKey=e1s1">Sign Up</a>)</li>
+<li><a href="https://access.redhat.com/products/red-hat-openshift-container-platform/">License</a> or <a href="https://www.redhat.com/en/technologies/cloud-computing/openshift/try-it">free trial</a> of Red Hat OpenShift Container Platform for IBM Z systems - s390x architecture (comes with the required licenses for Red Hat Enterprise Linux (RHEL) and CoreOS)</li>
+</ul>
+<h2 id="ibm-zsystems">IBM zSystems<a class="headerlink" href="#ibm-zsystems" title="Permanent link">#</a></h2>
+<ul>
+<li>Hardware Management Console (HMC) access on IBM zSystems or LinuxONE</li>
+<li>In order to use the <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/2_create_kvm_host.yaml">playbook</a> that automates the creation of the KVM host Dynamic Partition Manager (DPM) mode is required.<ul>
+<li>If DPM mode is not an option for your environment, that playbook can be skipped, but a bare-metal RHEL server must be set-up on an LPAR manually (Filipe Miranda's <a href="https://www.linkedin.com/pulse/demystifying-install-process-red-hat-enterprise-linux-filipe-miranda/">how-to article</a>) before moving on. Once that is done, continue with the <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml">playbook 3</a> that sets up the KVM host.</li>
+</ul>
+</li>
+<li>For a minimum installation, at least:<ul>
+<li>6 Integrated Facilities for Linux (IFLs) with SMT2 enabled</li>
+<li>85 GB of RAM</li>
+<li>An FCP storage group created with 1 TB of disk space</li>
+<li>8 IPv4 addresses</li>
+</ul>
+</li>
+</ul>
+<h2 id="file-server">File Server<a class="headerlink" href="#file-server" title="Permanent link">#</a></h2>
+<ul>
+<li>A file server accessible from your IBM zSystems / LinuxONE server.</li>
+<li>Either FTP or HTTP service configured and active.</li>
+<li>Once a RHEL server is installed natively on the LPAR, pre-existing or configured by this automation, (i.e. the KVM host), you can use that as the file server. </li>
+<li>If you are not using a pre-existing KVM host(s) and need to create them using this automation, you must use an FTP server because the HMC does not support HTTP.</li>
+<li>A user with sudo and SSH access on that server.</li>
+<li>A DVD ISO file of Red Hat Enterprise Linux (RHEL) 8 for s390x architecture mounted in an accessible folder (e.g. /home/<user>/rhel/ for FTP or /var/www/html/rhel for HTTP)<ul>
+<li>If you do not have RHEL for s390x yet, go to the Red Hat <a href="https://access.redhat.com/downloads/content">Customer Portal</a> and download it.</li>
+<li>Under 'Product Variant' use the drop-down menu to select 'Red Hat Enterprise Linux for IBM z Systems' </li>
+<li>Double-check it's for version 8 and for s390x architecture</li>
+<li>Then scroll down to Red Hat Enterprise Linux 8.x Binary DVD and click on the 'Download Now' button.</li>
+<li>To pull the image directly from the command-line of your file server, copy the link for the 'Download Now' button and use <code>wget</code> to pull it down.
+    <code>wget "https://access.cdn.redhat.com/content/origin/files/sha256/13/13[...]40/rhel-8.7-s390x-dvd.iso?user=6[...]e"</code></li>
+<li>Don't forget to mount it too:<ul>
+<li>FTP:
+    <code>mount &lt;rhel-8.7-s390x-dvd.iso&gt; /home/&lt;user&gt;/rhel</code></li>
+<li>or HTTP:
+    <code>mount &lt;rhel-8.7-s390x-dvd.iso&gt; /var/www/html/rhel</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>A folder created to store config files (e.g. /home/user/ocp-config for FTP or /var/www/html/ocp-config for http)<ul>
+<li>For FTP:
+    <code>sudo mkdir /home/&lt;username&gt;/ocp-config</code></li>
+<li>or HTTP:
+    <code>sudo mkdir /var/www/html/ocp-config</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="ansible-controller">Ansible Controller<a class="headerlink" href="#ansible-controller" title="Permanent link">#</a></h2>
+<ul>
+<li>The computer/virtual machine running Ansible, sometimes referred to as localhost.</li>
+<li>Must be running on with MacOS or Linux operating systems.</li>
+<li>Network access to your IBM zSystems / LinuxONE hardware</li>
+<li>All you need to run Ansible is a terminal and a text editor. However, an IDE like <a href="https://code.visualstudio.com/download">VS Code</a> is highly recommended for an integrated, user-friendly experience with helpful extensions like <a href="https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml">YAML</a>.</li>
+<li><a href="https://realpython.com/installing-python/">Python3</a> installed:<ul>
+<li>MacOS, first install <a href="https://brew.sh/">Homebrew</a> package manager:
+    <code>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code>
+    then install Python3
+    <code>brew install python3 #MacOS</code></li>
+<li>Fedora:
+    <code>sudo dnf install python3 #Fedora</code></li>
+<li>Debian:
+    <code>sudo apt install python3 #Debian</code></li>
+</ul>
+</li>
+<li>Once Python3 is installed, you also need <a href="https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html">Ansible</a> version 2.9 or above:</li>
+</ul>
+<pre class="codehilite"><code>pip3 install ansible
+</code></pre>
+
+<ul>
+<li>Once Ansible is installed, you will need a few collections from Ansible Galaxy:</li>
+</ul>
+<pre class="codehilite"><code>ansible-galaxy collection install community.general community.crypto ansible.posix community.libvirt
+</code></pre>
+
+<ul>
+<li>If you will be using these playbooks to automate the creation of the LPAR(s) that will act as KVM host(s) for the cluster, you will also need:</li>
+</ul>
+<pre class="codehilite"><code>ansible-galaxy collection install ibm.ibm_zhmc 
+</code></pre>
+
+<ul>
+<li>If you are using MacOS, you also need to have <a href="https://apps.apple.com/us/app/xcode/id497799835?mt=12">Xcode</a>:</li>
+</ul>
+<pre class="codehilite"><code>xcode-select --install
+</code></pre>
+
+<h2 id="jumphost-for-nat-network">Jumphost for NAT network<a class="headerlink" href="#jumphost-for-nat-network" title="Permanent link">#</a></h2>
+<ul>
+<li>If for KVM network NAT is used, instead of macvtap, a ssh tunnel using a jumphost is required to access the OCP cluster. To configure the ssh tunnel expect is required on the jumphost. Expect will be installed during the setup of the bastion (4_setup_bastion.yaml playbook). In case of missing access to install additional packages, install it manually on the jumphost by executing following command:</li>
+</ul>
+<pre class="codehilite"><code>yum install expect 
+</code></pre>
+
+<p>In addition make sure that python3 is installed on the jumphost otherwise ansible might fail to run the tasks. You can install python3 manually by executing the following command:</p>
+<pre class="codehilite"><code>yum install python3 
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../before-you-begin/" class="btn btn-neutral float-left" title="Before You Begin"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../get-info/" class="btn btn-neutral float-right" title="1 Get Info">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright © 2022 IBM zSystems Washington Systems Center</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../before-you-begin/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../get-info/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

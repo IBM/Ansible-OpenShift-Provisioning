@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/before-you-begin/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Before You Begin - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Before You Begin";
+        var mkdocs_page_input_path = "before-you-begin.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/before-you-begin/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/ansible-logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Read Me</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Before You Begin</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#description">Description</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#support">Support</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#difficulty">Difficulty</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#why-free-and-open-source">Why Free and Open-Source?</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../prerequisites/">Prerequisites</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation Instructions</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hypershift/">Run the Playbooks (HyperShift)</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Misc</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgements/">Acknowledgements</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Read Me</li>
+      <li class="breadcrumb-item active">Before You Begin</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/before-you-begin.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="before-you-begin">Before You Begin<a class="headerlink" href="#before-you-begin" title="Permanent link">#</a></h1>
+<h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">#</a></h2>
+<ul>
+<li>This project automates the User-Provisioned Infrastructure (UPI) method for deploying Red Hat OpenShift Container Platform (RHOCP) on IBM zSystems / LinuxONE using Kernel-based Virtual Machine (KVM) as the hypervisor.</li>
+</ul>
+<h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">#</a></h2>
+<ul>
+<li>This is an unofficial project created by IBMers.</li>
+<li>This installation method is not officially supported by either Red Hat or IBM.</li>
+<li>However, once installation is complete, the resulting cluster is supported by Red Hat. UPI is the only supported method for RHOCP on IBM zSystems.</li>
+</ul>
+<h2 id="difficulty">Difficulty<a class="headerlink" href="#difficulty" title="Permanent link">#</a></h2>
+<ul>
+<li>This process is much easier than doing so manually, but still not an easy task. You will likely encounter errors, but you will reach those errors quicker and understand the problem faster than if you were doing this process manually. After using these playbooks once, successive deployments will be much easier.<ul>
+<li>A very basic understanding of what Ansible does is recommended. Advanced understanding is helpful for further customization of the playbooks. </li>
+<li>A basic understanding of the command-line is required.</li>
+<li>A basic understanding of git is recommended, especially for creating your organization's own fork of the repository for further customization.</li>
+<li>An advanced understanding of your computing environment is required for setting the environment variables.</li>
+</ul>
+</li>
+<li>These Ansible Playbooks automate a User-Provisioned Infrastructure (UPI) deployment of Red Hat OpenShift Container Platform (RHOCP). This process, when done manually, is extremely tedious, time-consuming, and requires high levels of Linux AND IBM zSystems expertise. </li>
+<li>UPI is currently the only supported method for deploying RHOCP on IBM zSystems.</li>
+</ul>
+<h2 id="why-free-and-open-source">Why Free and Open-Source?<a class="headerlink" href="#why-free-and-open-source" title="Permanent link">#</a></h2>
+<ul>
+<li><u>Trust</u>:<ul>
+<li>IBM zSystems run some of the most highly-secure workloads in the world. Trust is paramount. </li>
+<li>Developing and using code transparently builds trust between developers and users, so that users feel safe using it on their highly sensitive systems. </li>
+</ul>
+</li>
+<li><u>Customization</u>:<ul>
+<li>IBM zSystems exist in environments that can be highly complex and vary drastically from one datacenter to another.</li>
+<li>Using code that isn't in a proprietary black box allows you to see exactly what is being done so that you can change any part of it to meet your specific needs.</li>
+</ul>
+</li>
+<li><u>Collaboration</u>:<ul>
+<li>If users encounter a problem, or have a feature request, they can get in contact with the developers directly.</li>
+<li>Submit an issue or pull request on GitHub or email jacob.emery@ibm.com. </li>
+<li>Collaboration is highly encouraged!</li>
+</ul>
+</li>
+<li><u>Lower Barriers to Entry</u>:<ul>
+<li>The easier it is to get RHOCP on IBM zSystems up and running, the better - for you, IBM and Red Hat!</li>
+<li>It is free because RHOCP is an incredible product that should have the least amount of barriers to entry as possible. </li>
+<li>The world needs open-source, private, and hybrid cloud.</li>
+</ul>
+</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href=".." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../prerequisites/" class="btn btn-neutral float-right" title="Prerequisites">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright © 2022 IBM zSystems Washington Systems Center</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../prerequisites/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

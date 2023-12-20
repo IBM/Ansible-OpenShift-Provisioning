@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/run-the-playbooks-for-hypershift/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Run the Playbooks (HyperShift) - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Run the Playbooks (HyperShift)";
+        var mkdocs_page_input_path = "run-the-playbooks-for-hypershift.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/run-the-playbooks-for-hypershift/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/ansible-logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Read Me</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../before-you-begin/">Before You Begin</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../prerequisites/">Prerequisites</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation Instructions</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Run the Playbooks (HyperShift)</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#network-prerequisites">Network Prerequisites</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#note">Note:</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-1-setup-ansible-vault-for-management-cluster-credentials">Step-1: Setup Ansible Vault for Management Cluster Credentials</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#steps">Steps:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-2-initial-setup-for-hypershift">Step-2: Initial Setup for Hypershift</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-3-create-hosted-cluster">Step-3: Create Hosted Cluster</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Misc</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgements/">Acknowledgements</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Installation Instructions</li>
+      <li class="breadcrumb-item active">Run the Playbooks (HyperShift)</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/run-the-playbooks-for-hypershift.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="run-the-playbooks">Run the Playbooks<a class="headerlink" href="#run-the-playbooks" title="Permanent link">#</a></h1>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h2>
+<ul>
+<li>Running OCP Cluster ( Management Cluster )  </li>
+<li>KVM host with root user access or user with sudo privileges if compute nodes are KVM.</li>
+<li>zvm host ( bastion ) and nodes if compute nodes are zVM.</li>
+</ul>
+<h3 id="network-prerequisites">Network Prerequisites<a class="headerlink" href="#network-prerequisites" title="Permanent link">#</a></h3>
+<ul>
+<li>DNS entry to resolve api.${cluster}.${domain} , api-int.${cluster}.${domain} , *apps.${cluster}.${domain} to a load balancer deployed to redirect incoming traffic to the ingresses pod  ( Bastion ).</li>
+<li>If using dynamic IP for agents, make sure you have entries in DHCP Server for macaddresses you are using in installation to map to  IPv4 addresses and along with this DHCP server should make your IPs to use nameserver which you have configured.</li>
+</ul>
+<h2 id="note">Note:<a class="headerlink" href="#note" title="Permanent link">#</a></h2>
+<ul>
+<li>As of now we are supporting only macvtap for hypershift Agent based installation for KVM compute nodes.</li>
+</ul>
+<h2 id="step-1-setup-ansible-vault-for-management-cluster-credentials">Step-1: Setup Ansible Vault for Management Cluster Credentials<a class="headerlink" href="#step-1-setup-ansible-vault-for-management-cluster-credentials" title="Permanent link">#</a></h2>
+<h3 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h3>
+<ul>
+<li>Creating an encrypted file for storing Management Cluster Credentials and other passwords.</li>
+</ul>
+<h3 id="steps">Steps:<a class="headerlink" href="#steps" title="Permanent link">#</a></h3>
+<ul>
+<li>The ansible-vault create command is used to create the encrypted file.</li>
+<li>Create an encrypted file in playbooks directory and set the Vault password ( Below command will prompt for setting Vault password).</li>
+</ul>
+<pre class="codehilite"><code>ansible-vault create playbooks/secrets.yaml
+</code></pre>
+
+<ul>
+<li>Give the credentials of Management Cluster in the encrypted file (created above) in following format.</li>
+</ul>
+<pre class="codehilite"><code>kvm_host_password: '&lt;password for kvm host for the specified user&gt;'
+bastion_root_pw: '&lt;password_you_want_to_keep_for_bastion&gt;'
+api_server: '&lt;api-server-url&gt;:&lt;port&gt;'
+user_name: '&lt;username&gt;'
+password: '&lt;password&gt;'
+</code></pre>
+
+<ul>
+<li>You can edit the encrypted file using below command</li>
+</ul>
+<pre class="codehilite"><code>ansible-vault edit playbooks/secrets.yaml
+</code></pre>
+
+<ul>
+<li>Make sure you entered Manamegement cluster credenitails properly ,incorrect credentails will cause problem while logging in to the cluster in further steps.</li>
+</ul>
+<h2 id="step-2-initial-setup-for-hypershift">Step-2: Initial Setup for Hypershift<a class="headerlink" href="#step-2-initial-setup-for-hypershift" title="Permanent link">#</a></h2>
+<ul>
+<li>Navigate to the <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning">root folder of the cloned Git repository</a> in your terminal (<code>ls</code> should show <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg">ansible.cfg</a>).</li>
+<li>Update variables as per the compute node type (zKVM /zVM) in Section-16 ( Hypershift ) and Section-3 ( File Server : ip , protocol and iso_mount_dir ) in <a href="https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template">all.yaml</a> before running the playbooks.</li>
+<li>
+<p>First playbook to be run is setup_for_hypershift.yaml which will create inventory file for hypershift and will add ssh key to the kvm host.</p>
+</li>
+<li>
+<p>Run this shell command:</p>
+</li>
+</ul>
+<pre class="codehilite"><code>ansible-playbook playbooks/setup_for_hypershift.yaml --ask-vault-pass
+</code></pre>
+
+<h2 id="step-3-create-hosted-cluster">Step-3: Create Hosted Cluster<a class="headerlink" href="#step-3-create-hosted-cluster" title="Permanent link">#</a></h2>
+<ul>
+<li>Run each part step-by-step by running one playbook at a time, or all at once using <a href="https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/hypershift.yaml">hypershift.yaml</a>.</li>
+<li>
+<p>Here's the full list of playbooks to be run in order, full descriptions of each can be found further down the page:</p>
+<ul>
+<li>create_hosted_cluster.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_hosted_cluster.yaml">code</a>)</li>
+<li>create_agents_and_wait_for_install_complete.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_agents_and_wait_for_install_complete.yaml">code</a>)</li>
+</ul>
+</li>
+<li>
+<p>Watch Ansible as it completes the installation, correcting errors if they arise.</p>
+</li>
+<li>To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml</li>
+<li>Alternatively, to run all the playbooks at once, start the master playbook by running this shell command:</li>
+<li>After installation , you can find the details of cluster like kubeconfig and password in the installation directory ( $HOME/ansible_workdir/ ) </li>
+</ul>
+<pre class="codehilite"><code>ansible-playbook playbooks/hypershift.yaml --ask-vault-pass
+</code></pre>
+
+<h1 id="description-for-playbooks">Description for Playbooks<a class="headerlink" href="#description-for-playbooks" title="Permanent link">#</a></h1>
+<h2 id="setup_for_hypershift-playbook">setup_for_hypershift Playbook<a class="headerlink" href="#setup_for_hypershift-playbook" title="Permanent link">#</a></h2>
+<h3 id="overview_1">Overview<a class="headerlink" href="#overview_1" title="Permanent link">#</a></h3>
+<ul>
+<li>First-time setup of the Ansible Controller,the machine running Ansible.</li>
+</ul>
+<h3 id="outcomes">Outcomes<a class="headerlink" href="#outcomes" title="Permanent link">#</a></h3>
+<ul>
+<li>Inventory file for hypershift to be created.</li>
+<li>SSH key generated for Ansible passwordless authentication.</li>
+<li>Ansible SSH key is copied to kvm host.</li>
+</ul>
+<h3 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">#</a></h3>
+<ul>
+<li>You can use an existing SSH key as your Ansible key, or have Ansible create one for you.</li>
+</ul>
+<h2 id="create_hosted_cluster-playbook">create_hosted_cluster Playbook<a class="headerlink" href="#create_hosted_cluster-playbook" title="Permanent link">#</a></h2>
+<h3 id="overview_2">Overview<a class="headerlink" href="#overview_2" title="Permanent link">#</a></h3>
+<ul>
+<li>Creates and configures bastion</li>
+<li>Creating AgentServiceConfig, HostedControlPlane, InfraEnv Resources, Download Images</li>
+</ul>
+<h3 id="outcomes_1">Outcomes<a class="headerlink" href="#outcomes_1" title="Permanent link">#</a></h3>
+<ul>
+<li>Install prerequisites on kvm_host</li>
+<li>Create bastion</li>
+<li>Configure bastion</li>
+<li>Log in to Management Cluster</li>
+<li>Creates AgentServiceConfig resource and required configmaps</li>
+<li>Deploys HostedControlPlane</li>
+<li>Creates InfraEnv resource and wait till ISO generation</li>
+<li>Download required Images to kvm_host (initrd.img and kernel.img)</li>
+<li>Download rootfs.img and configure httpd on bastion.</li>
+</ul>
+<h2 id="create_agents_and_wait_for_install_complete-playbook">create_agents_and_wait_for_install_complete Playbook<a class="headerlink" href="#create_agents_and_wait_for_install_complete-playbook" title="Permanent link">#</a></h2>
+<h3 id="overview_3">Overview<a class="headerlink" href="#overview_3" title="Permanent link">#</a></h3>
+<ul>
+<li>Boots the Agents </li>
+<li>Scale and Nodepool and monitor all the resources required.</li>
+</ul>
+<h3 id="outcomes_2">Outcomes<a class="headerlink" href="#outcomes_2" title="Permanent link">#</a></h3>
+<ul>
+<li>Boot Agents </li>
+<li>Monitor the attachment of agents </li>
+<li>Approves the agents</li>
+<li>Scale up the nodepool</li>
+<li>Monitor agentmachines and machines creation</li>
+<li>Monitor the worker nodes attachment </li>
+<li>Configure HAProxy for Hosted workers</li>
+<li>Monitor the Cluster operators</li>
+<li>Display Login Credentials for Hosted Cluster</li>
+</ul>
+<h1 id="destroy-the-hosted-cluser">Destroy the Hosted Cluser<a class="headerlink" href="#destroy-the-hosted-cluser" title="Permanent link">#</a></h1>
+<h3 id="overview_4">Overview<a class="headerlink" href="#overview_4" title="Permanent link">#</a></h3>
+<ul>
+<li>Destroy the Hosted Control Plane and other resources created as part of installation</li>
+</ul>
+<h3 id="procedure">Procedure<a class="headerlink" href="#procedure" title="Permanent link">#</a></h3>
+<ul>
+<li>Run the playbook <a href="https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/destroy_cluster_hypershift.yaml">destroy_cluster_hypershift.yaml</a> to destroy all the resources created while installation</li>
+</ul>
+<pre class="codehilite"><code>ansible-playbook playbooks/destroy_cluster_hypershift.yaml --ask-vault-pass
+</code></pre>
+
+<h2 id="destroy_cluster_hypershift-playbook">destroy_cluster_hypershift Playbook<a class="headerlink" href="#destroy_cluster_hypershift-playbook" title="Permanent link">#</a></h2>
+<h3 id="overview_5">Overview<a class="headerlink" href="#overview_5" title="Permanent link">#</a></h3>
+<ul>
+<li>Delete all the resources on Hosted Cluster</li>
+<li>Destroy the Hosted Control Plane</li>
+</ul>
+<h3 id="outcomes_3">Outcomes<a class="headerlink" href="#outcomes_3" title="Permanent link">#</a></h3>
+<ul>
+<li>Scale in the nodepool to 0 </li>
+<li>Monitors the deletion of workers, agent machines and machines.</li>
+<li>Deletes the agents </li>
+<li>Deletes InfraEnv Resource</li>
+<li>Destroys the Hosted Control Plane</li>
+<li>Deletes AgentServiceConfig</li>
+<li>Deletes the images downloaded on kvm host</li>
+<li>Destroys VMs of Bastion and Agents</li>
+</ul>
+<h2 id="notes_1">Notes<a class="headerlink" href="#notes_1" title="Permanent link">#</a></h2>
+<h4 id="overriding-ocp-release-image-for-hcp">Overriding OCP Release Image for HCP<a class="headerlink" href="#overriding-ocp-release-image-for-hcp" title="Permanent link">#</a></h4>
+<ul>
+<li>If you want to use any other image as OCP release image for HCP , you can override it by environment variable.</li>
+</ul>
+<pre class="codehilite"><code>export HCP_RELEASE_IMAGE=&quot;&lt;image_url&gt;&quot;
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../run-the-playbooks-for-disconnected/" class="btn btn-neutral float-left" title="Run the Playbooks (Disconnected)"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../troubleshooting/" class="btn btn-neutral float-right" title="Troubleshooting">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright © 2022 IBM zSystems Washington Systems Center</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../run-the-playbooks-for-disconnected/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../troubleshooting/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/run-the-playbooks-for-disconnected/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Run the Playbooks (Disconnected) - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Run the Playbooks (Disconnected)";
+        var mkdocs_page_input_path = "run-the-playbooks-for-disconnected.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/run-the-playbooks-for-disconnected/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/ansible-logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Read Me</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../before-you-begin/">Before You Begin</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../prerequisites/">Prerequisites</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation Instructions</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Run the Playbooks (Disconnected)</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#pre-requisites">Pre-requisites</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#file-server">File Server</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#note">NOTE</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#disconnected-mirror-artifacts-playbook">Disconnected Mirror Artifacts Playbook</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#overview_1">Overview</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#outcomes">Outcomes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#notes">Notes</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hypershift/">Run the Playbooks (HyperShift)</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Misc</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgements/">Acknowledgements</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Installation Instructions</li>
+      <li class="breadcrumb-item active">Run the Playbooks (Disconnected)</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/run-the-playbooks-for-disconnected.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="run-the-playbooks">Run the Playbooks<a class="headerlink" href="#run-the-playbooks" title="Permanent link">#</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<p>For installing disconnected clusters, you will mostly be following rhe same process as a standard connected cluster.</p>
+<p>The main additional steps we would be doing is mirroring the OCP images to another registry which is accessible to
+the cluster and post the cluster coming up, we will be applying operator hub manifests such as image content source
+policy and catalog source, generated by <code>oc-mirror</code>, to the cluster.</p>
+<p>Disconnected playbook are mentioned below. Please refer the <strong>4 Run the Playbooks</strong> documentation for details of rest of the playbooks:</p>
+<ul>
+<li>disconnected_mirror_artifacts.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/disconnected_mirror_artifacts.yaml">code</a>) - Run before <strong>6_create_nodes.yaml</strong></li>
+<li>disconnected_apply_operator_manifests.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/disconnected_apply_operator_manifests.yaml">code</a>) - Run after <strong>7_ocp_verification.yaml</strong>.</li>
+</ul>
+<h2 id="pre-requisites">Pre-requisites<a class="headerlink" href="#pre-requisites" title="Permanent link">#</a></h2>
+<ul>
+<li>A running registry where the OCP and operator hub images will be mirrored. If the CA of this registry is not automatically trusted, then keep the 
+  CA cert content handy to update in inventory file. The CA cert is the file with which, do dont need to skip tls to access the registry.</li>
+<li>
+<p>Make sure you have required pull secrets handy. You will need 2 pull secrets, one to apply on the cluster and another which will be used for 
+  mirroring. The mirroring  pull secret MUST have push access to the mirror registry as well as must give you access to Red Hat registries. 
+  A good way to create this would be take the Red Hat pull secret from <strong>Get Info page</strong> and do a podman login with creds having write access.</p>
+<p><code>cp -avrf /path/to/redhat-pull-secrets.json ./mirror-secret.json
+podman login -u admin -p admin &lt;mirror_registry&gt; --tls-verify=false --authfile=./mirror-secret.json
+cat ./mirror-secret.json | jq -r tostring
+&lt;copy this output&gt;</code></p>
+</li>
+<li>
+<p>A mirror host. This can be any host that can access the internet (mainly the registry being mirrored from) as well as the registry being mirrored to.
+  This registries being mirrored from would typically be the Red Hat registries (registry.redhat.io, quay.io etc)</p>
+</li>
+<li>The file server, configured mentioned below.</li>
+<li>Appropriately updated variables in your <code>all.yaml</code>. Refer the variables documentation.</li>
+</ul>
+<h3 id="file-server">File Server<a class="headerlink" href="#file-server" title="Permanent link">#</a></h3>
+<p>This configuration will take place on the file server mentioned under <strong>File Server</strong> section in overall pre-requisites documentaion. The additional
+configurations are mentioned over here.</p>
+<ul>
+<li>
+<p>Make sure to have a directory housing the clients</p>
+<ul>
+<li>For FTP:</li>
+</ul>
+<p><code>sudo mkdir /home/&lt;username&gt;/clients</code></p>
+<ul>
+<li>or HTTP:</li>
+</ul>
+<p><code>sudo mkdir /var/www/html/clients</code></p>
+</li>
+</ul>
+<p>Make sure this directory contains a pre-downloaded <code>oc-mirror</code> binary in <code>tar.gz</code> format. Currently the supported binary is available for <code>x86_64</code> on Red Hat Customer portal openshift <a href="https://console.redhat.com/openshift/downloads">downloads</a> page. It can also be found on mirror.openshift.com from <code>4.14</code> onwards for other architectures.</p>
+<h3 id="note">NOTE<a class="headerlink" href="#note" title="Permanent link">#</a></h3>
+<ul>
+<li>At this stage, only oc-mirror binary is fetched from File Server, so it is expected that the lpar for disconnected cluster can at least reach <code>mirror.openshift.com</code> to download the
+  other artifacts for cluster installation.</li>
+<li>The platform related image content source policy will be baked into the install config as part of <strong>5 Setup Bastion Playbook</strong>.</li>
+<li>For platform content, mirroring is supported both using <code>oc-mirror</code> plugin as well as legacy way. </li>
+<li><code>oc-mirror</code> is used as default alhough it is possible to switch to using the legacy way of mirroing platform seperately as well. <strong>NOTE</strong>: Only legacy way supports specifying your own org on the registry for the ocp images.</li>
+<li>Manifests generated by <code>oc-mirror</code> will be applied to the cluster once it is up.</li>
+</ul>
+<h2 id="disconnected-mirror-artifacts-playbook">Disconnected Mirror Artifacts Playbook<a class="headerlink" href="#disconnected-mirror-artifacts-playbook" title="Permanent link">#</a></h2>
+<h3 id="overview_1">Overview<a class="headerlink" href="#overview_1" title="Permanent link">#</a></h3>
+<p>Mirror the ocp platform and other necessary images to the mirror registry. Please run this playbook before you run <strong>6 Create Nodes Playbook</strong> and after
+<strong>0 Setup Playbook</strong>.</p>
+<h3 id="outcomes">Outcomes<a class="headerlink" href="#outcomes" title="Permanent link">#</a></h3>
+<ul>
+<li>Download <code>oc</code> and <code>oc-mirror</code> to the mirror host.</li>
+<li>Template the mirror pull secret to the mirror host.</li>
+<li>Add the ca cert to the mirror host anchors if ca is not trusted.</li>
+<li>Mirror the platform images using <code>oc adm release mirror</code> if legacy mirroring is enabled.</li>
+<li>Template the image set to mirror host and then mirror it using <code>oc-mirror</code> plogin.</li>
+<li>Copy the results on the <code>oc-mirror</code> to ansible controller to apply to cluster in future steps.</li>
+</ul>
+<h3 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">#</a></h3>
+<ul>
+<li>Platform can be mirrored both using <code>oc-mirror</code> as well as legacy way, using <code>oc adm catalog mirror</code>.</li>
+<li><code>oc-mirror</code> is default method but you can also use legacy mirroring. <code>oc-mirror</code> manifests will be only be applied on the cluster, post verification using below playbook.</li>
+<li>This playbook can be run at any stage after the <strong>0 Setup</strong> playbook. Make sure to run this before the cluster starts pulling at the images from the registry
+  which typically happens where the <strong>Create Nodes Playbook</strong> is run.</li>
+</ul>
+<h1 id="disconnected-apply-oc-mirror-manifests-to-cluster-playbook">Disconnected apply oc mirror manifests to cluster Playbook<a class="headerlink" href="#disconnected-apply-oc-mirror-manifests-to-cluster-playbook" title="Permanent link">#</a></h1>
+<h3 id="overview_2">Overview<a class="headerlink" href="#overview_2" title="Permanent link">#</a></h3>
+<p>Post cluster creation, <code>oc-mirror</code> manifests are applied to the cluster. Please run this playbook after <strong>7 OCP Verification Playbook</strong>.</p>
+<h3 id="outcomes_1">Outcomes<a class="headerlink" href="#outcomes_1" title="Permanent link">#</a></h3>
+<ul>
+<li>Copy the <code>oc-mirror</code> results manifests to the bastion.</li>
+<li>Apply the copied manifests to the cluster.</li>
+<li>Disable default content sources.</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../run-the-playbooks/" class="btn btn-neutral float-left" title="4 Run the Playbooks"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../run-the-playbooks-for-hypershift/" class="btn btn-neutral float-right" title="Run the Playbooks (HyperShift)">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright © 2022 IBM zSystems Washington Systems Center</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../run-the-playbooks/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../run-the-playbooks-for-hypershift/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

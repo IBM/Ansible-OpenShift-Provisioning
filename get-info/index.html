@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/get-info/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>1 Get Info - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "1 Get Info";
+        var mkdocs_page_input_path = "get-info.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/get-info/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/ansible-logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Read Me</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../before-you-begin/">Before You Begin</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../prerequisites/">Prerequisites</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation Instructions</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">1 Get Info</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#get-repository">Get Repository</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-pull-secret">Get Pull Secret</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#gather-environment-information">Gather Environment Information</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hypershift/">Run the Playbooks (HyperShift)</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Misc</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgements/">Acknowledgements</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Installation Instructions</li>
+      <li class="breadcrumb-item active">1 Get Info</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/get-info.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="step-1-get-info">Step 1: Get Info<a class="headerlink" href="#step-1-get-info" title="Permanent link">#</a></h1>
+<h2 id="get-repository">Get Repository<a class="headerlink" href="#get-repository" title="Permanent link">#</a></h2>
+<ul>
+<li>Open the terminal  </li>
+<li>Navigate to a folder (AKA directory) where you would like to store this project. <ul>
+<li>Either do so graphically, or use the command-line. </li>
+<li>Here are some helpful commands for doing so:<ul>
+<li><code>pwd</code> to see what directory you're currently in</li>
+<li><code>ls</code> to list child directories</li>
+<li><code>cd &lt;folder-name&gt;</code> to change directories (<code>cd ..</code> to go up to the parent directory)</li>
+<li><code>mkdir &lt;new-folder-name&gt;</code> to create a new directory</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Copy/paste the following and hit enter:<br />
+<code>git clone https://github.com/IBM/Ansible-OpenShift-Provisioning.git</code></li>
+<li>Change into the newly created directory</li>
+<li>The commands and output should resemble the following example:  </li>
+</ul>
+<pre class="codehilite"><code>$ pwd
+/Users/example-user
+$ mkdir ansible-project
+$ cd ansible-project/
+$ git clone https://github.com/IBM/Ansible-OpenShift-Provisioning.git
+Cloning into 'Ansible-OpenShift-Provisioning'...
+remote: Enumerating objects: 3472, done.
+remote: Counting objects: 100% (200/200), done.
+remote: Compressing objects: 100% (57/57), done.
+remote: Total 3472 (delta 152), reused 143 (delta 143), pack-reused 3272
+Receiving objects: 100% (3472/3472), 506.29 KiB | 1.27 MiB/s, done.
+Resolving deltas: 100% (1699/1699), done.
+$ ls
+Ansible-OpenShift-Provisioning
+$ cd Ansible-OpenShift-Provisioning/
+$ ls
+CHANGELOG.md    README.md   docs        mkdocs.yaml roles
+LICENSE     ansible.cfg inventories playbooks   
+</code></pre>
+
+<h2 id="get-pull-secret">Get Pull Secret<a class="headerlink" href="#get-pull-secret" title="Permanent link">#</a></h2>
+<ul>
+<li>In a web browser, navigate to Red Hat's <a href="https://console.redhat.com/openshift/install/ibmz/user-provisioned">Hybrid Cloud Console</a>, click the text that says 'Copy pull secret' and save it for the next step.</li>
+</ul>
+<h2 id="gather-environment-information">Gather Environment Information<a class="headerlink" href="#gather-environment-information" title="Permanent link">#</a></h2>
+<ul>
+<li>You will need a lot of information about the environment this cluster will be set-up in. </li>
+<li>You will need the help of at least your IBM zSystems infrastructure team so they can provision you a storage group. You'll also need them to provide you with</li>
+<li>IP address range, hostnames, subnet, gateway, how much disk space you have to work with, etc.</li>
+<li>A full list of variables needed are found on the next page. Many of them are filled in with defaults or are optional.</li>
+<li>Please take your time. I would recommend having someone on stand-by in case you need more information or need to ask a question about the environment.</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../prerequisites/" class="btn btn-neutral float-left" title="Prerequisites"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../set-variables-group-vars/" class="btn btn-neutral float-right" title="2 Set Variables (group_vars)">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright © 2022 IBM zSystems Washington Systems Center</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../prerequisites/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../set-variables-group-vars/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

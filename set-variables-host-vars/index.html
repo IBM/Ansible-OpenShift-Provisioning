@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/set-variables-host-vars/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>3 Set Variables (host_vars) - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "3 Set Variables (host_vars)";
+        var mkdocs_page_input_path = "set-variables-host-vars.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/set-variables-host-vars/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/ansible-logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Read Me</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../before-you-begin/">Before You Begin</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../prerequisites/">Prerequisites</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation Instructions</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">3 Set Variables (host_vars)</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#1-kvm-host">1 - KVM Host</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#important-note">Important Note</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#2-optional-cpc-hmc">2 - (Optional) CPC &amp; HMC</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#3-optional-lpar">3 - (Optional) LPAR</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#4-optional-ifl-memory">4 - (Optional) IFL &amp; Memory</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#5-optional-networking">5 - (Optional) Networking</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#6-optional-storage">6 - (Optional) Storage</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hypershift/">Run the Playbooks (HyperShift)</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Misc</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgements/">Acknowledgements</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Installation Instructions</li>
+      <li class="breadcrumb-item active">3 Set Variables (host_vars)</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/set-variables-host-vars.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="step-3-set-variables-host_vars">Step 3: Set Variables (host_vars)<a class="headerlink" href="#step-3-set-variables-host_vars" title="Permanent link">#</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<ul>
+<li>Similar to the group_vars file, the host_vars files for each LPAR (KVM host) must be filled in. </li>
+<li>For each KVM host to be acted upon with Ansible, you must have a corresponding host_vars file named <code>&lt;kvm-hostname&gt;.yaml</code> (i.e. ocpz1.yaml, ocpz2.yaml, ocpz3.yaml), so you must copy and rename the templates found in the <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/host_vars">host_vars folder</a> accordingly.</li>
+<li>The variables marked with an <code>X</code> are required to be filled in. Many values are pre-filled or are optional. </li>
+<li>Optional values are commented out; in order to use them, remove the <code>#</code> and fill them in.</li>
+<li>Many of the variables in these host_vars files are only required if you are NOT using pre-existing LPARs with RHEL installed. See the <code>Important Note</code> below this first section for more details.</li>
+<li>This is the most important step in the process. Take the time to make sure everything here is correct.</li>
+<li><u>Note on YAML syntax</u>: Only the lowest value in each hierarchicy needs to be filled in. For example, at the top of the variables file networking does not need to be filled in, but the hostname does. There are X's where input is required to help you with this.</li>
+<li>Scroll the table to the right to see examples for each variable.</li>
+</ul>
+<h2 id="1-kvm-host">1 - KVM Host<a class="headerlink" href="#1-kvm-host" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>networking.hostname</strong></td>
+<td style="text-align: left;">The hostname of the LPAR with RHEL installed natively (the KVM host).</td>
+<td style="text-align: left;">kvm-host-01</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>networking.ip</strong></td>
+<td style="text-align: left;">The IPv4 address of the LPAR with RHEL installed natively (the KVM host).</td>
+<td style="text-align: left;">192.168.10.2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>networking.subnetmask</strong></td>
+<td style="text-align: left;">The subnet that the LPAR resides in within your network.</td>
+<td style="text-align: left;">255.255.255.0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>networking.gateway</strong></td>
+<td style="text-align: left;">The IPv4 address of the gateway to the network where the KVM host resides.</td>
+<td style="text-align: left;">192.168.10.0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>networking.nameserver1</strong></td>
+<td style="text-align: left;">The IPv4 address from which the KVM host gets its hostname resolved.</td>
+<td style="text-align: left;">192.168.10.200</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>networking.nameserver2</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> A second IPv4 address from which the KVM host can get its hostname<br /> resolved. Used for high availability.</td>
+<td style="text-align: left;">192.168.10.201</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>networking.device1</strong></td>
+<td style="text-align: left;">The network interface card from Linux's perspective. Usually enc and then a number that comes<br /> from the dev_num of the network adapter.</td>
+<td style="text-align: left;">enc100</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>networking.device2</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Another Linux network interface card. Usually enc and then a number that comes<br /> from the dev_num of the second network adapter.</td>
+<td style="text-align: left;">enc1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>storage.pool_path</strong></td>
+<td style="text-align: left;">The absolute path to a directory on your KVM host that will be used to store qcow2 <br />images for the cluster and other installation artifacts. A sub-directory will be created here that matches your clsuter's <br />metadata name that will act as the cluster's libvirt storage pool directory. Note: all directories present in this path will be made executable for the<br /> 'qemu' group, as is required.</td>
+<td style="text-align: left;">/home/kvm_admin/VirtualMachines</td>
+</tr>
+</tbody>
+</table>
+<h2 id="important-note">Important Note<a class="headerlink" href="#important-note" title="Permanent link">#</a></h2>
+<ul>
+<li>You can skip the rest of the variables on this page IF you are using existing LPAR(s) that has RHEL already installed.<ul>
+<li>Since this is how most production deployments on-prem are done on IBM zSystems, these variables have been marked as optional. </li>
+<li>With pre-existing LPARs with RHEL installed, you can also skip <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/1_create_lpar.yaml">1_create_lpar.yaml</a> and <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/2_create_kvm_host.yaml">2_create_kvm_host.yaml</a> playbooks. Make sure to still do <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/0_setup.yaml">0_setup.yaml</a> first though, then skip to <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml">3_setup_kvm_host.yaml</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="2-optional-cpc-hmc">2 - (Optional) CPC &amp; HMC<a class="headerlink" href="#2-optional-cpc-hmc" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>cpc_name</strong></td>
+<td style="text-align: left;">The name of the IBM zSystems / LinuxONE mainframe that you are creating a Red Hat OpenShift Container<br /> Platform cluster on. Can be found under the "Systems Management" tab of the Hardware Management<br /> Console (HMC).</td>
+<td style="text-align: left;">SYS1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hmc.host</strong></td>
+<td style="text-align: left;">The IPv4 address of the HMC you will be connecting to in order to create a Logical Partition (LPAR)<br /> on which will act as the Kernel-based Virtual Machine (KVM) host aftering installing and setting up<br /> Red Hat Enterprise Linux (RHEL).</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hmc.user</strong></td>
+<td style="text-align: left;">The username that the HMC API call will use to connect to the HMC. Must have access to create<br /> LPARs, attach storage groups and networking cards.</td>
+<td style="text-align: left;">hmc-user</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hmc.pass</strong></td>
+<td style="text-align: left;">The password that the HMC API call will use to connect to the HMC. Must have access to create<br /> LPARs, attach storage groups and networking cards.</td>
+<td style="text-align: left;">hmcPas$w0rd!</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-optional-lpar">3 - (Optional) LPAR<a class="headerlink" href="#3-optional-lpar" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>lpar.name</strong></td>
+<td style="text-align: left;">The name of the Logical Partition (LPAR) that you would like to create/target for the creation of<br /> your cluster. This LPAR will act as the KVM host, with RHEL installed natively.</td>
+<td style="text-align: left;">OCPKVM1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.description</strong></td>
+<td style="text-align: left;">A short description of what this LPAR will be used for, will only be displayed in the HMC next to<br /> the LPAR name for identification purposes.</td>
+<td style="text-align: left;">KVM host LPAR for RHOCP cluster.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.access.user</strong></td>
+<td style="text-align: left;">The username that will be created in RHEL when it is installed on the LPAR (the KVM host).</td>
+<td style="text-align: left;">kvm-admin</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.access.pass</strong></td>
+<td style="text-align: left;">The password for the user that will be created in RHEL when it is installed on the LPAR (the KVM host).</td>
+<td style="text-align: left;">ch4ngeMe!</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.root_pass</strong></td>
+<td style="text-align: left;">The root password for RHEL installed on the LPAR (the KVM host).</td>
+<td style="text-align: left;">$ecureP4ass!</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-optional-ifl-memory">4 - (Optional) IFL &amp; Memory<a class="headerlink" href="#4-optional-ifl-memory" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>lpar.ifl.count</strong></td>
+<td style="text-align: left;">Number of Integrated Facilities for Linux (IFL) processors will be assigned to this LPAR.<br /> 6 or more recommended.</td>
+<td style="text-align: left;">6</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.ifl.initial memory</strong></td>
+<td style="text-align: left;">Initial memory allocation for LPAR to have at start-up (in megabytes).</td>
+<td style="text-align: left;">55000</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.ifl.max_memory</strong></td>
+<td style="text-align: left;">The most amount of memory this LPAR can be using at any one time (in megabytes).</td>
+<td style="text-align: left;">99000</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.ifl.initial_weight</strong></td>
+<td style="text-align: left;">For LPAR load balancing purposes, the processing weight this LPAR will have at start-up (1-999).</td>
+<td style="text-align: left;">100</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.ifl.min_weight</strong></td>
+<td style="text-align: left;">For LPAR load balancing purposes, the minimum weight that this LPAR can have at any one time (1-999).</td>
+<td style="text-align: left;">50</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.ifl.max_weight</strong></td>
+<td style="text-align: left;">For LPAR load balancing purposes, the maximum weight that this LPAR can have at any one time (1-999).</td>
+<td style="text-align: left;">500</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-optional-networking">5 - (Optional) Networking<a class="headerlink" href="#5-optional-networking" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>lpar.networking.subnet_cidr</strong></td>
+<td style="text-align: left;">The same value as the above variable but in Classless Inter-<br />Domain Routing (CIDR) notation.</td>
+<td style="text-align: left;">23</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.networking.nic.card1.name</strong></td>
+<td style="text-align: left;">The logical name of the Network Interface Card (NIC) within the HMC.<br /> An arbitrary value<br /> that is human-readable that points to the NIC.</td>
+<td style="text-align: left;">SYS-NIC-01</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.networking.nic.card1.adapter</strong></td>
+<td style="text-align: left;">The physical adapter name reference to the logical adapter for the LPAR.</td>
+<td style="text-align: left;">10Gb-A</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.networking.nic.card1.port</strong></td>
+<td style="text-align: left;">The port number for the NIC.</td>
+<td style="text-align: left;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.networking.nic.card1.dev_num</strong></td>
+<td style="text-align: left;">The logical device number for the NIC. In hex format.</td>
+<td style="text-align: left;">0x0100</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.networking.nic.card2.name</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> The logical name of a second Network Interface Card<br /> (NIC) within the HMC. An arbitrary value that is human-readable<br /> that points to the NIC.</td>
+<td style="text-align: left;">SYS-NIC-02</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.networking.nic.card2.adapter</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> The physical adapter name of a second NIC.</td>
+<td style="text-align: left;">10Gb-B</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.networking.nic.card2.port</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> The port number for a second NIC.</td>
+<td style="text-align: left;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.networking.nic.card2.dev_num</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> The logical device number for a second NIC. In hex format.</td>
+<td style="text-align: left;">0x0001</td>
+</tr>
+</tbody>
+</table>
+<h2 id="6-optional-storage">6 - (Optional) Storage<a class="headerlink" href="#6-optional-storage" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>lpar.storage_group_1.name</strong></td>
+<td style="text-align: left;">The name of the storage group that will be attached to the LPAR.</td>
+<td style="text-align: left;">OCP-storage-01</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.storage_group_1.type</strong></td>
+<td style="text-align: left;">Storage type. FCP is the only tested type as of now.</td>
+<td style="text-align: left;">fcp</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.storage_group_1.storage_wwpn</strong></td>
+<td style="text-align: left;">World-wide port numbers for storage group. Use provided list formatting.</td>
+<td style="text-align: left;">500708680235c3f0<br />500708680235c3f1<br />500708680235c3f2<br />500708680235c3f3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.storage_group_1.dev_num</strong></td>
+<td style="text-align: left;">The logical device number of the Host Bus Adapter (HBA) for the storage group.</td>
+<td style="text-align: left;">C001</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.storage_group_1.lun_name</strong></td>
+<td style="text-align: left;">The Logical Unit Numbers (LUN) that points to a specific virtual disk behind the WWPN.</td>
+<td style="text-align: left;">4200569309ahhd240000000000000c001</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.storage_group_2.name</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> The name of the storage group that will be attached to the LPAR.</td>
+<td style="text-align: left;">OCP-storage-01</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.storage_group_2.auto_config</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Attempt to automate the addition of the disk space to the existing logical<br /> volume. Check out roles/configure_storage/tasks/main.yaml to ensure this will work<br /> properly with your setup.</td>
+<td style="text-align: left;">True</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.storage_group_2.type</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Storage type. FCP is the only tested type as of now.</td>
+<td style="text-align: left;">fcp</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.storage_group_2_.storage_wwpn</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> World-wide port numbers for storage group. Use provided list formatting.</td>
+<td style="text-align: left;">500708680235c3f0<br />500708680235c3f1<br />500708680235c3f2<br />500708680235c3f3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.storage_group_2_.dev_num</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> The logical device number of the Host Bus Adapter (HBA) for the storage group.</td>
+<td style="text-align: left;">C001</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.storage_group_2_.lun_name</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> he Logical Unit Numbers (LUN) that points to a specific virtual disk<br /> behind the WWPN.</td>
+<td style="text-align: left;">4200569309ahhd240000000000000c001</td>
+</tr>
+</tbody>
+</table>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../set-variables-group-vars/" class="btn btn-neutral float-left" title="2 Set Variables (group_vars)"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../run-the-playbooks/" class="btn btn-neutral float-right" title="4 Run the Playbooks">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright © 2022 IBM zSystems Washington Systems Center</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../set-variables-group-vars/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../run-the-playbooks/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
