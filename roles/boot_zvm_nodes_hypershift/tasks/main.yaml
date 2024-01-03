@@ -10,6 +10,10 @@
       debug: 
         msg: "Booting agent-{{ item }}"
 
+    - name: Attaching OSA network card
+      shell: vmcp attach  "{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.id.split(',') | map('regex_replace', '0.0.', '') | join(' ') }}" to "{{ hypershift.agents_parms.zvm_parameters.nodes[item].name }}"
+      when: "{{ hypershift.agents_parms.zvm_parameters.network_mode | lower == 'osa' }}"
+
     - name: Booting zvm node
       shell: |
         python /root/ansible_workdir/boot_nodes.py \
@@ -43,5 +47,5 @@
       register: agent_name
 
     - name: Approve agents 
-      shell: oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{item}}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}","installerArgs":"[\"--append-karg\",\"rd.neednet=1\", \"--append-karg\", \"ip={{ hypershift.agents_parms.zvm_parameters.nodes[item].osa.ip }}::{{ hypershift.agents_parms.zvm_parameters.gateway }}:{{ hypershift.agents_parms.zvm_parameters.subnetmask }}:compute-{{ item }}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}:{{ hypershift.agents_parms.zvm_parameters.nodes[item].osa.ifname }}:none\", \"--append-karg\", \"nameserver={{ hypershift.agents_parms.zvm_parameters.nameserver }}\", \"--append-karg\",\"rd.znet=qeth,{{ hypershift.agents_parms.zvm_parameters.nodes[item].osa.id }},layer2=1\",\"--append-karg\", {% if hypershift.agents_parms.zvm_parameters.disk_type | lower != 'fcp' %}\"rd.dasd=0.0.{{ hypershift.agents_parms.zvm_parameters.nodes[item].dasd.disk_id }}\"{% else %}\"rd.zfcp={{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].paths[0].fcp}},{{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].paths[0].wwpn }},{{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].id }}\"{% endif %}]"}}' --type merge
+      shell: oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{item}}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}","installerArgs":"[\"--append-karg\",\"rd.neednet=1\", \"--append-karg\", \"ip={{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.ip }}::{{ hypershift.agents_parms.zvm_parameters.gateway }}:{{ hypershift.agents_parms.zvm_parameters.subnetmask }}:compute-{{ item }}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}:{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.ifname }}:none\", \"--append-karg\", \"nameserver={{ hypershift.agents_parms.zvm_parameters.nameserver }}\", \"--append-karg\",\"rd.znet=qeth,{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.id }},layer2=1\",\"--append-karg\", {% if hypershift.agents_parms.zvm_parameters.disk_type | lower != 'fcp' %}\"rd.dasd=0.0.{{ hypershift.agents_parms.zvm_parameters.nodes[item].dasd.disk_id }}\"{% else %}\"rd.zfcp={{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].paths[0].fcp}},{{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].paths[0].wwpn }},{{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].id }}\"{% endif %}]"}}' --type merge
   

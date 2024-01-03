@@ -320,7 +320,7 @@ hypershift:
     # zVM specific parameters - s390x
   
     zvm_parameters:
-      network_mode: vswitch   # Supported modes: vswitch
+      network_mode: vswitch   # Supported modes: vswitch,osa
       disk_type:              # Supported modes: fcp , dasd
       vcpus: 4
       memory: 16384
@@ -333,7 +333,7 @@ hypershift:
           host: 
           user: 
           password: 
-          osa:
+          interface:
             ifname: encbdf0
             id: 0.0.bdf0,0.0.bdf1,0.0.bdf2
             ip: 
