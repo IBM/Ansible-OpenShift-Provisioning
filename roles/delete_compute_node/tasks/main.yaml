@@ -21,6 +21,7 @@
 
 - name: Delete compute node VM on KVM host and print command output
   tags: delete_compute_node
+  when: param_compute_node.hostname is defined
   delegate_to: "{{ param_compute_node.hostname }}"
   block:
     - name: Delete compute node VM on KVM host
