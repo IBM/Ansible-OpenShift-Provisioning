@@ -83,9 +83,6 @@ network-scripts
 %post --log=/root/post.log
 #!/usr/bin/env bash
 #
-# Install and update pip packages
-pip3 install --upgrade pip setuptools wheel
-#
 # Yum repository configuration adjustments
 echo "gpgcheck=0" >> /etc/yum.repos.d/AppStream.repo
 echo "skip_if_unavailable=True" >> /etc/yum.repos.d/AppStream.repo
