@@ -269,6 +269,7 @@ hypershift:
   #Hosted Control Plane Parameters
 
   hcp:
+    high_availabiliy: true
     clusters_namespace:
     hosted_cluster_name:
     basedomain:
