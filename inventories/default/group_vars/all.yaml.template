@@ -247,7 +247,7 @@ hypershift:
   bastion_hypershift:
   bastion_hypershift_user:
 
-  create_bastion: true  
+  create_bastion: true
   networking_device: enc1100 # Following set of parameters required only if create_bastion is true
   gateway:
 
@@ -298,9 +298,9 @@ hypershift:
 
   agents_parms:
     agents_count:
-     
+
     # KVM specific parameters - KVM on s390x
- 
+
     static_ip_parms:
       static_ip: true
       ip:     # Required only if static_ip is true
@@ -314,33 +314,33 @@ hypershift:
     ram: 16384
     vcpus: 4
     nameserver:
- 
+
 
 
     # zVM specific parameters - s390x
-  
+
     zvm_parameters:
       network_mode: vswitch   # Supported modes: vswitch
       disk_type:              # Supported modes: fcp , dasd
       vcpus: 4
       memory: 16384
-      nameserver: 
-      subnetmask: 
-      gateway: 
+      nameserver:
+      subnetmask:
+      gateway:
 
       nodes:
-        - name: 
-          host: 
-          user: 
-          password: 
+        - name:
+          host:
+          user:
+          password:
           osa:
             ifname: encbdf0
             id: 0.0.bdf0,0.0.bdf1,0.0.bdf2
-            ip: 
+            ip:
 
           # Required if disk_type is dasd
           dasd:
-            disk_id: 
+            disk_id:
 
           # Required if disk_type is fcp
           lun:
@@ -349,17 +349,17 @@ hypershift:
               - wwpn:
                 fcp:
 
-        - name: 
-          host: 
-          user: 
-          password: 
+        - name:
+          host:
+          user:
+          password:
           osa:
             ifname: encbdf0
             id: 0.0.bdf0,0.0.bdf1,0.0.bdf2
-            ip: 
+            ip:
 
           dasd:
-            disk_id: 
+            disk_id:
 
           lun:
           - id:
@@ -403,6 +403,13 @@ disconnected:
       oc_mirror_args:
         continue_on_error: False
         source_skip_tls: False
+      post_mirror:
+        mapping:
+          replace:
+            enabled: False
+            list:
+            - regexp: what
+              replace: with
       release_image_tag: '4.13.1-multi'
       image_set: # this field is a standard image set from oc-mirror documentation. The only exception is the storageConfig which is altered to allow substitution of disconnected.registry.url
         storageConfig:
