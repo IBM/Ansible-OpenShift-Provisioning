@@ -11,9 +11,10 @@
             echo "INFO: Node '{{ param_compute_node.vm_hostname }}' not found or is already deleted"
             exit 0
         fi
-        oc adm cordon {{ param_compute_node.vm_hostname | lower }}
-        oc adm drain {{ param_compute_node.vm_hostname | lower }} --force --delete-emptydir-data --ignore-daemonsets --timeout=30s
-        oc delete nodes {{ param_compute_node.vm_hostname | lower }}
+        NODE=$(oc get nodes --no-headers=true | grep "^{{ param_compute_node.vm_hostname | lower }}" | cut -f 1 -d " ")
+        oc adm cordon "${NODE}"
+        oc adm drain "${NODE}" --force --delete-emptydir-data --ignore-daemonsets --timeout=30s
+        oc delete nodes "${NODE}"
       register: cmd_output
     - name: Print cmd output
       ansible.builtin.debug:
