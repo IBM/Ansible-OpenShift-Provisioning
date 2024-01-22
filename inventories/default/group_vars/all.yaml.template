@@ -34,6 +34,7 @@ env:
 # Section 3 - File Server
   file_server:
     ip: #X
+    port: '' # please keep empty string to use default port
     user: #X
     pass: #X
     protocol: #X

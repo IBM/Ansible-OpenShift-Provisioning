@@ -63,7 +63,7 @@
     --autostart \
     --memory={{ env.bastion.resources.ram }} \
     --vcpus={{ env.bastion.resources.vcpu }} \
-    --location {{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}/{{ env.file_server.iso_mount_dir }} \
+    --location {{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ env.file_server.iso_mount_dir }} \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.bastion.resources.disk_size }} \
     --network network={{ env.bridge_name }} \
     --graphics none \
