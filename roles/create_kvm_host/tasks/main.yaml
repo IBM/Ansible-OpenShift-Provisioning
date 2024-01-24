@@ -11,7 +11,7 @@
     cpc_name: "{{ cpc_name }}"
     name: "{{ lpar.name }}"
     properties:
-      boot_ftp_host: "{{ env.file_server.ip }}"
+      boot_ftp_host: "{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}"
       boot_ftp_username: "{{ env.file_server.user }}"
       boot_ftp_password: "{{ env.file_server.pass }}"
       boot_ftp_insfile: "{{ env.file_server.cfgs_dir }}/{{ networking.hostname }}/kvm_host.ins"

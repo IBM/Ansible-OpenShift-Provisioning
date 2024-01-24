@@ -37,6 +37,7 @@
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **env.file_server.ip** | IPv4 address for the file server that will be used to pass config files and<br /> iso to KVM host LPAR(s) and bastion VM during their first boot. | 192.168.10.201
+**env.file_server.port** | The port on which the file server is listening. Will be embedded into all<br /> download urls. Defaults to protocol default port. Keep empty `''` to use <br /> default port | 10000
 **env.file_server.user** | Username to connect to the file server. Must have sudo and SSH access. | user1
 **env.file_server.pass** | Password to connect to the file server as above user. | user1pa$s!
 **env.file_server.protocol** | Protocol used to serve the files, either 'ftp' or 'http' | http
