@@ -14,11 +14,11 @@ text --non-interactive
 firstboot --enable
 
 # Use network installation
-url --url={{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}/{{ env.file_server.iso_mount_dir }}
+url --url={{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ env.file_server.iso_mount_dir }}
 
 # Add yum repositories
-repo --install --name="AppStream" --baseurl={{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}/{{ env.file_server.iso_mount_dir }}/AppStream/
-repo --install --name="BaseOS" --baseurl={{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}/{{ env.file_server.iso_mount_dir }}/BaseOS/
+repo --install --name="AppStream" --baseurl={{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ env.file_server.iso_mount_dir }}/AppStream/
+repo --install --name="BaseOS" --baseurl={{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ env.file_server.iso_mount_dir }}/BaseOS/
 
 # Keyboard layouts
 keyboard --vckeymap={{ env.keyboard }} --xlayouts='{{ env.keyboard }}'
