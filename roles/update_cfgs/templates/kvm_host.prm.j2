@@ -1,6 +1,6 @@
 ro ramdisk_size=40000
 ip={{ networking.ip }}::{{ networking.gateway }}:{{ lpar.networking.subnet_cidr }}:{{ networking.hostname}}:{{ networking.device1 }}:none
 nameserver={{ networking.nameserver1 }} {{ ( 'nameserver=' + networking.nameserver2 ) if networking.nameserver2 is defined else '' }}
-inst.repo=ftp://{{ env.file_server.user }}:{{ env.file_server.pass }}@{{ env.file_server.ip }}/{{ env.file_server.iso_mount_dir }}
-inst.ks=ftp://{{ env.file_server.user }}:{{ env.file_server.pass }}@{{ env.file_server.ip }}/{{ env.file_server.cfgs_dir }}/{{ networking.hostname }}/kvm_host.cfg
+inst.repo=ftp://{{ env.file_server.user }}:{{ env.file_server.pass }}@{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ env.file_server.iso_mount_dir }}
+inst.ks=ftp://{{ env.file_server.user }}:{{ env.file_server.pass }}@{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ env.file_server.cfgs_dir }}/{{ networking.hostname }}/kvm_host.cfg
 inst.cmdline
