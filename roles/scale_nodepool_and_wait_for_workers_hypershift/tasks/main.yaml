@@ -53,20 +53,20 @@
   delay: 10
 
 - name: Create Kubeconfig for Hosted Cluster
-  shell: hcp create kubeconfig --namespace {{ hypershift.hcp.clusters_namespace }} --name {{ hypershift.hcp.hosted_cluster_name }} > /root/ansible_workdir/{{ hypershift.hcp.hosted_cluster_name }}-kubeconfig
+  shell: hcp create kubeconfig --namespace {{ hypershift.hcp.clusters_namespace }} --name {{ hypershift.hcp.hosted_cluster_name }} > /root/ansible_workdir/hcp-kubeconfig
 
 - name: Wait for Worker Nodes to Join 
   k8s_info:
     api_version: v1
     kind: Node
-    kubeconfig: "/root/ansible_workdir/{{ hypershift.hcp.hosted_cluster_name }}-kubeconfig"
+    kubeconfig: "/root/ansible_workdir/hcp-kubeconfig"
   register: nodes
   until: nodes.resources | length == {{ hypershift.agents_parms.agents_count }}
   retries: 300
   delay: 10
 
 - name: Wait for Worker nodes to be Ready
-  shell: oc get no --kubeconfig=/root/ansible_workdir/{{ hypershift.hcp.hosted_cluster_name }}-kubeconfig  --no-headers | grep -i 'NotReady' | wc -l
+  shell: oc get no --kubeconfig=/root/ansible_workdir/hcp-kubeconfig  --no-headers | grep -i 'NotReady' | wc -l
   register: node_status
   until: node_status.stdout == '0'
   retries: 50

@@ -1,7 +1,7 @@
 ---
 
 - name: Get the IPs of Hosted Cluster Workers
-  shell: oc get no -o wide  --kubeconfig=/root/ansible_workdir/{{ hypershift.hcp.hosted_cluster_name }}-kubeconfig --no-headers|grep -i worker| awk '{print $6}'
+  shell: oc get no -o wide  --kubeconfig=/root/ansible_workdir/hcp-kubeconfig --no-headers|grep -i worker| awk '{print $6}'
   register: hosted_workers
 
 - name: Configuring HAproxy for Hosted Cluster

@@ -1,7 +1,7 @@
 ---
 
 - name: Wait for All Cluster Operators to be available
-  shell: oc get co --kubeconfig=/root/ansible_workdir/{{ hypershift.hcp.hosted_cluster_name }}-kubeconfig --no-headers| awk '$3 != "True" {print $1}' | wc -l
+  shell: oc get co --kubeconfig=/root/ansible_workdir/hcp-kubeconfig --no-headers| awk '$3 != "True" {print $1}' | wc -l
   register: co
   until: co.stdout == '0'
   retries: 60
@@ -15,7 +15,7 @@
   delay: 15
 
 - name: Get URL for Webconsole of Hosted Cluster
-  shell: oc whoami --show-console --kubeconfig=/root/ansible_workdir/{{ hypershift.hcp.hosted_cluster_name }}-kubeconfig
+  shell: oc whoami --show-console --kubeconfig=/root/ansible_workdir/hcp-kubeconfig
   register: console_url
 
 - name: Get Password for Hosted Cluster
@@ -32,7 +32,7 @@
     dest: /root/ansible_workdir/kubeadmin-password
 
 - name: Get api server of Hosted Cluster
-  shell: "cat /root/ansible_workdir/{{ hypershift.hcp.hosted_cluster_name }}-kubeconfig | grep -i server:"
+  shell: "cat /root/ansible_workdir/hcp-kubeconfig | grep -i server:"
   register: api_server
 
 - name: Display Login Credentials
