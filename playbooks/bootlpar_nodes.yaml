@@ -1,0 +1,35 @@
+- name: boot bootstrap
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  tasks:
+    - name: Start node
+      vars:
+        node_type: "bootstrap"
+      include_tasks: ../roles/boot_LPAR/tasks/main.yaml
+      loop: "{{ env.cluster.nodes.bootstrap.node_info }}"
+
+- name: boot masters
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  tasks:
+    - name: Start node
+      vars:
+        node_type: "master"
+      include_tasks: ../roles/boot_LPAR/tasks/main.yaml
+      loop: "{{ env.cluster.nodes.control.node_info }}"
+
+- name: boot compute nodes
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  tasks:
+    - name: Start node
+      vars:
+        node_type: "worker"
+      include_tasks: ../roles/boot_LPAR/tasks/main.yaml
+      loop: "{{ env.cluster.nodes.compute.node_info }}"

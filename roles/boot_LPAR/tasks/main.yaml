@@ -1,0 +1,54 @@
+---
+- name: Boot LPAR with corresponding ignition
+  block:
+    - name: Getting script for booting
+      template:
+        src: ../templates/boot_lpar.py
+        dest: /root/ansible_workdir/boot_lpar.py
+    
+    - name: Debug 
+      debug: 
+        msg: 
+          python /root/ansible_workdir/boot_lpar.py \
+          --cpcname {{ item.cpcname }} \
+          --lparname {{ item.lparname }} \
+          --hmchost {{ env.hmc.hmchost }} \
+          --hmcuser {{ env.hmc.hmcuser }} \
+          --hmcpass {{ env.hmc.hmcpass }} \
+          --cpu {{ item.ifl }} \
+          --memory {{ item.memory }} \
+          --kernel {{ rhcos_download_url }}{{ rhcos_live_kernel }} \
+          --initrd {{ rhcos_download_url }}{{ rhcos_live_initrd }} \
+          --livedisktype {{ item.livedisktype }} \
+          --devicenr {{ item.devicenr }} \
+          --netset_ip {{ item.netset_ip }} \ 
+          --netset_gateway {{ item.netset_gateway }} \
+          --netset_network_type {{ item.netset_network_type }} \ 
+          --netset_network_device {{ item.netset_network_device }} \ 
+          --netset_password {{ item.netset_password }} \
+          --netset_dns {{ item.netset_dns }} \
+          --log_level DEBUG \
+          --cmdline 'rd.neednet=1 console=ttysclp0 coreos.inst.install_dev=sda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/{{ node_type }}.ign" ip={{ item.netset_ip }}::172.18.0.1:255.255.0.0:{{ item.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}::none nameserver={{ env.bastion.networking.ip }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 rd.znet=qeth,{{ item.netset_network_device }},layer2=1 rd.zfcp={{ item.zfcp }}'
+
+    - name: Booting lpar node
+      shell: |
+        python /root/ansible_workdir/boot_lpar.py \
+        --cpcname {{ item.cpcname }} \
+        --lparname {{ item.lparname }} \
+        --hmchost {{ env.hmc.hmchost }} \
+        --hmcuser {{ env.hmc.hmcuser }} \
+        --hmcpass {{ env.hmc.hmcpass }} \
+        --cpu {{ item.ifl }} \
+        --memory {{ item.memory }} \
+        --kernel {{ rhcos_download_url }}{{ rhcos_live_kernel }} \
+        --initrd {{ rhcos_download_url }}{{ rhcos_live_initrd }} \
+        --livedisktype {{ item.livedisktype }} \
+        --devicenr {{ item.devicenr }} \
+        --netset_ip {{ item.netset_ip }} \ 
+        --netset_gateway {{ item.netset_gateway }} \
+        --netset_network_type {{ item.netset_network_type }} \ 
+        --netset_network_device {{ item.netset_network_device }} \ 
+        --netset_password {{ item.netset_password }} \
+        --netset_dns {{ item.netset_dns }} \
+        --log_level DEBUG \
+        --cmdline 'rd.neednet=1 console=ttysclp0 coreos.inst.install_dev=sda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/{{ node_type }}.ign ip={{ item.netset_ip }}::172.18.0.1:255.255.0.0:{{ item.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}::none nameserver={{ env.bastion.networking.ip }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 rd.znet=qeth,{{ item.netset_network_device }},layer2=1 rd.zfcp={{ item.zfcp }}'

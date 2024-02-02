@@ -39,7 +39,7 @@
       tags: lpar_check
       stat:
         path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
-      when: env.z.lpar1.hostname is defined
+      when: env.z.lpar1.create == True
       register: lpar_host_vars
       failed_when: lpar_host_vars.stat.exists == False
 
