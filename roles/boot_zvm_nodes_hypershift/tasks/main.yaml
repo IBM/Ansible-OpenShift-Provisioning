@@ -10,10 +10,6 @@
       debug: 
         msg: "Booting agent-{{ item }}"
 
-    - name: Attaching OSA network card
-      shell: vmcp attach  "{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.id.split(',') | map('regex_replace', '0.0.', '') | join(' ') }}" to "{{ hypershift.agents_parms.zvm_parameters.nodes[item].name }}"
-      when: "{{ hypershift.agents_parms.zvm_parameters.network_mode | lower == 'osa' }}"
-
     - name: Booting zvm node
       shell: |
         python /root/ansible_workdir/boot_nodes.py \
@@ -26,6 +22,10 @@
         --kernel 'file:///var/lib/libvirt/images/pxeboot/kernel.img'  \
         --initrd 'file:///var/lib/libvirt/images/pxeboot/initrd.img' \
         --cmdline "$(cat /root/ansible_workdir/agent-{{ item }}.parm)"
+
+    - name: Attaching OSA network card
+      shell: vmcp attach  "{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.id.split(',') | map('regex_replace', '0.0.', '') | join(' ') }}" to "{{ hypershift.agents_parms.zvm_parameters.nodes[item].name }}"
+      when: "{{ hypershift.agents_parms.zvm_parameters.network_mode | lower == 'osa' }}"
 
     - name:  Attaching dasd disk
       shell: vmcp attach {{ hypershift.agents_parms.zvm_parameters.nodes[item].dasd.disk_id }} to {{ hypershift.agents_parms.zvm_parameters.nodes[item].name }} 
