@@ -21,11 +21,8 @@
         --memory "{{ hypershift.agents_parms.zvm_parameters.memory }}" \
         --kernel 'file:///var/lib/libvirt/images/pxeboot/kernel.img'  \
         --initrd 'file:///var/lib/libvirt/images/pxeboot/initrd.img' \
-        --cmdline "$(cat /root/ansible_workdir/agent-{{ item }}.parm)"
-
-    - name: Attaching OSA network card
-      shell: vmcp attach  "{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.id.split(',') | map('regex_replace', '0.0.', '') | join(' ') }}" to "{{ hypershift.agents_parms.zvm_parameters.nodes[item].name }}"
-      when: "{{ hypershift.agents_parms.zvm_parameters.network_mode | lower == 'osa' }}"
+        --cmdline "$(cat /root/ansible_workdir/agent-{{ item }}.parm)" \
+        --network "{{ hypershift.agents_parms.zvm_parameters.network_mode }}"
 
     - name:  Attaching dasd disk
       shell: vmcp attach {{ hypershift.agents_parms.zvm_parameters.nodes[item].dasd.disk_id }} to {{ hypershift.agents_parms.zvm_parameters.nodes[item].name }} 
