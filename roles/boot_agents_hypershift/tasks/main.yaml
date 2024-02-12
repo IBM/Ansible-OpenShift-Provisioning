@@ -1,6 +1,6 @@
 ---
 - name: Create qemu image for agents
-  command: "qemu-img create -f qcow2 /home/libvirt/images/{{ hypershift.hcp.hosted_cluster_name }}-agent{{ item }}.qcow2 {{ hypershift.agents_parms.disk_size }}"
+  command: "qemu-img create -f qcow2 {{ hypershift.agents_parms.storage.pool_path }}{{ hypershift.hcp.hosted_cluster_name }}-agent{{ item }}.qcow2 {{ hypershift.agents_parms.disk_size }}"
   loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
 
 - name: Boot Agents
@@ -19,7 +19,7 @@
     --cpu host \
     --vcpus="{{ hypershift.agents_parms.vcpus }}"  \
     --location "/var/lib/libvirt/images/pxeboot/,kernel=kernel.img,initrd=initrd.img" \
-    --disk /home/libvirt/images/{{ hypershift.hcp.hosted_cluster_name }}-agent{{ item }}.qcow2 \
+    --disk {{ hypershift.agents_parms.storage.pool_path }}{{ hypershift.hcp.hosted_cluster_name }}-agent{{ item }}.qcow2 \
     --network network:{{ env.bridge_name }},mac=$mac_address \
     --graphics none \
     --noautoconsole  \
