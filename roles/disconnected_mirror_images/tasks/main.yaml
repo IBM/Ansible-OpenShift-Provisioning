@@ -27,7 +27,7 @@
         remote_src: yes
       loop:
         - "{{ disconnected.mirroring.client_download.ocp_download_url }}{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
-        - "{{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
+        - "{{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
     - name: Copy kubectl, oc, and oc-mirror binaries to /usr/local/sbin
       tags: mirror_artifacts
       become: true
@@ -115,6 +115,33 @@
         set -o pipefail
         ls {{ user_home.stdout }}/ocpinst/oc-mirror-workspace/ | grep results
       register: oc_mirror_results_dir_name
+    - name: perform post mirror actions if requested
+      tags: mirror_artifacts
+      block:
+        - name: create a copy of the mappings file
+          ansible.builtin.copy:
+            src: "{{ user_home.stdout }}/ocpinst/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/mapping.txt"
+            dest: "{{ user_home.stdout }}/ocpinst/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/post_mapping.txt"
+            mode: preserve
+            remote_src: True
+        - name: replace provided values in the mappings
+          ansible.builtin.replace:
+            path: "{{ user_home.stdout }}/ocpinst/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/post_mapping.txt"
+            regexp: "{{ item.regexp }}"
+            replace: "{{ item.replace }}"
+          with_items: "{{ disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.list }}"
+          when:  disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled
+        - name: manually mirror patched mappings to registry
+          ansible.builtin.shell: |
+            set -o pipefail
+            oc image mirror -a {{ user_home.stdout }}/.docker/config.json -f {{ user_home.stdout }}/ocpinst/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/post_mapping.txt --insecure --filter-by-os='.*' --continue-on-error || true
+          args:
+            chdir: "{{ user_home.stdout }}/ocpinst"
+          register: cmd_oc_image_mirror
+        - name: print output of oc image mirror
+          ansible.builtin.debug:
+            var: cmd_oc_image_mirror
+      when:  disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled
     - name: Fetch the files that need to be applied on the cluster to the controller
       tags: mirror_artifacts
       ansible.posix.synchronize:

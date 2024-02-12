@@ -15,7 +15,7 @@ dd if=/dev/zero of=/dev/mapper/mpathh bs=512 count=10
 reboot
 
 # Use network installation
-url --url=ftp://{{env.file_server.user}}:{{env.file_server.pass}}@{{env.file_server.ip}}/{{ env.file_server.iso_mount_dir }}
+url --url=ftp://{{env.file_server.user}}:{{env.file_server.pass}}@{{env.file_server.ip}}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ env.file_server.iso_mount_dir }}
 
 # Use text mode install
 text
