@@ -315,6 +315,8 @@ hypershift:
     ram: 16384
     vcpus: 4
     nameserver:
+    storage:
+      pool_path: "/var/lib/libvirt/images/"
  
 
 
