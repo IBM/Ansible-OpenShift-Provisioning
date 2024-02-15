@@ -12,8 +12,8 @@
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.bootstrap.disk_size }}  \
     --ram {{ env.cluster.nodes.bootstrap.ram }} \
-    {% if env.cluster.nodes.bootstrap.vcpu_model is defined %}
-    --cpu {{ env.cluster.nodes.bootstrap.vcpu_model }} \
+    {% if env.cluster.nodes.bootstrap.vcpu_model_option is defined %}
+    {{ env.cluster.nodes.bootstrap.vcpu_model_option }} \
     {% else %}
     --cpu host \
     {% endif %}
