@@ -55,7 +55,7 @@ clearpart --all --initlabel --drives=vda
 
 # Disk partitioning information
 {% if env.install_config.control.architecture == 'arm64' %}
-# TODO: Special setup for arm required, becase our arm server requires /boot/efi partition with efi file system
+# TODO: Special setup for arm required, because our arm server requires /boot/efi partition with efi file system
 ignoredisk --only-use=vda
 # System bootloader configuration
 bootloader --location=mbr --boot-drive=vda
