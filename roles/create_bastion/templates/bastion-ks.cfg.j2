@@ -54,11 +54,19 @@ bootloader --append="crashkernel=auto" --location=mbr --boot-drive=vda
 clearpart --all --initlabel --drives=vda
 
 # Disk partitioning information
+{% if env.install_config.control.architecture == 'arm64' %}
+# TODO: Special setup for arm required, becase our arm server requires /boot/efi partition with efi file system
+ignoredisk --only-use=vda
+# System bootloader configuration
+bootloader --location=mbr --boot-drive=vda
+autopart
+{% else %}
 part /boot --fstype="xfs" --asprimary --ondisk=vda --size=1024
 part pv.01 --fstype="lvmpv" --grow --size=1 --ondisk=vda
 volgroup vgsystem --pesize=4096 pv.01
 logvol swap --fstype=swap --name=swap --vgname=vgsystem --size={{ env.bastion.resources.swap }}
 logvol / --fstype=xfs --name=root --vgname=vgsystem --size=1 --grow
+{% endif %}
 
 # Packages selection
 %packages --multilib --ignoremissing

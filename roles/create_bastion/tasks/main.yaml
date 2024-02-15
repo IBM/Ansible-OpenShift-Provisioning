@@ -56,7 +56,7 @@
   tags: create_bastion, virt-install
   ansible.builtin.shell: |
     virsh destroy {{ env.bastion.vm_name }} || true
-    virsh undefine {{ env.bastion.vm_name }} --remove-all-storage || true
+    virsh undefine {{ env.bastion.vm_name }} --remove-all-storage --nvram || true
     virt-install \
     --name {{ env.bastion.vm_name }} \
     --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
