@@ -9,11 +9,11 @@
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }} \
     --ram {{ env.cluster.nodes.control.ram }} \
-{% if env.cluster.nodes.control.vcpu_model is defined %}
+    {% if env.cluster.nodes.control.vcpu_model is defined %}
     --cpu {{ env.cluster.nodes.control.vcpu_model }} \
-{% else %}
+    {% else %}
     --cpu host \
-{% endif %}
+    {% endif %}
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
@@ -46,11 +46,11 @@
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }}  \
     --ram {{ env.cluster.nodes.control.ram }} \
-{% if env.cluster.nodes.control.vcpu_model is defined %}
+    {% if env.cluster.nodes.control.vcpu_model is defined %}
     --cpu {{ env.cluster.nodes.control.vcpu_model }} \
-{% else %}
+    {% else %}
     --cpu host \
-{% endif %}
+    {% endif %}
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
@@ -76,11 +76,11 @@
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }}  \
     --ram {{ env.cluster.nodes.control.ram }} \
-{% if env.cluster.nodes.control.vcpu_model is defined %}
+    {% if env.cluster.nodes.control.vcpu_model is defined %}
     --cpu {{ env.cluster.nodes.control.vcpu_model }} \
-{% else %}
+    {% else %}
     --cpu host \
-{% endif %}
+    {% endif %}
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
@@ -106,11 +106,11 @@
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }}  \
     --ram {{ env.cluster.nodes.control.ram }} \
-{% if env.cluster.nodes.control.vcpu_model is defined %}
+    {% if env.cluster.nodes.control.vcpu_model is defined %}
     --cpu {{ env.cluster.nodes.control.vcpu_model }} \
-{% else %}
+    {% else %}
     --cpu host \
-{% endif %}
+    {% endif %}
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
