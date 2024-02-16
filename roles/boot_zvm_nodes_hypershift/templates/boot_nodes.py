@@ -23,7 +23,7 @@ parameters = {
 
 interfaces=[]
 if args.network.lower() == 'osa':
-    interfaces=[{ "type": "osa", "id": "{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.id.split(',') | map('regex_replace', '0.0.', '') | join(',') }}"}]
+    interfaces=[{ "type": "osa", "id": "{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.subchannels.split(',') | map('regex_replace', '0.0.', '') | join(',') }}"}]
 
 guest_parameters = {
 "boot_method": "network",
