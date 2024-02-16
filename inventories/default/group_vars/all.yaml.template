@@ -338,7 +338,9 @@ hypershift:
           password: 
           interface:
             ifname: encbdf0
+            nettype: qeth
             id: 0.0.bdf0,0.0.bdf1,0.0.bdf2
+            mode: layer2=1
             ip:
 
           # Required if disk_type is dasd
@@ -358,7 +360,9 @@ hypershift:
           password: 
           interface:
             ifname: encbdf0
+            nettype: qeth
             id: 0.0.bdf0,0.0.bdf1,0.0.bdf2
+            mode: layer2=1
             ip:
 
           dasd:
