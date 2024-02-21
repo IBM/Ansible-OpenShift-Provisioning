@@ -13,7 +13,7 @@ parser.add_argument("--memory", type=int, help="Guest memory in MB", required=Tr
 parser.add_argument("--kernel", type=str, help="kernel URI", required=True, default='')
 parser.add_argument("--cmdline", type=str, help="kernel cmdline", required=True, default='')
 parser.add_argument("--initrd", type=str, help="Initrd URI", required=True, default='')
-parser.add_argument("--network", type=str, help="Network mode for zvm nodes Supported modes: OSA, vswitch, ROCE, Hyperssockets", required=True)
+parser.add_argument("--network", type=str, help="Network mode for zvm nodes Supported modes: OSA, vswitch ", required=True)
 
 args = parser.parse_args()
 
