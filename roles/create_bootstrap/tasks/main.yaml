@@ -5,14 +5,14 @@
   tags: create_bootstrap
   ansible.builtin.shell: |
     virsh destroy {{ env.cluster.nodes.bootstrap.vm_name }} || true
-    virsh undefine {{ env.cluster.nodes.bootstrap.vm_name }} --remove-all-storage || true
+    virsh undefine {{ env.cluster.nodes.bootstrap.vm_name }} --remove-all-storage --nvram || true
     virt-install \
     --name {{ env.cluster.nodes.bootstrap.vm_name }} \
     --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.bootstrap.disk_size }}  \
     --ram {{ env.cluster.nodes.bootstrap.ram }} \
-    --cpu host \
+    {{ env.cluster.nodes.bootstrap.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.bootstrap.vcpu }} \
     --network network={{ env.bridge_name }}{{ (',mac=' + env.cluster.nodes.bootstrap.mac) if (env.cluster.nodes.bootstrap.mac is defined and env.use_dhcp) }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
