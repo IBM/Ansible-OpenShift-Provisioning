@@ -64,6 +64,7 @@
 **env.bastion.resources.vcpu_model_option** | Configure the CPU model and CPU features exposed to the guest | --cpu host
 **env.bastion.networking.ip** | IPv4 address for the bastion. | 192.168.10.3
 **env.bastion.networking.ipv6** | IPv6 address for the bastion if use_ipv6 variable is 'True'. | fd00::3
+**env.bastion.networking.mac** | MAC address for the bastion if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
 **env.bastion.networking.hostname** | Hostname of the bastion. Will be combined with<br /> env.bastion.networking.base_domain to create a Fully Qualified Domain Name (FQDN). | ocpz-bastion
 **env.bastion.networking.base_<br />domain** | Base domain that, when combined with the hostname, creates a fully-qualified<br /> domain name (FQDN) for the bastion? | ihost.com
 **env.bastion.networking.<br />subnetmask** | Subnet of the bastion. | 255.255.255.0
@@ -104,6 +105,7 @@
 **env.cluster.nodes.bootstrap.vm_name** | Name of the temporary bootstrap node VM. Arbitrary value. | bootstrap
 **env.cluster.nodes.bootstrap.ip** | IPv4 address of the temporary bootstrap node. | 192.168.10.4
 **env.cluster.nodes.bootstrap.ipv6** | IPv6 address for the bootstrap if use_ipv6 variable is 'True'. | fd00::4
+**env.cluster.nodes.bootstrap.mac** | MAC address for the bootstrap node if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
 **env.cluster.nodes.bootstrap.hostname** | Hostname of the temporary boostrap node. If DNS is hosted on the bastion, this can be anything.<br /> If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the<br /> metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN). | bootstrap-ocpz
 
 ## 8 - Control Nodes
@@ -116,6 +118,7 @@
 **env.cluster.nodes.control.vm_name** | Name of the control node VMs. Arbitrary values. Usually no more or less than 3 are used. Must match<br /> the total number of IP addresses and hostnames for control nodes. Use provided list format. | control-1<br />control-2<br />control-3
 **env.cluster.nodes.control.ip** | IPv4 address of the control nodes. Use provided<br /> list formatting. | 192.168.10.5<br />192.168.10.6<br />192.168.10.7
 **env.cluster.nodes.control.ipv6** | IPv6 address for the control nodes. Use iprovided<br /> list formatting (if use_ipv6 variable is 'True'). | fd00::5<br />fd00::6<br />fd00::7
+**env.cluster.nodes.control.mac** | MAC address for the control node if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
 **env.cluster.nodes.control.hostname** | Hostnames for control nodes. Must match the total number of IP addresses for control nodes<br /> (usually 3). If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere,<br /> this must match DNS definition. This will be combined with the metadata_name and<br /> base_domain to create a Fully Qualififed Domain Name (FQDN). | control-01<br />control-02<br />control-03
 
 ## 9 - Compute Nodes
@@ -128,6 +131,7 @@
 **env.cluster.nodes.compute.vm_name** | Name of the compute node VMs. Arbitrary values. This list can be expanded to any<br /> number of nodes, minimum 2. Must match the total number of IP<br /> addresses and hostnames for compute nodes. Use provided list format. | compute-1<br />compute-2
 **env.cluster.nodes.compute.ip** | IPv4 address of the compute nodes. Must match the total number of VM names and<br /> hostnames for compute nodes. Use provided list formatting. | 192.168.10.8<br />192.168.10.9
 **env.cluster.nodes.control.ipv6** | IPv6 address for the compute nodes. Use iprovided<br /> list formatting (if use_ipv6 variable is 'True'). | fd00::8<br />fd00::9
+**env.cluster.nodes.compute.mac** | MAC address for the compute node if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
 **env.cluster.nodes.compute.hostname** | Hostnames for compute nodes. Must match the total number of IP addresses and<br /> VM names for compute nodes. If DNS is hosted on the bastion, this can be anything.<br /> If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the<br /> metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN). | compute-01<br />compute-02
 
 ## 10 - Infra Nodes
@@ -182,6 +186,7 @@
 **env.bridge_name** | (Optional) Name of the macvtap bridge that will be created on the KVM host or in case of NAT the name of the NAT network defenition (usually it is 'default'). If NAT is being used and a jumphost is needed, the parameters network_mode, jumphost.name, jumphost.user and jumphost.pass must be specified, too. In case of default (NAT) network verify that the configured IP ranges does not interfere with the IPs defined for the controle and compute nodes. Modify the default network (dhcp range setting) to prevent issues with VMs using dhcp and OCP nodes having fixed IPs.| macvtap-net
 **env.network_mode** | (Optional) In case the network mode will be NAT and the installation will be executed from remote (e.g. your laptop), a jumphost needs to be defined to let the installation access the bastion host. If macvtap for networking is being used this variable should be empty. | NAT
 **env.use_ipv6** | If ipv6 addresses should be assigned to the controle and compute nodes, this variable should be true (default) and the matching ipv6 settings should be specified. | True
+**env.use_dhcp** | If dhcp service should be used to get an IP address, this variable should be true and the matching mac address must be specified. | False
 **env.jumphost.name** | (Optional) If env.network.mode is set to 'NAT' the name of the jumphost (e.g. the name of KVM host if used as jumphost) should be specified. | kvm-host-01
 **env.jumphost.ip** | (Optional) The ip of the jumphost. | 192.168.10.1
 **env.jumphost.user** | (Optional) The user name to login to the jumphost. | admin

@@ -214,6 +214,7 @@ env:
   bridge_name: macvtap
   network_mode:
   use_ipv6: True
+  use_dhcp: False
 
 #jumphost if network mode is NAT
   jumphost:
