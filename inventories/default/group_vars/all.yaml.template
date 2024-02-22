@@ -58,6 +58,7 @@ env:
       ram: 4096
       swap: 4096
       vcpu: 4
+      vcpu_model_option: "--cpu host"
     networking:
       ip: #X
       ipv6: #X
@@ -102,6 +103,7 @@ env:
         disk_size: 120
         ram: 16384
         vcpu: 4
+        vcpu_model_option: "--cpu host"
         vm_name: #X
         ip: #X
         ipv6: #X
@@ -112,6 +114,7 @@ env:
         disk_size: 120
         ram: 16384
         vcpu: 4
+        vcpu_model_option: "--cpu host"
         vm_name:
           - #X
           - #X
@@ -134,6 +137,7 @@ env:
         disk_size: 120
         ram: 16384
         vcpu: 4
+        vcpu_model_option: "--cpu host"
         vm_name:
           - #X
           - #X
