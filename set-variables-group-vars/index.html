@@ -382,6 +382,11 @@
 <td style="text-align: left;">4</td>
 </tr>
 <tr>
+<td style="text-align: left;"><strong>env.bastion.resources.vcpu_model_option</strong></td>
+<td style="text-align: left;">Configure the CPU model and CPU features exposed to the guest</td>
+<td style="text-align: left;">--cpu host</td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>env.bastion.networking.ip</strong></td>
 <td style="text-align: left;">IPv4 address for the bastion.</td>
 <td style="text-align: left;">192.168.10.3</td>
@@ -561,6 +566,11 @@
 <td style="text-align: left;">4</td>
 </tr>
 <tr>
+<td style="text-align: left;"><strong>env.cluster.nodes.bootstrap.vcpu_model_option</strong></td>
+<td style="text-align: left;">Configure the CPU model and CPU features exposed to the guest</td>
+<td style="text-align: left;">--cpu host</td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.bootstrap.vm_name</strong></td>
 <td style="text-align: left;">Name of the temporary bootstrap node VM. Arbitrary value.</td>
 <td style="text-align: left;">bootstrap</td>
@@ -611,6 +621,11 @@
 <td style="text-align: left;"><strong>env.cluster.nodes.control.vcpu</strong></td>
 <td style="text-align: left;">How many virtual CPUs would you like to allocate to each control node? Recommended 4 or more.</td>
 <td style="text-align: left;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>env.cluster.nodes.control.vcpu_model_option</strong></td>
+<td style="text-align: left;">Configure the CPU model and CPU features exposed to the guest</td>
+<td style="text-align: left;">--cpu host</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.vm_name</strong></td>
@@ -665,6 +680,11 @@
 <td style="text-align: left;">2</td>
 </tr>
 <tr>
+<td style="text-align: left;"><strong>env.cluster.nodes.compute.vcpu_model_option</strong></td>
+<td style="text-align: left;">Configure the CPU model and CPU features exposed to the guest</td>
+<td style="text-align: left;">--cpu host</td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.vm_name</strong></td>
 <td style="text-align: left;">Name of the compute node VMs. Arbitrary values. This list can be expanded to any<br /> number of nodes, minimum 2. Must match the total number of IP<br /> addresses and hostnames for compute nodes. Use provided list format.</td>
 <td style="text-align: left;">compute-1<br />compute-2</td>
@@ -715,6 +735,11 @@
 <td style="text-align: left;"><strong>env.cluster.nodes.infra.vcpu</strong></td>
 <td style="text-align: left;"><b>(Optional)</b> How many virtual CPUs would you like to allocate to each infra node?<br /> Recommended 2 or more.</td>
 <td style="text-align: left;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>env.cluster.nodes.infra.vcpu_model_option</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Configure the CPU model and CPU features exposed to the guest</td>
+<td style="text-align: left;">--cpu host</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.infra.vm_name</strong></td>
@@ -797,7 +822,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.install_config.control.architecture</strong></td>
-<td style="text-align: left;">Computing architecture for the control nodes. Must be s390x for clusters on IBM zSystems.</td>
+<td style="text-align: left;">Computing architecture for the control nodes. Must be s390x for clusters on IBM zSystems, amd64 for Intel or AMD systems, and arm64 for ARM servers.</td>
 <td style="text-align: left;">s390x</td>
 </tr>
 <tr>
