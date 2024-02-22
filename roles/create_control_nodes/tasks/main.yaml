@@ -9,7 +9,7 @@
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }} \
     --ram {{ env.cluster.nodes.control.ram }} \
-    --cpu host \
+    {{ env.cluster.nodes.control.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }}{{ (',mac=' + env.cluster.nodes.control.mac[i]) if (env.cluster.nodes.control.mac[i] is defined and env.use_dhcp) }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
@@ -46,7 +46,7 @@
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }}  \
     --ram {{ env.cluster.nodes.control.ram }} \
-    --cpu host \
+    {{ env.cluster.nodes.control.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }}{{ (',mac=' + env.cluster.nodes.control.mac[0]) if (env.cluster.nodes.control.mac[0] is defined and env.use_dhcp) }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
@@ -76,7 +76,7 @@
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }}  \
     --ram {{ env.cluster.nodes.control.ram }} \
-    --cpu host \
+    {{ env.cluster.nodes.control.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }}{{ (',mac=' + env.cluster.nodes.control.mac[1]) if (env.cluster.nodes.control.mac[1] is defined and env.use_dhcp) }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
@@ -106,7 +106,7 @@
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }}  \
     --ram {{ env.cluster.nodes.control.ram }} \
-    --cpu host \
+    {{ env.cluster.nodes.control.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }}{{ (',mac=' + env.cluster.nodes.control.mac[2]) if (env.cluster.nodes.control.mac[2] is defined and env.use_dhcp) }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
