@@ -256,17 +256,17 @@
 **hypershift.agents_parms.zvm_parameters.subnetmask** | Subnet mask for compute nodes | 255.255.255.0
 **hypershift.agents_parms.zvm_parameters.gateway** | Gateway for compute nodes | 192.168.10.1
 **hypershift.agents_parms.zvm_parameters.nodes** | Set of parameters for zvm nodes <br /> Give the details of each zvm node here | 
-**hypershift.agents_parms.zvm_parameters.nodes[0].name** | Name of the zVM guest | m1317002
-**hypershift.agents_parms.zvm_parameters.nodes[0].host** | Host name of the zVM guests <br /> which we use to login 3270 console | boem1317
-**hypershift.agents_parms.zvm_parameters.nodes[0].user** | Username for zVM guests to login | m1317002
-**hypershift.agents_parms.zvm_parameters.nodes[0].password** | password for the zVM guests to login | password
-**hypershift.agents_parms.zvm_parameters.nodes[0].interface.ifname** | Network interface name for zVM guests | encbdf0
-**hypershift.agents_parms.zvm_parameters.nodes[0].interface.nettype** | Network type for zVM guests for network connectivity | qeth
-**hypershift.agents_parms.zvm_parameters.nodes[0].interface.subchannels** | subchannels for zVM guests interfaces | 0.0.bdf0,0.0.bdf1,0.0.bdf2
-**hypershift.agents_parms.zvm_parameters.nodes[0].interface.options** | Configurations options  | layer2=1
-**hypershift.agents_parms.zvm_parameters.nodes[0].interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
-**hypershift.agents_parms.zvm_parameters.nodes[0].dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404 
-**hypershift.agents_parms.zvm_parameters.nodes[0].lun** | Disk details of fcp disk to be used for zVM node | 4404
+**hypershift.agents_parms.zvm_parameters.nodes.name** | Name of the zVM guest | m1317002
+**hypershift.agents_parms.zvm_parameters.nodes.host** | Host name of the zVM guests <br /> which we use to login 3270 console | boem1317
+**hypershift.agents_parms.zvm_parameters.nodes.user** | Username for zVM guests to login | m1317002
+**hypershift.agents_parms.zvm_parameters.nodes.password** | password for the zVM guests to login | password
+**hypershift.agents_parms.zvm_parameters.nodes.interface.ifname** | Network interface name for zVM guests | encbdf0
+**hypershift.agents_parms.zvm_parameters.nodes.interface.nettype** | Network type for zVM guests for network connectivity | qeth
+**hypershift.agents_parms.zvm_parameters.nodes.interface.subchannels** | subchannels for zVM guests interfaces | 0.0.bdf0,0.0.bdf1,0.0.bdf2
+**hypershift.agents_parms.zvm_parameters.nodes.interface.options** | Configurations options  | layer2=1
+**hypershift.agents_parms.zvm_parameters.nodes.interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
+**hypershift.agents_parms.zvm_parameters.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404 
+**hypershift.agents_parms.zvm_parameters.nodes.lun** | Disk details of fcp disk to be used for zVM node | 4404
 
 
 ## 17 - (Optional) Disconnected cluster setup
