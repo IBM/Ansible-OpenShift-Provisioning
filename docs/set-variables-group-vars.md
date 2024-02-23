@@ -61,6 +61,7 @@
 **env.bastion.resources.ram** | How much memory would you like to allocate the bastion (in<br /> megabytes)? Recommended 4096 or more | 4096
 **env.bastion.resources.swap** | How much swap storage would you like to allocate the bastion (in<br /> megabytes)? Recommended 4096 or more. | 4096
 **env.bastion.resources.vcpu** | How many virtual CPUs would you like to allocate to the bastion? Recommended 4 or more. | 4
+**env.bastion.resources.vcpu_model_option** | Configure the CPU model and CPU features exposed to the guest | --cpu host
 **env.bastion.networking.ip** | IPv4 address for the bastion. | 192.168.10.3
 **env.bastion.networking.ipv6** | IPv6 address for the bastion if use_ipv6 variable is 'True'. | fd00::3
 **env.bastion.networking.mac** | MAC address for the bastion if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
@@ -100,6 +101,7 @@
 **env.cluster.nodes.bootstrap.disk_size** | How much disk space do you want to allocate to the bootstrap node (in Gigabytes)? Bootstrap node<br /> is temporary and will be brought down automatically when its job completes. 120 or more recommended. | 120
 **env.cluster.nodes.bootstrap.ram** | How much memory would you like to allocate to the temporary bootstrap node (in<br /> megabytes)? Recommended 16384 or more. | 16384
 **env.cluster.nodes.bootstrap.vcpu** | How many virtual CPUs would you like to allocate to the temporary bootstrap node?<br /> Recommended 4 or more. | 4
+**env.cluster.nodes.bootstrap.vcpu_model_option** | Configure the CPU model and CPU features exposed to the guest | --cpu host
 **env.cluster.nodes.bootstrap.vm_name** | Name of the temporary bootstrap node VM. Arbitrary value. | bootstrap
 **env.cluster.nodes.bootstrap.ip** | IPv4 address of the temporary bootstrap node. | 192.168.10.4
 **env.cluster.nodes.bootstrap.ipv6** | IPv6 address for the bootstrap if use_ipv6 variable is 'True'. | fd00::4
@@ -112,6 +114,7 @@
 **env.cluster.nodes.control.disk_size** | How much disk space do you want to allocate to each control node (in Gigabytes)? 120 or more recommended. | 120
 **env.cluster.nodes.control.ram** | How much memory would you like to allocate to the each control<br /> node (in megabytes)? Recommended 16384 or more. | 16384
 **env.cluster.nodes.control.vcpu** | How many virtual CPUs would you like to allocate to each control node? Recommended 4 or more. | 4
+**env.cluster.nodes.control.vcpu_model_option** | Configure the CPU model and CPU features exposed to the guest | --cpu host
 **env.cluster.nodes.control.vm_name** | Name of the control node VMs. Arbitrary values. Usually no more or less than 3 are used. Must match<br /> the total number of IP addresses and hostnames for control nodes. Use provided list format. | control-1<br />control-2<br />control-3
 **env.cluster.nodes.control.ip** | IPv4 address of the control nodes. Use provided<br /> list formatting. | 192.168.10.5<br />192.168.10.6<br />192.168.10.7
 **env.cluster.nodes.control.ipv6** | IPv6 address for the control nodes. Use iprovided<br /> list formatting (if use_ipv6 variable is 'True'). | fd00::5<br />fd00::6<br />fd00::7
@@ -124,6 +127,7 @@
 **env.cluster.nodes.compute.disk_size** | How much disk space do you want to allocate to each compute<br /> node (in Gigabytes)? 120 or more recommended. | 120
 **env.cluster.nodes.compute.ram** | How much memory would you like to allocate to the each compute<br /> node (in megabytes)? Recommended 16384 or more. | 16384
 **env.cluster.nodes.compute.vcpu** | How many virtual CPUs would you like to allocate to each compute node? Recommended 2 or more. | 2
+**env.cluster.nodes.compute.vcpu_model_option** | Configure the CPU model and CPU features exposed to the guest | --cpu host
 **env.cluster.nodes.compute.vm_name** | Name of the compute node VMs. Arbitrary values. This list can be expanded to any<br /> number of nodes, minimum 2. Must match the total number of IP<br /> addresses and hostnames for compute nodes. Use provided list format. | compute-1<br />compute-2
 **env.cluster.nodes.compute.ip** | IPv4 address of the compute nodes. Must match the total number of VM names and<br /> hostnames for compute nodes. Use provided list formatting. | 192.168.10.8<br />192.168.10.9
 **env.cluster.nodes.control.ipv6** | IPv6 address for the compute nodes. Use iprovided<br /> list formatting (if use_ipv6 variable is 'True'). | fd00::8<br />fd00::9
@@ -136,6 +140,7 @@
 **env.cluster.nodes.infra.disk_size** | <b>(Optional)</b> Set up compute nodes that are made for infrastructure workloads (ingress,<br /> monitoring, logging)? How much disk space do you want to allocate to each infra node (in Gigabytes)?<br /> 120 or more recommended. | 120
 **env.cluster.nodes.infra.ram** | <b>(Optional)</b> How much memory would you like to allocate to the each infra node (in<br /> megabytes)? Recommended 16384 or more. | 16384
 **env.cluster.nodes.infra.vcpu** | <b>(Optional)</b> How many virtual CPUs would you like to allocate to each infra node?<br /> Recommended 2 or more. | 2
+**env.cluster.nodes.infra.vcpu_model_option** | <b>(Optional)</b> Configure the CPU model and CPU features exposed to the guest | --cpu host
 **env.cluster.nodes.infra.vm_name** | <b>(Optional)</b> Name of additional infra node VMs. Arbitrary values. This list can be<br /> expanded to any number of nodes, minimum 2. Must match the total<br /> number of IP addresses and hostnames for infra nodes. Use provided list format. | infra-1<br />infra-2
 **env.cluster.nodes.infra.ip** | <b>(Optional)</b> IPv4 address of the infra nodes. This list can be expanded to any number of nodes,<br /> minimum 2. Use provided list formatting. | 192.168.10.10<br />192.168.10.11
 **env.cluster.nodes.infra.ipv6** | <b>(Optional)</b> IPv6 address of the infra nodes. iThis list can be expanded to any number of nodes,<br /> minimum 2. Use provided list formatting (if use_ipv6 variable is 'True'). | fd00::10<br />fd00::11
@@ -155,7 +160,7 @@
 **env.install_config.api_version** | Kubernetes API version for the cluster. These install_config variables will be passed to the OCP<br /> install_config file. This file is templated in the get_ocp role during the setup_bastion playbook.<br /> To make more fine-tuned adjustments to the install_config, you can find it at<br /> roles/get_ocp/templates/install-config.yaml.j2 | v1
 **env.install_config.compute.architecture** | Computing architecture for the compute nodes. Must be s390x for clusters on IBM zSystems. | s390x
 **env.install_config.compute.hyperthreading** | Enable or disable hyperthreading on compute nodes. Recommended enabled. | Enabled
-**env.install_config.control.architecture** | Computing architecture for the control nodes. Must be s390x for clusters on IBM zSystems. | s390x
+**env.install_config.control.architecture** | Computing architecture for the control nodes. Must be s390x for clusters on IBM zSystems, amd64 for Intel or AMD systems, and arm64 for ARM servers. | s390x
 **env.install_config.control.hyperthreading** | Enable or disable hyperthreading on control nodes. Recommended enabled. | Enabled
 **env.install_config.cluster_network.cidr** | IPv4 block in Internal cluster networking in Classless Inter-Domain<br /> Routing (CIDR) notation. Recommended to keep as is. | 10.128.0.0/14
 **env.install_config.cluster_network.host_prefix** | The subnet prefix length to assign to each individual node. For example, if<br /> hostPrefix is set to 23 then each node is assigned a /23 subnet out of the given cidr. A hostPrefix<br /> value of 23 provides 510 (2^(32 - 23) - 2) pod IP addresses. | 23

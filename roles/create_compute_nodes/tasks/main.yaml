@@ -4,14 +4,14 @@
   tags: create_compute_nodes
   shell: |
     virsh destroy {{ env.cluster.nodes.compute.vm_name[i] }} || true
-    virsh undefine {{ env.cluster.nodes.compute.vm_name[i] }} --remove-all-storage || true
+    virsh undefine {{ env.cluster.nodes.compute.vm_name[i] }} --remove-all-storage --nvram || true
     virt-install \
     --name {{ env.cluster.nodes.compute.vm_name[i] }} \
     --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }}  \
     --ram {{ env.cluster.nodes.compute.ram }} \
-    --cpu host \
+    {{ env.cluster.nodes.compute.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.compute.vcpu }} \
     --network network={{ env.bridge_name }}{{ (',mac=' + env.cluster.nodes.compute.mac[i]) if (env.cluster.nodes.compute.mac[i] is defined and env.use_dhcp) }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
@@ -45,7 +45,7 @@
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.infra.disk_size }}  \
     --ram {{ env.cluster.nodes.infra.ram }} \
-    --cpu host \
+    {{ env.cluster.nodes.infra.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.infra.vcpu }} \
     --network network={{ env.bridge_name }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
@@ -94,7 +94,7 @@
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }}  \
     --ram {{ env.cluster.nodes.compute.ram }} \
-    --cpu host \
+    {{ env.cluster.nodes.compute.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.compute.vcpu }} \
     --network network={{ env.bridge_name }}{{ (',mac=' + compute_mac[i] if (compute_mac[i] is defined and env.use_dhcp) }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
@@ -127,7 +127,7 @@
     --autostart \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.infra.disk_size }}  \
     --ram {{ env.cluster.nodes.infra.ram }} \
-    --cpu host \
+    {{ env.cluster.nodes.infra.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.infra.vcpu }} \
     --network network={{ env.bridge_name }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
