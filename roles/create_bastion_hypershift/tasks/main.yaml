@@ -48,7 +48,7 @@
       chmod 0600 /root/.ssh/authorized_keys
 
 - name: Create qemu image for bastion
-  command: qemu-img create -f qcow2 /home/libvirt/images/{{ hypershift.hcp.hosted_cluster_name }}-bastion.qcow2 100G
+  command: qemu-img create -f qcow2 {{ hypershift.agents_parms.storage.pool_path }}{{ hypershift.hcp.hosted_cluster_name }}-bastion.qcow2 100G
 
 - name: Create bastion
   shell: |
@@ -56,7 +56,7 @@
     --name {{ hypershift.hcp.hosted_cluster_name }}-bastion \
     --memory 4096 \
     --vcpus sockets=1,cores=4,threads=1 \
-    --disk /home/libvirt/images/{{ hypershift.hcp.hosted_cluster_name }}-bastion.qcow2,format=qcow2,bus=virtio,cache=none \
+    --disk {{ hypershift.agents_parms.storage.pool_path }}{{ hypershift.hcp.hosted_cluster_name }}-bastion.qcow2,format=qcow2,bus=virtio,cache=none \
     --os-variant "rhel{{hypershift.bastion_parms.os_variant}}" \
     --network network:{{ env.bridge_name }} \
     --location '{{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ env.file_server.iso_mount_dir }}/' \

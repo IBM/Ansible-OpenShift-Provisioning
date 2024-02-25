@@ -22,7 +22,9 @@
 - name: Wait for Agent Service Deployment to be Succeeded
   shell: oc get AgentServiceConfig agent -o json | jq -r '.status|.conditions[]|.status' | grep False | wc -l
   register: asc
-  until: asc.stdout == '0'
+  until:
+    - asc.stdout == '0'
+    - asc.stderr == ''
   retries: 60
   delay: 20
 

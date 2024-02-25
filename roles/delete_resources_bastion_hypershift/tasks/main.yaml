@@ -10,7 +10,7 @@
   k8s_info:
     api_version: v1
     kind: Node
-    kubeconfig: "/root/ansible_workdir/{{ hypershift.hcp.hosted_cluster_name }}-kubeconfig"
+    kubeconfig: "/root/ansible_workdir/hcp-kubeconfig"
   register: nodes
   until: nodes.resources | length == 0
   retries: 30

@@ -275,6 +275,7 @@ hypershift:
   #Hosted Control Plane Parameters
 
   hcp:
+    high_availabiliy: true
     clusters_namespace:
     hosted_cluster_name:
     basedomain:
@@ -320,13 +321,14 @@ hypershift:
     ram: 16384
     vcpus: 4
     nameserver:
-
+    storage:
+      pool_path: "/var/lib/libvirt/images/"
 
 
     # zVM specific parameters - s390x
 
     zvm_parameters:
-      network_mode: vswitch   # Supported modes: vswitch
+      network_mode: vswitch   # Supported modes: vswitch,osa
       disk_type:              # Supported modes: fcp , dasd
       vcpus: 4
       memory: 16384
@@ -335,13 +337,15 @@ hypershift:
       gateway:
 
       nodes:
-        - name:
-          host:
-          user:
-          password:
-          osa:
+        - name: 
+          host: 
+          user: 
+          password: 
+          interface:
             ifname: encbdf0
-            id: 0.0.bdf0,0.0.bdf1,0.0.bdf2
+            nettype: qeth
+            subchannels: 0.0.bdf0,0.0.bdf1,0.0.bdf2
+            options: layer2=1
             ip:
 
           # Required if disk_type is dasd
@@ -355,13 +359,15 @@ hypershift:
               - wwpn:
                 fcp:
 
-        - name:
-          host:
-          user:
-          password:
-          osa:
+        - name: 
+          host: 
+          user: 
+          password: 
+          interface:
             ifname: encbdf0
-            id: 0.0.bdf0,0.0.bdf1,0.0.bdf2
+            nettype: qeth
+            subchannels: 0.0.bdf0,0.0.bdf1,0.0.bdf2
+            options: layer2=1
             ip:
 
           dasd:

@@ -21,7 +21,8 @@
         --memory "{{ hypershift.agents_parms.zvm_parameters.memory }}" \
         --kernel 'file:///var/lib/libvirt/images/pxeboot/kernel.img'  \
         --initrd 'file:///var/lib/libvirt/images/pxeboot/initrd.img' \
-        --cmdline "$(cat /root/ansible_workdir/agent-{{ item }}.parm)"
+        --cmdline "$(cat /root/ansible_workdir/agent-{{ item }}.parm)" \
+        --network "{{ hypershift.agents_parms.zvm_parameters.network_mode }}"
 
     - name:  Attaching dasd disk
       shell: vmcp attach {{ hypershift.agents_parms.zvm_parameters.nodes[item].dasd.disk_id }} to {{ hypershift.agents_parms.zvm_parameters.nodes[item].name }} 
@@ -43,5 +44,11 @@
       register: agent_name
 
     - name: Approve agents 
-      shell: oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{item}}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}","installerArgs":"[\"--append-karg\",\"rd.neednet=1\", \"--append-karg\", \"ip={{ hypershift.agents_parms.zvm_parameters.nodes[item].osa.ip }}::{{ hypershift.agents_parms.zvm_parameters.gateway }}:{{ hypershift.agents_parms.zvm_parameters.subnetmask }}:compute-{{ item }}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}:{{ hypershift.agents_parms.zvm_parameters.nodes[item].osa.ifname }}:none\", \"--append-karg\", \"nameserver={{ hypershift.agents_parms.zvm_parameters.nameserver }}\", \"--append-karg\",\"rd.znet=qeth,{{ hypershift.agents_parms.zvm_parameters.nodes[item].osa.id }},layer2=1\",\"--append-karg\", {% if hypershift.agents_parms.zvm_parameters.disk_type | lower != 'fcp' %}\"rd.dasd=0.0.{{ hypershift.agents_parms.zvm_parameters.nodes[item].dasd.disk_id }}\"{% else %}\"rd.zfcp={{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].paths[0].fcp}},{{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].paths[0].wwpn }},{{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].id }}\"{% endif %}]"}}' --type merge
+      shell: oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{ item }}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}"}}' --type merge
+      when: "{{ hypershift.mce.version != '2.4' }}"
+
+    - name: Approve agents and patch installer args 
+      shell: oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{item}}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}","installerArgs":"[\"--append-karg\",\"rd.neednet=1\", \"--append-karg\", \"ip={{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.ip }}::{{ hypershift.agents_parms.zvm_parameters.gateway }}:{{ hypershift.agents_parms.zvm_parameters.subnetmask }}:compute-{{ item }}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}:{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.ifname }}:none\", \"--append-karg\", \"nameserver={{ hypershift.agents_parms.zvm_parameters.nameserver }}\", \"--append-karg\",\"rd.znet={{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.nettype }},{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.subchannels }},{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.options }}\",\"--append-karg\", {% if hypershift.agents_parms.zvm_parameters.disk_type | lower != 'fcp' %}\"rd.dasd=0.0.{{ hypershift.agents_parms.zvm_parameters.nodes[item].dasd.disk_id }}\"{% else %}\"rd.zfcp={{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].paths[0].fcp}},{{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].paths[0].wwpn }},{{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].id }}\"{% endif %}]"}}' --type merge
+      when: "{{ hypershift.mce.version == '2.4' }}"
+
   
