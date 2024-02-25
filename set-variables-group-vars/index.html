@@ -1250,7 +1250,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.network_mode</strong></td>
-<td style="text-align: left;">Network mode for zvm nodes <br /> Supported modes: vswitch</td>
+<td style="text-align: left;">Network mode for zvm nodes <br /> Supported modes: vswitch,osa</td>
 <td style="text-align: left;">vswitch</td>
 </tr>
 <tr>
@@ -1287,6 +1287,61 @@
 <td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes</strong></td>
 <td style="text-align: left;">Set of parameters for zvm nodes <br /> Give the details of each zvm node here</td>
 <td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.name</strong></td>
+<td style="text-align: left;">Name of the zVM guest</td>
+<td style="text-align: left;">m1317002</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.host</strong></td>
+<td style="text-align: left;">Host name of the zVM guests <br /> which we use to login 3270 console</td>
+<td style="text-align: left;">boem1317</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.user</strong></td>
+<td style="text-align: left;">Username for zVM guests to login</td>
+<td style="text-align: left;">m1317002</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.password</strong></td>
+<td style="text-align: left;">password for the zVM guests to login</td>
+<td style="text-align: left;">password</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.interface.ifname</strong></td>
+<td style="text-align: left;">Network interface name for zVM guests</td>
+<td style="text-align: left;">encbdf0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.interface.nettype</strong></td>
+<td style="text-align: left;">Network type for zVM guests for network connectivity</td>
+<td style="text-align: left;">qeth</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.interface.subchannels</strong></td>
+<td style="text-align: left;">subchannels for zVM guests interfaces</td>
+<td style="text-align: left;">0.0.bdf0,0.0.bdf1,0.0.bdf2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.interface.options</strong></td>
+<td style="text-align: left;">Configurations options</td>
+<td style="text-align: left;">layer2=1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.interface.ip</strong></td>
+<td style="text-align: left;">IP addresses for to be used for zVM nodes</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.dasd.disk_id</strong></td>
+<td style="text-align: left;">Disk id for dasd disk to be used for zVM node</td>
+<td style="text-align: left;">4404</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.lun</strong></td>
+<td style="text-align: left;">Disk details of fcp disk to be used for zVM node</td>
+<td style="text-align: left;">4404</td>
 </tr>
 </tbody>
 </table>
