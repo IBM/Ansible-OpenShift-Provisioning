@@ -50,6 +50,11 @@
     dest: /usr/local/bin/
     remote_src: true
 
+- name: Get ICSP for Hosted Control Plane
+  template:
+    src: icsp.yaml.j2
+    dest: /root/ansible_workdir/icsp.yaml
+
 - name: Create a Hosted Cluster
   command: >
     hcp create cluster agent 
@@ -61,9 +66,10 @@
     --api-server-address=api.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }} 
     --ssh-key ~/.ssh/{{ env.ansible_key_name }}.pub
     {% if hypershift.hcp.high_availabiliy == false %}
-    --control-plane-availability-policy "SingleReplica"
+    --control-plane-availability-policy "SingleReplica" 
     {% endif %}
-    --infra-availability-policy "SingleReplica"
+    --infra-availability-policy "SingleReplica" 
+    --image-content-sources /root/ansible_workdir/icsp.yaml 
     --release-image=quay.io/openshift-release-dev/ocp-release:{{ hypershift.hcp.ocp_release }} 
     {% set release_image = lookup('env', 'HCP_RELEASE_IMAGE') %}
     {% if release_image is defined and release_image != '' %}
