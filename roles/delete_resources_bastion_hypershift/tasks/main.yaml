@@ -74,6 +74,35 @@
     name: "{{ hypershift.hcp.clusters_namespace }}"
     state: absent
 
+- name: Wait for managed cluster resource to be deleted
+  shell: oc get managedcluster "{{ hypershift.hcp.hosted_cluster_name }}"
+  register: managedcluster
+  until: managedcluster.rc != 0
+  retries: 40
+  delay: 20
+  when: hypershift.mce.delete == true
+  ignore_errors: yes
+
+- fail:
+    msg: "Managed cluster resource for HCP is not getting deleted"
+  when: managedcluster.rc == 0 and managedcluster.attempts >= 40
+
+- name: Disable local-cluster component in MCE 
+  command: oc patch mce {{ hypershift.mce.instance_name }} -p '{"spec":{"overrides":{"components":[{"name":"local-cluster","enabled":false}]}}}' --type merge
+
+- name: Wait for local-cluster components to be deleted
+  shell: oc get ns local-cluster
+  register: localcluster
+  until: localcluster.rc != 0
+  retries: 40
+  delay: 20
+  when: hypershift.mce.delete == true
+  ignore_errors: yes
+
+- fail:
+    msg: "local-cluster namespace is still present"
+  when: localcluster.rc == 0 and localcluster.attempts >= 40
+
 - name: Delete AgentServiceConfig
   k8s:
     api_version: agent-install.openshift.io/v1beta1
