@@ -102,6 +102,7 @@
         name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
         command: destroy
       ignore_errors: true
+      when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars
 
     - name: Undefine bootstrap. Expect ignored errors if bootstrap is already undefined.
       tags: create_nodes, teardown_bootstrap
@@ -109,7 +110,7 @@
         name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
         command: undefine
       ignore_errors: true
-  when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars
+      when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars
 
 - name: 6 create nodes - once bootstrapping is complete, create compute nodes.
   hosts: kvm_host
