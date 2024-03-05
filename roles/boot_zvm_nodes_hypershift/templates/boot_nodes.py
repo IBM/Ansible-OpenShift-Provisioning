@@ -26,7 +26,7 @@ if args.network.lower() == 'osa':
     interfaces=[{ "type": "osa", "id": "{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.subchannels.split(',') | map('regex_replace', '0.0.', '') | join(',') }}"}]
 
 elif args.network.lower() == 'roce':
-    interfaces=[{ "type": "pcif", "id": "{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.ifname }}"}]
+    interfaces=[{ "type": "pci", "id": "{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.ifname }}"}]
 
 guest_parameters = {
 "boot_method": "network",
