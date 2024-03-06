@@ -34,7 +34,7 @@
       loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
 
     - name: Patch the machines to remove finalizers
-      command: oc patch machine.cluster.x-k8s.io {{ machines[item] }} -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} --type='json' -p="[{"op": \"remove\", "path": \"/metadata/finalizers\"}]"
+      shell: oc patch machine.cluster.x-k8s.io "{{ machines[item] }}" -n "{{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}" --type='json' -p="[{"op": \"remove\", "path": \"/metadata/finalizers\"}]"
       loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
 
 - name: Wait for Agentmachines to delete
