@@ -27,7 +27,7 @@
   when: hypershift.compute_node_type | lower != 'zvm'
 
 - name: Patch Agents
-  shell: oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}  patch agent {{ agents[item] }} -p '{"spec":{"installation_disk_id":"/dev/vda","approved":true,"hostname":"worker-{{item}}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}"}}' --type merge
+  shell: oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}  patch agent {{ agents[item] }} -p '{"spec":{"installation_disk_id":"/dev/vda","approved":true,"hostname":"compute-{{item}}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}"}}' --type merge
   loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
   when: hypershift.compute_node_type | lower != 'zvm'
 
