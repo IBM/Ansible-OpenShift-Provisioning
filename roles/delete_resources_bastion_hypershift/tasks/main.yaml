@@ -6,15 +6,16 @@
 - name: Scale in  Nodepool
   command: oc -n {{ hypershift.hcp.clusters_namespace }} scale nodepool {{ hypershift.hcp.hosted_cluster_name }} --replicas 0
 
-- name: Wait for Worker Nodes to Detach
-  k8s_info:
-    api_version: v1
-    kind: Node
-    kubeconfig: "/root/ansible_workdir/hcp-kubeconfig"
-  register: nodes
-  until: nodes.resources | length == 0
-  retries: 30
-  delay: 10
+- block:
+    - name: Wait for Worker Nodes to Detach
+      k8s_info:
+        api_version: v1
+        kind: Node
+        kubeconfig: "/root/ansible_workdir/hcp-kubeconfig"
+      register: nodes
+      until: nodes.resources | length == 0
+      retries: 30
+      delay: 10
   rescue:
     - name: Deleting the compute nodes manually 
       command: oc delete no compute-{{item}}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }} --kubeconfig /root/ansible_workdir/hcp-kubeconfig
