@@ -16,9 +16,13 @@
       until: nodes.resources | length == 0
       retries: 30
       delay: 10
-  rescue:
+  rescue: 
+    - name: Getting basedomain
+      shell: oc get hc {{ hypershift.hcp.hosted_cluster_name }} -n {{ hypershift.hcp.clusters_namespace }} -o json | jq -r '.spec.dns.baseDomain'
+      register: base_domain
+
     - name: Deleting the compute nodes manually 
-      command: oc delete no compute-{{item}}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }} --kubeconfig /root/ansible_workdir/hcp-kubeconfig
+      command: oc delete no compute-{{item}}.{{ hypershift.hcp.hosted_cluster_name }}.{{ base_domain.stdout }} --kubeconfig /root/ansible_workdir/hcp-kubeconfig
       loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
 
     - name: Get machine names
