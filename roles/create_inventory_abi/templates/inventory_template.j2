@@ -1,0 +1,7 @@
+{% if abi.compute_node_type | lower != 'zvm' %}
+[kvm_host_abi]
+kvm_host_abi ansible_host={{ abi.kvm_host }} ansible_user={{ abi.kvm_host_user }} ansible_become_password={{ kvm_host_password }}
+
+{% endif %}
+[bastion_abi]
+bastion_abi ansible_host={{ abi.bastion_abi }} ansible_user={{ abi.bastion_abi_user }}
