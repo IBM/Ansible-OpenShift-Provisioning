@@ -1,0 +1,71 @@
+# Install Prerequisites On KVM_HOST
+- name: Install Prerequisites On KVM_HOST
+  hosts: kvm_host_abi_sno
+  become: true
+  vars_files:
+    - "{{playbook_dir}}/secrets.yaml"
+  tasks:
+    - name: Setting Host
+      set_fact:
+        host: 'kvm_host_abi_sno'
+      when: abi.compute_node_type | lower != 'zvm'
+
+    - name: Install Prereqs On Host
+      import_role:
+        name:  install_prerequisites_host_hypershift
+      when: abi.compute_node_type | lower != 'zvm'
+
+# Create MacvTap Network
+- name: Create MacvTap Network
+  hosts: kvm_host_abi_sno
+  become: true
+  tasks:
+    - name: Setting interface name
+      set_fact:
+        networking:
+          device1: "{{ abi.networking_device }}"
+      when: abi.compute_node_type | lower != 'zvm'
+
+    - name:  Creating MacvTap Network
+      import_role:
+        name: macvtap
+      when: abi.compute_node_type | lower != 'zvm'
+
+# Create Bastion 
+- name: Create Bastion
+  hosts: 'm42lp53' #kvm_host[0]
+  become: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
+  roles:
+    - common
+    - { role: create_bastion, when: env.bastion.create == True }
+
+# Set Up HAProxy On Bastion
+- name: Set Up HAProxy On Bastion
+  hosts: 'abi_bastion' #kvm_host[0]
+  become: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - common
+    - role: haproxy
+
+# Set Up DNS On Bastion
+- name: Set Up DNS On Bastion
+  hosts: 'abi_bastion' #kvm_host[0]
+  become: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - common
+    - role: dns
+
+# Prepare AgentConfig & InstallConfig
+
+# Build initrd.img, rootfs.img & kernelfs.img 
+
+# Boot The VM using initrd.img, rootfs.img & kernelfs.img 
+
+# !!!!!!!!!!!!!!!!! YAY SNO IS UP !!!!!!!!!!!!!!!!! #
