@@ -920,8 +920,8 @@
 <td style="text-align: left;">OCPZ-01 key</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>env.bridge_name</strong></td>
-<td style="text-align: left;">(Optional) Name of the macvtap bridge that will be created on the KVM host or in case of NAT the name of the NAT network defenition (usually it is 'default'). If NAT is being used and a jumphost is needed, the parameters network_mode, jumphost.name, jumphost.user and jumphost.pass must be specified, too. In case of default (NAT) network verify that the configured IP ranges does not interfere with the IPs defined for the controle and compute nodes. Modify the default network (dhcp range setting) to prevent issues with VMs using dhcp and OCP nodes having fixed IPs.</td>
+<td style="text-align: left;"><strong>env.vnet_name</strong></td>
+<td style="text-align: left;">(Optional) Name of the bridged virtual network that will be created on the KVM host if network mode is not set to NAT. In case of NAT network mode the name of the NAT network definition used to create the nodes(usually it is 'default'). If NAT is being used and a jumphost is needed, the parameters network_mode, jumphost.name, jumphost.user and jumphost.pass must be specified, too. For default (NAT) network verify that the configured IP ranges does not interfere with the IPs defined for the controle and compute nodes. Modify the default network (dhcp range setting) to prevent issues with VMs using dhcp and OCP nodes having fixed IPs. Default is create a bridge network.</td>
 <td style="text-align: left;">macvtap-net</td>
 </tr>
 <tr>
