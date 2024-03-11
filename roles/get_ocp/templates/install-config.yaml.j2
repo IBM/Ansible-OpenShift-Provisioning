@@ -20,12 +20,12 @@ env.cluster.nodes.infra.ip|join(',')+ ',' +
 compute:
 - hyperthreading: {{ env.install_config.compute.hyperthreading }}
   name: worker
-  replicas: {{(env.cluster.nodes.compute.ip | length)}}
+  replicas: {{ (env.cluster.nodes.compute.hostname | default('') | length) }}
   architecture: {{ env.install_config.compute.architecture }}
 controlPlane:
   hyperthreading: {{ env.install_config.control.hyperthreading }}
   name: master
-  replicas: {{(env.cluster.nodes.control.ip | length)}}
+  replicas: {{(env.cluster.nodes.control.hostname | length)}}
   architecture: {{ env.install_config.control.architecture }}
 metadata:
   name: {{ env.cluster.networking.metadata_name }}
