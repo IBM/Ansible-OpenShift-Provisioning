@@ -59,6 +59,7 @@
   loop_control:
     extended: yes
     index_var: i
+  when: env.cluster.nodes.compute.hostname is defined
 
 - name: Add infrastructure nodes to DNS forwarding file on bastion if requested
   tags: dns
