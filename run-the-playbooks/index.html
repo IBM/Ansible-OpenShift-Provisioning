@@ -208,12 +208,18 @@
 <li>To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml</li>
 <li>Alternatively, to run all the playbooks at once, start the master playbook by running this shell command:</li>
 </ul>
-<pre class="codehilite"><code>ansible-playbook playbooks/site.yaml
+<pre class="codehilite"><code class="language-shell">ansible-playbook playbooks/site.yaml
 </code></pre>
 
 <ul>
 <li>If the process fails in error, go through the steps in the <a href="../troubleshooting/">troubleshooting</a> page.</li>
 <li>At the end of the the last playbook, follow the printed instructions for first-time login to the cluster.</li>
+<li>If you make cluster configuration changes in all.yaml file, like increased number of nodes or
+a new bastion setup, after you have successfully installed a OCP cluster,
+then you just need to run these playbooks in order:</li>
+<li>5_setup_bastion.yaml</li>
+<li>6_create_nodes.yaml</li>
+<li>7_ocp_verification.yaml</li>
 </ul>
 <h2 id="0-setup-playbook">0 Setup Playbook<a class="headerlink" href="#0-setup-playbook" title="Permanent link">#</a></h2>
 <h3 id="overview_1">Overview<a class="headerlink" href="#overview_1" title="Permanent link">#</a></h3>
