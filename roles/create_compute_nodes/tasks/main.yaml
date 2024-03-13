@@ -34,7 +34,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: env.z.high_availability == False and inventory_hostname == env.z.lpar1.hostname
+  when: env.cluster.nodes.compute.hostname is defined and env.z.high_availability == False and inventory_hostname == env.z.lpar1.hostname
 
 - name: Install CoreOS on infra nodes
   tags: create_compute_nodes
