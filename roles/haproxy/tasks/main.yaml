@@ -36,6 +36,18 @@
     extended: yes
     index_var: i
 
+- name: Add control node information to 443 section in haproxy config, when no compute nodes are defined
+  tags: haproxy
+  lineinfile:
+    line: "  server {{ env.cluster.nodes.control.hostname[i] }} {{ env.cluster.nodes.control.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:443 check inter 1s"
+    path: /etc/haproxy/haproxy.cfg
+    insertafter: "443 section"
+  with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+  when: env.cluster.nodes.compute.hostname is not defined
+
 - name: Add compute node information to 443 section in haproxy config
   tags: haproxy
   lineinfile:
@@ -59,6 +71,17 @@
     extended: yes
     index_var: i
   when: env.cluster.nodes.infra.hostname is defined
+
+- name: Add control node information to 80 section in haproxy config, when no compute nodes are defined
+  tags: haproxy
+  lineinfile:
+    line: "  server {{ env.cluster.nodes.control.hostname[i] }} {{ env.cluster.nodes.control.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:80 check inter 1s"
+    path: /etc/haproxy/haproxy.cfg
+  with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+  when: env.cluster.nodes.compute.hostname is not defined
 
 - name: Add compute node information to 80 section in haproxy config
   tags: haproxy
