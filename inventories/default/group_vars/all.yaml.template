@@ -223,7 +223,7 @@ env:
   root_access: false
   ansible_key_name: ansible-ocpz
   ocp_ssh_key_comment: OpenShift key
-  bridge_name: macvtap
+  vnet_name: macvtap
   network_mode:
   use_ipv6: True
   use_dhcp: False

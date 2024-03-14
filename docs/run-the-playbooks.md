@@ -19,11 +19,19 @@ ansible-playbook playbooks/0_setup.yaml
 * Watch Ansible as it completes the installation, correcting errors if they arise.
 * To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml
 * Alternatively, to run all the playbooks at once, start the master playbook by running this shell command:
-```
+
+```shell
 ansible-playbook playbooks/site.yaml
 ```
+
 * If the process fails in error, go through the steps in the [troubleshooting](troubleshooting.md) page.
 * At the end of the the last playbook, follow the printed instructions for first-time login to the cluster.
+* If you make cluster configuration changes in all.yaml file, like increased number of nodes or
+a new bastion setup, after you have successfully installed a OCP cluster,
+then you just need to run these playbooks in order:
+  * 5_setup_bastion.yaml
+  * 6_create_nodes.yaml
+  * 7_ocp_verification.yaml
 
 ## 0 Setup Playbook
 ### Overview
