@@ -62,6 +62,7 @@ env:
     networking:
       ip: #X
       ipv6: #X
+      mac: #X
       hostname: #X
       base_domain: #X
       subnetmask: #X
@@ -107,6 +108,7 @@ env:
         vm_name: #X
         ip: #X
         ipv6: #X
+        mac: #X
         hostname: #X
 
 # Section 8 - Control Nodes
@@ -124,6 +126,10 @@ env:
           - #X
           - #X
         ipv6:
+          - #X
+          - #X
+          - #X
+        mac:
           - #X
           - #X
           - #X
@@ -147,6 +153,9 @@ env:
         ipv6:
           - #X
           - #X
+        mac:
+          - #X
+          - #X
         hostname:
           - #X
           - #X
@@ -165,6 +174,9 @@ env:
 #        ipv6:
 #          - fd00::11
 #          - fd00::12
+#        mac:
+#          - #X
+#          - #X
 #        hostname:
 #          - infra1
 #          - infra2
