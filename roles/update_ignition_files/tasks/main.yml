@@ -1,5 +1,29 @@
 ---
 
+# Patch cluster configuration: Disable UDP aggregation
+# https://docs.openshift.com/container-platform/4.15/post_installation_configuration/configuring-multi-arch-compute-machines/creating-multi-arch-compute-nodes-ibm-z-kvm.html#machine-user-infra-machines-ibm-z-kvm_creating-multi-arch-compute-nodes-ibm-z-kvm
+# Currently, UDP aggregation is not supported on IBM Z and is not automatically deactivated on multi-architecture
+# compute clusters with an x86_64 control plane and additional s390x compute machines. To ensure that the addtional
+# compute nodes are added to the cluster correctly, you must manually disable UDP aggregation.
+- name: Disable UDP aggregation, because it is not supported on IBM Z
+  # Requires sudo access
+  become: true
+  block:
+    - name: Disable UDP aggregation, copy required files to Bastion
+      ansible.builtin.template:
+        src: udp-aggregation-config.yaml
+        dest: /tmp/udp-aggregation-config.yaml
+        mode: '0644'
+        force: true
+    - name: Disable UDP aggregation, apply changes
+      ansible.builtin.shell: |
+        oc apply -f /tmp/udp-aggregation-config.yaml
+        sleep 10
+      register: cmd_output
+    - name: Print above command output
+      ansible.builtin.debug:
+        var: cmd_output.stdout_lines
+
 # Ignition file update
 - name: Update master and worker ignition files on bastion host
   # Requires sudo access
@@ -10,9 +34,7 @@
         echo "Print machineconfigs:"
         oc get mc
         echo "Update worker ignition file ..."
-        oc extract -n openshift-machine-api secret/worker-user-data --keys=userData --to=- > /var/www/html/ignition/worker.ign
-        echo "Update master ignition file ..."
-        oc extract -n openshift-machine-api secret/master-user-data --keys=userData --to=- > /var/www/html/ignition/master.ign
+        oc extract -n openshift-machine-api secret/worker-user-data-managed --keys=userData --to=- > /var/www/html/ignition/worker.ign
       register: cmd_output
     - name: Print above command output
       ansible.builtin.debug:
