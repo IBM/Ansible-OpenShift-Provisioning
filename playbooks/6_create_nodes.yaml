@@ -71,7 +71,20 @@
         name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
         command: undefine
       ignore_errors: true
-
+    
+    - name: Deleting the entries related to bootstrap in haproxy post it's deletion 
+      tags:  create_nodes, teardown_bootstrap
+      lineinfile:
+        regexp: "bootstrap"
+        state: absent
+        path: /etc/haproxy/haproxy.cfg
+      
+    - name: Restart the Haproxy Service
+      tags:  create_nodes, teardown_bootstrap
+      systemd_service:
+        name: haproxy
+        state: restarted
+      
 - name: 6 create nodes - once bootstrapping is complete, create compute nodes.
   hosts: kvm_host
   tags: create_compute_nodes
