@@ -8,6 +8,7 @@
 - name: Disable UDP aggregation, because it is not supported on IBM Z
   # Requires sudo access
   become: true
+  when: day2_compute_node is defined and day2_compute_node.host_arch == "s390x"
   block:
     - name: Disable UDP aggregation, copy required files to Bastion
       ansible.builtin.template:
@@ -25,11 +26,11 @@
         var: cmd_output.stdout_lines
 
 # Ignition file update
-- name: Update master and worker ignition files on bastion host
+- name: Update worker ignition files on bastion host
   # Requires sudo access
   become: true
   block:
-    - name: Update master and worker ignition files on bastion
+    - name: Update worker ignition files on bastion
       ansible.builtin.shell: |
         echo "Print machineconfigs:"
         oc get mc
