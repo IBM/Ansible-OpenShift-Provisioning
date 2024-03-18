@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+data:
+  disable-udp-aggregation: "true"
+metadata:
+  name: udp-aggregation-config
+  namespace: openshift-network-operator
