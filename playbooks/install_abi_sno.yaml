@@ -24,7 +24,7 @@
   roles:
     - { role: dns, when: env.bastion.options.dns }
 
-Set Up HAProxy On Bastion
+# Set Up HAProxy On Bastion
 - name: Set Up HAProxy On Bastion
   hosts: bastion
   become: false
