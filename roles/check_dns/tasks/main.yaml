@@ -52,6 +52,7 @@
   loop_control:
     extended: yes
     index_var: i
+  when: env.cluster.nodes.compute.hostname is defined
 
 - name: Check infrastructure nodes DNS resolution
   tags: check_dns, dns
