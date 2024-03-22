@@ -1,0 +1,10 @@
+---
+
+- name: Create Agent Using PXE Boot
+  command: openshift-install agent create pxe-files --log-level=debug chdir=~/{{abi.ansible_workdir}}
+
+- name: Copy initrd.img	kernel.img rootfs.img 
+  ansible.builtin.copy:
+    src: "~/{{ abi.ansible_workdir }}/boot-artifacts/"
+    dest: /var/www/html/
+    remote_src: yes

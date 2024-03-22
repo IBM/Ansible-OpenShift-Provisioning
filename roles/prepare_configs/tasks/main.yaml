@@ -5,13 +5,12 @@
     state: directory
 
 - name: Prepare Agent Config
-  tags: sno 
   ansible.builtin.template:
     src: agent-config.yaml.j2
     dest: ~/ansible_workdir/agent-config.yaml
     owner: root
     group: root
-    mode: "0644"
+    mode: "0700"
     backup: yes
 
 - name: Check if SSH key exists
@@ -23,13 +22,8 @@
   command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ env.ansible_key_name }}"
   when: ssh_key.stat.exists == false
 
-- name: Generate SSH key
+- name: Read SSH Key
   command: cat ~/.ssh/{{ env.ansible_key_name }}.pub
-  register: ssh_key
-
-- name: Update master and worker ignition files on bastion
-  ansible.builtin.shell: |
-    cat ~/.ssh/id_rsa.pub
   register: ssh_key
 
 - name: Prepare Install Config
@@ -40,5 +34,5 @@
     dest: ~/ansible_workdir/install-config.yaml
     owner: root
     group: root
-    mode: "0644"
+    mode: "0700"
     backup: yes

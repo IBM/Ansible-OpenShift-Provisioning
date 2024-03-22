@@ -5,43 +5,63 @@ metadata:
 rendezvousIP: {{ env.cluster.nodes.control.ip[0] }}
 
 hosts:
-{% for item in range(env.cluster.nodes.control.ip | length) %}
-  - hostname: "{{ env.cluster.nodes.control.hostname[item]}}"
+{% for item in range( env.cluster.nodes.control.ip | length ) %}
+  - hostname: "{{ env.cluster.nodes.control.hostname[item] }}"
     role: master
     interfaces:
       - name: eth0
-        macAddress: "{{ env.cluster.nodes.control.mac_address[item]}}"
+        macAddress: "{{ env.cluster.nodes.control.mac_address[item] }}"
     networkConfig:
       interfaces:
         - name: eth0
           type: ethernet
           state: up
-          mac-address: "{{ env.cluster.nodes.control.mac_address[item]}}"
+          mac-address: "{{ env.cluster.nodes.control.mac_address[item] }}"
           ipv4:
             enabled: true
             address:
-              - ip: "{{ env.cluster.nodes.control.ip[item]}}"
+              - ip: "{{ env.cluster.nodes.control.ip[item] }}"
                 prefix-length: 24
             dhcp: false
+      dns-resolver:
+        config:
+          server:
+            - "{{ env.bastion.networking.ip }}"
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: "{{ env.bastion.networking.gateway }}"
+            next-hop-interface: eth0
+            table-id: 254           
 {% endfor %}
 {% if env.cluster.nodes.compute.ip is defined %}
-{% for item in range(env.cluster.nodes.compute.ip | length) %}
-  - hostname: "{{ env.cluster.nodes.compute.hostname[item]}}"
+{% for item in range( env.cluster.nodes.compute.ip | length ) %}
+  - hostname: "{{ env.cluster.nodes.compute.hostname[item] }}"
     role: master
     interfaces:
       - name: eth0
-        macAddress: "{{ env.cluster.nodes.compute.mac_address[item]}}"
+        macAddress: "{{ env.cluster.nodes.compute.mac_address[item] }}"
     networkConfig:
       interfaces:
         - name: eth0
           type: ethernet
           state: up
-          mac-address: "{{ env.cluster.nodes.compute.mac_address[item]}}"
+          mac-address: "{{ env.cluster.nodes.compute.mac_address[item] }}"
           ipv4:
             enabled: true
             address:
-              - ip: "{{ env.cluster.nodes.compute.ip[item]}}"
+              - ip: "{{ env.cluster.nodes.compute.ip[item] }}"
                 prefix-length: 24
             dhcp: false
+      dns-resolver:
+        config:
+          server:
+            - "{{ env.bastion.networking.ip }}"
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: "{{ env.bastion.networking.gateway }}"
+            next-hop-interface: eth0
+            table-id: 254 
 {% endfor %}
 {% endif %}
