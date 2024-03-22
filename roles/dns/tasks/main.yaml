@@ -104,7 +104,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: env.cluster.nodes.compute.hostname is defined
+  when: env.cluster.nodes.compute.hostname is defined and env.cluster.nodes.compute.hostname[0] is defined and env.cluster.nodes.compute.hostname[0] != None
 
 - name: Add infrastructure nodes to DNS reverse lookup file on bastion
   tags: dns
