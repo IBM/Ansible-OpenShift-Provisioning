@@ -43,6 +43,6 @@
       shell: oc get agents -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} --no-headers -o custom-columns=NAME:.metadata.name,APPROVED:.spec.approved | awk '$2 == "false"' 
       register: agent_name
 
-   - name: Approve agents 	
+    - name: Approve agents 	
       shell: oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{ item }}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}"}}' --type merge
 
