@@ -27,10 +27,10 @@ networking:
   - cidr: {{ env.install_config.cluster_network.cidr}}
     hostPrefix: {{ env.install_config.cluster_network.host_prefix}}
   machineNetwork:
-  - cidr: 172.30.0.0/16
+  - cidr: 172.23.0.0/16
   networkType: {{ env.install_config.cluster_network.type}} 
   serviceNetwork:
-  - {{ env.install_config.cluster_network.host_prefix}}
+  - {{ env.install_config.service_network}}
 platform:
   none: {}
 pullSecret: >

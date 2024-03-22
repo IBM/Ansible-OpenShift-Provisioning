@@ -1,17 +1,16 @@
 ---
 
-# - import_playbook: 0_setup.ymal
-# # Import Playbook To Generate Inventory & Adding SSH-Keys
-# - import_playbook: 0_setup.yaml
+# Import Playbook To Generate Inventory & Adding SSH-Keys
+- import_playbook: 0_setup.yaml
 
-# # Import Playbook To Install Prerequisites On KVM_HOST
-# - import_plyabook: 3_setup_kvm_host.yaml
+# Import Playbook To Install Prerequisites On KVM_HOST
+- import_plyabook: 3_setup_kvm_host.yaml
 
-# # Import Playbook To Create Bastion
-# - import_plyabook: 4_create_bastion
+# Import Playbook To Create Bastion
+- import_plyabook: 4_create_bastion
 
-# # Import Playbook To Configure
-# - import_playbook: 5_setup_bastion
+# Import Playbook To Configure
+- import_playbook: 5_setup_bastion
 
 # Create Bastion 
 - name: Create Bastion
@@ -69,6 +68,16 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - role: create_agent
+  
+  # Boot ABI Agents 
+- name: Boot ABI Agents
+  hosts: kvm_host[0]
+  become: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - common
+    - boot_abi_agents 
 
 # Boot The VM using initrd.img, rootfs.img & kernelfs.img 
 

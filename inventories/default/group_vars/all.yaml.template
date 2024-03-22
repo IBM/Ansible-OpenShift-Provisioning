@@ -479,11 +479,7 @@ day2_compute_node:
 
 # Section 19 - Agent Based Installer ( Optional )
 abi: 
-  sno: # Single Node Cluster
-  ha: # High Availability Cluster
-  compute_node_type: # 'zKVM/zVM'
-  kvm_host: 'm42lp54' # LPAR KVM HOST
-  kvm_host_user: 'root' # User On KVM HOST
-  bastion_abi: 'bastion_abi' # Bastion Name
-  bastion_abi_user: 'root' # User On Bastion
-  
+  flag: True
+  ansible_workdir: 'ansible_workdir'
+  ocp_installer_version: '4.15.0-rc.8' 
+  ocp_installer_url: 'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'
