@@ -118,25 +118,25 @@ env:
         vcpu: 4
         vcpu_model_option: "--cpu host"
         vm_name:
-          - #X
-          - #X
-          - #X
+#         - X
+#         - X
+#         - X
         ip:
-          - #X
-          - #X
-          - #X
+#         - X
+#         - X
+#         - X
         ipv6:
-          - #X
-          - #X
-          - #X
+#         - X
+#         - X
+#         - X
         mac:
-          - #X
-          - #X
-          - #X
+#         - X
+#         - X
+#         - X
         hostname:
-          - #X
-          - #X
-          - #X
+#         - X
+#         - X
+#         - X
 
 # Section 9 - Compute Nodes
       compute:
@@ -145,20 +145,20 @@ env:
         vcpu: 4
         vcpu_model_option: "--cpu host"
         vm_name:
-          - #X
-          - #X
+#         - X
+#         - X
         ip:
-          - #X
-          - #X
+#         - X
+#         - X
         ipv6:
-          - #X
-          - #X
+#         - X
+#         - X
         mac:
-          - #X
-          - #X
+#         - X
+#         - X
         hostname:
-          - #X
-          - #X
+#         - X
+#         - X
 
 # Section 10 - Infra Nodes
 #      infra:
@@ -175,8 +175,8 @@ env:
 #          - fd00::11
 #          - fd00::12
 #        mac:
-#          - #X
-#          - #X
+#          - X
+#          - X
 #        hostname:
 #          - infra1
 #          - infra2
@@ -350,10 +350,10 @@ hypershift:
       gateway:
 
       nodes:
-        - name: 
-          host: 
-          user: 
-          password: 
+        - name:
+          host:
+          user:
+          password:
           interface:
             ifname: encbdf0
             nettype: qeth
@@ -372,10 +372,10 @@ hypershift:
               - wwpn:
                 fcp:
 
-        - name: 
-          host: 
-          user: 
-          password: 
+        - name:
+          host:
+          user:
+          password:
           interface:
             ifname: encbdf0
             nettype: qeth
