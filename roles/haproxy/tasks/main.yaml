@@ -46,7 +46,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: env.cluster.nodes.compute.hostname is not defined
+  when: env.cluster.nodes.compute.hostname[0] is not defined
 
 - name: Add compute node information to 443 section in haproxy config
   tags: haproxy
@@ -58,7 +58,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: env.cluster.nodes.compute.hostname is defined
+  when: env.cluster.nodes.compute.hostname[0] is defined
 
 - name: Add infrastructure node information to 443 section in haproxy config
   tags: haproxy
@@ -81,7 +81,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: env.cluster.nodes.compute.hostname is not defined
+  when: env.cluster.nodes.compute.hostname[0] is not defined
 
 - name: Add compute node information to 80 section in haproxy config
   tags: haproxy
@@ -92,7 +92,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: env.cluster.nodes.compute.hostname is defined
+  when: env.cluster.nodes.compute.hostname[0] is defined
 
 - name: Add infrastructure node information to 80 section in haproxy config
   tags: haproxy
