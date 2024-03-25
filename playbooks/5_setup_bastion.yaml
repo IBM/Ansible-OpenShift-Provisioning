@@ -87,8 +87,8 @@
     openvpn_role: "server"
   roles:
     #- { role: robertdebock.bootstrap, tags: openvpn, when: env.z.high_availability == True }
-    - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True }
-    - { role: robertdebock.openvpn, tags: openvpn, when: env.z.high_availability == True }
+    - { role: robertdebock.epel, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True }
+    - { role: robertdebock.openvpn, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True }
 
 - hosts: localhost
   tags: services, section_2, openvpn
@@ -99,7 +99,7 @@
       file:
         state: directory
         path: tmp
-      when: env.z.high_availability == True
+      when: env.setup_openvpn == True and env.z.high_availability == True
 
 - hosts: bastion
   tags: services, section_2, openvpn
@@ -116,7 +116,7 @@
         - issued/client.crt
         - private/client.key
         - ta.key
-      when: env.z.high_availability == True
+      when: env.setup_openvpn == True and env.z.high_availability == True
 
 - name: setup OpenVPN on KVM host(s).
   hosts: kvm_host
@@ -129,7 +129,7 @@
   pre_tasks:
     - name: Gather facts.
       setup:
-      when: env.z.high_availability == True
+      when: env.setup_openvpn == True and env.z.high_availability == True
 
     - name: Create landing directories for certificates and keys on KVM hosts.
       tags: openvpn
@@ -140,7 +140,7 @@
       loop:
         - issued
         - private
-      when: env.z.high_availability == True
+      when: env.setup_openvpn == True and env.z.high_availability == True
 
     - name: Copy certificates and keys from controller to KVM hosts.
       tags: openvpn
@@ -153,10 +153,10 @@
         - client.crt
         - client.key
         - ta.key
-      when: env.z.high_availability == True
+      when: env.setup_openvpn == True and env.z.high_availability == True
   roles:
-    - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True }
-    - { role: robertdebock.openvpn, tags: openvpn, when: env.z.high_availability == True }
+    - { role: robertdebock.epel, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True }
+    - { role: robertdebock.openvpn, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True }
 
 - hosts: localhost
   tags: services, section_2, openvpn
@@ -167,7 +167,7 @@
       file:
         state: absent
         path: tmp
-      when: env.z.high_availability == True
+      when: env.setup_openvpn == True and env.z.high_availability == True
 
 - hosts: bastion
   tags: get_ocp, section_3
