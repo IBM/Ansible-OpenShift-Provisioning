@@ -2,3 +2,5 @@
 * text=auto
 *.yaml linguist-detectable=true
 *.yaml linguist-language=YAML
+*.yml linguist-detectable=true
+*.yml linguist-language=YAML
