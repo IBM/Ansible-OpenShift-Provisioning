@@ -96,7 +96,7 @@
     --ram {{ env.cluster.nodes.compute.ram }} \
     {{ env.cluster.nodes.compute.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.compute.vcpu }} \
-    --network network={{ env.vnet_name }}{{ (',mac=' + compute_mac[i] if (compute_mac[i] is defined and env.use_dhcp) }} \
+    --network network={{ env.vnet_name }}{{ (',mac=' + compute_mac[i] if (compute_mac[i] is defined and env.use_dhcp)) }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda" \
     --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }}" \
