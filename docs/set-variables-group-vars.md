@@ -55,6 +55,7 @@
 ## 5 - Bastion
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
+**env.bastion.installation_type** | Can be of type kvm or lpar. Some packages will be ignored for installation in case of lpar based installation. | kvm 
 **env.bastion.create** | True or False. Would you like to create a bastion KVM guest to host essential infrastructure services like DNS,<br /> load balancer, firewall, etc? Can de-select certain services with the env.bastion.options<br /> variables below. | True
 **env.bastion.vm_name** | Name of the bastion VM. Arbitrary value. | bastion
 **env.bastion.resources.disk_size** | How much of the storage pool would you like to allocate to the bastion (in<br /> Gigabytes)? Recommended 30 or more. | 30
