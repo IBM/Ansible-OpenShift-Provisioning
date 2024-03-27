@@ -101,6 +101,7 @@
     path: /root/ocpinst/manifests/cluster-scheduler-02-config.yml
     regexp: ": true"
     replace: ": false"
+  when: (env.cluster.nodes.compute.hostname | default('') | length) != 0
 
 - name: Set permissions for ocpinst directory contents to root
   tags: get_ocp

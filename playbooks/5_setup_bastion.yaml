@@ -153,6 +153,7 @@
         - client.crt
         - client.key
         - ta.key
+
       when: env.z.high_availability == True and env.bastion.installation_type != "zvm" and env.bastion.installation_type != "lpar"
   roles:
     - { role: robertdebock.epel, tags: openvpn, when: env.z.high_availability == True and env.bastion.installation_type != "zvm" and env.bastion.installation_type != "lpar"  }

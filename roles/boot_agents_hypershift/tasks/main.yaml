@@ -20,7 +20,7 @@
     --vcpus="{{ hypershift.agents_parms.vcpus }}"  \
     --location "/var/lib/libvirt/images/pxeboot/,kernel=kernel.img,initrd=initrd.img" \
     --disk {{ hypershift.agents_parms.storage.pool_path }}{{ hypershift.hcp.hosted_cluster_name }}-agent{{ item }}.qcow2 \
-    --network network:{{ env.bridge_name }},mac=$mac_address \
+    --network network:{{ env.vnet_name }},mac=$mac_address \
     --graphics none \
     --noautoconsole  \
     --wait=-1 \

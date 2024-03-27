@@ -12,12 +12,10 @@
 - name: Delete control, compute and infra nodes, if exists
   tags: delete_nodes
   ansible.builtin.shell: |
-    set -o pipefail
     virsh destroy {{ item }} || true
     virsh undefine {{ item }} --remove-all-storage --nvram || true
-  loop: "{{ env.cluster.nodes.control.vm_name + env.cluster.nodes.compute.vm_name \
-    if env.cluster.nodes.infra.vm_name is not defined \
-    else env.cluster.nodes.control.vm_name + env.cluster.nodes.compute.vm_name + env.cluster.nodes.infra.vm_name }}"
+  loop: "{{ env.cluster.nodes.control.vm_name + \
+        (env.cluster.nodes.compute.vm_name | default([])) + (env.cluster.nodes.infra.vm_name | default([])) }}"
   register: delete_nodes
   changed_when: "('destroyed' in delete_nodes.stdout) or ('undefined' in delete_nodes.stdout)"
 

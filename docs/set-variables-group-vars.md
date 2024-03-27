@@ -16,7 +16,7 @@
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **env.z.high_availability** | Is this cluster spread across three LPARs? If yes, mark True. If not (just in<br /> one LPAR), mark False | True
-**env.z.ip_forward** | This variable specifies if ip forwarding is enabled or not if NAT network is selected. If ip_forwarding is set to 0, the installed OCP cluster will not be able to access external services. This setting will be configured during 3_setup_kvm playbook. If NAT will be configured after 3_setup_kvm playbook, the setup needs to be done manually before bastion is being created, configured or reconfigured by running the 3_setup_kvm playbook with parameter: --tags cfg_ip_forward | 1
+**env.z.ip_forward** | This variable specifies if ip forwarding is enabled or not if NAT network is selected. If ip_forwarding is set to 0, the installed OCP cluster will not be able to access external services because using NAT keep the nodes isolated. This parameter will be set via sysctl on the KVM host. The change of the value is instantly active. This setting will be configured during 3_setup_kvm playbook. If NAT will be configured after 3_setup_kvm playbook, the setup needs to be done manually before bastion is being created, configured or reconfigured by running the 3_setup_kvm playbook with parameter: --tags cfg_ip_forward | 1
 **env.z.lpar1.create** | To have Ansible create an LPAR and install RHEL on it for the KVM<br /> host, mark True. If using a pre-existing LPAR with RHEL already<br /> installed, mark False. | True
 **env.z.lpar1.hostname** | The hostname of the KVM host. | kvm-host-01
 **env.z.lpar1.ip** | The IPv4 address of the KVM host. | 192.168.10.1
@@ -184,7 +184,7 @@
 **env.keyboard** | Which keyboard layout would you like Red Hat Enterprise Linux to use?  | us
 **env.ansible_key_name** | (Optional) Name of the SSH key that Ansible will use to connect to hosts. | ansible-ocpz
 **env.ocp_key_name** | Comment to describe the SSH key used for OCP. Arbitrary value. | OCPZ-01 key
-**env.bridge_name** | (Optional) Name of the macvtap bridge that will be created on the KVM host or in case of NAT the name of the NAT network defenition (usually it is 'default'). If NAT is being used and a jumphost is needed, the parameters network_mode, jumphost.name, jumphost.user and jumphost.pass must be specified, too. In case of default (NAT) network verify that the configured IP ranges does not interfere with the IPs defined for the controle and compute nodes. Modify the default network (dhcp range setting) to prevent issues with VMs using dhcp and OCP nodes having fixed IPs.| macvtap-net
+**env.vnet_name** | (Optional) Name of the bridged virtual network that will be created on the KVM host if network mode is not set to NAT. In case of NAT network mode the name of the NAT network definition used to create the nodes(usually it is 'default'). If NAT is being used and a jumphost is needed, the parameters network_mode, jumphost.name, jumphost.user and jumphost.pass must be specified, too. For default (NAT) network verify that the configured IP ranges does not interfere with the IPs defined for the controle and compute nodes. Modify the default network (dhcp range setting) to prevent issues with VMs using dhcp and OCP nodes having fixed IPs. Default is create a bridge network.| macvtap-net
 **env.network_mode** | (Optional) In case the network mode will be NAT and the installation will be executed from remote (e.g. your laptop), a jumphost needs to be defined to let the installation access the bastion host. If macvtap for networking is being used this variable should be empty. | NAT
 **env.use_ipv6** | If ipv6 addresses should be assigned to the controle and compute nodes, this variable should be true (default) and the matching ipv6 settings should be specified. | True
 **env.use_dhcp** | If dhcp service should be used to get an IP address, this variable should be true and the matching mac address must be specified. | False
@@ -315,6 +315,7 @@
 **day2_compute_node.vm_hostname** | Hostnames for compute node. | compute-4
 **day2_compute_node.vm_vm_ip** | IPv4 address of the compute node. | 192.168.10.99
 **day2_compute_node.vm_vm_ipv6** | IPv6 address of the compute node. | fd00::99
+**day2_compute_node.vm_mac** | MAC address of the compute node if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
 **day2_compute_node.vm_vm_interface** | The network interface used for given IP addresses of the compute node. | enc1
 **day2_compute_node.hostname** | The hostname of the KVM host | kvm-host-01
 **day2_compute_node.host_arch** | KVM host architecture.  | s390x

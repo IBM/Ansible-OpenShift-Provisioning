@@ -63,6 +63,7 @@ env:
     networking:
       ip: #X
       ipv6: #X
+      mac: #X
       hostname: #X
       base_domain: #X
       subnetmask: #X
@@ -108,6 +109,7 @@ env:
         vm_name: #X
         ip: #X
         ipv6: #X
+        mac: #X
         hostname: #X
 
 # Section 8 - Control Nodes
@@ -117,21 +119,25 @@ env:
         vcpu: 4
         vcpu_model_option: "--cpu host"
         vm_name:
-          - #X
-          - #X
-          - #X
+#         - X
+#         - X
+#         - X
         ip:
-          - #X
-          - #X
-          - #X
+#         - X
+#         - X
+#         - X
         ipv6:
-          - #X
-          - #X
-          - #X
+#         - X
+#         - X
+#         - X
+        mac:
+#         - X
+#         - X
+#         - X
         hostname:
-          - #X
-          - #X
-          - #X
+#         - X
+#         - X
+#         - X
 
 # Section 9 - Compute Nodes
       compute:
@@ -140,17 +146,20 @@ env:
         vcpu: 4
         vcpu_model_option: "--cpu host"
         vm_name:
-          - #X
-          - #X
+#         - X
+#         - X
         ip:
-          - #X
-          - #X
+#         - X
+#         - X
         ipv6:
-          - #X
-          - #X
+#         - X
+#         - X
+        mac:
+#         - X
+#         - X
         hostname:
-          - #X
-          - #X
+#         - X
+#         - X
 
 # Section 10 - Infra Nodes
 #      infra:
@@ -166,6 +175,9 @@ env:
 #        ipv6:
 #          - fd00::11
 #          - fd00::12
+#        mac:
+#          - X
+#          - X
 #        hostname:
 #          - infra1
 #          - infra2
@@ -212,10 +224,11 @@ env:
   root_access: false
   ansible_key_name: ansible-ocpz
   ocp_ssh_key_comment: OpenShift key
-  bridge_name: macvtap
+  vnet_name: macvtap
   network_mode:
   use_ipv6: True
   use_dhcp: False
+  setup_openvpn: False
 
 #jumphost if network mode is NAT
   jumphost:
@@ -338,10 +351,10 @@ hypershift:
       gateway:
 
       nodes:
-        - name: 
-          host: 
-          user: 
-          password: 
+        - name:
+          host:
+          user:
+          password:
           interface:
             ifname: encbdf0
             nettype: qeth
@@ -360,10 +373,10 @@ hypershift:
               - wwpn:
                 fcp:
 
-        - name: 
-          host: 
-          user: 
-          password: 
+        - name:
+          host:
+          user:
+          password:
           interface:
             ifname: encbdf0
             nettype: qeth
@@ -461,6 +474,7 @@ day2_compute_node:
   vm_hostname:
   vm_ip:
   vm_ipv6:
+  vm_mac:
   vm_interface:
   hostname:
   host_arch:

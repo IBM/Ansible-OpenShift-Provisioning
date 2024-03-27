@@ -11,7 +11,7 @@
     --ram {{ env.cluster.nodes.control.ram }} \
     {{ env.cluster.nodes.control.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
-    --network network={{ env.bridge_name }}{{ (',mac=' + env.cluster.nodes.control.mac[i]) if (env.cluster.nodes.control.mac[i] is defined and env.use_dhcp) }} \
+    --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.control.mac[i]) if (env.cluster.nodes.control.mac[i] is defined and env.use_dhcp) }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda" \
     --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }}" \
@@ -48,7 +48,7 @@
     --ram {{ env.cluster.nodes.control.ram }} \
     {{ env.cluster.nodes.control.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
-    --network network={{ env.bridge_name }}{{ (',mac=' + env.cluster.nodes.control.mac[0]) if (env.cluster.nodes.control.mac[0] is defined and env.use_dhcp) }} \
+    --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.control.mac[0]) if (env.cluster.nodes.control.mac[0] is defined and env.use_dhcp) }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda" \
     --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }}" \
@@ -78,7 +78,7 @@
     --ram {{ env.cluster.nodes.control.ram }} \
     {{ env.cluster.nodes.control.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
-    --network network={{ env.bridge_name }}{{ (',mac=' + env.cluster.nodes.control.mac[1]) if (env.cluster.nodes.control.mac[1] is defined and env.use_dhcp) }} \
+    --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.control.mac[1]) if (env.cluster.nodes.control.mac[1] is defined and env.use_dhcp) }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda" \
     --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }}" \
@@ -108,7 +108,7 @@
     --ram {{ env.cluster.nodes.control.ram }} \
     {{ env.cluster.nodes.control.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
-    --network network={{ env.bridge_name }}{{ (',mac=' + env.cluster.nodes.control.mac[2]) if (env.cluster.nodes.control.mac[2] is defined and env.use_dhcp) }} \
+    --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.control.mac[2]) if (env.cluster.nodes.control.mac[2] is defined and env.use_dhcp) }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda" \
     --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }}" \

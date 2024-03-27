@@ -14,7 +14,7 @@
     --ram {{ env.cluster.nodes.bootstrap.ram }} \
     {{ env.cluster.nodes.bootstrap.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.bootstrap.vcpu }} \
-    --network network={{ env.bridge_name }}{{ (',mac=' + env.cluster.nodes.bootstrap.mac) if (env.cluster.nodes.bootstrap.mac is defined and env.use_dhcp) }} \
+    --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.bootstrap.mac) if (env.cluster.nodes.bootstrap.mac is defined and env.use_dhcp) }} \
     --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
     --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda" \
     --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }}" \
