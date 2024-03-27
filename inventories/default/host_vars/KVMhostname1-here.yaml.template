@@ -81,4 +81,10 @@ lpar:
 #      - 
 #      - 
 #    dev_num: 
-#    lun_name: 
+#    lun_name:
+
+# Section 7 -live disk info
+  livedisk:
+    livedisktype: #X 
+    devicenr: #X
+    livedisk_root_pass: #X 

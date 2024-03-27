@@ -82,3 +82,10 @@
 **lpar.storage_group_2_.storage_wwpn** | <b>(Optional)</b> World-wide port numbers for storage group. Use provided list formatting. | 500708680235c3f0<br />500708680235c3f1<br />500708680235c3f2<br />500708680235c3f3
 **lpar.storage_group_2_.dev_num** | <b>(Optional)</b> The logical device number of the Host Bus Adapter (HBA) for the storage group. | C001
 **lpar.storage_group_2_.lun_name** | <b>(Optional)</b> he Logical Unit Numbers (LUN) that points to a specific virtual disk<br /> behind the WWPN. | 4200569309ahhd240000000000000c001
+
+## 7 - (Optional) Livedisk info
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**lpar.livedisk.livedisktype** | <b>(Optional)</b> Storage type. DASD is the only tested type as of now. | dasd
+**lpar.livedisk.devicenr** | <b>(Optional)</b> the device no of the DASD live disk | c6h1
+**lpar.livedisk.livedisk_root_pass** | <b>(Optional)</b> root password for the livedisk | p@ssword

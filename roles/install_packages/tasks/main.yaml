@@ -14,6 +14,11 @@
   loop: "{{ packages }}"
   when: ansible_os_family != 'Darwin'
 
+- name:  Install tessia baselib
+  import_role:
+    name: install_tessia_baselib
+  when: env.bastion.installation_type == "lpar"
+
 - name: Installing required packages for Mac machines.
   tags: install_packages
   become: false
