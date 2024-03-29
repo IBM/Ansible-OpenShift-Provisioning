@@ -23,5 +23,8 @@
     dest: /usr/local/bin
     remote_src: yes
 
-
-  
+- name: Install NMState package
+  ansible.builtin.yum:
+    name: nmstate
+    state: latest
+    skip_broken: yes

@@ -1,0 +1,29 @@
+---
+
+- import_playbook: 0_setup.yaml # Import Playbook To Generate Inventory & Adding SSH-Keys.
+- import_playbook: 3_setup_kvm_host.yaml # Import Playbook To Install Prerequisites On KVM_HOST.
+- import_playbook: 4_create_bastion.yaml # Import Playbook To Create Bastion.
+- import_playbook: 5_setup_bastion.yaml # Import Playbook To Configure Bastion.
+
+# ABI Installation Proccess.
+- name: ABI Installation Proccess
+  hosts: bastion
+  become: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
+  roles:
+    - common # Common Variable the will be used by all the inwalked roles.
+    - download_ocp_installer # Download Openshift Installer.
+    - prepare_configs # Prepare AgentConfig & InstallConfig.
+    - create_agent # Create Agents || Build initrd.img, rootfs.img & kernelfs.img.
+
+# Boot ABI Agents. 
+- name: Boot ABI Agents
+  hosts: kvm_host[0]
+  become: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - common
+    - boot_abi_agents 
