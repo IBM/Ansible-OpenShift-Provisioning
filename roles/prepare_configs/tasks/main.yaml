@@ -10,7 +10,7 @@
     dest: ~/ansible_workdir/agent-config.yaml
     owner: root
     group: root
-    mode: "0700"
+    mode: "0755"
     backup: yes
 
 - name: Check if SSH key exists
@@ -34,5 +34,5 @@
     dest: ~/ansible_workdir/install-config.yaml
     owner: root
     group: root
-    mode: "0700"
+    mode: "0755"
     backup: yes
