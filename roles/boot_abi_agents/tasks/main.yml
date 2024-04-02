@@ -26,8 +26,8 @@
     {{ env.cluster.nodes.control.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
     --network network={{ env.bridge_name }}{{ (',mac=' + env.cluster.nodes.control.mac_address[i]) }} \
-    --location "http://{{ env.bastion.networking.ip }}:8080/,kernel={{ env.cluster.networking.metadata_name }}.s390x-kernel.img,initrd={{ env.cluster.networking.metadata_name }}.s390x-initrd.img" \
-    --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/{{ env.cluster.networking.metadata_name }}.s390x-rootfs.img" \
+    --location "http://{{ env.bastion.networking.ip }}:8080/,kernel={{ env.cluster.networking.metadata_name }}.{{ ansible_architecture }}-kernel.img,initrd={{ env.cluster.networking.metadata_name }}.{{ ansible_architecture }}-initrd.img" \
+    --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/{{ env.cluster.networking.metadata_name }}.{{ ansible_architecture }}-rootfs.img" \
     {% if (env.cluster.nodes.control.mac_address[i] is defined and env.use_dhcp) %}
     --extra-args "ip=dhcp" \
     {% else %}
