@@ -62,7 +62,7 @@
   become: true
   vars:
     packages: "{{ env.pkgs.bastion }}"
-    control_node_count: "{{env.cluster.nodes.control.ip | length}}"
+    control_node_count: "{{ env.cluster.nodes.control.ip | length }}"
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   pre_tasks:
@@ -78,8 +78,8 @@
     - set_firewall
     - { role: dns, when: env.bastion.options.dns }
     - { role: check_dns, when: env.bastion.options.dns is defined and env.bastion.options.dns }
-    - { role: haproxy, when: env.bastion.options.loadbalancer.on_bastion and control_node_count | int > 1}
-    - { role: sno_haproxy, when: env.bastion.options.loadbalancer.on_bastion and control_node_count | int == 1}
+    - { role: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
+    - { role: sno_haproxy, when: env.bastion.options.loadbalancer.on_bastion and control_node_count | int == 1 }
     - httpd
 
 - hosts: bastion
