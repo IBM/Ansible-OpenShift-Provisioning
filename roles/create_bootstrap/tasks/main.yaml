@@ -10,7 +10,7 @@
     --name {{ env.cluster.nodes.bootstrap.vm_name }} \
     --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
     --autostart \
-    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.bootstrap.disk_size }}  \
+    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.bootstrap.disk_size }},cache=none,io=native \
     --ram {{ env.cluster.nodes.bootstrap.ram }} \
     {{ env.cluster.nodes.bootstrap.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.bootstrap.vcpu }} \
