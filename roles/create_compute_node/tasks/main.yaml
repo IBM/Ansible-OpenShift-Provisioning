@@ -61,7 +61,7 @@
             --name {{ param_compute_node.vm_name }} \
             --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
             --autostart \
-            --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }}  \
+            --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }},cache=none,io=native \
             --ram {{ env.cluster.nodes.compute.ram }} \
             ${CPU_MODEL} \
             --vcpus {{ env.cluster.nodes.compute.vcpu }} \
