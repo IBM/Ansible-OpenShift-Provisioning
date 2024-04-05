@@ -66,6 +66,7 @@
             ${CPU_MODEL} \
             --vcpus {{ env.cluster.nodes.compute.vcpu }} \
             --network network={{ env.vnet_name }}{{ (',mac=' + param_compute_node.vm_mac) if (param_compute_node.vm_mac is defined and env.use_dhcp) }} \
+            --memballoon none \
             --graphics none \
             --console pty,target_type=serial \
             --wait -1 \
