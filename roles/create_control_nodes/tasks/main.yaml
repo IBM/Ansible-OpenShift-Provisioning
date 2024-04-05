@@ -25,6 +25,7 @@
     --extra-args "{{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }}" \
     --extra-args "coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign" \
     --extra-args "{{ _vm_console }}" \
+    --memballoon none \
     --graphics none \
     --console pty,target_type=serial \
     --wait=-1 \
@@ -62,6 +63,7 @@
     --extra-args "{{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }}" \
     --extra-args "coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign" \
     --extra-args "{{ _vm_console }}" \
+    --memballoon none \
     --graphics none \
     --wait=-1 \
     --noautoconsole
@@ -92,6 +94,7 @@
     --extra-args "{{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }}" \
     --extra-args "coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign" \
     --extra-args "{{ _vm_console }}" \
+    --memballoon none \
     --graphics none \
     --wait=-1 \
     --noautoconsole
@@ -122,6 +125,7 @@
     --extra-args "{{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }}" \
     --extra-args "coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign" \
     --extra-args "{{ _vm_console }}" \
+    --memballoon none \
     --graphics none \
     --wait=-1 \
     --noautoconsole
