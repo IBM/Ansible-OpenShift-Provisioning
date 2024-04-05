@@ -27,6 +27,8 @@
     --extra-args "{{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }}" \
     --extra-args "coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
     --extra-args "{{ _vm_console }}" \
+    --memballoon none \
+    --graphics none \
     --wait=-1 \
     --noautoconsole
   timeout: 360
@@ -57,6 +59,8 @@
     --extra-args "{{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }}" \
     --extra-args "coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
     --extra-args "{{ _vm_console }}" \
+    --memballoon none \
+    --graphics none \
     --wait=-1 \
     --noautoconsole
   with_sequence: start=0 end={{ ( env.cluster.nodes.infra.hostname | length ) - 1}} stride=1
@@ -110,6 +114,8 @@
     --extra-args "{{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }}" \
     --extra-args "coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
     --extra-args "{{ _vm_console }}" \
+    --memballoon none \
+    --graphics none \
     --wait=-1 \
     --noautoconsole
   loop: "{{ compute_name | zip(compute_hostname, compute_ip) | list }}"
@@ -139,6 +145,8 @@
     --extra-args "{{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }}" \
     --extra-args "coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
     --extra-args "{{ _vm_console }}" \
+    --memballoon none \
+    --graphics none \
     --wait=-1 \
     --noautoconsole
   loop: "{{ infra_name | zip(infra_hostname, infra_ip) | list }}"
