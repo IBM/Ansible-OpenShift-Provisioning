@@ -145,7 +145,6 @@ run these playbooks. Currently we support only **env.network_mode** `macvtap` fo
 We recommand to create a new config file for the additional compute node with such parameters:
 
   ```yaml
-  ---
   day2_compute_node:
     vm_name: worker-4
     vm_hostname: worker-4
@@ -159,14 +158,14 @@ We recommand to create a new config file for the additional compute node with su
   rhcos_live_kernel: "rhcos-4.13.0-s390x-live-kernel-s390x"
   rhcos_live_initrd: "rhcos-4.13.0-s390x-live-initramfs.s390x.img"
   rhcos_live_rootfs: "rhcos-4.13.0-s390x-live-rootfs.s390x.img"
-  ```
+```
 
 Make sure that the hostname where you want to create the additional compute node is defined in the `inventories/default/hosts` file.
 Now you can execute the `add_compute_node` playbook with this command and parameter:
 
 ```shell
 ansible-playbook playbooks/add_compute_node.yaml --extra-vars "@compute-node.yaml"
-````
+```
 
 ### Outcomes
 * The defind compute node will be added or deleted, depends which playbook you have executed.
