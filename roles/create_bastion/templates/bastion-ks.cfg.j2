@@ -1,14 +1,13 @@
 # Template for bastion kickstart configuration file. Some parts come from the create_bastion role.
-# This kickstart file was tested with RHEL 8.7
-
-%pre --log=/root/pre.log
-%end
+# This kickstart file was tested with RHEL 9.2 and 9.3
 
 # Reboot after installation
 reboot
 
 # Use text mode install
 text --non-interactive
+# Uncomment next line, if you need to debug kickstart install issues
+#text
 
 # Run the Setup Agent on first boot
 firstboot --enable
@@ -38,7 +37,7 @@ network --hostname={{ env.bastion.networking.hostname }}.{{ env.cluster.networki
 
 # Firewall and SELinux
 firewall --enabled --http --ftp --smtp --ssh --port=443,9090
-selinux --enforcing
+selinux --permissive
 
 # Root password (will fill in during create_bastion role)
 
@@ -71,18 +70,26 @@ logvol / --fstype=xfs --name=root --vgname=vgsystem --size=1 --grow
 # Packages selection
 %packages --multilib --ignoremissing
 @^minimal-environment
+# Add required Bastion DNS, http and haproxy packages
+bind
 bind-utils
-curl
+expect
+haproxy
+httpd
 jq
-mc
+libosinfo
 net-tools
-# TODO: python3.6 is not supported anymore on RHEL8
-python3
 python3-pip
 rsync
 vim
-wget
-network-scripts
+# Add required python packages to build cryptography python module
+openssl-devel
+python3-devel
+redhat-rpm-config
+gcc
+libffi-devel
+cargo
+pkg-config
 %end
 
 %addon com_redhat_kdump --disable
@@ -90,7 +97,14 @@ network-scripts
 
 %post --log=/root/post.log
 #!/usr/bin/env bash
-#
+
+# Allow root login, required change for RHEL9
+sed -i -e '/PermitRootLogin/ c\PermitRootLogin yes' /etc/ssh/sshd_config
+
+# Basic /root/.ssh/config setup
+echo "UserKnownHostsFile=/dev/null" >> /root/.ssh/config
+echo "StrictHostKeyChecking=no" >> /root/.ssh/config
+
 # Yum repository configuration adjustments
 echo "gpgcheck=0" >> /etc/yum.repos.d/AppStream.repo
 echo "skip_if_unavailable=True" >> /etc/yum.repos.d/AppStream.repo
