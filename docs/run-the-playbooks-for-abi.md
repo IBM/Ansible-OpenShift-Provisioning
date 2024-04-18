@@ -3,7 +3,8 @@
 * KVM host with root user access or user with sudo privileges.
 
 ## Note: 
-* As of now we are supporting only macvtap for Agent based installation (ABI) for KVM compute nodes.
+* This playbook only support for single node cluster (SNO) on KVM using ABI.
+* As of now we are supporting only macvtap for Agent based installation (ABI) on KVM
 
 ### Steps: 
 
