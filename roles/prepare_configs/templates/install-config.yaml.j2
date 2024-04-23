@@ -1,0 +1,39 @@
+{% if env.cluster.nodes.compute.ip is defined %}
+{% set compute_replicas = env.cluster.nodes.compute.ip | length %}
+{% else %}
+{% set compute_replicas = 0 %}
+{% endif %}
+{% if env.cluster.nodes.control.ip is defined %}
+{% set control_replicas = env.cluster.nodes.control.ip | length %}
+{% else %}
+{% set control_replicas = 0 %}
+{% endif %}
+apiVersion: {{ env.install_config.api_version }}
+baseDomain: {{ env.cluster.networking.base_domain }}
+controlPlane:
+  architecture: {{ env.install_config.control.architecture }}
+  hyperthreading: {{ env.install_config.control.hyperthreading }}
+  name: master
+  replicas: {{ control_replicas }}
+compute:
+- architecture: {{ env.install_config.compute.architecture }}
+  hyperthreading: {{ env.install_config.compute.hyperthreading }}
+  name: worker
+  replicas: {{ compute_replicas }}
+metadata:
+  name: {{ env.cluster.networking.metadata_name }}
+networking:
+  clusterNetwork:
+  - cidr: {{ env.install_config.cluster_network.cidr }}
+    hostPrefix: {{ env.install_config.cluster_network.host_prefix }}
+  machineNetwork:
+  - cidr: {{ env.install_config.machine_network }}
+  networkType: {{ env.install_config.cluster_network.type }} 
+  serviceNetwork:
+  - {{ env.install_config.service_network }}
+platform:
+  none: {}
+pullSecret: >
+  {{ env.redhat.pull_secret }}
+sshKey: >
+  {{ ssh_key.stdout }}

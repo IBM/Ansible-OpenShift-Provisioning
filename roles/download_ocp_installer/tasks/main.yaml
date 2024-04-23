@@ -1,0 +1,30 @@
+---
+- name: Download OpenShift Installer.
+  get_url:
+    url: "{{ abi.ocp_installer_url }}{{abi.ocp_installer_version}}/openshift-install-linux.tar.gz"
+    dest: /tmp
+    validate_certs: false
+
+- name: Extract & Unzip Downloaded OpenShift Installer tar file on Remote
+  ansible.builtin.unarchive:
+    src: /tmp/openshift-install-linux.tar.gz
+    dest: /usr/local/bin
+    remote_src: yes
+
+- name: Download OpenShift Client.
+  get_url:
+    url: "{{ ocp_download_url }}{{ ocp_client_tgz }}"
+    dest: "/tmp/"
+    mode: "0755"
+
+- name: Extract & Unzip Downloaded OpenShift Client tar file on Remote
+  ansible.builtin.unarchive:
+    src: "{{ ocp_download_url }}{{ ocp_client_tgz }}"
+    dest: /usr/local/bin
+    remote_src: yes
+
+- name: Install NMState package
+  ansible.builtin.yum:
+    name: nmstate
+    state: latest
+    skip_broken: yes
