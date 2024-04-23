@@ -2,57 +2,62 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://ibm.github.io/Ansible-OpenShift-Provisioning/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ibm.github.io/Ansible-OpenShift-Provisioning/acknowledgements/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ibm.github.io/Ansible-OpenShift-Provisioning/before-you-begin/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ibm.github.io/Ansible-OpenShift-Provisioning/get-info/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ibm.github.io/Ansible-OpenShift-Provisioning/prerequisites/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-23</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://ibm.github.io/Ansible-OpenShift-Provisioning/run-the-playbooks-for-abi/</loc>
+         <lastmod>2024-04-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ibm.github.io/Ansible-OpenShift-Provisioning/run-the-playbooks-for-disconnected/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ibm.github.io/Ansible-OpenShift-Provisioning/run-the-playbooks-for-hypershift/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ibm.github.io/Ansible-OpenShift-Provisioning/run-the-playbooks/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ibm.github.io/Ansible-OpenShift-Provisioning/set-variables-group-vars/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ibm.github.io/Ansible-OpenShift-Provisioning/set-variables-host-vars/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ibm.github.io/Ansible-OpenShift-Provisioning/troubleshooting/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>

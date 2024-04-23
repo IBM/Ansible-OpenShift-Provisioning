@@ -55,7 +55,7 @@
               <ul class="current">
                   <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="./">2 Set Variables (group_vars)</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">2 Set Variables (group_vars)</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
     </li>
@@ -94,6 +94,8 @@
     <li class="toctree-l2"><a class="reference internal" href="#17-optional-disconnected-cluster-setup">17 - (Optional) Disconnected cluster setup</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#18-optional-create-compute-node-in-a-day-2-operation">18 - (Optional) Create compute node in a day-2 operation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#19-optional-agent-based-installer">19 - (Optional) Agent Based Installer</a>
     </li>
     </ul>
                   </li>
@@ -1546,6 +1548,38 @@
 <td style="text-align: left;"><strong>day2_compute_node.host_arch</strong></td>
 <td style="text-align: left;">KVM host architecture.</td>
 <td style="text-align: left;">s390x</td>
+</tr>
+</tbody>
+</table>
+<h2 id="19-optional-agent-based-installer">19 - (Optional) Agent Based Installer<a class="headerlink" href="#19-optional-agent-based-installer" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>abi.flag</strong></td>
+<td style="text-align: left;">This is the flag, Will be used to identify during execution. Few checks in the playbook will be depend on this (default value will be False)</td>
+<td style="text-align: left;">True</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>abi.ansible_workdir</strong></td>
+<td style="text-align: left;">This will be work directory name, it will keep required data that need to be present during or after execution</td>
+<td style="text-align: left;">ansible_workdir</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>abi.ocp_installer_version</strong></td>
+<td style="text-align: left;">Version will contain value of openshift-installer binary version user desired to be used</td>
+<td style="text-align: left;">'4.15.0-rc.8'</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>abi.ocp_installer_url</strong></td>
+<td style="text-align: left;">This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror</td>
+<td style="text-align: left;">'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'</td>
 </tr>
 </tbody>
 </table>

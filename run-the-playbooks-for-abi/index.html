@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/run-the-playbooks-for-abi/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Run the Playbooks - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Run the Playbooks";
+        var mkdocs_page_input_path = "run-the-playbooks-for-abi.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/run-the-playbooks-for-abi/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/ansible-logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Read Me</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../before-you-begin/">Before You Begin</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../prerequisites/">Prerequisites</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation Instructions</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hypershift/">Run the Playbooks (HyperShift)</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Misc</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgements/">Acknowledgements</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Run the Playbooks</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/run-the-playbooks-for-abi.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="run-the-playbooks">Run the Playbooks<a class="headerlink" href="#run-the-playbooks" title="Permanent link">#</a></h1>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h2>
+<ul>
+<li>KVM host with root user access or user with sudo privileges.</li>
+</ul>
+<h2 id="note">Note:<a class="headerlink" href="#note" title="Permanent link">#</a></h2>
+<ul>
+<li>This playbook only support for single node cluster (SNO) on KVM using ABI.</li>
+<li>As of now we are supporting only macvtap for Agent based installation (ABI) on KVM</li>
+</ul>
+<h3 id="steps">Steps:<a class="headerlink" href="#steps" title="Permanent link">#</a></h3>
+<h2 id="step-1-initial-setup-for-abi">Step-1: Initial Setup for ABI<a class="headerlink" href="#step-1-initial-setup-for-abi" title="Permanent link">#</a></h2>
+<ul>
+<li>Navigate to the <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning">root folder of the cloned Git repository</a> in your terminal (<code>ls</code> should show <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg">ansible.cfg</a>).</li>
+<li>Update variables in Section (1 - 9) and Section 12 - OpenShift Settings </li>
+<li>Update variables in Section - 19 ( Agent Based Installer ) in <a href="https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template">all.yaml</a> before running the playbooks.</li>
+<li>In case of SNO Section 9 ( Compute Nodes ) need to be comment or remove </li>
+<li>
+<p>First playbook to be run is 0_setup.yaml which will create inventory file for ABI and will add ssh key to the kvm host.</p>
+</li>
+<li>
+<p>Run this shell command:</p>
+</li>
+</ul>
+<pre class="codehilite"><code>ansible-playbook playbooks/0_setup.yaml
+</code></pre>
+
+<ul>
+<li>Run each part step-by-step by running one playbook at a time, or all at once using <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/master_playbook_for_abi.yaml">playbooks/master_playbook_for_abi.yaml</a>.</li>
+<li>
+<p>Here's the full list of playbooks to be run in order, full descriptions of each can be found further down the page:</p>
+<ul>
+<li>0_setup.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/0_setup.yaml">code</a>)</li>
+<li>3_setup_kvm_host.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml">code</a>)</li>
+<li>4_create_bastion.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/4_create_bastion.yaml">code</a>)</li>
+<li>5_setup_bastion.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/5_setup_bastion.yaml">code</a>)</li>
+<li>create_abi_cluster.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_abi_cluster.yaml">code</a>)</li>
+</ul>
+</li>
+<li>
+<p>Watch Ansible as it completes the installation, correcting errors if they arise.</p>
+</li>
+<li>To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml</li>
+<li>Alternatively, to run all the playbooks at once, start the master playbook by running this shell command:</li>
+</ul>
+<pre class="codehilite"><code class="language-shell">ansible-playbook playbooks/master_playbook_for_abi.yaml
+</code></pre>
+
+<ul>
+<li>If the process fails in error, go through the steps in the <a href="../troubleshooting/">troubleshooting</a> page.</li>
+</ul>
+<h2 id="step-2-setup-playbook-0_setupyaml">Step-2: Setup Playbook (0_setup.yaml)<a class="headerlink" href="#step-2-setup-playbook-0_setupyaml" title="Permanent link">#</a></h2>
+<h3 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h3>
+<p>First-time setup of the Ansible Controller, the machine running Ansible.</p>
+<h3 id="outcomes">Outcomes<a class="headerlink" href="#outcomes" title="Permanent link">#</a></h3>
+<ul>
+<li>Packages and Ansible Galaxy collections are confirmed to be installed properly.</li>
+<li>host_vars files are confirmed to match KVM host(s) hostnames.</li>
+<li>Ansible inventory is templated out and working properly.</li>
+<li>SSH key generated for Ansible passwordless authentication.</li>
+<li>SSH agent is setup on the Ansible Controller.</li>
+<li>Ansible SSH key is copied to the file server.</li>
+</ul>
+<h3 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">#</a></h3>
+<ul>
+<li>You can use an existing SSH key as your Ansible key, or have Ansible create one for you. It is highly recommended to use one without a passphrase.</li>
+</ul>
+<h2 id="step-3-setup-kvm-host-playbook-3_setup_kvm_hostyaml">Step-3: Setup KVM Host Playbook (3_setup_kvm_host.yaml)<a class="headerlink" href="#step-3-setup-kvm-host-playbook-3_setup_kvm_hostyaml" title="Permanent link">#</a></h2>
+<h3 id="overview_1">Overview<a class="headerlink" href="#overview_1" title="Permanent link">#</a></h3>
+<p>Configures the RHEL server(s) installed natively on the LPAR(s) to act as virtualization hypervisor(s) to host the virtual machines that make up the eventual cluster.</p>
+<h3 id="outcomes_1">Outcomes<a class="headerlink" href="#outcomes_1" title="Permanent link">#</a></h3>
+<ul>
+<li>Ansible SSH key is copied to all KVM hosts for passwordless authentication.</li>
+<li>RHEL subscription is auto-attached to all KVM hosts.</li>
+<li>Software packages specified in group_vars/all.yaml have been installed.</li>
+<li>Cockpit console enabled for Graphical User Interface via web browser. Go to http://kvm-ip-here:9090 to view it.</li>
+<li>Libvirt is started and enabled.</li>
+<li>Logical volume group that was created during kickstart is extended to fill all available space.</li>
+<li>A macvtap bridge has been created on the host's networking interface.</li>
+</ul>
+<h3 id="notes_1">Notes<a class="headerlink" href="#notes_1" title="Permanent link">#</a></h3>
+<ul>
+<li>If you're using a pre-existing LPAR, take a look at roles/configure_storage/tasks/main.yaml to make sure that the commands that will be run to extend the logical volume will work. Storage configurations can vary widely. The values there are the defaults from using autopart during kickstart. Also be aware that if lpar.storage_group_2.auto_config is True, the role roles/configure_storage/tasks/main.yaml will be non-idempotent. Meaning, it will fail if you run it twice.</li>
+</ul>
+<h2 id="step-4-create-bastion-playbook-4_create_bastionyaml">Step-4: Create Bastion Playbook (4_create_bastion.yaml)<a class="headerlink" href="#step-4-create-bastion-playbook-4_create_bastionyaml" title="Permanent link">#</a></h2>
+<h3 id="overview_2">Overview<a class="headerlink" href="#overview_2" title="Permanent link">#</a></h3>
+<p>Creates the bastion KVM guest on the first KVM host. The bastion hosts essential services for the cluster. If you already have a bastion server, that can be used instead of running this playbook.</p>
+<h3 id="outcomes_2">Outcomes<a class="headerlink" href="#outcomes_2" title="Permanent link">#</a></h3>
+<ul>
+<li>Bastion configs are templated out to the file server.</li>
+<li>Bastion is booted using virt-install.</li>
+<li>Bastion is kickstarted for fully automated setup of the operating system.</li>
+</ul>
+<h3 id="notes_2">Notes<a class="headerlink" href="#notes_2" title="Permanent link">#</a></h3>
+<ul>
+<li>This can be a particularly sticky part of the process.</li>
+<li>If any of the variables used in the virt-install or kickstart are off, the bastion won't be able to boot.</li>
+<li>Recommend watching it come up from the first KVM host's cockpit. Go to http://kvm-ip-here:9090 via web-browser to view it. You'll have to sign in, enable administrative access (top right), and then click on the virtual machines tab on the left-hand toolbar.</li>
+</ul>
+<h2 id="step-5-setup-bastion-playbook-5_setup_bastionyaml">Step-5: Setup Bastion Playbook (5_setup_bastion.yaml)<a class="headerlink" href="#step-5-setup-bastion-playbook-5_setup_bastionyaml" title="Permanent link">#</a></h2>
+<h3 id="overview_3">Overview<a class="headerlink" href="#overview_3" title="Permanent link">#</a></h3>
+<p>Configuration of the bastion to host essential infrastructure services for the cluster. Can be first-time setup or use an existing server.</p>
+<h3 id="outcomes_3">Outcomes<a class="headerlink" href="#outcomes_3" title="Permanent link">#</a></h3>
+<ul>
+<li>Ansible SSH key copied to bastion for passwordless authentication.</li>
+<li>Software packages specified in group_vars/all.yaml have been installed.</li>
+<li>An OCP-specific SSH key is generated for passing into the install-config (then passed to the nodes).</li>
+<li>Firewall is configured to permit traffic through the necessary ports.</li>
+<li>Domain Name Server (DNS) configured to resolve cluster's IP addresses and APIs. Only done if env.bastion.options.dns is true.</li>
+<li>DNS is checked to make sure all the necessary Fully Qualified Domain Names, including APIs resolve properly. Also ensures outside access is working.</li>
+<li>High Availability Proxy (HAProxy) load balancer is configured. Only done if env.bastion.options.loadbalancer.on_bastion is true.</li>
+<li>If the the cluster is to be highly available (meaning spread across more than one LPAR), an OpenVPN server is setup on the bastion to allow for the KVM hosts to communicate between eachother. OpenVPN clients are configured on the KVM hosts.</li>
+<li>CoreOS roofts is pulled to the bastion if not already there.</li>
+<li>OCP client and installer are pulled down if not there already.</li>
+<li>oc, kubectl and openshift-install binaries are installed.</li>
+<li>OCP install-config is templated and backed up. In disconnected mode, if platform is mirrored (currently only legacy), image content source policy and additionalTrustBundle is also patched.</li>
+<li>Manfifests are created.</li>
+<li>OCP install directory found at /root/ocpinst/ is created and populated with necessary files.</li>
+<li>Ignition files for the bootstrap, control, and compute nodes are transferred to HTTP-accessible directory for booting nodes.</li>
+</ul>
+<h3 id="notes_3">Notes<a class="headerlink" href="#notes_3" title="Permanent link">#</a></h3>
+<ul>
+<li>The stickiest part is DNS setup and get_ocp role at the end.</li>
+</ul>
+<h2 id="step-6-master-playbook-master_playbook_for_abi">Step-6: Master Playbook (master_playbook_for_abi)<a class="headerlink" href="#step-6-master-playbook-master_playbook_for_abi" title="Permanent link">#</a></h2>
+<h3 id="overview_4">Overview<a class="headerlink" href="#overview_4" title="Permanent link">#</a></h3>
+<ul>
+<li>Use this playbook to run all required 5 playbooks (0_setup, 3_setup_kvm_host,4_create_bastion, 5_setup_bastion, create_abi_cluster) at once.</li>
+</ul>
+<h3 id="outcomes_4">Outcomes<a class="headerlink" href="#outcomes_4" title="Permanent link">#</a></h3>
+<ul>
+<li>Same as all the above outcomes for all required playbooks.</li>
+<li>At the end you will have an OpenShift cluster deployed and first-time login credentials.</li>
+</ul>
+<h2 id="test-playbook-testyaml">Test Playbook (test.yaml)<a class="headerlink" href="#test-playbook-testyaml" title="Permanent link">#</a></h2>
+<h3 id="overview_5">Overview<a class="headerlink" href="#overview_5" title="Permanent link">#</a></h3>
+<ul>
+<li>Use this playbook for your testing purposes, if needed.</li>
+</ul>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright © 2022 IBM zSystems Washington Systems Center</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
