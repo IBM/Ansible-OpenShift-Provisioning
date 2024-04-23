@@ -20,7 +20,7 @@ ansible-playbook playbooks/0_setup.yaml
 * To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml
 * Alternatively, to run all the playbooks at once, start the master playbook by running this shell command:
 
-```shell
+```
 ansible-playbook playbooks/site.yaml
 ```
 
@@ -144,26 +144,26 @@ Final steps of waiting for and verifying the OpenShift cluster to complete its i
 run these playbooks. Currently we support only **env.network_mode** `macvtap` for these two playbooks.
 We recommand to create a new config file for the additional compute node with such parameters:
 
-  ```yaml
-  day2_compute_node:
-    vm_name: worker-4
-    vm_hostname: worker-4
-    vm_ip: 172.192.100.101
-    hostname: kvm01
-    host_arch: s390x
+```
+day2_compute_node:
+  vm_name: control-4
+  vm_hostname: control-4
+  vm_ip: 172.192.100.101
+  hostname: kvm01
+  host_arch: s390x
 
-  # rhcos_download_url with '/' at the end !
-  rhcos_download_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.13/4.13.0/"
-  # RHCOS live image filenames
-  rhcos_live_kernel: "rhcos-4.13.0-s390x-live-kernel-s390x"
-  rhcos_live_initrd: "rhcos-4.13.0-s390x-live-initramfs.s390x.img"
-  rhcos_live_rootfs: "rhcos-4.13.0-s390x-live-rootfs.s390x.img"
+# rhcos_download_url with '/' at the end !
+rhcos_download_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.15/4.15.0/"
+# RHCOS live image filenames
+rhcos_live_kernel: "rhcos-4.15.0-s390x-live-kernel-s390x"
+rhcos_live_initrd: "rhcos-4.15.0-s390x-live-initramfs.s390x.img"
+rhcos_live_rootfs: "rhcos-4.15.0-s390x-live-rootfs.s390x.img"
 ```
 
 Make sure that the hostname where you want to create the additional compute node is defined in the `inventories/default/hosts` file.
 Now you can execute the `add_compute_node` playbook with this command and parameter:
 
-```shell
+```
 ansible-playbook playbooks/add_compute_node.yaml --extra-vars "@compute-node.yaml"
 ```
 
