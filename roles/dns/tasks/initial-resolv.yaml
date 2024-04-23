@@ -20,5 +20,5 @@
 - name: Restart network to update changes made to /etc/resolv.conf
   tags: resolv
   ansible.builtin.service:
-    name: network
+    name: NetworkManager
     state: restarted

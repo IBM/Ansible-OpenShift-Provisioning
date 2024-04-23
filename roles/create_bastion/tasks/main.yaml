@@ -7,11 +7,22 @@
     mode: "0755"
     state: directory
 
-- name: Copy template kickstart file to KVM host server
+- name: Copy RHEL8 template kickstart file to KVM host server
   tags: create_bastion
+  when: '"rhel8" in env.file_server.iso_os_variant'
   become: false
   ansible.builtin.template:
     src: "bastion-ks.cfg.j2"
+    dest: "{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
+    mode: "0644"
+    force: true
+
+- name: Copy RHEL9 template (default) kickstart file to KVM host server
+  tags: create_bastion
+  when: '"rhel8" not in env.file_server.iso_os_variant'
+  become: false
+  ansible.builtin.template:
+    src: "rhel9-bastion-ks.cfg.j2"
     dest: "{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg"
     mode: "0644"
     force: true
