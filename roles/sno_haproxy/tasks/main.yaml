@@ -1,0 +1,31 @@
+---
+
+- name: Change permissive domain for haproxy
+  tags: selinux,haproxy
+  selinux_permissive:
+    name: haproxy_t
+    permissive: true
+
+- name: Use template to create SNO haproxy config file
+  tags: haproxy
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    backup: yes
+    force: yes
+
+- name: Set haproxy boolean to enable connections
+  tags: haproxy
+  command: setsebool -P haproxy_connect_any 1
+
+- name: Enable haproxy
+  tags: haproxy
+  ansible.builtin.systemd:
+    name: haproxy
+    enabled: yes
+
+- name: Restart haproxy
+  tags: haproxy
+  systemd:
+    state: restarted
+    name: haproxy

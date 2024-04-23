@@ -318,3 +318,12 @@
 **day2_compute_node.vm_vm_interface** | The network interface used for given IP addresses of the compute node. | enc1
 **day2_compute_node.hostname** | The hostname of the KVM host | kvm-host-01
 **day2_compute_node.host_arch** | KVM host architecture.  | s390x
+
+## 19 - (Optional) Agent Based Installer
+
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**abi.flag** | This is the flag, Will be used to identify during execution. Few checks in the playbook will be depend on this (default value will be False)  | True
+**abi.ansible_workdir** | This will be work directory name, it will keep required data that need to be present during or after execution | ansible_workdir
+**abi.ocp_installer_version** | Version will contain value of openshift-installer binary version user desired to be used | '4.15.0-rc.8'
+**abi.ocp_installer_url** | This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror | 'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'
