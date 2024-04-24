@@ -76,7 +76,7 @@
             {% if (param_compute_node.vm_mac is defined and env.use_dhcp) %}
             --extra-args "ip=dhcp" \
             {% else %}
-            --extra-args "ip={{ param_compute_node.vm_ip }}::{{ env.bastion.networking.gateway }}:{{ env.bastion.networking.subnetmask }}:{{ param_compute_node.vm_hostname }}:{{ param_compute_node.vm_interface }}:none:1500" \
+            --extra-args "ip={{ param_compute_node.vm_ip }}::{{ env.bastion.networking.gateway }}:{{ env.bastion.networking.subnetmask }}:{{ param_compute_node.vm_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ param_compute_node.vm_interface }}:none:1500" \
             --extra-args "{{ ('ip=[' + param_compute_node.vm_ipv6 + ']::[' + env.cluster.networking.ipv6_gateway +']:' + env.cluster.networking.ipv6_prefix | string + '::' + param_compute_node.vm_interface + ':none' ) if env.use_ipv6 == True else '' }}" \
             {% endif %}
             --extra-args "nameserver={{ env.cluster.networking.nameserver1 }}{{ (',' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }}" \
