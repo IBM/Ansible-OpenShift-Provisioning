@@ -1,0 +1,113 @@
+# Template for bastion kickstart configuration file. Some parts come from the create_bastion role.
+# This kickstart file was tested with RHEL 9.2 and 9.3
+
+# Shutdown after installation
+reboot
+
+# Use text mode install
+text --non-interactive
+# Uncomment next line, if you need to debug kickstart install issues
+#text
+
+# Run the Setup Agent on first boot
+firstboot --enable
+
+# Use network installation
+url --url={{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ env.file_server.iso_mount_dir }}
+
+# Add yum repositories
+repo --install --name="AppStream" --baseurl={{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ env.file_server.iso_mount_dir }}/AppStream/
+repo --install --name="BaseOS" --baseurl={{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ env.file_server.iso_mount_dir }}/BaseOS/
+
+# Keyboard layouts
+keyboard --vckeymap={{ env.keyboard }} --xlayouts='{{ env.keyboard }}'
+
+# System language
+lang {{ env.language }}
+
+# System timezone
+timezone {{ env.timezone }}
+
+# Mark the End-User License Agreement (EULA) as agreed
+eula --agreed
+
+# Network information
+network --bootproto=static --device={{ env.bastion.networking.interface }} --ip={{ env.bastion.networking.ip }} --gateway={{ env.bastion.networking.gateway }} --netmask={{ env.bastion.networking.subnetmask }} {{'--ipv6=' + env.bastion.networking.ipv6 if env.use_ipv6 else '--noipv6' }} {{'--ipv6gateway=' + env.bastion.networking.ipv6_gateway if env.use_ipv6 }} --nameserver={{ env.bastion.networking.nameserver1 }}{{ (',' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined }} --activate
+network --hostname={{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}
+
+# Firewall and SELinux
+firewall --enabled --http --ftp --smtp --ssh --port=443,9090
+selinux --permissive
+
+# Root password (will fill in during create_bastion role)
+
+# Users and Groups Definitions (will fill in during create_bastion role)
+
+# The following is the partition information you requested
+ignoredisk --only-use=vda
+
+# System bootloader configuration
+bootloader --append="crashkernel=auto" --location=mbr --boot-drive=vda
+
+# Partition clearing information
+clearpart --all --initlabel --drives=vda
+
+# Disk partitioning information
+{% if env.install_config.control.architecture == 'arm64' %}
+# TODO: Special setup for arm required, because our arm server requires /boot/efi partition with efi file system
+ignoredisk --only-use=vda
+# System bootloader configuration
+bootloader --location=mbr --boot-drive=vda
+autopart
+{% else %}
+part /boot --fstype="xfs" --asprimary --ondisk=vda --size=1024
+part pv.01 --fstype="lvmpv" --grow --size=1 --ondisk=vda
+volgroup vgsystem --pesize=4096 pv.01
+logvol swap --fstype=swap --name=swap --vgname=vgsystem --size={{ env.bastion.resources.swap }}
+logvol / --fstype=xfs --name=root --vgname=vgsystem --size=1 --grow
+{% endif %}
+
+# Packages selection
+%packages --multilib --ignoremissing
+@^minimal-environment
+# Add required Bastion DNS, http and haproxy packages
+bind
+bind-utils
+expect
+haproxy
+httpd
+jq
+libosinfo
+net-tools
+python3-pip
+rsync
+vim
+# Add required python packages to build cryptography python module
+openssl-devel
+python3-devel
+redhat-rpm-config
+gcc
+libffi-devel
+cargo
+pkg-config
+%end
+
+%addon com_redhat_kdump --disable
+%end
+
+%post --log=/root/post.log
+#!/usr/bin/env bash
+
+# Allow root login, required change for RHEL9
+sed -i -e '/PermitRootLogin/ c\PermitRootLogin yes' /etc/ssh/sshd_config
+
+# Basic /root/.ssh/config setup
+echo "UserKnownHostsFile=/dev/null" >> /root/.ssh/config
+echo "StrictHostKeyChecking=no" >> /root/.ssh/config
+
+# Yum repository configuration adjustments
+echo "gpgcheck=0" >> /etc/yum.repos.d/AppStream.repo
+echo "skip_if_unavailable=True" >> /etc/yum.repos.d/AppStream.repo
+echo "gpgcheck=0" >> /etc/yum.repos.d/BaseOS.repo
+echo "skip_if_unavailable=True" >> /etc/yum.repos.d/BaseOS.repo
+%end
