@@ -1,0 +1,38 @@
+---
+- name: Create Work Directory
+  file:
+    path: ~/ansible_workdir
+    state: directory
+
+- name: Prepare Agent Config
+  ansible.builtin.template:
+    src: agent-config.yaml.j2
+    dest: ~/ansible_workdir/agent-config.yaml
+    owner: root
+    group: root
+    mode: "0755"
+    backup: yes
+
+- name: Check if SSH key exists
+  stat:
+    path: "~/.ssh/{{ env.ansible_key_name }}.pub"
+  register: ssh_key
+
+- name: Generate SSH key
+  command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ env.ansible_key_name }}"
+  when: ssh_key.stat.exists == false
+
+- name: Read SSH Key
+  command: cat ~/.ssh/{{ env.ansible_key_name }}.pub
+  register: ssh_key
+
+- name: Prepare Install Config
+  vars:
+    ssh_key: ssh_key
+  ansible.builtin.template:
+    src: install-config.yaml.j2
+    dest: ~/ansible_workdir/install-config.yaml
+    owner: root
+    group: root
+    mode: "0755"
+    backup: yes
