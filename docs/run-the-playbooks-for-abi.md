@@ -105,6 +105,25 @@ Configuration of the bastion to host essential infrastructure services for the c
 * Same as all the above outcomes for all required playbooks.
 * At the end you will have an OpenShift cluster deployed and first-time login credentials.
 
+# Destroy ABI Cluster
+
+### Overview
+* Destroy the ABI Cluster and other resources created as part of installation
+
+### Procedure
+* Run the playbook [destroy_abi_cluster.yaml](https://github.com/isumitsolanki/Ansible-OpenShift-Provisioning/blob/abi_ha_kvm/playbooks/destroy_abi_cluster.yaml) to destroy all the resources created while installation
+```
+ansible-playbook playbooks/destroy_abi_cluster.yaml
+```
+
+## destroy_abi_cluster Playbook
+### Overview
+* Delete all the resources on ABI Cluster.
+* Destroy the Bastion, Compute and Control Nodes.
+### Outcomes
+* Monitors Deletion Of Compute Machines and Control Machines.
+* Destroys VMs of Bastion and Compute and Control.
+
 ## Test Playbook (test.yaml)
 ### Overview
 * Use this playbook for your testing purposes, if needed.
