@@ -1,0 +1,9 @@
+---
+- name: Destroy ABI Cluster
+  hosts: kvm_host[0]
+  become: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - delete_nodes
+    - destroy_bastion
