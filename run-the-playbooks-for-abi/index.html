@@ -231,8 +231,31 @@
 <li>Same as all the above outcomes for all required playbooks.</li>
 <li>At the end you will have an OpenShift cluster deployed and first-time login credentials.</li>
 </ul>
-<h2 id="test-playbook-testyaml">Test Playbook (test.yaml)<a class="headerlink" href="#test-playbook-testyaml" title="Permanent link">#</a></h2>
+<h1 id="destroy-abi-cluster">Destroy ABI Cluster<a class="headerlink" href="#destroy-abi-cluster" title="Permanent link">#</a></h1>
 <h3 id="overview_5">Overview<a class="headerlink" href="#overview_5" title="Permanent link">#</a></h3>
+<ul>
+<li>Destroy the ABI Cluster and other resources created as part of installation</li>
+</ul>
+<h3 id="procedure">Procedure<a class="headerlink" href="#procedure" title="Permanent link">#</a></h3>
+<ul>
+<li>Run the playbook <a href="https://github.com/isumitsolanki/Ansible-OpenShift-Provisioning/blob/abi_ha_kvm/playbooks/destroy_abi_cluster.yaml">destroy_abi_cluster.yaml</a> to destroy all the resources created while installation</li>
+</ul>
+<pre class="codehilite"><code>ansible-playbook playbooks/destroy_abi_cluster.yaml
+</code></pre>
+
+<h2 id="destroy_abi_cluster-playbook">destroy_abi_cluster Playbook<a class="headerlink" href="#destroy_abi_cluster-playbook" title="Permanent link">#</a></h2>
+<h3 id="overview_6">Overview<a class="headerlink" href="#overview_6" title="Permanent link">#</a></h3>
+<ul>
+<li>Delete all the resources on ABI Cluster.</li>
+<li>Destroy the Bastion, Compute and Control Nodes.</li>
+</ul>
+<h3 id="outcomes_5">Outcomes<a class="headerlink" href="#outcomes_5" title="Permanent link">#</a></h3>
+<ul>
+<li>Monitors Deletion Of Compute Machines and Control Machines.</li>
+<li>Destroys VMs of Bastion and Compute and Control.</li>
+</ul>
+<h2 id="test-playbook-testyaml">Test Playbook (test.yaml)<a class="headerlink" href="#test-playbook-testyaml" title="Permanent link">#</a></h2>
+<h3 id="overview_7">Overview<a class="headerlink" href="#overview_7" title="Permanent link">#</a></h3>
 <ul>
 <li>Use this playbook for your testing purposes, if needed.</li>
 </ul>
