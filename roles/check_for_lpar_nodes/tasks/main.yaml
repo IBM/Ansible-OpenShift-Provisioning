@@ -1,0 +1,25 @@
+---
+- name: Initialize variables
+  set_fact:
+    hosts_with_host_vars: "{{ hosts_with_host_vars | default([]) }}"
+    node_list: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
+
+- name: Check for host_var files
+  stat:
+    path: "{{ inventory_dir }}/host_vars/{{ item }}.yaml"
+  loop: "{{ node_list }}"
+  register: stat_result
+
+- name: Update variables based on file existence
+  set_fact:
+    hosts_with_host_vars: "{{ hosts_with_host_vars + [item.item] }}"
+  when: item.stat.exists and item.item not in hosts_with_host_vars
+  loop: "{{ stat_result.results }}"
+
+- name: Update group_vars/all.yaml with host variables 
+  lineinfile:
+    path: "{{ inventory_dir }}/group_vars/all.yaml"
+    regexp: '^hosts_with_host_vars:'
+    line: 'hosts_with_host_vars: {{ hosts_with_host_vars }}'
+
+

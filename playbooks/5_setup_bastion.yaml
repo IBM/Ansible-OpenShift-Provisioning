@@ -82,6 +82,14 @@
     - { role: sno_haproxy, when: env.bastion.options.loadbalancer.on_bastion and control_node_count | int == 1 }
     - httpd
 
+- name: Install tessia-baselib for lpar based installtions
+  hosts: bastion
+  tags: services, section_2
+  vars_files: 
+  - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+  - { role: install_tessia_baselib, when: env.bastion.installation_type|lower|lower == "lpar" }
+
 - hosts: bastion
   tags: services, section_2, openvpn
   become: true
@@ -89,8 +97,8 @@
     openvpn_role: "server"
   roles:
     #- { role: robertdebock.bootstrap, tags: openvpn, when: env.z.high_availability == True }
-    - { role: robertdebock.epel, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True }
-    - { role: robertdebock.openvpn, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True }
+    - { role: robertdebock.epel, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and env.bastion.installation_type|lower|lower != "lpar" }
+    - { role: robertdebock.openvpn, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and env.bastion.installation_type|lower|lower != "lpar" }
 
 - hosts: localhost
   tags: services, section_2, openvpn
@@ -101,7 +109,7 @@
       file:
         state: directory
         path: tmp
-      when: env.setup_openvpn == True and env.z.high_availability == True
+      when: env.setup_openvpn == True and env.z.high_availability == True  and env.bastion.installation_type|lower|lower != "lpar"
 
 - hosts: bastion
   tags: services, section_2, openvpn
@@ -118,7 +126,7 @@
         - issued/client.crt
         - private/client.key
         - ta.key
-      when: env.setup_openvpn == True and env.z.high_availability == True
+      when: env.setup_openvpn == True and env.z.high_availability == True  and env.bastion.installation_type|lower|lower != "lpar"
 
 - name: setup OpenVPN on KVM host(s).
   hosts: kvm_host
@@ -131,7 +139,7 @@
   pre_tasks:
     - name: Gather facts.
       setup:
-      when: env.setup_openvpn == True and env.z.high_availability == True
+      when: env.setup_openvpn == True and env.z.high_availability == True  and env.bastion.installation_type|lower|lower != "lpar"
 
     - name: Create landing directories for certificates and keys on KVM hosts.
       tags: openvpn
@@ -142,7 +150,7 @@
       loop:
         - issued
         - private
-      when: env.setup_openvpn == True and env.z.high_availability == True
+      when: env.setup_openvpn == True and env.z.high_availability == True  and env.bastion.installation_type|lower|lower != "lpar"
 
     - name: Copy certificates and keys from controller to KVM hosts.
       tags: openvpn
@@ -155,10 +163,10 @@
         - client.crt
         - client.key
         - ta.key
-      when: env.setup_openvpn == True and env.z.high_availability == True
+      when: env.z.high_availability == True and env.bastion.installation_type|lower != "zvm" and env.bastion.installation_type|lower != "lpar"
   roles:
-    - { role: robertdebock.epel, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True }
-    - { role: robertdebock.openvpn, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True }
+    - { role: robertdebock.epel, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and env.bastion.installation_type|lower|lower != "lpar"  }
+    - { role: robertdebock.openvpn, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and env.bastion.installation_type|lower|lower != "lpar" }
 
 - hosts: localhost
   tags: services, section_2, openvpn
@@ -169,7 +177,7 @@
       file:
         state: absent
         path: tmp
-      when: env.setup_openvpn == True and env.z.high_availability == True
+      when: env.setup_openvpn == True and env.z.high_availability == True  and env.bastion.installation_type|lower|lower != "lpar"
 
 - hosts: bastion
   tags: get_ocp, section_3

@@ -1,0 +1,74 @@
+---
+- name: Boot LPAR with corresponding ignition
+  block:
+    - name: set fcp fact to empty
+      set_fact: rd_zfcp_string='' ipv6_string=''
+
+    - name: inlude host vars for given lpar
+      include_vars: 
+        file: "{{ inventory_dir }}/host_vars/{{ item }}.yaml"
+        name: node
+
+    - name: Getting script for booting
+      template:
+        src: ../templates/boot_lpar.py
+        dest: /root/ansible_workdir/boot_lpar.py
+    
+    - name: Build rd.zfcp string
+      set_fact:
+        rd_zfcp_string: "{{ rd_zfcp_string | default('') }} rd.zfcp=0.0.{{ node.lpar.storage_group_1.dev_num }},{{ wwpn }},{{ node.lpar.storage_group_1.lun_name }}"
+      loop: "{{ node.lpar.storage_group_1.storage_wwpn }}"
+      loop_control:
+        loop_var: wwpn
+
+    - name: set ipv6 string
+      set_fact:
+        ipv6_string: "ip=[{{ node.networking.ipv6 }}]::[{{ node.networking.ipv6_gateway }}]:{{ node.networking.ipv6_prefix }}::{{ env.cluster.networking.interface }}:none"
+      when: env.use_ipv6  == true
+    
+    - name: Debug 
+      debug: 
+        msg: 
+          python /root/ansible_workdir/boot_lpar.py \
+          --cpcname {{ node.cpc_name }} \
+          --lparname {{ node.lpar.name }} \
+          --hmchost {{ node.hmc.host }} \
+          --hmcuser {{ node.hmc.auth.user }} \
+          --hmcpass {{ node.hmc.auth.pass }} \
+          --cpu {{ node.lpar.ifl.count }} \
+          --memory {{ node.lpar.ifl.initial_memory }} \
+          --kernel {{ rhcos_download_url }}{{ rhcos_live_kernel }} \
+          --initrd {{ rhcos_download_url }}{{ rhcos_live_initrd }} \
+          --livedisktype {{ node.lpar.livedisk.livedisktype }} \
+          --devicenr {{ node.lpar.livedisk.devicenr }} \
+          --netset_ip {{ node.networking.ip }} \ 
+          --netset_gateway {{ node.networking.gateway }} \
+          --netset_network_type osa \
+          --netset_network_device "{{ node.networking.device1 }},{{ node.networking.device2 }},{{ node.networking.device3 }}" \
+          --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
+          --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
+          --log_level DEBUG \
+          --cmdline 'rd.neednet=1 console=ttysclp0 coreos.inst.install_dev=sda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/{{ ignition }}.ign ip={{ node.networking.ip }}::{{ node.networking.gateway }}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}::none nameserver={{ env.bastion.networking.ip }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 rd.znet=qeth,{{ node.networking.device1 }},{{ node.networking.device2 }},{{ node.networking.device3 }},layer2=1 {{ ipv6_string }} {{ rd_zfcp_string }}'
+
+    - name: Booting lpar node
+      shell: |
+          python /root/ansible_workdir/boot_lpar.py \
+          --cpcname {{ node.cpc_name }} \
+          --lparname {{ node.lpar.name }} \
+          --hmchost {{ node.hmc.host }} \
+          --hmcuser {{ node.hmc.auth.user }} \
+          --hmcpass {{ node.hmc.auth.pass }} \
+          --cpu {{ node.lpar.ifl.count }} \
+          --memory {{ node.lpar.ifl.initial_memory }} \
+          --kernel {{ rhcos_download_url }}{{ rhcos_live_kernel }} \
+          --initrd {{ rhcos_download_url }}{{ rhcos_live_initrd }} \
+          --livedisktype {{ node.lpar.livedisk.livedisktype }} \
+          --devicenr {{ node.lpar.livedisk.devicenr }} \
+          --netset_ip {{ node.networking.ip }} \ 
+          --netset_gateway {{ node.networking.gateway }} \
+          --netset_network_type osa \
+          --netset_network_device "{{ node.networking.device1 }},{{ node.networking.device2 }},{{ node.networking.device3 }}" \
+          --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
+          --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
+          --log_level DEBUG \
+          --cmdline 'rd.neednet=1 console=ttysclp0 coreos.inst.install_dev=sda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/{{ ignition }}.ign ip={{ node.networking.ip }}::{{ node.networking.gateway }}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ env.cluster.networking.interface }}:none nameserver={{ env.bastion.networking.ip }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 rd.znet=qeth,{{ node.networking.device1 }},{{ node.networking.device2 }},{{ node.networking.device3 }},layer2=1 {{ ipv6_string }} {{ rd_zfcp_string }}'

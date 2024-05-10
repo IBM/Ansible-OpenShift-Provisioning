@@ -1,5 +1,20 @@
 ---
 
+- name: 6 create nodes - find lpar host files
+  hosts: localhost
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  tasks:
+    - name: Loop over node types and include role
+      include_role:
+        name: check_for_lpar_nodes
+      loop: 
+        - bootstrap
+        - compute
+        - control
+      loop_control:
+        loop_var: node_type
+  
 # Prepare and then create the temporary bootstrap node and the control nodes
 - name: 6 create nodes - prepare KVM guests
   hosts: kvm_host
@@ -7,9 +22,9 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
-    - prep_kvm_guests
+    - { role: prep_kvm_guests, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
     # Delete control, compute and infra nodes, if exists
-    - delete_nodes
+    - { role: delete_nodes, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
 
 - name: 6 create nodes - create bootstrap
   hosts: kvm_host[0]
@@ -17,8 +32,31 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
-    - common
-    - create_bootstrap
+    - { role: common,  when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
+    - { role: create_bootstrap, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
+
+- name: 6 create nodes - bootstrap and control ( if in lpar )
+  hosts: bastion
+  tasks:
+    - name: boot bootstrap
+      vars:
+        node_type: "bootstrap"
+        node_name: "{{ item }}"
+        ignition: "bootstrap"
+      include_tasks: 
+        file: ../roles/boot_LPAR/tasks/main.yaml
+      loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
+      when: item in hosts_with_host_vars
+
+    - name: boot control nodes
+      vars:
+        node_type: "control"
+        node_name: "{{ item }}"
+        ignition: "master"
+      include_tasks: 
+        file: ../roles/boot_LPAR/tasks/main.yaml
+      loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
+      when: item in hosts_with_host_vars
 
 - name: 6 create nodes - create control nodes
   hosts: kvm_host
@@ -26,8 +64,8 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
-    - common
-    - create_control_nodes
+    - { role: common, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
+    - { role: create_control_nodes, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
 
 - name: 6 create nodes - wait for bootstrap to connect control plane (for non-root user)
   hosts: bastion
@@ -64,6 +102,7 @@
         name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
         command: destroy
       ignore_errors: true
+      when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars
 
     - name: Undefine bootstrap. Expect ignored errors if bootstrap is already undefined.
       tags: create_nodes, teardown_bootstrap
@@ -71,7 +110,27 @@
         name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
         command: undefine
       ignore_errors: true
+<<<<<<< HEAD
+      when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars
+    
+    - name: Deleting the entries related to bootstrap in haproxy post it's deletion 
+      tags:  create_nodes, teardown_bootstrap
+      lineinfile:
+        regexp: "bootstrap"
+        state: absent
+        path: /etc/haproxy/haproxy.cfg
+      when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars
+      
+    - name: Restart the Haproxy Service
+      tags:  create_nodes, teardown_bootstrap
+      systemd_service:
+        name: haproxy
+        state: restarted
+      when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars
+      
+=======
 
+>>>>>>> 077c676 (Revert "Deleting entries related to Bootstrap in Haproxy post its del… (#255))
 - name: 6 create nodes - once bootstrapping is complete, create compute nodes.
   hosts: kvm_host
   tags: create_compute_nodes
@@ -79,5 +138,18 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
-    - common
-    - create_compute_nodes
+    - { role: common, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
+    - { role: create_compute_nodes, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
+
+- name: 6 create nodes - compute ( if in lpar )
+  hosts: bastion
+  tasks:
+    - name: boot compute nodes
+      vars:
+        node_type: "compute"
+        node_name: "{{ item }}"
+        ignition: "worker"
+      include_tasks: 
+        file: ../roles/boot_LPAR/tasks/main.yaml
+      loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
+      when: item in hosts_with_host_vars

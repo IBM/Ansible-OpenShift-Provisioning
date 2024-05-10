@@ -51,6 +51,7 @@ env:
 
 # Section 5 - Bastion
   bastion:
+    installation_type: #X
     create: True
     vm_name: #X
     resources:

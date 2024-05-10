@@ -53,3 +53,6 @@
       import_role:
         name: create_lpar
       when: env.z.lpar3.create == True
+
+
+#TODO: create all lpars defined in the host vars section
