@@ -1,7 +1,4 @@
 ---
-- name: Get OCP Release Version
-  shell: curl -s {{ hypershift.asc.url_for_ocp_release_file }}  | awk '/machine-os / { print $2 }'
-  register: ocp_release_version
 
 - name: Create Config map mirror-config ( For updating AgentServiceConfig with the brew mirror information )
   template: 
@@ -10,6 +7,33 @@
 
 - name: Deploy Config map - mirror config
   shell: oc apply -f /root/ansible_workdir/mirror-config.yaml
+
+- name: Downloading ISO for fetching RHCOS version 
+  get_url:
+    url: "{{ hypershift.asc.iso_url }}"
+    dest: /root/ansible_workdir/s390x.iso
+
+- name: Mounting ISO
+  mount:
+    path: "/mnt"
+    src: "/root/ansible_workdir/s390x.iso"
+    fstype: "iso9660"
+    opts: "loop"
+    state: "mounted"
+
+- name: Getting RHCOS Version
+  shell: cat /mnt/coreos/kargs.json | jq -r '.default' | cut -d'-' -f2- | cut -d ' ' -f 1
+  register: ocp_release_version
+
+- name: unmount ISO
+  mount:
+    path: "/mnt"
+    state: "unmounted"
+
+- name: Delete ISO file
+  file:
+    path: "/root/ansible_workdir/s390x.iso"
+    state: absent
 
 - name: Create agenterviceconfig.yaml
   template: 
