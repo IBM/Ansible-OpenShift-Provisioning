@@ -40,8 +40,43 @@
     --wait=-1 \
     --extra-args "{{ _vm_console }}" \
     --noautoconsole 
-  timeout: 300
+  async: 3600
+  poll: 0
   with_sequence: start=0 end={{ (env.cluster.nodes.control.hostname | length) - 1 }} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+
+- name: Create CoreOS Compute Agent Nodes On The KVM host.
+  ansible.builtin.shell: |
+    # Delete Agent node VM, if already exists
+    virsh destroy {{ env.cluster.nodes.compute.vm_name[i] }} || true
+    virsh undefine {{ env.cluster.nodes.compute.vm_name[i] }} --remove-all-storage --nvram || true
+    virt-install \
+    --name {{ env.cluster.nodes.compute.vm_name[i] }} \
+    --autostart \
+    --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }},cache=none,io=native \
+    --ram {{ env.cluster.nodes.compute.ram }} \
+    {{ env.cluster.nodes.compute.vcpu_model_option }} \
+    --vcpus {{ env.cluster.nodes.compute.vcpu }} \
+    --network network={{ env.bridge_name }}{{ (',mac=' + env.cluster.nodes.compute.mac_address[i]) }} \
+    --location "http://{{ env.bastion.networking.ip }}:8080/,kernel={{ env.cluster.networking.metadata_name }}.{{ ansible_architecture }}-kernel.img,initrd={{ env.cluster.networking.metadata_name }}.{{ ansible_architecture }}-initrd.img" \
+    --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/{{ env.cluster.networking.metadata_name }}.{{ ansible_architecture }}-rootfs.img" \
+    {% if (env.cluster.nodes.compute.mac_address[i] is defined and env.use_dhcp) %}
+    --extra-args "ip=dhcp" \
+    {% else %}
+    --extra-args "ip={{ env.cluster.nodes.compute.ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.compute.hostname[i] }}:{{ env.cluster.networking.interface }}:none" \
+    {% endif %}
+    --extra-args "rd.neednet=1 nameserver={{ env.cluster.networking.nameserver1 }}" \
+    --extra-args "random.trust_cpu=on rd.luks.options=discard ignition.firstboot ignition.platform.id=metal" \
+    --memballoon none \
+    --graphics none \
+    --wait=-1 \
+    --extra-args "{{ _vm_console }}" \
+    --noautoconsole 
+  async: 3600
+  poll: 0
+  with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
   loop_control:
     extended: yes
     index_var: i
