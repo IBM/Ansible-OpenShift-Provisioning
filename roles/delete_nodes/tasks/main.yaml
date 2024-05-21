@@ -14,7 +14,7 @@
   ansible.builtin.shell: |
     virsh destroy {{ item }} || true
     virsh undefine {{ item }} --remove-all-storage --nvram || true
-  loop: "{{ env.cluster.nodes.control.vm_name + \
+  loop: "{{ (env.cluster.nodes.control.vm_name | default([]))+ \
         (env.cluster.nodes.compute.vm_name | default([])) + (env.cluster.nodes.infra.vm_name | default([])) }}"
   register: delete_nodes
   changed_when: "('destroyed' in delete_nodes.stdout) or ('undefined' in delete_nodes.stdout)"
