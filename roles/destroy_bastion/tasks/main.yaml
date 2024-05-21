@@ -1,0 +1,7 @@
+---
+- name: Delete Bastion
+  ansible.builtin.shell: |
+    virsh destroy {{ env.bastion.vm_name }} || true
+    virsh undefine {{ env.bastion.vm_name }} --remove-all-storage --nvram || true
+  register: delete_bastion
+  changed_when: "('destroyed' in delete_bastion.stdout) or ('undefined' in delete_bastion.stdout)"

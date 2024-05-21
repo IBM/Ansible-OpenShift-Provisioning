@@ -7,6 +7,7 @@
     virsh destroy "{{ env.cluster.nodes.bootstrap.vm_name }}" || true
     virsh undefine "{{ env.cluster.nodes.bootstrap.vm_name }}" --remove-all-storage --nvram || true
   register: delete_bootstrap
+  when: ( env.abi.flag is not defined ) or ( env.abi.flag != True )
   changed_when: "('destroyed' in delete_bootstrap.stdout) or ('undefined' in delete_bootstrap.stdout)"
 
 - name: Delete control, compute and infra nodes, if exists
