@@ -65,6 +65,7 @@
     --base-domain={{ hypershift.hcp.basedomain }} 
     --api-server-address=api.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }} 
     --ssh-key ~/.ssh/{{ env.ansible_key_name }}.pub
+    --network-type 'OVNKubernetes'
     {% if hypershift.hcp.high_availabiliy == false %}
     --control-plane-availability-policy "SingleReplica" 
     {% endif %}
