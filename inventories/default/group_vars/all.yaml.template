@@ -308,12 +308,10 @@ hypershift:
   # AgentServiceConfig Parameters
 
   asc:
-    url_for_ocp_release_file:
     db_volume_size: "10Gi"
     fs_volume_size: "10Gi"
     ocp_version:
     iso_url:
-    root_fs_url:
     mce_namespace: multicluster-engine # This is the Recommended Namespace for Multicluster Engine operator
 
   agents_parms:

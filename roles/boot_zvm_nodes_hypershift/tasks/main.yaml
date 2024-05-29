@@ -43,12 +43,6 @@
       shell: oc get agents -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} --no-headers -o custom-columns=NAME:.metadata.name,APPROVED:.spec.approved | awk '$2 == "false"' 
       register: agent_name
 
-    - name: Approve agents 
+    - name: Approve agents 	
       shell: oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{ item }}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}"}}' --type merge
-      when: "{{ hypershift.mce.version != '2.4' }}"
 
-    - name: Approve agents and patch installer args 
-      shell: oc -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{item}}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}","installerArgs":"[\"--append-karg\",\"rd.neednet=1\", \"--append-karg\", \"ip={{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.ip }}::{{ hypershift.agents_parms.zvm_parameters.gateway }}:{{ hypershift.agents_parms.zvm_parameters.subnetmask }}:compute-{{ item }}.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}:{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.ifname }}:none\", \"--append-karg\", \"nameserver={{ hypershift.agents_parms.zvm_parameters.nameserver }}\", \"--append-karg\",\"rd.znet={{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.nettype }},{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.subchannels }},{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.options }}\",\"--append-karg\", {% if hypershift.agents_parms.zvm_parameters.disk_type | lower != 'fcp' %}\"rd.dasd=0.0.{{ hypershift.agents_parms.zvm_parameters.nodes[item].dasd.disk_id }}\"{% else %}\"rd.zfcp={{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].paths[0].fcp}},{{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].paths[0].wwpn }},{{ hypershift.agents_parms.zvm_parameters.nodes[item].lun[0].id }}\"{% endif %}]"}}' --type merge
-      when: "{{ hypershift.mce.version == '2.4' }}"
-
-  
