@@ -70,12 +70,14 @@
     {% endif %}
     --infra-availability-policy "SingleReplica" 
     --image-content-sources /root/ansible_workdir/icsp.yaml 
-    --release-image=quay.io/openshift-release-dev/ocp-release:{{ hypershift.hcp.ocp_release }} 
     {% set release_image = lookup('env', 'HCP_RELEASE_IMAGE') %}
     {% if release_image is defined and release_image != '' %}
     --release-image={{ release_image }}
     {% else %}
     --release-image=quay.io/openshift-release-dev/ocp-release:{{ hypershift.hcp.ocp_release }}
+    {% endif %}
+    {% if hypershift.hcp.additional_flags is defined and hypershift.hcp.additional_flags != '' %}
+    {{ hypershift.hcp.additional_flags }}
     {% endif %}
 
 - name: Waiting for Hosted Control Plane to be available

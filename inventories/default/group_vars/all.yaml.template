@@ -296,6 +296,7 @@ hypershift:
     ocp_release:
     machine_cidr: 192.168.122.0/24
     arch:
+    additional_flags:
     # Make sure to enclose pull_secret in 'single quotes'
     pull_secret:
 
