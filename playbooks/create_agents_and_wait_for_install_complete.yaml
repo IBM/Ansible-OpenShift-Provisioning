@@ -20,7 +20,7 @@
 - name: Scale Nodepool & Configure Haproxy on bastion for hosted workers
   hosts: bastion_hypershift
   roles:
-  - scale_nodepool_and_wait_for_workers_hypershift
+  - scale_nodepool_and_wait_for_compute_hypershift
   - add_hc_workers_to_haproxy_hypershift
 
 - name: Wait for all Console operators to come up

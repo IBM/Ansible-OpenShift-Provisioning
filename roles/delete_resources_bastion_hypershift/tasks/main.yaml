@@ -6,15 +6,41 @@
 - name: Scale in  Nodepool
   command: oc -n {{ hypershift.hcp.clusters_namespace }} scale nodepool {{ hypershift.hcp.hosted_cluster_name }} --replicas 0
 
-- name: Wait for Worker Nodes to Detach
-  k8s_info:
-    api_version: v1
-    kind: Node
-    kubeconfig: "/root/ansible_workdir/hcp-kubeconfig"
-  register: nodes
-  until: nodes.resources | length == 0
-  retries: 30
-  delay: 10
+- block:
+    - name: Wait for Worker Nodes to Detach
+      k8s_info:
+        api_version: v1
+        kind: Node
+        kubeconfig: "/root/ansible_workdir/hcp-kubeconfig"
+      register: nodes
+      until: nodes.resources | length == 0
+      retries: 30
+      delay: 10
+  rescue: 
+    - name: Getting basedomain
+      shell: oc get hc {{ hypershift.hcp.hosted_cluster_name }} -n {{ hypershift.hcp.clusters_namespace }} -o json | jq -r '.spec.dns.baseDomain'
+      register: base_domain
+
+    - name: Deleting the compute nodes manually 
+      command: oc delete no compute-{{item}}.{{ hypershift.hcp.hosted_cluster_name }}.{{ base_domain.stdout }} --kubeconfig /root/ansible_workdir/hcp-kubeconfig
+      loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+
+    - name: Get machine names
+      command: oc get machine.cluster.x-k8s.io -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} --no-headers
+      register: machines_info
+
+    - name: Create List for machines
+      set_fact:
+        machines: []
+
+    - name: Get the List of machines
+      set_fact:
+        machines: "{{ machines + [machines_info.stdout.split('\n')[item].split(' ')[0]] }}"
+      loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+
+    - name: Patch the machines to remove finalizers
+      shell: oc patch machine.cluster.x-k8s.io "{{ machines[item] }}" -n "{{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}" -p '{"metadata":{"finalizers":null}}' --type=merge
+      loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
 
 - name: Wait for Agentmachines to delete
   k8s_info:
@@ -73,6 +99,35 @@
     kind: Namespace
     name: "{{ hypershift.hcp.clusters_namespace }}"
     state: absent
+
+- name: Wait for managed cluster resource to be deleted
+  shell: oc get managedcluster "{{ hypershift.hcp.hosted_cluster_name }}"
+  register: managedcluster
+  until: managedcluster.rc != 0
+  retries: 50
+  delay: 25
+  when: hypershift.mce.delete == true
+  ignore_errors: yes
+
+- fail:
+    msg: "Managed cluster resource for HCP is not getting deleted"
+  when: managedcluster.rc == 0 and managedcluster.attempts >= 40
+
+- name: Disable local-cluster component in MCE 
+  command: oc patch mce {{ hypershift.mce.instance_name }} -p '{"spec":{"overrides":{"components":[{"name":"local-cluster","enabled":false}]}}}' --type merge
+
+- name: Wait for local-cluster components to be deleted
+  shell: oc get ns local-cluster
+  register: localcluster
+  until: localcluster.rc != 0
+  retries: 40
+  delay: 20
+  when: hypershift.mce.delete == true
+  ignore_errors: yes
+
+- fail:
+    msg: "local-cluster namespace is still present"
+  when: localcluster.rc == 0 and localcluster.attempts >= 40
 
 - name: Delete AgentServiceConfig
   k8s:

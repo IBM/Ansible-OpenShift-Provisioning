@@ -13,7 +13,7 @@ parser.add_argument("--memory", type=int, help="Guest memory in MB", required=Tr
 parser.add_argument("--kernel", type=str, help="kernel URI", required=True, default='')
 parser.add_argument("--cmdline", type=str, help="kernel cmdline", required=True, default='')
 parser.add_argument("--initrd", type=str, help="Initrd URI", required=True, default='')
-parser.add_argument("--network", type=str, help="Network mode for zvm nodes Supported modes: OSA, vswitch ", required=True)
+parser.add_argument("--network", type=str, help="Network mode for zvm nodes Supported modes: OSA, vswitch, RoCE ", required=True)
 
 args = parser.parse_args()
 
@@ -24,6 +24,9 @@ parameters = {
 interfaces=[]
 if args.network.lower() == 'osa':
     interfaces=[{ "type": "osa", "id": "{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.subchannels.split(',') | map('regex_replace', '0.0.', '') | join(',') }}"}]
+
+elif args.network.lower() == 'roce':
+    interfaces=[{ "type": "pci", "id": "{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.ifname }}"}]
 
 guest_parameters = {
 "boot_method": "network",

@@ -253,7 +253,7 @@
 **hypershift.agents_parms.ram** | RAM for agents | 16384
 **hypershift.agents_parms.vcpus** | vCPUs for agents | 4
 **hypershift.agents_parms.nameserver** | Nameserver to be used for agents | 192.168.10.1
-**hypershift.agents_parms.zvm_parameters.network_mode** | Network mode for zvm nodes <br /> Supported modes: vswitch,osa |  vswitch
+**hypershift.agents_parms.zvm_parameters.network_mode** | Network mode for zvm nodes <br /> Supported modes: vswitch,osa, RoCE  |  vswitch
 **hypershift.agents_parms.zvm_parameters.disk_type** | Disk type for zvm nodes <br /> Supported disk types: fcp, dasd | dasd
 **hypershift.agents_parms.zvm_parameters.vcpus** | CPUs for each zvm node | 4
 **hypershift.agents_parms.zvm_parameters.memory** | RAM for each zvm node | 16384
