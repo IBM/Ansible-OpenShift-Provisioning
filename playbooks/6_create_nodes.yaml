@@ -64,8 +64,8 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
-    - { role: common, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
-    - { role: create_control_nodes, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
+    - common
+    - create_control_nodes
 
 - name: 6 create nodes - wait for bootstrap to connect control plane (for non-root user)
   hosts: bastion
@@ -110,27 +110,7 @@
         name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
         command: undefine
       ignore_errors: true
-<<<<<<< HEAD
-      when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars
-    
-    - name: Deleting the entries related to bootstrap in haproxy post it's deletion 
-      tags:  create_nodes, teardown_bootstrap
-      lineinfile:
-        regexp: "bootstrap"
-        state: absent
-        path: /etc/haproxy/haproxy.cfg
-      when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars
       
-    - name: Restart the Haproxy Service
-      tags:  create_nodes, teardown_bootstrap
-      systemd_service:
-        name: haproxy
-        state: restarted
-      when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars
-      
-=======
-
->>>>>>> 077c676 (Revert "Deleting entries related to Bootstrap in Haproxy post its del… (#255))
 - name: 6 create nodes - once bootstrapping is complete, create compute nodes.
   hosts: kvm_host
   tags: create_compute_nodes

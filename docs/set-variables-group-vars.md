@@ -10,6 +10,7 @@
 ## 1 - Controller
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
+**env.installation_type** | Can be of type kvm or lpar. Some packages will be ignored for installation in case of non lpar based installation. | kvm 
 **env.controller.sudo_pass** | The password to the machine running Ansible (localhost).<br /> This will only be used for two things. To ensure you've installed the<br /> pre-requisite packages if you're on Linux, and to add the login URL<br /> to your /etc/hosts file. | Pas$w0rd!
 
 ## 2 - LPAR(s)
@@ -41,6 +42,7 @@
 **env.file_server.user** | Username to connect to the file server. Must have sudo and SSH access. | user1
 **env.file_server.pass** | Password to connect to the file server as above user. | user1pa$s!
 **env.file_server.protocol** | Protocol used to serve the files, either 'ftp' or 'http' | http
+**env.file_server.iso_os_variant** | The os variant for the bastion kvm to be created | rhel8.8
 **env.file_server.iso_mount_dir** | Directory path relative to the HTTP/FTP accessible directory where RHEL ISO is mounted. For example, if the FTP root is at /home/user1<br /> and the ISO is mounted at /home/user1/RHEL/8.7 then this variable would be<br /> RHEL/8.7 - no slash before or after. | RHEL/8.7
 **env.file_server.cfgs_dir** | Directory path relative to to the HTTP/FTP accessible directory where configuration files can be stored. For example, if FTP root is /home/user1<br /> and you would like to store the configs at /home/user1/ocpz-config then this variable would be<br /> ocpz-config. No slash before or after. | ocpz-config
 
@@ -55,7 +57,6 @@
 ## 5 - Bastion
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**env.bastion.installation_type** | Can be of type kvm or lpar. Some packages will be ignored for installation in case of lpar based installation. | kvm 
 **env.bastion.create** | True or False. Would you like to create a bastion KVM guest to host essential infrastructure services like DNS,<br /> load balancer, firewall, etc? Can de-select certain services with the env.bastion.options<br /> variables below. | True
 **env.bastion.vm_name** | Name of the bastion VM. Arbitrary value. | bastion
 **env.bastion.resources.disk_size** | How much of the storage pool would you like to allocate to the bastion (in<br /> Gigabytes)? Recommended 30 or more. | 30

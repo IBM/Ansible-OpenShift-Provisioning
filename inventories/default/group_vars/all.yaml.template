@@ -5,6 +5,7 @@
 
 # Section 1 - Ansible Controller
 env:
+  installation_type: #X
   controller:
     sudo_pass: #X
 
@@ -51,7 +52,6 @@ env:
 
 # Section 5 - Bastion
   bastion:
-    installation_type: #X
     create: True
     vm_name: #X
     resources:
@@ -480,7 +480,7 @@ day2_compute_node:
 
 # Section 19 - Agent Based Installer ( Optional )
 abi: 
-  flag: True
+  flag: Flase
   ansible_workdir: 'ansible_workdir'
   ocp_installer_version: '4.15.0-rc.8' 
   ocp_installer_url: 'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'

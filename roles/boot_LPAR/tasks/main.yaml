@@ -29,7 +29,7 @@
     - name: Debug 
       debug: 
         msg: 
-          python /root/ansible_workdir/boot_lpar.py \
+          python3 /root/ansible_workdir/boot_lpar.py \
           --cpcname {{ node.cpc_name }} \
           --lparname {{ node.lpar.name }} \
           --hmchost {{ node.hmc.host }} \
@@ -44,15 +44,15 @@
           --netset_ip {{ node.networking.ip }} \ 
           --netset_gateway {{ node.networking.gateway }} \
           --netset_network_type osa \
-          --netset_network_device "{{ node.networking.device1 }},{{ node.networking.device2 }},{{ node.networking.device3 }}" \
+          --netset_network_device "{{ node.lpar.networking.nic.card1.dev_num }}" \
           --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
           --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
           --log_level DEBUG \
-          --cmdline 'rd.neednet=1 console=ttysclp0 coreos.inst.install_dev=sda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/{{ ignition }}.ign ip={{ node.networking.ip }}::{{ node.networking.gateway }}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}::none nameserver={{ env.bastion.networking.ip }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 rd.znet=qeth,{{ node.networking.device1 }},{{ node.networking.device2 }},{{ node.networking.device3 }},layer2=1 {{ ipv6_string }} {{ rd_zfcp_string }}'
+          --cmdline 'rd.neednet=1 console=ttysclp0 coreos.inst.install_dev=sda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/{{ ignition }}.ign ip={{ node.networking.ip }}::{{ node.networking.gateway }}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ node.networking.device1 }}:none nameserver={{ env.bastion.networking.ip }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 rd.znet=qeth,{{ node.lpar.networking.nic.card1.dev_num }},layer2=1 {{ ipv6_string }} {{ rd_zfcp_string }}'
 
     - name: Booting lpar node
       shell: |
-          python /root/ansible_workdir/boot_lpar.py \
+          python3 /root/ansible_workdir/boot_lpar.py \
           --cpcname {{ node.cpc_name }} \
           --lparname {{ node.lpar.name }} \
           --hmchost {{ node.hmc.host }} \
@@ -67,8 +67,8 @@
           --netset_ip {{ node.networking.ip }} \ 
           --netset_gateway {{ node.networking.gateway }} \
           --netset_network_type osa \
-          --netset_network_device "{{ node.networking.device1 }},{{ node.networking.device2 }},{{ node.networking.device3 }}" \
+          --netset_network_device "{{ node.lpar.networking.nic.card1.dev_num }}" \
           --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
           --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
           --log_level DEBUG \
-          --cmdline 'rd.neednet=1 console=ttysclp0 coreos.inst.install_dev=sda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/{{ ignition }}.ign ip={{ node.networking.ip }}::{{ node.networking.gateway }}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ env.cluster.networking.interface }}:none nameserver={{ env.bastion.networking.ip }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 rd.znet=qeth,{{ node.networking.device1 }},{{ node.networking.device2 }},{{ node.networking.device3 }},layer2=1 {{ ipv6_string }} {{ rd_zfcp_string }}'
+          --cmdline 'rd.neednet=1 console=ttysclp0 coreos.inst.install_dev=sda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/{{ ignition }}.ign ip={{ node.networking.ip }}::{{ node.networking.gateway }}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ node.networking.device1 }}:none nameserver={{ env.bastion.networking.ip }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 rd.znet=qeth,{{ node.lpar.networking.nic.card1.dev_num }},layer2=1 {{ ipv6_string }} {{ rd_zfcp_string }}'
