@@ -81,14 +81,7 @@
     - { role: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
     - { role: sno_haproxy, when: env.bastion.options.loadbalancer.on_bastion and control_node_count | int == 1 }
     - httpd
-
-- name: Install tessia-baselib for lpar based installtions
-  hosts: bastion
-  tags: services, section_2
-  vars_files: 
-  - "{{ inventory_dir }}/group_vars/all.yaml"
-  roles:
-  - { role: install_tessia_baselib, when: env.installation_type|lower == "lpar" }
+    - { role: install_tessia_baselib, when: env.installation_type|lower == "lpar" }
 
 - hosts: bastion
   tags: services, section_2, openvpn

@@ -37,6 +37,7 @@
 
 - name: 6 create nodes - bootstrap and control ( if in lpar )
   hosts: bastion
+  become: true
   tasks:
     - name: boot bootstrap
       vars:
@@ -123,6 +124,7 @@
 
 - name: 6 create nodes - compute ( if in lpar )
   hosts: bastion
+  become: true
   tasks:
     - name: boot compute nodes
       vars:
