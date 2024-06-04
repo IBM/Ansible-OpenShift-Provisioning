@@ -134,23 +134,8 @@
     mode: "644"
 
 - name: Restart network to update changes made to /etc/resolv.conf
-  tags: dns, resolv
-  block:
-    - name: Restart network service
-      ansible.builtin.service:
-        name: network
-        state: restarted
-      ignore_errors: yes
-      register: network_restart_result
-
-    - name: Check if network restart failed
-      fail:
-        msg: "Failed to restart network service"
-      when: network_restart_result | failed
-
-  rescue:
-    - name: Restart NetworkManager service
-      ansible.builtin.service:
-        name: NetworkManager
-        state: restarted
+  tags: resolv
+  ansible.builtin.service:
+    name: NetworkManager
+    state: restarted
 
