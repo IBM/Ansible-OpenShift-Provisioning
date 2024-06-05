@@ -161,6 +161,11 @@
 </thead>
 <tbody>
 <tr>
+<td style="text-align: left;"><strong>env.installation_type</strong></td>
+<td style="text-align: left;">Can be of type kvm or lpar. Some packages will be ignored for installation in case of non lpar based installation.</td>
+<td style="text-align: left;">kvm</td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>env.controller.sudo_pass</strong></td>
 <td style="text-align: left;">The password to the machine running Ansible (localhost).<br /> This will only be used for two things. To ensure you've installed the<br /> pre-requisite packages if you're on Linux, and to add the login URL<br /> to your /etc/hosts file.</td>
 <td style="text-align: left;">Pas$w0rd!</td>
@@ -298,6 +303,11 @@
 <td style="text-align: left;"><strong>env.file_server.protocol</strong></td>
 <td style="text-align: left;">Protocol used to serve the files, either 'ftp' or 'http'</td>
 <td style="text-align: left;">http</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>env.file_server.iso_os_variant</strong></td>
+<td style="text-align: left;">The os variant for the bastion kvm to be created</td>
+<td style="text-align: left;">rhel8.8</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.file_server.iso_mount_dir</strong></td>

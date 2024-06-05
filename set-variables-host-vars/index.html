@@ -75,6 +75,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#6-optional-storage">6 - (Optional) Storage</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#7-optional-livedisk-info">7 - (Optional) Livedisk info</a>
+    </li>
     </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
@@ -149,6 +151,11 @@
 <td style="text-align: left;">192.168.10.2</td>
 </tr>
 <tr>
+<td style="text-align: left;"><strong>networking.ipv6</strong></td>
+<td style="text-align: left;">IPv6 address for the bastion if use_ipv6 variable is 'True'.</td>
+<td style="text-align: left;">fd00::3</td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>networking.subnetmask</strong></td>
 <td style="text-align: left;">The subnet that the LPAR resides in within your network.</td>
 <td style="text-align: left;">255.255.255.0</td>
@@ -157,6 +164,16 @@
 <td style="text-align: left;"><strong>networking.gateway</strong></td>
 <td style="text-align: left;">The IPv4 address of the gateway to the network where the KVM host resides.</td>
 <td style="text-align: left;">192.168.10.0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>networking.ipv6_gateway</strong></td>
+<td style="text-align: left;">IPv6 of he bastion's gateway server.</td>
+<td style="text-align: left;">fd00::1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>networking.ipv6_prefix</strong></td>
+<td style="text-align: left;">IPv6 prefix.</td>
+<td style="text-align: left;">64</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>networking.nameserver1</strong></td>
@@ -187,9 +204,12 @@
 </table>
 <h2 id="important-note">Important Note<a class="headerlink" href="#important-note" title="Permanent link">#</a></h2>
 <ul>
-<li>You can skip the rest of the variables on this page IF you are using existing LPAR(s) that has RHEL already installed.<ul>
+<li>You can skip the rest of the variables on this page IF you are using existing LPAR(s) that has RHEL already installed.</li>
+<li>If you are installing an LPAR based cluster then the information below must be provided and are not optional. You must create a host file corresponding to each lpar node.<ul>
 <li>Since this is how most production deployments on-prem are done on IBM zSystems, these variables have been marked as optional. </li>
 <li>With pre-existing LPARs with RHEL installed, you can also skip <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/1_create_lpar.yaml">1_create_lpar.yaml</a> and <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/2_create_kvm_host.yaml">2_create_kvm_host.yaml</a> playbooks. Make sure to still do <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/0_setup.yaml">0_setup.yaml</a> first though, then skip to <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml">3_setup_kvm_host.yaml</a></li>
+<li>In the scenario of lpar based installation you can skip <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/1_create_lpar.yaml">1_create_lpar.yaml</a> and <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/2_create_kvm_host.yaml">2_create_kvm_host.yaml</a>. You can also optionally skip <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml">3_setup_kvm_host.yaml</a> and <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml">4_create_bastion.yaml</a> unless you are planning on having the bastion on the same host.</li>
+<li>In case of lpar based installation one is expected to have a tessia live disk accessible by the lpar nodes for network boot. The details of which are to be filled in section #7 below. The steps to create a tessia livedisk can be found <a href="https://gitlab.com/tessia-project/tessia-baselib/-/blob/master/doc/users/live_image.md">here</a>.</li>
 </ul>
 </li>
 </ul>
@@ -425,6 +445,33 @@
 <td style="text-align: left;"><strong>lpar.storage_group_2_.lun_name</strong></td>
 <td style="text-align: left;"><b>(Optional)</b> he Logical Unit Numbers (LUN) that points to a specific virtual disk<br /> behind the WWPN.</td>
 <td style="text-align: left;">4200569309ahhd240000000000000c001</td>
+</tr>
+</tbody>
+</table>
+<h2 id="7-optional-livedisk-info">7 - (Optional) Livedisk info<a class="headerlink" href="#7-optional-livedisk-info" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>lpar.livedisk.livedisktype</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Storage type. DASD is the only tested type as of now.</td>
+<td style="text-align: left;">dasd</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.livedisk.devicenr</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> the device no of the DASD live disk</td>
+<td style="text-align: left;">c6h1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.livedisk.livedisk_root_pass</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> root password for the livedisk</td>
+<td style="text-align: left;">p@ssword</td>
 </tr>
 </tbody>
 </table>
