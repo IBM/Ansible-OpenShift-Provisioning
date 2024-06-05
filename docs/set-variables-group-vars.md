@@ -315,8 +315,9 @@
 **day2_compute_node.vm_vm_ip** | IPv4 address of the compute node. | 192.168.10.99
 **day2_compute_node.vm_vm_ipv6** | IPv6 address of the compute node. | fd00::99
 **day2_compute_node.vm_mac** | MAC address of the compute node if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
-**day2_compute_node.vm_vm_interface** | The network interface used for given IP addresses of the compute node. | enc1
+**day2_compute_node.vm_interface** | The network interface used for given IP addresses of the compute node. | enc1
 **day2_compute_node.hostname** | The hostname of the KVM host | kvm-host-01
+**day2_compute_node.host_user** | KVM host user which is used to create the VM | root
 **day2_compute_node.host_arch** | KVM host architecture.  | s390x
 
 ## 19 - (Optional) Agent Based Installer

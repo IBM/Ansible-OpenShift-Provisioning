@@ -10,6 +10,7 @@
 #   vm_mac:  <your VM MAC address, when DHCP is used>
 #   vm_interface: <your VM network interface used for the IP addresses>
 #   hostname: <KVM host name where the VM is created>
+#   host_user: <KVM host user which is used to create the VM>
 #   host_arch: <KVM host architecture>
 #
 # Execute the playbook with '--extra-vars' option.
