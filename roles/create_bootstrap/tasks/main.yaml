@@ -25,7 +25,7 @@
     --extra-args "{{ ('ip=[' + env.cluster.nodes.bootstrap.ipv6 + ']::[' + env.cluster.networking.ipv6_gateway + ']:' + env.cluster.networking.ipv6_prefix | string + '::' + env.cluster.networking.interface + ':none' ) if env.use_ipv6 == True else '' }}" \
     {% endif %}
     --extra-args "nameserver={{ env.cluster.networking.nameserver1 }}" \
-    --extra-args "{{ ('--nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }}" \
+    --extra-args "{{ ('nameserver=' + env.cluster.networking.nameserver2) if env.cluster.networking.nameserver2 is defined else '' }}" \
     --extra-args "coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/bootstrap.ign" \
     --extra-args "{{ _vm_console }}" \
     --memballoon none \
