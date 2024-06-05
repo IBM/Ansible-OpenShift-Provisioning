@@ -15,8 +15,11 @@
 :--- | :--- | :---
 **networking.hostname** | The hostname of the LPAR with RHEL installed natively (the KVM host). | kvm-host-01
 **networking.ip** | The IPv4 address of the LPAR with RHEL installed natively (the KVM host). | 192.168.10.2
+**networking.ipv6** | IPv6 address for the bastion if use_ipv6 variable is 'True'. | fd00::3
 **networking.subnetmask** | The subnet that the LPAR resides in within your network. | 255.255.255.0
 **networking.gateway** | The IPv4 address of the gateway to the network where the KVM host resides. | 192.168.10.0
+**networking.ipv6_gateway** | IPv6 of he bastion's gateway server. | fd00::1
+**networking.ipv6_prefix** | IPv6 prefix. | 64
 **networking.nameserver1** | The IPv4 address from which the KVM host gets its hostname resolved. | 192.168.10.200
 **networking.nameserver2** | <b>(Optional)</b> A second IPv4 address from which the KVM host can get its hostname<br /> resolved. Used for high availability. | 192.168.10.201
 **networking.device1** | The network interface card from Linux's perspective. Usually enc and then a number that comes<br /> from the dev_num of the network adapter. | enc100
@@ -25,8 +28,11 @@
 
 ## Important Note
 * You can skip the rest of the variables on this page IF you are using existing LPAR(s) that has RHEL already installed.
+* If you are installing an LPAR based cluster then the information below must be provided and are not optional. You must create a host file corresponding to each lpar node.
     * Since this is how most production deployments on-prem are done on IBM zSystems, these variables have been marked as optional. 
     * With pre-existing LPARs with RHEL installed, you can also skip [1_create_lpar.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/1_create_lpar.yaml) and [2_create_kvm_host.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/2_create_kvm_host.yaml) playbooks. Make sure to still do [0_setup.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/0_setup.yaml) first though, then skip to [3_setup_kvm_host.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml)
+    * In the scenario of lpar based installation you can skip [1_create_lpar.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/1_create_lpar.yaml) and [2_create_kvm_host.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/2_create_kvm_host.yaml). You can also optionally skip [3_setup_kvm_host.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml) and [4_create_bastion.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml) unless you are planning on having the bastion on the same host.
+    * In case of lpar based installation one is expected to have a tessia live disk accessible by the lpar nodes for network boot. The details of which are to be filled in section #7 below. The steps to create a tessia livedisk can be found [here](https://gitlab.com/tessia-project/tessia-baselib/-/blob/master/doc/users/live_image.md).
 
 ## 2 - (Optional) CPC & HMC
 **Variable Name** | **Description** | **Example**
@@ -82,3 +88,10 @@
 **lpar.storage_group_2_.storage_wwpn** | <b>(Optional)</b> World-wide port numbers for storage group. Use provided list formatting. | 500708680235c3f0<br />500708680235c3f1<br />500708680235c3f2<br />500708680235c3f3
 **lpar.storage_group_2_.dev_num** | <b>(Optional)</b> The logical device number of the Host Bus Adapter (HBA) for the storage group. | C001
 **lpar.storage_group_2_.lun_name** | <b>(Optional)</b> he Logical Unit Numbers (LUN) that points to a specific virtual disk<br /> behind the WWPN. | 4200569309ahhd240000000000000c001
+
+## 7 - (Optional) Livedisk info
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**lpar.livedisk.livedisktype** | <b>(Optional)</b> Storage type. DASD is the only tested type as of now. | dasd
+**lpar.livedisk.devicenr** | <b>(Optional)</b> the device no of the DASD live disk | c6h1
+**lpar.livedisk.livedisk_root_pass** | <b>(Optional)</b> root password for the livedisk | p@ssword
