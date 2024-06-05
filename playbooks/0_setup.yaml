@@ -16,9 +16,9 @@
       when: disconnected.enabled
 
   post_tasks:
-    - name: Ensure Ansible Galaxy collections have been installed.
+    - name: Ensure Ansible Galaxy collections have been installed with latest version.
       tags: galaxy
-      command: ansible-galaxy collection install {{ item }}
+      command: ansible-galaxy collection install {{ item }} --upgrade
       loop: "{{ env.pkgs.galaxy }}"
 
     - name: Find ibm_zhmc collection install location, if automated LPAR creation is to be used.
