@@ -1,0 +1,20 @@
+$TTL 86400
+@ IN SOA {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. admin.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} (
+                                            2020011800 ;Serial
+                                            3600 ;Refresh
+                                            1800 ;Retry
+                                            604800 ;Expire
+                                            86400 ;Minimum TTL
+)
+;Name Server Information
+@ IN NS {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.
+{{ env.bastion.networking.hostname }}     IN      A       {{ env.bastion.networking.ip }}
+
+
+{% for k,v in subnets.items() %}
+$ORIGIN {{ k }}.in-addr.arpa.
+{% for ips in v %}
+{{ ips[0] }} IN PTR {{ ips[1] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.
+{% endfor %}
+{% endfor %}
+

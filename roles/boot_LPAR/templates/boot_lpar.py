@@ -78,6 +78,9 @@ lpar_parameters = {
         }
     }
 }
-
+if lpar_name[0:3] in ["m13", "m42"]:
+    lpar_parameters["boot_params"]["lun"]="4003402b00000000"
+    lpar_parameters["boot_params"]["wwpn"]="500507630a1b50a4"
+print(lpar_parameters["boot_params"])
 hmc.start(lpar_name, lpar_cpu, lpar_memory, lpar_parameters)
 hmc.logoff()

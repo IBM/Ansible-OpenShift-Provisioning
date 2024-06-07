@@ -1,0 +1,54 @@
+---
+- name: Getting script for booting
+  template:
+    src: ../templates/rev_dns.py
+    dest: /root/ansible_workdir/rev_dns.py
+- name: "Command running"
+  debug:
+    msg:
+       python3 /root/ansible_workdir/rev_dns.py \
+        --control_ips {{ env.cluster.nodes.control.ip }} \
+        --compute_ips {{ env.cluster.nodes.compute.ip }} \
+        --bootstrap_ip {{ env.cluster.nodes.bootstrap.ip }} \
+        --bastion_ip {{ env.bastion.networking.ip }} \
+        --control_names {{ env.cluster.nodes.control.hostname }} \
+        --compute_names {{ env.cluster.nodes.compute.hostname }} \
+        --bootstrap_name {{ env.cluster.nodes.bootstrap.hostname }}
+- name: "Run the Python file"
+  shell: |
+        python3 /root/ansible_workdir/rev_dns.py \
+        --control_ips {{ env.cluster.nodes.control.ip | join(",") }} \
+        --compute_ips {{ env.cluster.nodes.compute.ip | join(",") }} \
+        --bootstrap_ip {{ env.cluster.nodes.bootstrap.ip }} \
+        --bastion_ip {{ env.bastion.networking.ip }} \
+        --control_names {{ env.cluster.nodes.control.hostname | join(",") }} \
+        --compute_names {{ env.cluster.nodes.compute.hostname | join(",") }} \
+        --bootstrap_name {{ env.cluster.nodes.bootstrap.hostname }}
+  register: rev_dns_map
+
+- name: "Setting the Fact"
+  set_fact:
+    subnets: "{{ rev_dns_map.stdout | from_json }}"
+  
+- name: "Debug the Var"
+  debug:
+    var: subnets
+
+- name: "Setting the REV Zone"
+  template:
+    src: "../templates/dns.rev.j2"
+    dest: "/var/named/{{ env.cluster.networking.metadata_name }}.rev"
+    owner: named
+    group: named
+    mode: "0644"
+    backup: yes
+
+- name: "Setting named conf"
+  template:
+    src: "../templates/dns-named.conf.j2"
+    dest: "/etc/named.conf"
+    owner: root
+    group: root
+    mode: "0644"
+    backup: yes
+

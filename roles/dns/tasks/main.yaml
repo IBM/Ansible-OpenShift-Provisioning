@@ -27,6 +27,13 @@
     group: root
     mode: "0644"
     backup: yes
+  when: env.multi_subnet is undefined or env.multi_subnet | lower != 'true'
+
+- name: Modifying named.conf and reverse DNS when all the IPs do not fall into the same range
+  tags: dns
+  include_role:
+    name: multisubnet_reverse_dns
+  when: env.multi_subnet is undefined or env.multi_subnet | lower == 'true'
 
 - name: Template DNS forwarding file to bastion
   tags: dns
@@ -82,6 +89,7 @@
     group: named
     mode: "0644"
     backup: yes
+  when: env.multi_subnet is undefined or env.multi_subnet | lower != 'true'
 
 - name: Add control nodes to DNS reverse lookup file on bastion
   tags: dns
@@ -93,6 +101,7 @@
   loop_control:
     extended: yes
     index_var: i
+  when: env.multi_subnet is undefined or env.multi_subnet | lower != 'true'
 
 - name: Add compute nodes to DNS reverse lookup file on bastion
   tags: dns
@@ -104,7 +113,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: env.cluster.nodes.compute.hostname is defined and env.cluster.nodes.compute.hostname[0] is defined and env.cluster.nodes.compute.hostname[0] != None
+  when: env.cluster.nodes.compute.hostname is defined and env.cluster.nodes.compute.hostname[0] is defined and env.cluster.nodes.compute.hostname[0] != None and (env.multi_subnet is undefined or env.multi_subnet | lower != 'true')
 
 - name: Add infrastructure nodes to DNS reverse lookup file on bastion
   tags: dns
@@ -116,7 +125,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: env.cluster.nodes.infra.hostname is defined
+  when: env.cluster.nodes.infra.hostname is defined and (env.multi_subnet is undefined or env.multi_subnet | lower != 'true')
 
 - name: Restart named to update changes made to DNS
   tags: dns, resolv
@@ -138,4 +147,3 @@
   ansible.builtin.service:
     name: NetworkManager
     state: restarted
-

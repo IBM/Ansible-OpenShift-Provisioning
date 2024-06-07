@@ -218,6 +218,7 @@ env:
 #    no:
 
 # Section 14 - (Optional) Misc
+  multi_subnet: False // Plese set this Option True for setting up the Reverse dns when IPs of nodes falls in differnet subnets
   language: en_US.UTF-8
   timezone: America/New_York
   keyboard: us
