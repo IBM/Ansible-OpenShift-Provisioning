@@ -1,4 +1,8 @@
 ---
+- name: Creating the ansible_workdir
+  file:
+    path: /root/ansible_workdir/
+    state: directory
 - name: Getting script for booting
   template:
     src: ../templates/rev_dns.py
