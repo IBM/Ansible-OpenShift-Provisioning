@@ -1,4 +1,4 @@
-i# Step 3: Set Variables (host_vars)
+# Step 3: Set Variables (host_vars)
 
 ## Overview
 * Similar to the group_vars file, the host_vars files for each LPAR (KVM host) must be filled in. 
