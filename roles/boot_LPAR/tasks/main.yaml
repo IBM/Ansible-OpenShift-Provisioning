@@ -26,6 +26,14 @@
         ipv6_string: "ip=[{{ node.networking.ipv6 }}]::[{{ node.networking.ipv6_gateway }}]:{{ node.networking.ipv6_prefix }}::{{ env.cluster.networking.interface }}:none"
       when: env.use_ipv6  == true
     
+    - name: set live disk lun
+      set_fact:
+        live_disk_lun: "{{ node.lpar.livedisk.lun if (node.lpar.livedisk.lun is defined and node.lpar.livedisk.lun | length > 0) else 'na' }}"
+
+    - name: set live disk wwpn
+      set_fact:
+        live_disk_wwpn: "{{ node.lpar.livedisk.wwpn if (node.lpar.livedisk.wwpn is defined and node.lpar.livedisk.wwpn | length > 0) else 'na' }}"
+    
     - name: Debug 
       debug: 
         msg: 
@@ -41,6 +49,8 @@
           --initrd {{ rhcos_download_url }}{{ rhcos_live_initrd }} \
           --livedisktype {{ node.lpar.livedisk.livedisktype }} \
           --devicenr {{ node.lpar.livedisk.devicenr }} \
+          --livedisklun {{ live_disk_lun }} \
+          --livediskwwpn {{ live_disk_wwpn }} \
           --netset_ip {{ node.networking.ip }} \ 
           --netset_gateway {{ node.networking.gateway }} \
           --netset_network_type osa \
@@ -64,6 +74,8 @@
           --initrd {{ rhcos_download_url }}{{ rhcos_live_initrd }} \
           --livedisktype {{ node.lpar.livedisk.livedisktype }} \
           --devicenr {{ node.lpar.livedisk.devicenr }} \
+          --livedisklun {{ live_disk_lun }} \
+          --livediskwwpn {{ live_disk_wwpn }} \
           --netset_ip {{ node.networking.ip }} \ 
           --netset_gateway {{ node.networking.gateway }} \
           --netset_network_type osa \
