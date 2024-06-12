@@ -61,7 +61,7 @@ lpar_cpu = args.cpu
 lpar_memory = args.memory
 lpar_parameters = {
     "boot_params": {
-        "boot_method" : args.livedisktype,
+        "boot_method" : args.livedisktype.lower(),
         "devicenr": args.devicenr,
         'netsetup': {
             "mac": None,
@@ -80,9 +80,13 @@ lpar_parameters = {
         }
     }
 }
-if args.livedisklun!="na" and args.livediskwwpn!="na":
+if args.livedisktype.lower()=="dasd" and args.livedisklun=="na" and args.livediskwwpn=="na":
+    pass
+elif args.livedisktype.lower()=="scsi" and args.livedisklun!="na" and args.livediskwwpn!="na":
     lpar_parameters["boot_params"]["lun"]=args.livedisklun
     lpar_parameters["boot_params"]["wwpn"]=args.livediskwwpn
-
+else:
+    raise Exception("Please check the live disk details")
 hmc.start(lpar_name, lpar_cpu, lpar_memory, lpar_parameters)
 hmc.logoff()
+
