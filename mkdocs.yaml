@@ -19,6 +19,9 @@ nav:
     - Troubleshooting: 'troubleshooting.md'
     - Acknowledgements: 'acknowledgements.md'
 
+extra_css:
+  - stylesheets/extra.css
+  
 theme:
   name: readthedocs
   palette:
