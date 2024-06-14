@@ -91,5 +91,7 @@ lpar:
 # Section 7 -live disk info
   livedisk:
     livedisktype: #X 
+    lun: #X
+    wwpn: #X
     devicenr: #X
     livedisk_root_pass: #X
