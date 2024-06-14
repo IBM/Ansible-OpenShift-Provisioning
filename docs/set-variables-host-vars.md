@@ -92,6 +92,8 @@
 ## 7 - (Optional) Livedisk info
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**lpar.livedisk.livedisktype** | <b>(Optional)</b> Storage type. DASD is the only tested type as of now. | dasd
-**lpar.livedisk.devicenr** | <b>(Optional)</b> the device no of the DASD live disk | c6h1
+**lpar.livedisk.livedisktype** | <b>(Optional)</b> Storage type. DASD and SCSI are tested types as of now. | dasd/scsi
+**lpar.livedisk.lun** | <b>(Required if livedisktype is scsi)</b> The Lunid of the disk when the livedisktype is SCSI. | 4003402b00000000
+**lpar.livedisk.wwpn** | <b>(Required if livedisktype is scsi)</b> World-wide port number when livedisktype is SCSI. | 500507630a1b50a4
+**lpar.livedisk.devicenr** | <b>(Optional)</b> the device no of the live disk | c6h1
 **lpar.livedisk.livedisk_root_pass** | <b>(Optional)</b> root password for the livedisk | p@ssword
