@@ -476,6 +476,7 @@ day2_compute_node:
   vm_mac:
   vm_interface:
   hostname:
+  host_user:
   host_arch:
 
 

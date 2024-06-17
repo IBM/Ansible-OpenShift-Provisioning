@@ -134,8 +134,7 @@
     mode: "644"
 
 - name: Restart network to update changes made to /etc/resolv.conf
-  tags: resolv
+  tags: dns, resolv
   ansible.builtin.service:
     name: NetworkManager
     state: restarted
-
