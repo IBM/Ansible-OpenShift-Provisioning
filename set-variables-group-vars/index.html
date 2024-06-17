@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../stylesheets/extra.css" rel="stylesheet" />
     
       <script>
         // Current page data
@@ -167,7 +168,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.controller.sudo_pass</strong></td>
-<td style="text-align: left;">The password to the machine running Ansible (localhost).<br /> This will only be used for two things. To ensure you've installed the<br /> pre-requisite packages if you're on Linux, and to add the login URL<br /> to your /etc/hosts file.</td>
+<td style="text-align: left;">The password to the machine running Ansible (localhost). This will only be used for two things. To ensure you've installed the pre-requisite packages if you're on Linux, and to add the login URL to your /etc/hosts file.</td>
 <td style="text-align: left;">Pas$w0rd!</td>
 </tr>
 </tbody>
@@ -184,7 +185,7 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>env.z.high_availability</strong></td>
-<td style="text-align: left;">Is this cluster spread across three LPARs? If yes, mark True. If not (just in<br /> one LPAR), mark False</td>
+<td style="text-align: left;">Is this cluster spread across three LPARs? If yes, mark True. If not (just in one LPAR), mark False</td>
 <td style="text-align: left;">True</td>
 </tr>
 <tr>
@@ -194,7 +195,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar1.create</strong></td>
-<td style="text-align: left;">To have Ansible create an LPAR and install RHEL on it for the KVM<br /> host, mark True. If using a pre-existing LPAR with RHEL already<br /> installed, mark False.</td>
+<td style="text-align: left;">To have Ansible create an LPAR and install RHEL on it for the KVM host, mark True. If using a pre-existing LPAR with RHEL already installed, mark False.</td>
 <td style="text-align: left;">True</td>
 </tr>
 <tr>
@@ -219,7 +220,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar2.create</strong></td>
-<td style="text-align: left;">To create a second LPAR and install RHEL on it to act as<br /> another KVM host, mark True. If using pre-existing LPAR(s) with RHEL<br /> already installed, mark False.</td>
+<td style="text-align: left;">To create a second LPAR and install RHEL on it to act as another KVM host, mark True. If using pre-existing LPAR(s) with RHEL already installed, mark False.</td>
 <td style="text-align: left;">True</td>
 </tr>
 <tr>
@@ -244,7 +245,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar3.create</strong></td>
-<td style="text-align: left;">To create a third LPAR and install RHEL on it to act as<br /> another KVM host, mark True. If using pre-existing LPAR(s) with RHEL<br /> already installed, mark False.</td>
+<td style="text-align: left;">To create a third LPAR and install RHEL on it to act as another KVM host, mark True. If using pre-existing LPAR(s) with RHEL already installed, mark False.</td>
 <td style="text-align: left;">True</td>
 </tr>
 <tr>
@@ -281,12 +282,12 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>env.file_server.ip</strong></td>
-<td style="text-align: left;">IPv4 address for the file server that will be used to pass config files and<br /> iso to KVM host LPAR(s) and bastion VM during their first boot.</td>
+<td style="text-align: left;">IPv4 address for the file server that will be used to pass config files and iso to KVM host LPAR(s) and bastion VM during their first boot.</td>
 <td style="text-align: left;">192.168.10.201</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.file_server.port</strong></td>
-<td style="text-align: left;">The port on which the file server is listening. Will be embedded into all<br /> download urls. Defaults to protocol default port. Keep empty <code>''</code> to use <br /> default port</td>
+<td style="text-align: left;">The port on which the file server is listening. Will be embedded into all download urls. Defaults to protocol default port. Keep empty <code>''</code> to use  default port</td>
 <td style="text-align: left;">10000</td>
 </tr>
 <tr>
@@ -311,12 +312,12 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.file_server.iso_mount_dir</strong></td>
-<td style="text-align: left;">Directory path relative to the HTTP/FTP accessible directory where RHEL ISO is mounted. For example, if the FTP root is at /home/user1<br /> and the ISO is mounted at /home/user1/RHEL/8.7 then this variable would be<br /> RHEL/8.7 - no slash before or after.</td>
+<td style="text-align: left;">Directory path relative to the HTTP/FTP accessible directory where RHEL ISO is mounted. For example, if the FTP root is at /home/user1 and the ISO is mounted at /home/user1/RHEL/8.7 then this variable would be RHEL/8.7 - no slash before or after.</td>
 <td style="text-align: left;">RHEL/8.7</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.file_server.cfgs_dir</strong></td>
-<td style="text-align: left;">Directory path relative to to the HTTP/FTP accessible directory where configuration files can be stored. For example, if FTP root is /home/user1<br /> and you would like to store the configs at /home/user1/ocpz-config then this variable would be<br /> ocpz-config. No slash before or after.</td>
+<td style="text-align: left;">Directory path relative to to the HTTP/FTP accessible directory where configuration files can be stored. For example, if FTP root is /home/user1 and you would like to store the configs at /home/user1/ocpz-config then this variable would be ocpz-config. No slash before or after.</td>
 <td style="text-align: left;">ocpz-config</td>
 </tr>
 </tbody>
@@ -333,12 +334,12 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>env.redhat.username</strong></td>
-<td style="text-align: left;">Red Hat username with a valid license or free trial to Red Hat<br /> OpenShift Container Platform (RHOCP), which comes with<br /> necessary licenses for Red Hat Enterprise Linux (RHEL) and<br /> Red Hat CoreOS (RHCOS).</td>
+<td style="text-align: left;">Red Hat username with a valid license or free trial to Red Hat OpenShift Container Platform (RHOCP), which comes with necessary licenses for Red Hat Enterprise Linux (RHEL) and Red Hat CoreOS (RHCOS).</td>
 <td style="text-align: left;">redhat.user</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.redhat.password</strong></td>
-<td style="text-align: left;">Password to Red Hat above user's account. Used to auto-attach<br /> necessary subscriptions to KVM Host, bastion VM, and pull live<br /> images for OpenShift.</td>
+<td style="text-align: left;">Password to Red Hat above user's account. Used to auto-attach necessary subscriptions to KVM Host, bastion VM, and pull live images for OpenShift.</td>
 <td style="text-align: left;">rEdHatPa$s!</td>
 </tr>
 <tr>
@@ -348,8 +349,8 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.redhat.pull_secret</strong></td>
-<td style="text-align: left;">Pull secret for OpenShift, comes from Red Hat's <a href="https://console.redhat.com/openshift/install/ibmz/user-provisioned">Hybrid Cloud Console</a>.<br /> Make sure to enclose in 'single quotes'.<br /></td>
-<td style="text-align: left;">'{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}'</td>
+<td style="text-align: left;">Pull secret for OpenShift, comes from Red Hat's <a href="https://console.redhat.com/openshift/install/ibmz/user-provisioned">Hybrid Cloud Console</a>. Make sure to enclose in 'single quotes'.</td>
+<td style="text-align: left;">'{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com"}}}'</td>
 </tr>
 </tbody>
 </table>
@@ -365,7 +366,7 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.create</strong></td>
-<td style="text-align: left;">True or False. Would you like to create a bastion KVM guest to host essential infrastructure services like DNS,<br /> load balancer, firewall, etc? Can de-select certain services with the env.bastion.options<br /> variables below.</td>
+<td style="text-align: left;">True or False. Would you like to create a bastion KVM guest to host essential infrastructure services like DNS, load balancer, firewall, etc? Can de-select certain services with the env.bastion.options variables below.</td>
 <td style="text-align: left;">True</td>
 </tr>
 <tr>
@@ -375,17 +376,17 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.resources.disk_size</strong></td>
-<td style="text-align: left;">How much of the storage pool would you like to allocate to the bastion (in<br /> Gigabytes)? Recommended 30 or more.</td>
+<td style="text-align: left;">How much of the storage pool would you like to allocate to the bastion (in Gigabytes)? Recommended 30 or more.</td>
 <td style="text-align: left;">30</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.resources.ram</strong></td>
-<td style="text-align: left;">How much memory would you like to allocate the bastion (in<br /> megabytes)? Recommended 4096 or more</td>
+<td style="text-align: left;">How much memory would you like to allocate the bastion (in megabytes)? Recommended 4096 or more</td>
 <td style="text-align: left;">4096</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.resources.swap</strong></td>
-<td style="text-align: left;">How much swap storage would you like to allocate the bastion (in<br /> megabytes)? Recommended 4096 or more.</td>
+<td style="text-align: left;">How much swap storage would you like to allocate the bastion (in megabytes)? Recommended 4096 or more.</td>
 <td style="text-align: left;">4096</td>
 </tr>
 <tr>
@@ -415,16 +416,16 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.hostname</strong></td>
-<td style="text-align: left;">Hostname of the bastion. Will be combined with<br /> env.bastion.networking.base_domain to create a Fully Qualified Domain Name (FQDN).</td>
+<td style="text-align: left;">Hostname of the bastion. Will be combined with env.bastion.networking.base_domain to create a Fully Qualified Domain Name (FQDN).</td>
 <td style="text-align: left;">ocpz-bastion</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>env.bastion.networking.base_<br />domain</strong></td>
-<td style="text-align: left;">Base domain that, when combined with the hostname, creates a fully-qualified<br /> domain name (FQDN) for the bastion?</td>
+<td style="text-align: left;"><strong>env.bastion.networking.base_domain</strong></td>
+<td style="text-align: left;">Base domain that, when combined with the hostname, creates a fully-qualified domain name (FQDN) for the bastion?</td>
 <td style="text-align: left;">ihost.com</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>env.bastion.networking.<br />subnetmask</strong></td>
+<td style="text-align: left;"><strong>env.bastion.networking.subnetmask</strong></td>
 <td style="text-align: left;">Subnet of the bastion.</td>
 <td style="text-align: left;">255.255.255.0</td>
 </tr>
@@ -444,12 +445,12 @@
 <td style="text-align: left;">64</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>env.bastion.networking.name<br />server1</strong></td>
+<td style="text-align: left;"><strong>env.bastion.networking.nameserver1</strong></td>
 <td style="text-align: left;">IPv4 address of the server that resolves the bastion's hostname.</td>
 <td style="text-align: left;">192.168.10.200</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>env.bastion.networking.name<br />server2</strong></td>
+<td style="text-align: left;"><strong>env.bastion.networking.nameserver2</strong></td>
 <td style="text-align: left;"><b>(Optional)</b> A second IPv4 address that resolves the bastion's hostname.</td>
 <td style="text-align: left;">192.168.10.201</td>
 </tr>
@@ -465,37 +466,37 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.access.user</strong></td>
-<td style="text-align: left;">What would you like the admin's username to be on the bastion?<br /> If root, make pass and root_pass vars the same.</td>
+<td style="text-align: left;">What would you like the admin's username to be on the bastion? If root, make pass and root_pass vars the same.</td>
 <td style="text-align: left;">admin</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.access.pass</strong></td>
-<td style="text-align: left;">The password to the bastion's admin user. If using root, make<br /> pass and root_pass vars the same.</td>
+<td style="text-align: left;">The password to the bastion's admin user. If using root, make pass and root_pass vars the same.</td>
 <td style="text-align: left;">cH4ngeM3!</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.access.root_pass</strong></td>
-<td style="text-align: left;">The root password for the bastion. If using root, make<br /> pass and root_pass vars the same.</td>
+<td style="text-align: left;">The root password for the bastion. If using root, make pass and root_pass vars the same.</td>
 <td style="text-align: left;">R0OtPa$s!</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.options.dns</strong></td>
-<td style="text-align: left;">Would you like the bastion to host the DNS information for the<br /> cluster? True or False. If false, resolution must come from<br /> elsewhere in your environment. Make sure to add IP addresses for<br /> KVM hosts, bastion, bootstrap, control, compute nodes, AND api,<br /> api-int and *.apps as described <a href="https://docs.openshift.com/container-platform/4.8/installing/installing_bare_metal/installing-bare-metal-network-customizations.html">here</a> in section "User-provisioned<br /> DNS Requirements" Table 5. If True this will be done for you in<br /> the dns and check_dns roles.</td>
+<td style="text-align: left;">Would you like the bastion to host the DNS information for the cluster? True or False. If false, resolution must come from elsewhere in your environment. Make sure to add IP addresses for KVM hosts, bastion, bootstrap, control, compute nodes, AND api, api-int and *.apps as described <a href="https://docs.openshift.com/container-platform/4.8/installing/installing_bare_metal/installing-bare-metal-network-customizations.html">here</a> in section "User-provisioned DNS Requirements" Table 5. If True this will be done for you in the dns and check_dns roles.</td>
 <td style="text-align: left;">True</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>env.bastion.options.load<br />balancer.on_bastion</strong></td>
-<td style="text-align: left;">Would you like the bastion to host the load balancer (HAProxy) for the cluster?<br /> True or False (boolean).<br /> If false, this service must be provided elsewhere in your environment, and public and<br /> private IP of the load balancer must be<br /> provided in the following two variables.</td>
+<td style="text-align: left;"><strong>env.bastion.options.loadbalancer.on_bastion</strong></td>
+<td style="text-align: left;">Would you like the bastion to host the load balancer (HAProxy) for the cluster? True or False (boolean). If false, this service must be provided elsewhere in your environment, and public and private IP of the load balancer must be provided in the following two variables.</td>
 <td style="text-align: left;">True</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>env.bastion.options.load<br />balancer.public_ip</strong></td>
-<td style="text-align: left;">(Only required if env.bastion.options.loadbalancer.on_bastion is True). The public IPv4<br /> address for your environment's loadbalancer. api, apps, *.apps must use this.</td>
+<td style="text-align: left;"><strong>env.bastion.options.loadbalancer.public_ip</strong></td>
+<td style="text-align: left;">(Only required if env.bastion.options.loadbalancer.on_bastion is True). The public IPv4 address for your environment's loadbalancer. api, apps, *.apps must use this.</td>
 <td style="text-align: left;">192.168.10.50</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>env.bastion.options.load<br />balancer.private_ip</strong></td>
-<td style="text-align: left;">(Only required if env.bastion.options.loadbalancer.on_bastion is True). The private IPv4 address<br /> for your environment's loadbalancer. api-int must use this.</td>
+<td style="text-align: left;"><strong>env.bastion.options.loadbalancer.private_ip</strong></td>
+<td style="text-align: left;">(Only required if env.bastion.options.loadbalancer.on_bastion is True). The private IPv4 address for your environment's loadbalancer. api-int must use this.</td>
 <td style="text-align: left;">10.24.17.12</td>
 </tr>
 </tbody>
@@ -512,12 +513,12 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.networking.metadata_name</strong></td>
-<td style="text-align: left;">Name to describe the cluster as a whole, can be anything if DNS will be hosted on the bastion. If<br /> DNS is not on the bastion, must match your DNS configuration. Will be combined with the base_domain<br /> and hostnames to create Fully Qualified Domain Names (FQDN).</td>
+<td style="text-align: left;">Name to describe the cluster as a whole, can be anything if DNS will be hosted on the bastion. If DNS is not on the bastion, must match your DNS configuration. Will be combined with the base_domain and hostnames to create Fully Qualified Domain Names (FQDN).</td>
 <td style="text-align: left;">ocpz</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.networking.base_domain</strong></td>
-<td style="text-align: left;">The site name, where is the cluster being hosted? This will be combined with the metadata_name<br /> and hostnames to create FQDNs.</td>
+<td style="text-align: left;">The site name, where is the cluster being hosted? This will be combined with the metadata_name and hostnames to create FQDNs.</td>
 <td style="text-align: left;">host.com</td>
 </tr>
 <tr>
@@ -532,12 +533,12 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.networking.nameserver1</strong></td>
-<td style="text-align: left;">IPv4 address that the cluster get its hostname resolution from. If env.bastion.options.dns<br /> is True, this should be the IP address of the bastion.</td>
+<td style="text-align: left;">IPv4 address that the cluster get its hostname resolution from. If env.bastion.options.dns is True, this should be the IP address of the bastion.</td>
 <td style="text-align: left;">192.168.10.200</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.networking.nameserver2</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> A second IPv4 address will the cluster get its hostname resolution from? If env.bastion.options.dns<br /> is True, this should be left commented out.</td>
+<td style="text-align: left;"><b>(Optional)</b> A second IPv4 address will the cluster get its hostname resolution from? If env.bastion.options.dns is True, this should be left commented out.</td>
 <td style="text-align: left;">192.168.10.201</td>
 </tr>
 <tr>
@@ -564,17 +565,17 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.bootstrap.disk_size</strong></td>
-<td style="text-align: left;">How much disk space do you want to allocate to the bootstrap node (in Gigabytes)? Bootstrap node<br /> is temporary and will be brought down automatically when its job completes. 120 or more recommended.</td>
+<td style="text-align: left;">How much disk space do you want to allocate to the bootstrap node (in Gigabytes)? Bootstrap node is temporary and will be brought down automatically when its job completes. 120 or more recommended.</td>
 <td style="text-align: left;">120</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.bootstrap.ram</strong></td>
-<td style="text-align: left;">How much memory would you like to allocate to the temporary bootstrap node (in<br /> megabytes)? Recommended 16384 or more.</td>
+<td style="text-align: left;">How much memory would you like to allocate to the temporary bootstrap node (in megabytes)? Recommended 16384 or more.</td>
 <td style="text-align: left;">16384</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.bootstrap.vcpu</strong></td>
-<td style="text-align: left;">How many virtual CPUs would you like to allocate to the temporary bootstrap node?<br /> Recommended 4 or more.</td>
+<td style="text-align: left;">How many virtual CPUs would you like to allocate to the temporary bootstrap node? Recommended 4 or more.</td>
 <td style="text-align: left;">4</td>
 </tr>
 <tr>
@@ -604,7 +605,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.bootstrap.hostname</strong></td>
-<td style="text-align: left;">Hostname of the temporary boostrap node. If DNS is hosted on the bastion, this can be anything.<br /> If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the<br /> metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN).</td>
+<td style="text-align: left;">Hostname of the temporary boostrap node. If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN).</td>
 <td style="text-align: left;">bootstrap-ocpz</td>
 </tr>
 </tbody>
@@ -626,7 +627,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.ram</strong></td>
-<td style="text-align: left;">How much memory would you like to allocate to the each control<br /> node (in megabytes)? Recommended 16384 or more.</td>
+<td style="text-align: left;">How much memory would you like to allocate to the each control node (in megabytes)? Recommended 16384 or more.</td>
 <td style="text-align: left;">16384</td>
 </tr>
 <tr>
@@ -641,18 +642,18 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.vm_name</strong></td>
-<td style="text-align: left;">Name of the control node VMs. Arbitrary values. Usually no more or less than 3 are used. Must match<br /> the total number of IP addresses and hostnames for control nodes. Use provided list format.</td>
-<td style="text-align: left;">control-1<br />control-2<br />control-3</td>
+<td style="text-align: left;">Name of the control node VMs. Arbitrary values. Usually no more or less than 3 are used. Must match the total number of IP addresses and hostnames for control nodes. Use provided list format.</td>
+<td style="text-align: left;">control-1control-2control-3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.ip</strong></td>
-<td style="text-align: left;">IPv4 address of the control nodes. Use provided<br /> list formatting.</td>
-<td style="text-align: left;">192.168.10.5<br />192.168.10.6<br />192.168.10.7</td>
+<td style="text-align: left;">IPv4 address of the control nodes. Use provided list formatting.</td>
+<td style="text-align: left;">192.168.10.5192.168.10.6192.168.10.7</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.ipv6</strong></td>
-<td style="text-align: left;">IPv6 address for the control nodes. Use iprovided<br /> list formatting (if use_ipv6 variable is 'True').</td>
-<td style="text-align: left;">fd00::5<br />fd00::6<br />fd00::7</td>
+<td style="text-align: left;">IPv6 address for the control nodes. Use iprovided list formatting (if use_ipv6 variable is 'True').</td>
+<td style="text-align: left;">fd00::5fd00::6fd00::7</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.mac</strong></td>
@@ -661,8 +662,8 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.hostname</strong></td>
-<td style="text-align: left;">Hostnames for control nodes. Must match the total number of IP addresses for control nodes<br /> (usually 3). If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere,<br /> this must match DNS definition. This will be combined with the metadata_name and<br /> base_domain to create a Fully Qualififed Domain Name (FQDN).</td>
-<td style="text-align: left;">control-01<br />control-02<br />control-03</td>
+<td style="text-align: left;">Hostnames for control nodes. Must match the total number of IP addresses for control nodes (usually 3). If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN).</td>
+<td style="text-align: left;">control-01control-02control-03</td>
 </tr>
 </tbody>
 </table>
@@ -678,12 +679,12 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.disk_size</strong></td>
-<td style="text-align: left;">How much disk space do you want to allocate to each compute<br /> node (in Gigabytes)? 120 or more recommended.</td>
+<td style="text-align: left;">How much disk space do you want to allocate to each compute node (in Gigabytes)? 120 or more recommended.</td>
 <td style="text-align: left;">120</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.ram</strong></td>
-<td style="text-align: left;">How much memory would you like to allocate to the each compute<br /> node (in megabytes)? Recommended 16384 or more.</td>
+<td style="text-align: left;">How much memory would you like to allocate to the each compute node (in megabytes)? Recommended 16384 or more.</td>
 <td style="text-align: left;">16384</td>
 </tr>
 <tr>
@@ -698,18 +699,18 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.vm_name</strong></td>
-<td style="text-align: left;">Name of the compute node VMs. Arbitrary values. This list can be expanded to any<br /> number of nodes, minimum 2. Must match the total number of IP<br /> addresses and hostnames for compute nodes. Use provided list format.</td>
-<td style="text-align: left;">compute-1<br />compute-2</td>
+<td style="text-align: left;">Name of the compute node VMs. Arbitrary values. This list can be expanded to any number of nodes, minimum 2. Must match the total number of IP addresses and hostnames for compute nodes. Use provided list format.</td>
+<td style="text-align: left;">compute-1compute-2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.ip</strong></td>
-<td style="text-align: left;">IPv4 address of the compute nodes. Must match the total number of VM names and<br /> hostnames for compute nodes. Use provided list formatting.</td>
-<td style="text-align: left;">192.168.10.8<br />192.168.10.9</td>
+<td style="text-align: left;">IPv4 address of the compute nodes. Must match the total number of VM names and hostnames for compute nodes. Use provided list formatting.</td>
+<td style="text-align: left;">192.168.10.8192.168.10.9</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.ipv6</strong></td>
-<td style="text-align: left;">IPv6 address for the compute nodes. Use iprovided<br /> list formatting (if use_ipv6 variable is 'True').</td>
-<td style="text-align: left;">fd00::8<br />fd00::9</td>
+<td style="text-align: left;">IPv6 address for the compute nodes. Use iprovided list formatting (if use_ipv6 variable is 'True').</td>
+<td style="text-align: left;">fd00::8fd00::9</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.mac</strong></td>
@@ -718,8 +719,8 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.hostname</strong></td>
-<td style="text-align: left;">Hostnames for compute nodes. Must match the total number of IP addresses and<br /> VM names for compute nodes. If DNS is hosted on the bastion, this can be anything.<br /> If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the<br /> metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN).</td>
-<td style="text-align: left;">compute-01<br />compute-02</td>
+<td style="text-align: left;">Hostnames for compute nodes. Must match the total number of IP addresses and VM names for compute nodes. If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN).</td>
+<td style="text-align: left;">compute-01compute-02</td>
 </tr>
 </tbody>
 </table>
@@ -735,17 +736,17 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.infra.disk_size</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> Set up compute nodes that are made for infrastructure workloads (ingress,<br /> monitoring, logging)? How much disk space do you want to allocate to each infra node (in Gigabytes)?<br /> 120 or more recommended.</td>
+<td style="text-align: left;"><b>(Optional)</b> Set up compute nodes that are made for infrastructure workloads (ingress, monitoring, logging)? How much disk space do you want to allocate to each infra node (in Gigabytes)? 120 or more recommended.</td>
 <td style="text-align: left;">120</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.infra.ram</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> How much memory would you like to allocate to the each infra node (in<br /> megabytes)? Recommended 16384 or more.</td>
+<td style="text-align: left;"><b>(Optional)</b> How much memory would you like to allocate to the each infra node (in megabytes)? Recommended 16384 or more.</td>
 <td style="text-align: left;">16384</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.infra.vcpu</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> How many virtual CPUs would you like to allocate to each infra node?<br /> Recommended 2 or more.</td>
+<td style="text-align: left;"><b>(Optional)</b> How many virtual CPUs would you like to allocate to each infra node? Recommended 2 or more.</td>
 <td style="text-align: left;">2</td>
 </tr>
 <tr>
@@ -755,23 +756,23 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.infra.vm_name</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> Name of additional infra node VMs. Arbitrary values. This list can be<br /> expanded to any number of nodes, minimum 2. Must match the total<br /> number of IP addresses and hostnames for infra nodes. Use provided list format.</td>
-<td style="text-align: left;">infra-1<br />infra-2</td>
+<td style="text-align: left;"><b>(Optional)</b> Name of additional infra node VMs. Arbitrary values. This list can be expanded to any number of nodes, minimum 2. Must match the total number of IP addresses and hostnames for infra nodes. Use provided list format.</td>
+<td style="text-align: left;">infra-1infra-2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.infra.ip</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> IPv4 address of the infra nodes. This list can be expanded to any number of nodes,<br /> minimum 2. Use provided list formatting.</td>
-<td style="text-align: left;">192.168.10.10<br />192.168.10.11</td>
+<td style="text-align: left;"><b>(Optional)</b> IPv4 address of the infra nodes. This list can be expanded to any number of nodes, minimum 2. Use provided list formatting.</td>
+<td style="text-align: left;">192.168.10.10192.168.10.11</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.infra.ipv6</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> IPv6 address of the infra nodes. iThis list can be expanded to any number of nodes,<br /> minimum 2. Use provided list formatting (if use_ipv6 variable is 'True').</td>
-<td style="text-align: left;">fd00::10<br />fd00::11</td>
+<td style="text-align: left;"><b>(Optional)</b> IPv6 address of the infra nodes. iThis list can be expanded to any number of nodes, minimum 2. Use provided list formatting (if use_ipv6 variable is 'True').</td>
+<td style="text-align: left;">fd00::10fd00::11</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.infra.hostname</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> Hostnames for infra nodes. Must match the total number of IP addresses for infra nodes.<br /> If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match<br /> DNS definition. This will be combined with the metadata_name and base_domain<br /> to create a Fully Qualififed Domain Name (FQDN).</td>
-<td style="text-align: left;">infra-01<br />infra-02</td>
+<td style="text-align: left;"><b>(Optional)</b> Hostnames for infra nodes. Must match the total number of IP addresses for infra nodes. If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN).</td>
+<td style="text-align: left;">infra-01infra-02</td>
 </tr>
 </tbody>
 </table>
@@ -787,22 +788,22 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>env.pkgs.galaxy</strong></td>
-<td style="text-align: left;">A list of Ansible Galaxy collections that will be installed during the setup playbook. The<br /> collections listed are required. Feel free to add more as needed, just make sure to follow the same list format.</td>
+<td style="text-align: left;">A list of Ansible Galaxy collections that will be installed during the setup playbook. The collections listed are required. Feel free to add more as needed, just make sure to follow the same list format.</td>
 <td style="text-align: left;">community.general</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.pkgs.controller</strong></td>
-<td style="text-align: left;">A list of packages that will be installed on the machine running Ansible during the setup<br /> playbook. Feel free to add more as needed, just make sure to follow the same list format.</td>
+<td style="text-align: left;">A list of packages that will be installed on the machine running Ansible during the setup playbook. Feel free to add more as needed, just make sure to follow the same list format.</td>
 <td style="text-align: left;">openssh</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.pkgs.kvm</strong></td>
-<td style="text-align: left;">A list of packages that will be installed on the KVM Host during the setup_kvm_host playbook.<br /> Feel free to add more as needed, just make sure to follow the same list format.</td>
+<td style="text-align: left;">A list of packages that will be installed on the KVM Host during the setup_kvm_host playbook. Feel free to add more as needed, just make sure to follow the same list format.</td>
 <td style="text-align: left;">qemu-kvm</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.pkgs.bastion</strong></td>
-<td style="text-align: left;">A list of packages that will be installed on the bastion during the setup_bastion playbook.<br /> Feel free to add more as needed, just make sure to follow the same list format.</td>
+<td style="text-align: left;">A list of packages that will be installed on the bastion during the setup_bastion playbook. Feel free to add more as needed, just make sure to follow the same list format.</td>
 <td style="text-align: left;">haproxy</td>
 </tr>
 </tbody>
@@ -819,7 +820,7 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>env.install_config.api_version</strong></td>
-<td style="text-align: left;">Kubernetes API version for the cluster. These install_config variables will be passed to the OCP<br /> install_config file. This file is templated in the get_ocp role during the setup_bastion playbook.<br /> To make more fine-tuned adjustments to the install_config, you can find it at<br /> roles/get_ocp/templates/install-config.yaml.j2</td>
+<td style="text-align: left;">Kubernetes API version for the cluster. These install_config variables will be passed to the OCP install_config file. This file is templated in the get_ocp role during the setup_bastion playbook. To make more fine-tuned adjustments to the install_config, you can find it at roles/get_ocp/templates/install-config.yaml.j2</td>
 <td style="text-align: left;">v1</td>
 </tr>
 <tr>
@@ -844,27 +845,27 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.install_config.cluster_network.cidr</strong></td>
-<td style="text-align: left;">IPv4 block in Internal cluster networking in Classless Inter-Domain<br /> Routing (CIDR) notation. Recommended to keep as is.</td>
+<td style="text-align: left;">IPv4 block in Internal cluster networking in Classless Inter-Domain Routing (CIDR) notation. Recommended to keep as is.</td>
 <td style="text-align: left;">10.128.0.0/14</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.install_config.cluster_network.host_prefix</strong></td>
-<td style="text-align: left;">The subnet prefix length to assign to each individual node. For example, if<br /> hostPrefix is set to 23 then each node is assigned a /23 subnet out of the given cidr. A hostPrefix<br /> value of 23 provides 510 (2^(32 - 23) - 2) pod IP addresses.</td>
+<td style="text-align: left;">The subnet prefix length to assign to each individual node. For example, if hostPrefix is set to 23 then each node is assigned a /23 subnet out of the given cidr. A hostPrefix value of 23 provides 510 (2^(32 - 23) - 2) pod IP addresses.</td>
 <td style="text-align: left;">23</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.install_config.cluster_network.type</strong></td>
-<td style="text-align: left;">The cluster network provider Container Network Interface (CNI) plug-in to install.<br /> Either OpenShiftSDN or OVNKubernetes (default).</td>
+<td style="text-align: left;">The cluster network provider Container Network Interface (CNI) plug-in to install. Either OpenShiftSDN or OVNKubernetes (default).</td>
 <td style="text-align: left;">OVNKubernetes</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.install_config.service_network</strong></td>
-<td style="text-align: left;">The IP address block for services. The default value is 172.30.0.0/16. The OpenShift SDN<br /> and OVN-Kubernetes network providers support only a single IP address block for the service<br /> network. An array with an IP address block in CIDR format.</td>
+<td style="text-align: left;">The IP address block for services. The default value is 172.30.0.0/16. The OpenShift SDN and OVN-Kubernetes network providers support only a single IP address block for the service network. An array with an IP address block in CIDR format.</td>
 <td style="text-align: left;">172.30.0.0/16</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.install_config.fips</strong></td>
-<td style="text-align: left;">True or False (boolean) for whether or not to use the United States' Federal Information Processing<br /> Standards (FIPS). Not yet certified on IBM zSystems. Enclosed in 'single quotes'.</td>
+<td style="text-align: left;">True or False (boolean) for whether or not to use the United States' Federal Information Processing Standards (FIPS). Not yet certified on IBM zSystems. Enclosed in 'single quotes'.</td>
 <td style="text-align: left;">'false'</td>
 </tr>
 </tbody>
@@ -881,17 +882,17 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>env.proxy.http</strong></td>
-<td style="text-align: left;">(Optional) A proxy URL to use for creating HTTP connections outside the cluster. Will be<br /> used in the install-config and applied to other Ansible hosts unless set otherwise in<br /> no_proxy below. Must follow this pattern: http://username:pswd&gt;@ip:port</td>
+<td style="text-align: left;">(Optional) A proxy URL to use for creating HTTP connections outside the cluster. Will be used in the install-config and applied to other Ansible hosts unless set otherwise in no_proxy below. Must follow this pattern: http://username:pswd&gt;@ip:port</td>
 <td style="text-align: left;">http://ocp-admin:Pa$sw0rd@9.72.10.1:80</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.proxy.https</strong></td>
-<td style="text-align: left;">(Optional) A proxy URL to use for creating HTTPS connections outside the cluster. Will be<br /> used in the install-config and applied to other Ansible hosts unless set otherwise in<br /> no_proxy below. Must follow this pattern: https://username:pswd@ip:port</td>
+<td style="text-align: left;">(Optional) A proxy URL to use for creating HTTPS connections outside the cluster. Will be used in the install-config and applied to other Ansible hosts unless set otherwise in no_proxy below. Must follow this pattern: https://username:pswd@ip:port</td>
 <td style="text-align: left;">https://ocp-admin:Pa$sw0rd@9.72.10.1:80</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.proxy.no</strong></td>
-<td style="text-align: left;">(Optional) A comma-separated list (no spaces) of destination domain names, IP<br /> addresses, or other network CIDRs to exclude from proxying. When using a<br /> proxy, all necessary IPs and domains for your cluster will be added automatically. See<br /> roles/get_ocp/templates/install-config.yaml.j2 for more details on the template. <br />Preface a domain with . to match subdomains only. For example, .y.com matches<br /> x.y.com, but not y.com. Use * to bypass the proxy for all listed destinations.</td>
+<td style="text-align: left;">(Optional) A comma-separated list (no spaces) of destination domain names, IP addresses, or other network CIDRs to exclude from proxying. When using a proxy, all necessary IPs and domains for your cluster will be added automatically. See roles/get_ocp/templates/install-config.yaml.j2 for more details on the template. Preface a domain with . to match subdomains only. For example, .y.com matches x.y.com, but not y.com. Use * to bypass the proxy for all listed destinations.</td>
 <td style="text-align: left;">example.com,192.168.10.1</td>
 </tr>
 </tbody>
@@ -908,12 +909,12 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>env.language</strong></td>
-<td style="text-align: left;">What language would you like Red Hat Enterprise Linux to use? In UTF-8 language code.<br /> Available languages and their corresponding codes can be found <a href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/5/html-single/international_language_support_guide/index">here</a>, in the "Locale" column of Table 2.1.</td>
+<td style="text-align: left;">What language would you like Red Hat Enterprise Linux to use? In UTF-8 language code. Available languages and their corresponding codes can be found <a href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/5/html-single/international_language_support_guide/index">here</a>, in the "Locale" column of Table 2.1.</td>
 <td style="text-align: left;">en_US.UTF-8</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.timezone</strong></td>
-<td style="text-align: left;">Which timezone would you like Red Hat Enterprise Linux to use? A list of available timezone<br /> options can be found <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">here</a>.</td>
+<td style="text-align: left;">Which timezone would you like Red Hat Enterprise Linux to use? A list of available timezone options can be found <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">here</a>.</td>
 <td style="text-align: left;">America/New_York</td>
 </tr>
 <tr>
@@ -991,7 +992,7 @@
 <tr>
 <td style="text-align: left;"><strong>ocp_download_url</strong></td>
 <td style="text-align: left;">Link to the mirror for the OpenShift client and installer from Red Hat.</td>
-<td style="text-align: left;">https://mirror.openshift.com<br />/pub/openshift-v4/multi<br />/clients/ocp/4.13.1/s390x/</td>
+<td style="text-align: left;">https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/s390x/</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ocp_client_tgz</strong></td>
@@ -1005,8 +1006,8 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>rhcos_download_url</strong></td>
-<td style="text-align: left;">Link to the CoreOS files to be used for the bootstrap, control and compute nodes.<br /> Feel free to change to a different version.</td>
-<td style="text-align: left;">https://mirror.openshift.com<br />/pub/openshift-v4/s390x<br />/dependencies/rhcos<br />/4.12/4.12.3/</td>
+<td style="text-align: left;">Link to the CoreOS files to be used for the bootstrap, control and compute nodes. Feel free to change to a different version.</td>
+<td style="text-align: left;">https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/4.12.3/</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>rhcos_os_variant</strong></td>
@@ -1047,7 +1048,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.kvm_host</strong></td>
-<td style="text-align: left;">IPv4 address of KVM host for hypershift <br /> (kvm host where you want to run all oc commands and create VMs)</td>
+<td style="text-align: left;">IPv4 address of KVM host for hypershift  (kvm host where you want to run all oc commands and create VMs)</td>
 <td style="text-align: left;">192.168.10.1</td>
 </tr>
 <tr>
@@ -1072,12 +1073,12 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.networking_device</strong></td>
-<td style="text-align: left;">The network interface card from Linux's perspective. <br /> Usually enc and then a number that comes from the dev_num of the network adapter.</td>
+<td style="text-align: left;">The network interface card from Linux's perspective.  Usually enc and then a number that comes from the dev_num of the network adapter.</td>
 <td style="text-align: left;">enc1100</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.gateway</strong></td>
-<td style="text-align: left;">IPv4 Address for gateway from where the kvm_host and bastion are reachable  <br /> This for adding ip route from kvm_host to bastion through gateway</td>
+<td style="text-align: left;">IPv4 Address for gateway from where the kvm_host and bastion are reachable   This for adding ip route from kvm_host to bastion through gateway</td>
 <td style="text-align: left;">192.168.10.1</td>
 </tr>
 <tr>
@@ -1107,7 +1108,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.bastion_parms.gateway</strong></td>
-<td style="text-align: left;">Gateway IP for creating bastion <br /> This is how it well be used ip=<ipv4 address>::<nameserver>:<subnet mask></td>
+<td style="text-align: left;">Gateway IP for creating bastion  This is how it well be used ip=<ipv4 address>::<nameserver>:<subnet mask></td>
 <td style="text-align: left;">192.168.10.1</td>
 </tr>
 <tr>
@@ -1123,7 +1124,7 @@
 <tr>
 <td style="text-align: left;"><strong>hypershift.oc_url</strong></td>
 <td style="text-align: left;">URL for OC Client that you want to install on the host</td>
-<td style="text-align: left;">https://...<br /> ..openshift-client-linux-4.13.0-ec.4.tar.gz</td>
+<td style="text-align: left;">https://... ..openshift-client-linux-4.13.0-ec.4.tar.gz</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.hcp.clusters_namespace</strong></td>
@@ -1142,7 +1143,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.hcp.pull_secret_file</strong></td>
-<td style="text-align: left;">Path for the pull secret <br /> No need to change this as we are copying the pullsecret to same file <br /> /root/ansible_workdir/auth_file</td>
+<td style="text-align: left;">Path for the pull secret  No need to change this as we are copying the pullsecret to same file  /root/ansible_workdir/auth_file</td>
 <td style="text-align: left;">/root/ansible_workdir/auth_file</td>
 </tr>
 <tr>
@@ -1162,8 +1163,8 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.hcp.pull_secret</strong></td>
-<td style="text-align: left;">Pull Secret of Management Cluster <br /> Make sure to enclose pull_secret in 'single quotes'</td>
-<td style="text-align: left;">'{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com"}}}'</td>
+<td style="text-align: left;">Pull Secret of Management Cluster  Make sure to enclose pull_secret in 'single quotes'</td>
+<td style="text-align: left;">'{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com"}}}'</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.mce.version</strong></td>
@@ -1183,7 +1184,7 @@
 <tr>
 <td style="text-align: left;"><strong>hypershift.asc.url_for_ocp_release_file</strong></td>
 <td style="text-align: left;">Add URL for OCP release.txt File</td>
-<td style="text-align: left;">https://... <br /> ..../release.txt</td>
+<td style="text-align: left;">https://...  ..../release.txt</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.asc.db_volume_size</strong></td>
@@ -1203,21 +1204,21 @@
 <tr>
 <td style="text-align: left;"><strong>hypershift.asc.iso_url</strong></td>
 <td style="text-align: left;">Give URL for ISO image</td>
-<td style="text-align: left;">https://... <br /> ...s390x-live.s390x.iso</td>
+<td style="text-align: left;">https://...  ...s390x-live.s390x.iso</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.asc.root_fs_url</strong></td>
 <td style="text-align: left;">Give URL for rootfs image</td>
-<td style="text-align: left;">https://... <br /> ... live-rootfs.s390x.img</td>
+<td style="text-align: left;">https://...  ... live-rootfs.s390x.img</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.asc.mce_namespace</strong></td>
-<td style="text-align: left;">Namespace where your Multicluster Engine Operator is installed. <br /> Recommended Namespace for MCE is 'multicluster-engine'. <br /> Change this only if MCE is installed in other namespace.</td>
+<td style="text-align: left;">Namespace where your Multicluster Engine Operator is installed.  Recommended Namespace for MCE is 'multicluster-engine'.  Change this only if MCE is installed in other namespace.</td>
 <td style="text-align: left;">multicluster-engine</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.agents_parms.agents_count</strong></td>
-<td style="text-align: left;">Number of agents for the hosted cluster <br /> The same number of compute nodes will be attached to Hosted Cotrol Plane</td>
+<td style="text-align: left;">Number of agents for the hosted cluster  The same number of compute nodes will be attached to Hosted Cotrol Plane</td>
 <td style="text-align: left;">2</td>
 </tr>
 <tr>
@@ -1237,7 +1238,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.agents_parms.agent_mac_addr</strong></td>
-<td style="text-align: left;">List of macaddresses for the agents. <br /> Configure in DHCP if you are using dynamic IPs for Agents.</td>
+<td style="text-align: left;">List of macaddresses for the agents.  Configure in DHCP if you are using dynamic IPs for Agents.</td>
 <td style="text-align: left;">- 52:54:00:ba:d3:f7</td>
 </tr>
 <tr>
@@ -1262,12 +1263,12 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.network_mode</strong></td>
-<td style="text-align: left;">Network mode for zvm nodes <br /> Supported modes: vswitch,osa, RoCE</td>
+<td style="text-align: left;">Network mode for zvm nodes  Supported modes: vswitch,osa, RoCE</td>
 <td style="text-align: left;">vswitch</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.disk_type</strong></td>
-<td style="text-align: left;">Disk type for zvm nodes <br /> Supported disk types: fcp, dasd</td>
+<td style="text-align: left;">Disk type for zvm nodes  Supported disk types: fcp, dasd</td>
 <td style="text-align: left;">dasd</td>
 </tr>
 <tr>
@@ -1297,7 +1298,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes</strong></td>
-<td style="text-align: left;">Set of parameters for zvm nodes <br /> Give the details of each zvm node here</td>
+<td style="text-align: left;">Set of parameters for zvm nodes  Give the details of each zvm node here</td>
 <td style="text-align: left;"></td>
 </tr>
 <tr>
@@ -1307,7 +1308,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.host</strong></td>
-<td style="text-align: left;">Host name of the zVM guests <br /> which we use to login 3270 console</td>
+<td style="text-align: left;">Host name of the zVM guests  which we use to login 3270 console</td>
 <td style="text-align: left;">boem1317</td>
 </tr>
 <tr>
@@ -1379,23 +1380,23 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.registry.pull_secret</strong></td>
-<td style="text-align: left;">String containing pull secret of the disconnected registry to be applied on the <em>cluster</em>. <br /> Make sure to enclose pull_secret in 'single quotes' and it has appropriate pull access.</td>
-<td style="text-align: left;">'{"auths":{"registry.tt.<br />.testing:5000":{"auth":"b3Blb<br />...<br />4yQQ==","email":"test.<br />user@example.com"}}}'</td>
+<td style="text-align: left;">String containing pull secret of the disconnected registry to be applied on the <em>cluster</em>.  Make sure to enclose pull_secret in 'single quotes' and it has appropriate pull access.</td>
+<td style="text-align: left;">'{"auths":{"registry.tt..testing:5000":{"auth":"b3Blb...4yQQ==","email":"test.user@example.com"}}}'</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.registry.mirror_pull_ecret</strong></td>
-<td style="text-align: left;">String containing pull secret to use for mirroring. Contains Red Hat secret and registry pull <br /> secret. Make sure to enclose pull_secret in 'single quotes' and must be able to push to mirror<br /> registry.</td>
-<td style="text-align: left;">'{"auths":{"cloud.openshift<br />.com":{"auth":"b3Blb<br />...<br />4yQQ==","email":"redhat.<br />user@gmail.com", "registry.tt..testing:5000":<br />...<br />user@example.com"}}}'</td>
+<td style="text-align: left;">String containing pull secret to use for mirroring. Contains Red Hat secret and registry pull  secret. Make sure to enclose pull_secret in 'single quotes' and must be able to push to mirror registry.</td>
+<td style="text-align: left;">'{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com", "registry.tt..testing:5000":...user@example.com"}}}'</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.registry.ca_trusted</strong></td>
-<td style="text-align: left;">True or False to indicate that mirror registry CA is implicitly trusted or needs to be made<br /> trusted on mirror host and cluster.</td>
+<td style="text-align: left;">True or False to indicate that mirror registry CA is implicitly trusted or needs to be made trusted on mirror host and cluster.</td>
 <td style="text-align: left;">False</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.registry.ca_cert</strong></td>
 <td style="text-align: left;">Multiline string containing the mirror registry CA bundle</td>
-<td style="text-align: left;">-----BEGIN CERTIFICATE-----<br />MIIDqDCCApCgAwIBAgIULL+d1HTYsiP+8jeWnqBis3N4BskwDQYJKoZIhvcNAQEF<br />...<br />-----END CERTIFICATE-----</td>
+<td style="text-align: left;">-----BEGIN CERTIFICATE-----MIIDqDCCApCgAwIBAgIULL+d1HTYsiP+8jeWnqBis3N4BskwDQYJKoZIhvcNAQEF...-----END CERTIFICATE-----</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.host.name</strong></td>
@@ -1419,7 +1420,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.file_server.clients_dir</strong></td>
-<td style="text-align: left;">Directory path relative to the HTTP/FTP accessible directory on <strong>env.file_server</strong><br /> where client binary tarballs are kept</td>
+<td style="text-align: left;">Directory path relative to the HTTP/FTP accessible directory on <strong>env.file_server</strong> where client binary tarballs are kept</td>
 <td style="text-align: left;">clients</td>
 </tr>
 <tr>
@@ -1449,12 +1450,12 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.legacy.ocp_tag</strong></td>
-<td style="text-align: left;">The tag part of the repo on the mirror registry where the release image will be pushed.<br /> Full image would be as below.:<br /><br /> disconnected.registry.url/disconnected.mirroring.legacy.ocp_org/disconnected...ocp_repo<br />:disconnected..ocp_tag</td>
+<td style="text-align: left;">The tag part of the repo on the mirror registry where the release image will be pushed. Full image would be as below.: disconnected.registry.url/disconnected.mirroring.legacy.ocp_org/disconnected...ocp_repo:disconnected..ocp_tag</td>
 <td style="text-align: left;">v4.13.1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.release_image_tag</strong></td>
-<td style="text-align: left;">The ocp release image tag you want to install the cluster with. Used when legacy platform <br /> mirroring is disabled and <strong>disconnected.mirroring.oc_mirror.image_set</strong> contains platform <br /> entries.</td>
+<td style="text-align: left;">The ocp release image tag you want to install the cluster with. Used when legacy platform  mirroring is disabled and <strong>disconnected.mirroring.oc_mirror.image_set</strong> contains platform  entries.</td>
 <td style="text-align: left;">4.13.1-multi</td>
 </tr>
 <tr>
@@ -1469,22 +1470,22 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled</strong></td>
-<td style="text-align: left;">True or False to replace values in <code>mapping.txt</code> generated by oc-mirror. <br /> This also does a manual repush of the images in <code>mapping.txt</code>.</td>
+<td style="text-align: left;">True or False to replace values in <code>mapping.txt</code> generated by oc-mirror.  This also does a manual repush of the images in <code>mapping.txt</code>.</td>
 <td style="text-align: left;">False</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.list</strong></td>
-<td style="text-align: left;">List of <strong>regexp</strong> and <strong>replace</strong> where every string/regular expression <br /> gets replaced by corresponding <em>replace</em> value.</td>
+<td style="text-align: left;">List of <strong>regexp</strong> and <strong>replace</strong> where every string/regular expression  gets replaced by corresponding <em>replace</em> value.</td>
 <td style="text-align: left;">regexp: interal-url.com replace: external-url.com</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set</strong></td>
-<td style="text-align: left;">YAML fields containing a standard <code>oc-mirror</code> <a href="https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-creating-image-set-config_installing-mirroring-disconnected">image set</a> with some minor changes to schema. <br /> Differences are documented as needed. Used to generate final image set.</td>
+<td style="text-align: left;">YAML fields containing a standard <code>oc-mirror</code> <a href="https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-creating-image-set-config_installing-mirroring-disconnected">image set</a> with some minor changes to schema.  Differences are documented as needed. Used to generate final image set.</td>
 <td style="text-align: left;">see template</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.enabled</strong></td>
-<td style="text-align: left;">True or False to use registry storage backend for pushing mirrored content directly to the registry. <br /> Currently only this backend is supported.</td>
+<td style="text-align: left;">True or False to use registry storage backend for pushing mirrored content directly to the registry.  Currently only this backend is supported.</td>
 <td style="text-align: left;">True</td>
 </tr>
 <tr>
@@ -1494,12 +1495,12 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.imageURL.repo</strong></td>
-<td style="text-align: left;">The repo part of registry imageURL from standard image set. <br /> Final imageURL will be as below:<br /> <br /> disconnected.registry.url/disconnected.mirroring.oc_mirror.image_set.storageConfig <br />.registry.imageURL.org/disconnected...imageURL.repo</td>
+<td style="text-align: left;">The repo part of registry imageURL from standard image set.  Final imageURL will be as below:  disconnected.registry.url/disconnected.mirroring.oc_mirror.image_set.storageConfig .registry.imageURL.org/disconnected...imageURL.repo</td>
 <td style="text-align: left;">oc-mirror-metadata</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.skipTLS</strong></td>
-<td style="text-align: left;">True of False same purpose served as in standard image set i.e. skip the tls for the registry<br />   during mirroring.</td>
+<td style="text-align: left;">True of False same purpose served as in standard image set i.e. skip the tls for the registry   during mirroring.</td>
 <td style="text-align: left;">false</td>
 </tr>
 <tr>
