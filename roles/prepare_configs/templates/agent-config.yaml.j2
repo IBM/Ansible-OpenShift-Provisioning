@@ -10,13 +10,13 @@ hosts:
     role: master
     interfaces:
       - name: eth0
-        macAddress: "{{ env.cluster.nodes.control.mac_address[item] }}"
+        macAddress: "{{ env.cluster.nodes.control.mac[item] }}"
     networkConfig:
       interfaces:
         - name: eth0
           type: ethernet
           state: up
-          mac-address: "{{ env.cluster.nodes.control.mac_address[item] }}"
+          mac-address: "{{ env.cluster.nodes.control.mac[item] }}"
           ipv4:
             enabled: true
             address:
@@ -40,13 +40,13 @@ hosts:
     role: worker
     interfaces:
       - name: eth0
-        macAddress: "{{ env.cluster.nodes.compute.mac_address[item] }}"
+        macAddress: "{{ env.cluster.nodes.compute.mac[item] }}"
     networkConfig:
       interfaces:
         - name: eth0
           type: ethernet
           state: up
-          mac-address: "{{ env.cluster.nodes.compute.mac_address[item] }}"
+          mac-address: "{{ env.cluster.nodes.compute.mac[item] }}"
           ipv4:
             enabled: true
             address:
