@@ -20,6 +20,12 @@
       loop: "{{ node.lpar.storage_group_1.storage_wwpn }}"
       loop_control:
         loop_var: wwpn
+      when: node.lpar.storage_group_1.type | lower == "fcp"
+
+    - name: Build rd.dasd string
+      set_fact:
+        rd_dasd_string: "rd.dasd=0.0.{{ node.lpar.storage_group_1.dev_num }}"
+      when: node.lpar.storage_group_1.type | lower == "dasd"
 
     - name: set ipv6 string
       set_fact:
@@ -58,7 +64,7 @@
           --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
           --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
           --log_level DEBUG \
-          --cmdline 'rd.neednet=1 console=ttysclp0 coreos.inst.install_dev=sda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/{{ ignition }}.ign ip={{ node.networking.ip }}::{{ node.networking.gateway }}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ node.networking.device1 }}:none nameserver={{ env.bastion.networking.ip }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 rd.znet=qeth,{{ node.lpar.networking.nic.card1.dev_num }},layer2=1 {{ ipv6_string }} {{ rd_zfcp_string }}'
+          --cmdline 'rd.neednet=1 console=ttysclp0 coreos.inst.install_dev=sda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/{{ ignition }}.ign ip={{ node.networking.ip }}::{{ node.networking.gateway }}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ node.networking.device1 }}:none nameserver={{ env.bastion.networking.ip }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 rd.znet=qeth,{{ node.lpar.networking.nic.card1.dev_num }},layer2=1 {{ ipv6_string }} {% if node.lpar.storage_group_1.type | lower == "fcp" %}{{ rd_zfcp_string }}{% endif %}{% if node.lpar.storage_group_1.type | lower == "dasd" %}{{ rd_dasd_string }}{% endif %}'
 
     - name: Booting lpar node
       shell: |
@@ -83,5 +89,4 @@
           --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
           --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
           --log_level DEBUG \
-          --cmdline 'rd.neednet=1 console=ttysclp0 coreos.inst.install_dev=sda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/{{ ignition }}.ign ip={{ node.networking.ip }}::{{ node.networking.gateway }}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ node.networking.device1 }}:none nameserver={{ env.bastion.networking.ip }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 rd.znet=qeth,{{ node.lpar.networking.nic.card1.dev_num }},layer2=1 {{ ipv6_string }} {{ rd_zfcp_string }}'
-
+          --cmdline 'rd.neednet=1 console=ttysclp0 coreos.inst.install_dev=sda coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/{{ ignition }}.ign ip={{ node.networking.ip }}::{{ node.networking.gateway }}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ node.networking.device1 }}:none nameserver={{ env.bastion.networking.ip }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 rd.znet=qeth,{{ node.lpar.networking.nic.card1.dev_num }},layer2=1 {{ ipv6_string }} {% if node.lpar.storage_group_1.type | lower == "fcp" %}{{ rd_zfcp_string }}{% endif %}{% if node.lpar.storage_group_1.type | lower == "dasd" %}{{ rd_dasd_string }}{% endif %}'
