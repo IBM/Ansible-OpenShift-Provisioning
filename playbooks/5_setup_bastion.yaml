@@ -20,7 +20,7 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   vars:
-    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}","{{ env.jumphost.path_to_keypair }}"]
+    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}", "{{ env.jumphost.path_to_keypair }}"]
   pre_tasks:
     - name: Generate an OpenSSH keypair with the default values (4096 bits, RSA), if using jumphost for NAT.
       tags: ssh_key_gen, ssh, section_1
@@ -28,20 +28,30 @@
         path: "{{ env.jumphost.path_to_keypair.split('.')[:-1] | join('.') }}"
         passphrase: ""
         regenerate: never
-      when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none )
+      when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none)
     - block:
-        - name: Check if 'expect' is installed on jumphost, for use in ssh-copy-id role for NAT.
+        - name: Gather package facts on jumphost
           package_facts:
-          failed_when: "'expect' not in ansible_facts.packages"
-          when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none )
+            manager: auto
+          when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none)
+
+        - name: Check if 'expect' is installed on jumphost, for use in ssh-copy-id role for NAT.
+          set_fact:
+            expect_installed: "{{ 'expect' in ansible_facts.packages }}"
+          when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none)
+
+        - name: Fail if 'expect' package is not installed on jumphost
+          fail:
+            msg: "'expect' package is not installed on jumphost"
+          when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none) and (not expect_installed)
       rescue:
         - name: Package 'expect' must be installed on the jumphost, attempting to install it. #Using 'block' and 'rescue' to avoid running the 'package' module (which requires 'sudo') unless necessary.
           become: true
           package:
             name: expect
-          when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none )
+          when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none)
   roles:
-    - { role: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
+    - { role: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none) }
   post_tasks:
     - meta: clear_facts
 
