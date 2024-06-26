@@ -297,6 +297,7 @@ hypershift:
     ocp_release:
     machine_cidr: 192.168.122.0/24
     arch:
+    additional_flags:
     # Make sure to enclose pull_secret in 'single quotes'
     pull_secret:
 
@@ -340,7 +341,7 @@ hypershift:
     # zVM specific parameters - s390x
 
     zvm_parameters:
-      network_mode: vswitch   # Supported modes: vswitch,osa
+      network_mode: vswitch   # Supported modes: vswitch,osa, RoCE, Hipersockets
       disk_type:              # Supported modes: fcp , dasd
       vcpus: 4
       memory: 16384

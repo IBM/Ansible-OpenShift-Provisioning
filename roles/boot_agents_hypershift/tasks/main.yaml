@@ -30,4 +30,3 @@
   async: 3600
   poll: 0
   loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
-
