@@ -235,6 +235,7 @@
 **hypershift.hcp.ocp_release** | OCP Release version for Hosted Control Cluster and Nodepool | 4.13.0-rc.4-multi
 **hypershift.hcp.machine_cidr** | Machines CIDR for Hosted Cluster | 192.168.122.0/24
 **hypershift.hcp.arch** | Architecture for InfraEnv and AgentServiceConfig" | s390x
+**hypershift.hcp.additional_flags** | Any additional flags for creating hcp ( In hcp create cluster agent command ) | --fips
 **hypershift.hcp.pull_secret** | Pull Secret of Management Cluster  Make sure to enclose pull_secret in 'single quotes' | '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com"}}}'
 **hypershift.mce.version** | version for multicluster-engine Operator | 2.4
 **hypershift.mce.instance_name** | name of the MultiClusterEngine instance | engine
