@@ -65,14 +65,21 @@
 
 - name: Create qemu image for bastion
   command: qemu-img create -f qcow2 {{ hcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}-bastion.qcow2 100G
-
+  when: hcp.data_plane.kvm.storage.type != 'dasd'
+  
 - name: Create bastion
   shell: |
+    {% if hcp.data_plane.kvm.storage.type != "dasd" %}
+    disk_param="{{ hcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}-bastion.qcow2,format=qcow2,bus=virtio,cache=none"
+    {% else %}
+    disk_param="{{ hcp.bastion_params.disk }}"
+    {% endif %}
+
     virt-install \
     --name {{ hcp.control_plane.hosted_cluster_name }}-bastion \
     --memory 4096 \
     --vcpus sockets=1,cores=4,threads=1 \
-    --disk {{ hcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}-bastion.qcow2,format=qcow2,bus=virtio,cache=none \
+    --disk $disk_param  \
     --os-variant "rhel{{hcp.bastion_params.os_variant}}" \
     --network network:{{ hcp.bastion_params.network_name }} \
     --location '{{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ env.file_server.iso_mount_dir }}/' \

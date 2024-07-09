@@ -72,7 +72,7 @@ hcp:
 
     kvm:
       storage: 
-        type: 
+        type: qcow     # Supported types: qcow, dasd
         qcow:
           disk_size: 100G
           pool_path: "/var/lib/libvirt/images/"

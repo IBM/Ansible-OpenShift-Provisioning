@@ -2,6 +2,7 @@
 - name: Create qemu image for agents
   command: "qemu-img create -f qcow2 {{ hcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}-agent{{ item }}.qcow2 {{ hcp.data_plane.kvm.storage.qcow.disk_size }}"
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+  when: hcp.data_plane.kvm.storage.type != 'dasd'
 
 - name: Boot Agents
   shell: |
@@ -9,6 +10,11 @@
     mac_address=$(oc get NmStateConfig static-ip-nmstate-config-{{ hcp.control_plane.hosted_cluster_name }}-{{ item }} -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} -o json | jq -r '.spec.interfaces[] | .macAddress')
     {% else %}
     mac_address="{{ hcp.data_plane.kvm.ip_params.mac[item] }}"
+    {% endif %}
+    {% if hcp.data_plane.kvm.storage.type != "dasd" %}
+    disk_param="{{ hcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}-agent{{ item }}.qcow2"
+    {% else %}
+    disk_param="{{ hcp.data_plane.kvm.storage.dasd[item] }}"
     {% endif %}
 
     virt-install \
@@ -19,7 +25,7 @@
     --cpu host \
     --vcpus="{{ hcp.data_plane.vcpus }}"  \
     --location "/var/lib/libvirt/images/pxeboot/,kernel=kernel.img,initrd=initrd.img" \
-    --disk {{ hcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}-agent{{ item }}.qcow2 \
+    --disk $disk_param \
     --network network:{{ hcp.bastion_params.network_name }},mac=$mac_address \
     --graphics none \
     --noautoconsole  \
