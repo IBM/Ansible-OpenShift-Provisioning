@@ -256,7 +256,7 @@ rhcos_live_kernel: "rhcos-4.12.3-s390x-live-kernel-s390x"
 rhcos_live_initrd: "rhcos-4.12.3-s390x-live-initramfs.s390x.img"
 rhcos_live_rootfs: "rhcos-4.12.3-s390x-live-rootfs.s390x.img"
 
-# Section 17 - (Optional) Setup disconnected clusters
+# Section 16 - (Optional) Setup disconnected clusters
 # Warning: currently, the oc-mirror plugin is officially downloadable to amd64 only.
 disconnected:
   enabled: False
@@ -329,7 +329,7 @@ disconnected:
           - name: registry.redhat.io/ubi8/ubi:latest
           helm: {}
 
-# Section 18 - (Optional) Create additional compute node in a day-2 operation
+# Section 17 - (Optional) Create additional compute node in a day-2 operation
 
 day2_compute_node:
   vm_name:
@@ -343,7 +343,7 @@ day2_compute_node:
   host_arch:
 
 
-# Section 19 - Agent Based Installer ( Optional )
+# Section 18 - Agent Based Installer ( Optional )
 abi: 
   flag: Flase
   ansible_workdir: 'ansible_workdir'
