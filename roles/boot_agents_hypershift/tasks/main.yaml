@@ -19,7 +19,7 @@
     --cpu host \
     --vcpus="{{ hcp.data_plane.vcpus }}"  \
     --location "/var/lib/libvirt/images/pxeboot/,kernel=kernel.img,initrd=initrd.img" \
-    --disk {{ hhcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}-agent{{ item }}.qcow2 \
+    --disk {{ hcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}-agent{{ item }}.qcow2 \
     --network network:{{ hcp.bastion_params.network_name }},mac=$mac_address \
     --graphics none \
     --noautoconsole  \

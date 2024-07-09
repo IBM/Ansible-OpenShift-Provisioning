@@ -54,6 +54,8 @@
     - name: Setting host
       set_fact:
         host: 'bastion_hypershift'
+      env:
+        ansible_key_name: "{{ hcp.ansible_key_name }}"  
         
     - name: Install Prereqs
       import_role:

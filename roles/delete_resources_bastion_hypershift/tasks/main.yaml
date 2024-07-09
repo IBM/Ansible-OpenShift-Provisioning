@@ -26,7 +26,7 @@
       loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
     - name: Get machine names
-      command: oc get machine.cluster.x-k8s.io -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane..hosted_cluster_name }} --no-headers
+      command: oc get machine.cluster.x-k8s.io -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} --no-headers
       register: machines_info
 
     - name: Create List for machines

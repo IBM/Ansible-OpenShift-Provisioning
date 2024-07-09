@@ -32,7 +32,6 @@ hcp:
     hosted_cluster_name:
     basedomain:
     ocp_release_image:
-    machine_cidr: 192.168.122.0/24     --X 
     arch: s390x
     additional_flags: 
     # Make sure to enclose pull_secret in 'single quotes'
@@ -40,7 +39,7 @@ hcp:
 
   bastion_params:
     create: true
-    ip: -> ip 
+    ip: 
     user:
     host:
     host_user:
