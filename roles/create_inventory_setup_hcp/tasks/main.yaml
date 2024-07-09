@@ -15,7 +15,7 @@
 - name: Create inventory
   template:
     src: inventory_template.j2
-    dest: "{{ find_project.stdout }}{{ find_inventory.stdout }}/inventory_hypershift"
+    dest: "{{ find_project.stdout }}{{ find_inventory.stdout }}/inventory_hcp"
 
 - name: Check if SSH key exists
   stat:

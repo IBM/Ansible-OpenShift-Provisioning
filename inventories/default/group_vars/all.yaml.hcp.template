@@ -7,7 +7,7 @@ hcp:
   pkgs:
     kvm: [ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
     bastion: [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
-    hypershift: [ make, jq, git, virt-install ]
+    hcp: [ make, jq, git, virt-install ]
     zvm: [ git, python3-pip, python3-devel, openssl-devel, rust, cargo, libffi-devel, wget, tar, jq, gcc, make, x3270, python39 ]
 
   # MultiClusterEngine Parameters

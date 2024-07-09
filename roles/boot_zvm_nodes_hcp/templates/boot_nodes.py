@@ -23,10 +23,10 @@ parameters = {
 
 interfaces=[]
 if args.network.lower() == 'osa' or args.network.lower() == 'hipersockets':
-    interfaces=[{ "type": "osa", "id": "{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.subchannels.split(',') | map('regex_replace', '0.0.', '') | join(',') }}"}]
+    interfaces=[{ "type": "osa", "id": "{{ hcp.data_plane.zvm.nodes[item].interface.subchannels.split(',') | map('regex_replace', '0.0.', '') | join(',') }}"}]
 
 elif args.network.lower() == 'roce':
-    interfaces=[{ "type": "pci", "id": "{{ hypershift.agents_parms.zvm_parameters.nodes[item].interface.ifname }}"}]
+    interfaces=[{ "type": "pci", "id": "{{ hcp.data_plane.zvm.nodes[item].interface.ifname }}"}]
 
 guest_parameters = {
 "boot_method": "network",

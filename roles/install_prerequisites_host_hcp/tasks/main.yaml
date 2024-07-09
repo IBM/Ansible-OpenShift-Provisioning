@@ -29,15 +29,15 @@
     state: present
   loop: "{{ hcp.pkgs.kvm }}"
   when:
-    - host != 'bastion_hypershift'
+    - host != 'bastion_hcp'
     - ( rhel_version.stdout| float < 9.0 ) or rhel_version.stdout| float >= 9.0 and  'devel' not in  item
 
-- name: Install Packages for Hypershift
+- name: Install Packages for HCP
   package:
     name:
       - "{{ item }}"
     state: present
-  loop: "{{ hcp.pkgs.hypershift }}"
+  loop: "{{ hcp.pkgs.hcp }}"
 
 - name: Check if OC installed 
   command: oc
