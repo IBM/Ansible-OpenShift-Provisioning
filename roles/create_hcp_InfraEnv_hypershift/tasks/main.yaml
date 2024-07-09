@@ -1,7 +1,7 @@
 ---
 - name: Getting Hosted Control Plane Namespace
   set_fact: 
-    hosted_control_plane_namespace: "{{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}"
+    hosted_control_plane_namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
 
 - name: Check if Hosted Control Plane Namespace exists 
   k8s_info:
@@ -20,7 +20,7 @@
   when: namespace_check.resources | length == 0 
 
 - name: Get ssh key 
-  ansible.builtin.shell: cat ~/.ssh/{{ env.ansible_key_name }}.pub
+  ansible.builtin.shell: cat ~/.ssh/{{ hcp.ansible_key_name }}.pub
   register: ssh_output
  
 - name: Load ssh_key into a variable
@@ -31,14 +31,14 @@
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Pod
-    namespace: "{{ hypershift.asc.mce_namespace }}"
+    namespace: "{{ hcp.asc.mce_namespace }}"
     label_selectors:
       - app= hcp-cli-download
   register: hcp_pod_name
 
 - name: Get hcp.tar.gz file from pod
   kubernetes.core.k8s_cp:
-    namespace: "{{ hypershift.asc.mce_namespace }}"
+    namespace: "{{ hcp.asc.mce_namespace }}"
     pod: "{{ hcp_pod_name.resources[0].metadata.name }}"
     remote_path: "/opt/app-root/src/linux/s390x/"
     local_path: "/root/ansible_workdir"
@@ -58,14 +58,14 @@
 - name: Create a Hosted Cluster
   command: >
     hcp create cluster agent 
-    --name={{ hypershift.hcp.hosted_cluster_name }} 
-    --pull-secret={{ hypershift.hcp.pull_secret_file }} 
+    --name={{ hcp.control_plane.hosted_cluster_name }} 
+    --pull-secret=/root/ansible_workdir/auth_file 
     --agent-namespace={{ hosted_control_plane_namespace }} 
-    --namespace={{ hypershift.hcp.clusters_namespace }} 
-    --base-domain={{ hypershift.hcp.basedomain }} 
-    --api-server-address=api.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }} 
-    --ssh-key ~/.ssh/{{ env.ansible_key_name }}.pub
-    {% if hypershift.hcp.high_availabiliy == false %}
+    --namespace={{ hcp.control_plane.clusters_namespace }} 
+    --base-domain={{ hcp.control_plane.basedomain }} 
+    --api-server-address=api.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }} 
+    --ssh-key ~/.ssh/{{ hcp.ansible_key_name }}.pub
+    {% if hcp.control_plane.high_availabiliy == false %}
     --control-plane-availability-policy "SingleReplica" 
     {% endif %}
     --infra-availability-policy "SingleReplica" 
@@ -74,14 +74,14 @@
     {% if release_image is defined and release_image != '' %}
     --release-image={{ release_image }}
     {% else %}
-    --release-image=quay.io/openshift-release-dev/ocp-release:{{ hypershift.hcp.ocp_release }}
+    --release-image=quay.io/openshift-release-dev/ocp-release:{{ hcp.control_plane.ocp_release_image }}
     {% endif %}
-    {% if hypershift.hcp.additional_flags is defined and hypershift.hcp.additional_flags != '' %}
-    {{ hypershift.hcp.additional_flags }}
+    {% if hcp.control_plane.additional_flags is defined and hcp.control_plane.additional_flags != '' %}
+    {{ hcp.control_plane.additional_flags }}
     {% endif %}
 
 - name: Waiting for Hosted Control Plane to be available
-  command: oc wait --timeout=30m --for=condition=Available --namespace={{ hypershift.hcp.clusters_namespace }} hostedcluster/{{ hypershift.hcp.hosted_cluster_name }}
+  command: oc wait --timeout=30m --for=condition=Available --namespace={{ hcp.control_plane.clusters_namespace }} hostedcluster/{{ hcp.control_plane.hosted_cluster_name }}
 
 - name: Wait for pods to come up in Hosted Cluster Namespace
   shell: oc get pods -n {{ hosted_control_plane_namespace }} | wc -l
@@ -109,39 +109,39 @@
   set_fact:
     agent_mac_addr: []
   when:
-    - hypershift.agents_parms.static_ip_parms.static_ip == true
-    - hypershift.compute_node_type | lower != 'zvm'
+    - hcp.data_plane.kvm.ip_params.static_ip.enabled == true
+    - hcp.compute_node_type | lower != 'zvm'
 
 - name: Getting mac addresss for agents
   set_fact:
-    agent_mac_addr: "{{ hypershift.agents_parms.agent_mac_addr }}"
+    agent_mac_addr: "{{ hcp.data_plane.kvm.ip_params.mac }}"
   when: 
-    - ( hypershift.agents_parms.static_ip_parms.static_ip == true ) and ( hypershift.agents_parms.agent_mac_addr != None )
-    - hypershift.compute_node_type | lower != 'zvm'
+    - ( hcp.data_plane.kvm.ip_params.static_ip.enabled == true ) and ( hcp.data_plane.kvm.ip_params.mac != None )
+    - hcp.compute_node_type | lower != 'zvm'
 
 - name: Generate mac addresses for agents
   set_fact:
     agent_mac_addr: "{{ agent_mac_addr +  ['52:54:00' | community.general.random_mac] }}"
   when:
-    - ( hypershift.agents_parms.static_ip_parms.static_ip == true ) and ( hypershift.agents_parms.agent_mac_addr == None )
-    - hypershift.compute_node_type | lower != 'zvm'
-  loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+    - ( hcp.data_plane.kvm.ip_params.static_ip.enabled == true ) and ( hcp.data_plane.kvm.ip_params.mac == None )
+    - hcp.compute_node_type | lower != 'zvm'
+  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
 - name: Create NMState Configs
   template:
     src:  nmStateConfig.yaml.j2
     dest: /root/ansible_workdir/nmStateConfig-agent-{{ item }}.yaml
   when: 
-    - hypershift.agents_parms.static_ip_parms.static_ip == true
-    - hypershift.compute_node_type | lower != 'zvm'
-  loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+    - hcp.data_plane.kvm.ip_params.static_ip.enabled == true
+    - hcp.compute_node_type | lower != 'zvm'
+  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
 - name: Deploy NMState Configs
   command: oc apply -f /root/ansible_workdir/nmStateConfig-agent-{{ item }}.yaml
   when:
-    - hypershift.agents_parms.static_ip_parms.static_ip == true
-    - hypershift.compute_node_type | lower != 'zvm'
-  loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+    - hcp.data_plane.kvm.ip_params.static_ip.enabled == true
+    - hcp.compute_node_type | lower != 'zvm'
+  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
 - name: Wait for ISO to generate in InfraEnv 
   shell: oc get InfraEnv -n  {{ hosted_control_plane_namespace }} --no-headers

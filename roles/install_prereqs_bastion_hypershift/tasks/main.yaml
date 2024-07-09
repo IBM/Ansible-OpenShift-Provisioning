@@ -9,7 +9,7 @@
 
 - name: Install Packages on bastion
   package:
-    name: "{{ env.pkgs.bastion }}"
+    name: "{{ hcp.pkgs.bastion }}"
     state: present
 
 # Creating one directory for Storing Files
@@ -20,7 +20,7 @@
 
 - name: Copy pull secret to ansible_workdir
   copy:
-    content: "{{ hypershift.hcp.pull_secret }}"
+    content: "{{ hcp.control_plane.pull_secret }}"
     dest: /root/ansible_workdir/auth_file
 
 - name: create /etc/haproxy
@@ -53,24 +53,24 @@
   blockinfile:
     path: /etc/haproxy/haproxy.cfg
     block: |
-      frontend {{ hypershift.hcp.hosted_cluster_name }}-machine-config-server
+      frontend {{ hcp.control_plane.hosted_cluster_name }}-machine-config-server
         mode tcp
         option tcplog
-        bind api.{{ hypershift.hcp.hosted_cluster_name }}.{{ hypershift.hcp.basedomain }}:22623
-        default_backend {{ hypershift.hcp.hosted_cluster_name }}-machine-config-server
+        bind api.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}:22623
+        default_backend {{ hcp.control_plane.hosted_cluster_name }}-machine-config-server
 
-      backend {{ hypershift.hcp.hosted_cluster_name }}-machine-config-server
+      backend {{ hcp.control_plane.hosted_cluster_name }}-machine-config-server
         mode tcp
         balance source
     marker: "# machine-config-server"
-  when: hypershift.compute_node_type | lower == 'zvm'
+  when: hcp.compute_node_type | lower == 'zvm'
 
 - name: Add Management Cluster Worker IPs to Haproxy
   lineinfile:
     path: /etc/haproxy/haproxy.cfg
     line: "    server worker{{item}} {{ mgmt_workers.stdout_lines[item]}}"
   loop: "{{ range(mgmt_workers_count.stdout|int) | list }}"
-  when: hypershift.compute_node_type | lower == 'zvm'
+  when: hcp.compute_node_type | lower == 'zvm'
  
 - name: allow http traffic 
   firewalld:

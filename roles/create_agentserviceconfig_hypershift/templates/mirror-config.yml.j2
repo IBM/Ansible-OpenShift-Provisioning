@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mirror-config
-  namespace: "{{ hypershift.asc.mce_namespace }}" # please verify that this namespace is where MCE is installed.
+  namespace: "{{ hcp.asc.mce_namespace }}" 
   labels:
     app: assisted-service
 data:

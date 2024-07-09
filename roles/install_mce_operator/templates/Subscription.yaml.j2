@@ -2,10 +2,10 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: multicluster-engine
-  namespace: "{{ hypershift.asc.mce_namespace }}"
+  namespace: "{{ hcp.asc.mce_namespace }}"
 spec:
   sourceNamespace: openshift-marketplace
   source: redhat-operators
-  channel: stable-{{ hypershift.mce.version }}
+  channel: stable-{{ hcp.mce.version }}
   installPlanApproval: Automatic
   name: multicluster-engine

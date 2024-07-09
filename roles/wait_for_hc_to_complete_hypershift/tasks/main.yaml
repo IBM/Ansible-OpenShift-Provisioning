@@ -8,7 +8,7 @@
   delay: 20
 
 - name: Wait for Hosted Control Plane to Complete
-  shell: oc get hc -n {{ hypershift.hcp.clusters_namespace }} --no-headers | awk  '{print $4}'
+  shell: oc get hc -n {{ hcp.control_plane.clusters_namespace }} --no-headers | awk  '{print $4}'
   register: hc_status
   until: hc_status.stdout == "Completed"
   retries: 40
@@ -19,7 +19,7 @@
   register: console_url
 
 - name: Get Password for Hosted Cluster
-  shell: oc get secret kubeadmin-password -n "{{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}" -o yaml | grep -i 'password:'
+  shell: oc get secret kubeadmin-password -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" -o yaml | grep -i 'password:'
   register: cluster_password_encoded
 
 - name: Decode the Password

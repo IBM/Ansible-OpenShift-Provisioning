@@ -39,7 +39,7 @@
   - public
 
 - name: Get URL for rootfs.img
-  shell: oc -n "{{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }}" get InfraEnv "{{ hypershift.hcp.hosted_cluster_name }}" -ojsonpath="{.status.bootArtifacts.rootfs}"
+  shell: oc -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" get InfraEnv "{{ hcp.control_plane.hosted_cluster_name }}" -ojsonpath="{.status.bootArtifacts.rootfs}"
   register: rootfs
 
 - name: Download rootfs.img

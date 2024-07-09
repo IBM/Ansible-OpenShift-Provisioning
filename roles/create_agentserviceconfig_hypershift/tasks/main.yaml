@@ -10,7 +10,7 @@
 
 - name: Downloading ISO for fetching RHCOS version 
   get_url:
-    url: "{{ hypershift.asc.iso_url }}"
+    url: "{{ hcp.asc.iso_url }}"
     dest: /root/ansible_workdir/s390x.iso
 
 - name: Mounting ISO

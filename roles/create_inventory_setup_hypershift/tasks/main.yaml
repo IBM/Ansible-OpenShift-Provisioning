@@ -19,11 +19,11 @@
 
 - name: Check if SSH key exists
   stat:
-    path: "~/.ssh/{{ env.ansible_key_name }}.pub"
+    path: "~/.ssh/{{ hcp.ansible_key_name }}.pub"
   register: ssh_key
 
 - name: Generate SSH key
-  command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ env.ansible_key_name }}"
+  command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ hcp.ansible_key_name }}"
   when: ssh_key.stat.exists == false
 
 - name: Create expect file

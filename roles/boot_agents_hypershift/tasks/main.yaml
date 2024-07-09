@@ -1,32 +1,32 @@
 ---
 - name: Create qemu image for agents
-  command: "qemu-img create -f qcow2 {{ hypershift.agents_parms.storage.pool_path }}{{ hypershift.hcp.hosted_cluster_name }}-agent{{ item }}.qcow2 {{ hypershift.agents_parms.disk_size }}"
-  loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+  command: "qemu-img create -f qcow2 {{ hcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}-agent{{ item }}.qcow2 {{ hcp.data_plane.kvm.storage.qcow.disk_size }}"
+  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
 - name: Boot Agents
   shell: |
-    {% if hypershift.agents_parms.static_ip_parms.static_ip == true %}
-    mac_address=$(oc get NmStateConfig static-ip-nmstate-config-{{ hypershift.hcp.hosted_cluster_name }}-{{ item }} -n {{ hypershift.hcp.clusters_namespace }}-{{ hypershift.hcp.hosted_cluster_name }} -o json | jq -r '.spec.interfaces[] | .macAddress')
+    {% if hcp.data_plane.kvm.ip_params.static_ip.enabled == true %}
+    mac_address=$(oc get NmStateConfig static-ip-nmstate-config-{{ hcp.control_plane.hosted_cluster_name }}-{{ item }} -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} -o json | jq -r '.spec.interfaces[] | .macAddress')
     {% else %}
-    mac_address="{{ hypershift.agents_parms.agent_mac_addr[item] }}"
+    mac_address="{{ hcp.data_plane.kvm.ip_params.mac[item] }}"
     {% endif %}
 
     virt-install \
-    --name "{{ hypershift.hcp.hosted_cluster_name }}-agent-{{ item }}" \
+    --name "{{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }}" \
     --osinfo detect=on,require=off \
     --autostart \
-    --ram="{{ hypershift.agents_parms.ram }}" \
+    --ram="{{ hcp.data_plane.memory }}" \
     --cpu host \
-    --vcpus="{{ hypershift.agents_parms.vcpus }}"  \
+    --vcpus="{{ hcp.data_plane.vcpus }}"  \
     --location "/var/lib/libvirt/images/pxeboot/,kernel=kernel.img,initrd=initrd.img" \
-    --disk {{ hypershift.agents_parms.storage.pool_path }}{{ hypershift.hcp.hosted_cluster_name }}-agent{{ item }}.qcow2 \
-    --network network:{{ env.vnet_name }},mac=$mac_address \
+    --disk {{ hhcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}-agent{{ item }}.qcow2 \
+    --network network:{{ hcp.bastion_params.network_name }},mac=$mac_address \
     --graphics none \
     --noautoconsole  \
     --wait=-1 \
-    --extra-args "rd.neednet=1 nameserver={{ hypershift.agents_parms.nameserver }}" \
-    --extra-args "coreos.live.rootfs_url=http://{{ hypershift.bastion_hypershift }}:8080/rootfs.img random.trust_cpu=on rd.luks.options=discard ignition.firstboot ignition.platform.id=metal" \
+    --extra-args "rd.neednet=1 nameserver={{ hcp.data_plane.nameserver }}" \
+    --extra-args "coreos.live.rootfs_url=http://{{ hcp.bastion_params.ip }}:8080/rootfs.img random.trust_cpu=on rd.luks.options=discard ignition.firstboot ignition.platform.id=metal" \
     --extra-args "console=tty1 console=ttyS1,115200n8 coreos.inst.persistent-kargs=console=tty1 console=ttyS1,115200n8"
   async: 3600
   poll: 0
-  loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"

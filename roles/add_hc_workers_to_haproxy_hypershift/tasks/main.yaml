@@ -8,17 +8,17 @@
   blockinfile:
     path: /etc/haproxy/haproxy.cfg
     block: |
-      listen {{ hypershift.hcp.hosted_cluster_name }}-console
+      listen {{ hcp.control_plane.hosted_cluster_name }}-console
           mode tcp
-          bind {{ hypershift.bastion_hypershift }}:443
-          bind {{ hypershift.bastion_hypershift }}:80
+          bind {{ hcp.bastion_params.ip }}:443
+          bind {{ hcp.bastion_params.ip }}:80
     marker: "# console"
 
 - name: Add Hosted Cluster Worker IPs to Haproxy
   lineinfile:
     path: /etc/haproxy/haproxy.cfg
-    line: "    server {{ hypershift.hcp.hosted_cluster_name }}-worker-{{item}} {{ hosted_workers.stdout_lines[item]}}"
-  loop: "{{ range(hypershift.agents_parms.agents_count|int) | list }}"
+    line: "    server {{ hcp.control_plane.hosted_cluster_name }}-worker-{{item}} {{ hosted_workers.stdout_lines[item]}}"
+  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
 - name: restart haproxy
   service:
