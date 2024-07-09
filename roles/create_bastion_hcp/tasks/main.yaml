@@ -37,6 +37,10 @@
           hostname: "{{ hcp.bastion_params.hostname }}"
           subnetmask: "{{ hcp.bastion_params.subnet_mask }}"
           nameserver1: "{{ hcp.bastion_params.nameserver }}"
+      file_server:
+        ip: "{{ hcp.bastion_params.file_server.ip }}"
+        protocol: "{{ hcp.bastion_params.file_server.protocol }}"
+        iso_mount_dir: "{{ hcp.bastion_params.file_server.iso_mount_dir }}"
 
 - name: Create bastion.ks file
   template:

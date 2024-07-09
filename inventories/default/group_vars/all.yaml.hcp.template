@@ -49,7 +49,10 @@ hcp:
     gateway:
     subnet_mask:
     interface:
-    location:  
+    file_server:
+      ip: 
+      protocol: http
+      iso_mount_dir: 
     os_variant:
     disk:
     network_name: macvtap

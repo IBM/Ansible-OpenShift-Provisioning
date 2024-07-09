@@ -54,8 +54,8 @@
     - name: Setting host
       set_fact:
         host: 'bastion_hcp'
-      env:
-        ansible_key_name: "{{ hcp.ansible_key_name }}"  
+        env:
+          ansible_key_name: "{{ hcp.ansible_key_name }}"  
         
     - name: Install Prereqs
       import_role:
@@ -82,7 +82,7 @@
   hosts: "{{ 'kvm_host_hcp' if 'kvm_host_hcp' in groups['all'] else 'bastion_hcp' }}"
   become: true
   roles:
-  - setup_for_agents
+  - setup_for_agents_hcp
 
 - name: Configure httpd on bastion for hosting rootfs
   hosts: bastion_hcp

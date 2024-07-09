@@ -8,7 +8,7 @@
 * DNS entry to resolve api.${cluster}.${domain} , api-int.${cluster}.${domain} , *apps.${cluster}.${domain} to a load balancer deployed to redirect incoming traffic to the ingresses pod  ( Bastion ).
 * If using dynamic IP for agents, make sure you have entries in DHCP Server for macaddresses you are using in installation to map to  IPv4 addresses and along with this DHCP server should make your IPs to use nameserver which you have configured.
 ## Note: 
-* As of now we are supporting only macvtap for hypershift Agent based installation for KVM compute nodes.
+* As of now we are supporting only macvtap for Hosted Control Plane Agent based installation for KVM compute nodes.
 * Supported network modes for zVM : vswitch, OSA, RoCE, Hipersockets
 
 ## Step-1: Setup Ansible Vault for Management Cluster Credentials
@@ -36,18 +36,18 @@ ansible-vault edit playbooks/secrets.yaml
 ```
 * Make sure you entered Manamegement cluster credenitails properly ,incorrect credentails will cause problem while logging in to the cluster in further steps.
 
-## Step-2: Initial Setup for Hypershift
+## Step-2: Initial Setup for Hosted Control Plane
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
-* Update variables as per the compute node type (zKVM /zVM) in Section-16 ( Hypershift ) and Section-3 ( File Server : ip , protocol and iso_mount_dir ) in [all.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template) before running the playbooks.
-* First playbook to be run is setup_for_hypershift.yaml which will create inventory file for hypershift and will add ssh key to the kvm host.
+* Update variables as per the compute node type (zKVM /zVM) in [all.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.hcp.template) before running the playbooks.
+* First playbook to be run is setup_for_hcp.yaml which will create inventory file for HCP and will add ssh key to the kvm host.
 
 * Run this shell command:
 ```
-ansible-playbook playbooks/setup_for_hypershift.yaml --ask-vault-pass
+ansible-playbook playbooks/setup_for_hcp.yaml --ask-vault-pass
 ```
 
 ## Step-3: Create Hosted Cluster 
-* Run each part step-by-step by running one playbook at a time, or all at once using [hypershift.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/hypershift.yaml).
+* Run each part step-by-step by running one playbook at a time, or all at once using [hcp.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/hcp.yaml).
 * Here's the full list of playbooks to be run in order, full descriptions of each can be found further down the page:
     * create_hosted_cluster.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_hosted_cluster.yaml))
     * create_agents_and_wait_for_install_complete.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_agents_and_wait_for_install_complete.yaml))
@@ -57,16 +57,16 @@ ansible-playbook playbooks/setup_for_hypershift.yaml --ask-vault-pass
 * Alternatively, to run all the playbooks at once, start the master playbook by running this shell command:
 * After installation , you can find the details of cluster like kubeconfig and password in the installation directory ( $HOME/ansible_workdir/ ) 
 ```
-ansible-playbook playbooks/hypershift.yaml --ask-vault-pass
+ansible-playbook playbooks/hcp.yaml --ask-vault-pass
 ```
 
 # Description for Playbooks
 
-## setup_for_hypershift Playbook
+## setup_for_hcp Playbook
 ### Overview
 * First-time setup of the Ansible Controller,the machine running Ansible.
 ### Outcomes
-* Inventory file for hypershift to be created.
+* Inventory file for hcp to be created.
 * SSH key generated for Ansible passwordless authentication.
 * Ansible SSH key is copied to kvm host.
 ### Notes
@@ -110,12 +110,12 @@ ansible-playbook playbooks/hypershift.yaml --ask-vault-pass
 * Destroy the Hosted Control Plane and other resources created as part of installation
 
 ### Procedure
-* Run the playbook [destroy_cluster_hypershift.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/destroy_cluster_hypershift.yaml) to destroy all the resources created while installation
+* Run the playbook [destroy_cluster_hcp.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/destroy_cluster_hcp.yaml) to destroy all the resources created while installation
 ```
-ansible-playbook playbooks/destroy_cluster_hypershift.yaml --ask-vault-pass
+ansible-playbook playbooks/destroy_cluster_hcp.yaml --ask-vault-pass
 ```
 
-## destroy_cluster_hypershift Playbook
+## destroy_cluster_hcp Playbook
 ### Overview
 * Delete all the resources on Hosted Cluster
 * Destroy the Hosted Control Plane
