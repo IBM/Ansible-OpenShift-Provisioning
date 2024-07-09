@@ -55,6 +55,10 @@ hcp:
     disk:
     network_name: macvtap
     networking_device: enc1100 # Device for macvtap network
+
+    language: en_US.UTF-8
+    timezone: America/New_York
+    keyboard: us
     
 
 

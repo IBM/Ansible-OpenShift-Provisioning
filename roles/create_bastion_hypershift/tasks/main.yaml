@@ -14,22 +14,34 @@
     recurse: true
     state: directory
 
-- name: Removing network configurations
-  lineinfile:
-    path: ../create_bastion/templates/bastion-ks.cfg.j2
-    state: absent
-    regexp: '^network*'
+- name: Setting vars for bstion.ks file creation
+  set_fact:
+    env:
+      language: "{{ hcp.bastion_params.language }}"
+      timezone: "{{ hcp.bastion_params.timezone }}"
+      keyboard: "{{ hcp.bastion_params.keyboard }}"
+      use_ipv6: False
+      install_config:
+        control:
+          architecture: "s390x"
+      cluster:
+        networking:
+          base_domain: "{{ hcp.bastion_params.base_domain }}"
+      bastion:
+        resources:
+          swap: 4096
+        networking:
+          interface: "{{ hcp.bastion_params.interface }}"
+          ip: "{{ hcp.bastion_params.ip }}"
+          gateway: "{{ hcp.bastion_params.gateway }}"
+          hostname: "{{ hcp.bastion_params.hostname }}"
+          subnetmask: "{{ hcp.bastion_params.subnet_mask }}"
+          nameserver1: "{{ hcp.bastion_params.nameserver }}"
 
 - name: Create bastion.ks file
   template:
     src: ../create_bastion/templates/bastion-ks.cfg.j2
     dest: /home/libvirt/bastion.ks
-
-- name: Removing network configurations
-  lineinfile:
-    path: /home/libvirt/bastion.ks
-    state: absent
-    regexp: '^network*'
 
 - name: Adding root password for bastion to bastion.ks
   lineinfile:

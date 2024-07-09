@@ -23,6 +23,8 @@
       set_fact:
         networking:
           device1: "{{ hcp.bastion_params.networking_device }}"
+        env:
+          vnet_name: macvtap
       when: hcp.compute_node_type | lower != 'zvm'
 
     - name:  Creating macvtap network
