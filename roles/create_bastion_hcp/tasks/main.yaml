@@ -73,7 +73,7 @@
     --network network:{{ hcp.bastion_params.network_name }} \
     --location '{{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ env.file_server.iso_mount_dir }}/' \
     --rng=/dev/urandom --initrd-inject /home/libvirt/bastion.ks \
-    --extra-args="ks=file:/bastion.ks ip={{ hcp.bastion_params.ip }}::{{ hcp.bastion_params.gateway }}:{{hcp.bastion_params.subnet_mask}}:{{ hcp.bastion_params.hostname }}.{{ hcp.bastion_params.base_domain }}:{{ hcp.bastion_params.interface }}:none console=ttysclp0 nameserver={{ hcp.bastion_params.nameserver }}" \
+    --extra-args="inst.ks=file:/bastion.ks ip={{ hcp.bastion_params.ip }}::{{ hcp.bastion_params.gateway }}:{{hcp.bastion_params.subnet_mask}}:{{ hcp.bastion_params.hostname }}.{{ hcp.bastion_params.base_domain }}:{{ hcp.bastion_params.interface }}:none console=ttysclp0 nameserver={{ hcp.bastion_params.nameserver }}" \
     --noautoconsole \
     --wait -1
 
