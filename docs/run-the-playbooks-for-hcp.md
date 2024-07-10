@@ -38,7 +38,7 @@ ansible-vault edit playbooks/secrets.yaml
 
 ## Step-2: Initial Setup for Hosted Control Plane
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
-* Update variables as per the compute node type (zKVM /zVM) in [all.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.hcp.template) ( all.yaml.hcp.template )before running the playbooks.
+* Update variables as per the compute node type (zKVM /zVM) in [hcp.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/hcp.yaml.template) ( hcp.yaml.template )before running the playbooks.
 * First playbook to be run is setup_for_hcp.yaml which will create inventory file for HCP and will add ssh key to the kvm host.
 
 * Run this shell command:
