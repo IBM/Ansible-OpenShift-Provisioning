@@ -4,7 +4,7 @@
     name:
       - "{{ item }}"
     state: present
-  loop: "{{ hcp.pkgs.zvm }}"
+  loop: "{{ env.pkgs.zvm }}"
 
 - name: Install setuptools_rust using pip
   pip:

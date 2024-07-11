@@ -7,6 +7,13 @@
 - name: Boot zvm nodes
   hosts: bastion_hcp
   tasks:
+    - name: Getting packages for zvm
+      set_fact:
+        env:
+          pkgs:
+             zvm: "{{ hcp.pkgs.zvm }}"
+      when: hcp.compute_node_type | lower == 'zvm'
+
     - name:  Install tessia baselib
       import_role:
         name: install_tessia_baselib
