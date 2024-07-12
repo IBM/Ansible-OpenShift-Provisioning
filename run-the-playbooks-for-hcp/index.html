@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/run-the-playbooks-for-hypershift/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/run-the-playbooks-for-hcp/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>Run the Playbooks (HyperShift) - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <title>Run the Playbooks (HostedControlPlane) - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,9 +13,9 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Run the Playbooks (HyperShift)";
-        var mkdocs_page_input_path = "run-the-playbooks-for-hypershift.md";
-        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/run-the-playbooks-for-hypershift/";
+        var mkdocs_page_name = "Run the Playbooks (HostedControlPlane)";
+        var mkdocs_page_input_path = "run-the-playbooks-for-hcp.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/run-the-playbooks-for-hcp/";
       </script>
     
     <!--[if lt IE 9]>
@@ -64,7 +64,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Run the Playbooks (HyperShift)</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Run the Playbooks (HostedControlPlane)</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a>
         <ul>
@@ -82,7 +82,7 @@
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#step-2-initial-setup-for-hypershift">Step-2: Initial Setup for Hypershift</a>
+    <li class="toctree-l2"><a class="reference internal" href="#step-2-initial-setup-for-hosted-control-plane">Step-2: Initial Setup for Hosted Control Plane</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#step-3-create-hosted-cluster">Step-3: Create Hosted Cluster</a>
     </li>
@@ -111,9 +111,9 @@
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">Installation Instructions</li>
-      <li class="breadcrumb-item active">Run the Playbooks (HyperShift)</li>
+      <li class="breadcrumb-item active">Run the Playbooks (HostedControlPlane)</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/run-the-playbooks-for-hypershift.md" class="icon icon-github"> Edit on GitHub</a>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/run-the-playbooks-for-hcp.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -135,7 +135,7 @@
 </ul>
 <h2 id="note">Note:<a class="headerlink" href="#note" title="Permanent link">#</a></h2>
 <ul>
-<li>As of now we are supporting only macvtap for hypershift Agent based installation for KVM compute nodes.</li>
+<li>As of now we are supporting only macvtap for Hosted Control Plane Agent based installation for KVM compute nodes.</li>
 <li>Supported network modes for zVM : vswitch, OSA, RoCE, Hipersockets</li>
 </ul>
 <h2 id="step-1-setup-ansible-vault-for-management-cluster-credentials">Step-1: Setup Ansible Vault for Management Cluster Credentials<a class="headerlink" href="#step-1-setup-ansible-vault-for-management-cluster-credentials" title="Permanent link">#</a></h2>
@@ -170,23 +170,23 @@ password: '&lt;password&gt;'
 <ul>
 <li>Make sure you entered Manamegement cluster credenitails properly ,incorrect credentails will cause problem while logging in to the cluster in further steps.</li>
 </ul>
-<h2 id="step-2-initial-setup-for-hypershift">Step-2: Initial Setup for Hypershift<a class="headerlink" href="#step-2-initial-setup-for-hypershift" title="Permanent link">#</a></h2>
+<h2 id="step-2-initial-setup-for-hosted-control-plane">Step-2: Initial Setup for Hosted Control Plane<a class="headerlink" href="#step-2-initial-setup-for-hosted-control-plane" title="Permanent link">#</a></h2>
 <ul>
 <li>Navigate to the <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning">root folder of the cloned Git repository</a> in your terminal (<code>ls</code> should show <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg">ansible.cfg</a>).</li>
-<li>Update variables as per the compute node type (zKVM /zVM) in Section-16 ( Hypershift ) and Section-3 ( File Server : ip , protocol and iso_mount_dir ) in <a href="https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template">all.yaml</a> before running the playbooks.</li>
+<li>Update variables as per the compute node type (zKVM /zVM) in <a href="https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/hcp.yaml.template">hcp.yaml</a> ( hcp.yaml.template )before running the playbooks.</li>
 <li>
-<p>First playbook to be run is setup_for_hypershift.yaml which will create inventory file for hypershift and will add ssh key to the kvm host.</p>
+<p>First playbook to be run is setup_for_hcp.yaml which will create inventory file for HCP and will add ssh key to the kvm host.</p>
 </li>
 <li>
 <p>Run this shell command:</p>
 </li>
 </ul>
-<pre class="codehilite"><code>ansible-playbook playbooks/setup_for_hypershift.yaml --ask-vault-pass
+<pre class="codehilite"><code>ansible-playbook playbooks/setup_for_hcp.yaml --ask-vault-pass
 </code></pre>
 
 <h2 id="step-3-create-hosted-cluster">Step-3: Create Hosted Cluster<a class="headerlink" href="#step-3-create-hosted-cluster" title="Permanent link">#</a></h2>
 <ul>
-<li>Run each part step-by-step by running one playbook at a time, or all at once using <a href="https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/hypershift.yaml">hypershift.yaml</a>.</li>
+<li>Run each part step-by-step by running one playbook at a time, or all at once using <a href="https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/hcp.yaml">hcp.yaml</a>.</li>
 <li>
 <p>Here's the full list of playbooks to be run in order, full descriptions of each can be found further down the page:</p>
 <ul>
@@ -201,18 +201,18 @@ password: '&lt;password&gt;'
 <li>Alternatively, to run all the playbooks at once, start the master playbook by running this shell command:</li>
 <li>After installation , you can find the details of cluster like kubeconfig and password in the installation directory ( $HOME/ansible_workdir/ ) </li>
 </ul>
-<pre class="codehilite"><code>ansible-playbook playbooks/hypershift.yaml --ask-vault-pass
+<pre class="codehilite"><code>ansible-playbook playbooks/hcp.yaml --ask-vault-pass
 </code></pre>
 
 <h1 id="description-for-playbooks">Description for Playbooks<a class="headerlink" href="#description-for-playbooks" title="Permanent link">#</a></h1>
-<h2 id="setup_for_hypershift-playbook">setup_for_hypershift Playbook<a class="headerlink" href="#setup_for_hypershift-playbook" title="Permanent link">#</a></h2>
+<h2 id="setup_for_hcp-playbook">setup_for_hcp Playbook<a class="headerlink" href="#setup_for_hcp-playbook" title="Permanent link">#</a></h2>
 <h3 id="overview_1">Overview<a class="headerlink" href="#overview_1" title="Permanent link">#</a></h3>
 <ul>
 <li>First-time setup of the Ansible Controller,the machine running Ansible.</li>
 </ul>
 <h3 id="outcomes">Outcomes<a class="headerlink" href="#outcomes" title="Permanent link">#</a></h3>
 <ul>
-<li>Inventory file for hypershift to be created.</li>
+<li>Inventory file for hcp to be created.</li>
 <li>SSH key generated for Ansible passwordless authentication.</li>
 <li>Ansible SSH key is copied to kvm host.</li>
 </ul>
@@ -263,12 +263,12 @@ password: '&lt;password&gt;'
 </ul>
 <h3 id="procedure">Procedure<a class="headerlink" href="#procedure" title="Permanent link">#</a></h3>
 <ul>
-<li>Run the playbook <a href="https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/destroy_cluster_hypershift.yaml">destroy_cluster_hypershift.yaml</a> to destroy all the resources created while installation</li>
+<li>Run the playbook <a href="https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/destroy_cluster_hcp.yaml">destroy_cluster_hcp.yaml</a> to destroy all the resources created while installation</li>
 </ul>
-<pre class="codehilite"><code>ansible-playbook playbooks/destroy_cluster_hypershift.yaml --ask-vault-pass
+<pre class="codehilite"><code>ansible-playbook playbooks/destroy_cluster_hcp.yaml --ask-vault-pass
 </code></pre>
 
-<h2 id="destroy_cluster_hypershift-playbook">destroy_cluster_hypershift Playbook<a class="headerlink" href="#destroy_cluster_hypershift-playbook" title="Permanent link">#</a></h2>
+<h2 id="destroy_cluster_hcp-playbook">destroy_cluster_hcp Playbook<a class="headerlink" href="#destroy_cluster_hcp-playbook" title="Permanent link">#</a></h2>
 <h3 id="overview_5">Overview<a class="headerlink" href="#overview_5" title="Permanent link">#</a></h3>
 <ul>
 <li>Delete all the resources on Hosted Cluster</li>

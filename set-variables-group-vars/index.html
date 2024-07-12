@@ -90,13 +90,13 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#15-ocp-and-rhcos-coreos">15 - OCP and RHCOS (CoreOS)</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#16-hypershift-optional">16 - Hypershift ( Optional )</a>
+    <li class="toctree-l2"><a class="reference internal" href="#16-optional-disconnected-cluster-setup">16 - (Optional) Disconnected cluster setup</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#17-optional-disconnected-cluster-setup">17 - (Optional) Disconnected cluster setup</a>
+    <li class="toctree-l2"><a class="reference internal" href="#17-optional-create-compute-node-in-a-day-2-operation">17 - (Optional) Create compute node in a day-2 operation</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#18-optional-create-compute-node-in-a-day-2-operation">18 - (Optional) Create compute node in a day-2 operation</a>
+    <li class="toctree-l2"><a class="reference internal" href="#18-optional-agent-based-installer">18 - (Optional) Agent Based Installer</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#19-optional-agent-based-installer">19 - (Optional) Agent Based Installer</a>
+    <li class="toctree-l2"><a class="reference internal" href="#hosted-control-plane-optional">Hosted Control Plane ( Optional )</a>
     </li>
     </ul>
                   </li>
@@ -106,7 +106,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hypershift/">Run the Playbooks (HyperShift)</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hcp/">Run the Playbooks (HostedControlPlane)</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Misc</span></p>
@@ -1031,339 +1031,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="16-hypershift-optional">16 - Hypershift ( Optional )<a class="headerlink" href="#16-hypershift-optional" title="Permanent link">#</a></h2>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;"><strong>Variable Name</strong></th>
-<th style="text-align: left;"><strong>Description</strong></th>
-<th style="text-align: left;"><strong>Example</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>hypershift.compute_node_type</strong></td>
-<td style="text-align: left;">Select the compute node type for HCP , either zKVM or zVM</td>
-<td style="text-align: left;">zvm</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.kvm_host</strong></td>
-<td style="text-align: left;">IPv4 address of KVM host for hypershift  (kvm host where you want to run all oc commands and create VMs)</td>
-<td style="text-align: left;">192.168.10.1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.kvm_host_user</strong></td>
-<td style="text-align: left;">User for KVM host</td>
-<td style="text-align: left;">root</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.bastion_hypershift</strong></td>
-<td style="text-align: left;">IPv4 address for bastion of Hosted Cluster</td>
-<td style="text-align: left;">192.168.10.1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.bastion_hypershift_user</strong></td>
-<td style="text-align: left;">User for bastion of Hosted Cluster</td>
-<td style="text-align: left;">root</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.create_bastion</strong></td>
-<td style="text-align: left;">true or false - create bastion with the provided IP (hypershift.bastion_hypershift)</td>
-<td style="text-align: left;">true</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.networking_device</strong></td>
-<td style="text-align: left;">The network interface card from Linux's perspective.  Usually enc and then a number that comes from the dev_num of the network adapter.</td>
-<td style="text-align: left;">enc1100</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.gateway</strong></td>
-<td style="text-align: left;">IPv4 Address for gateway from where the kvm_host and bastion are reachable   This for adding ip route from kvm_host to bastion through gateway</td>
-<td style="text-align: left;">192.168.10.1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.bastion_parms.interface</strong></td>
-<td style="text-align: left;">Interface for bastion</td>
-<td style="text-align: left;">enc1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.bastion_parms.hostname</strong></td>
-<td style="text-align: left;">Hostname for bastion</td>
-<td style="text-align: left;">bastion</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.bastion_parms.base_domain</strong></td>
-<td style="text-align: left;">DNS base domain for the bastion.</td>
-<td style="text-align: left;">ihost.com</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.bastion_parms.os_variant</strong></td>
-<td style="text-align: left;">rhel os variant for creating bastion</td>
-<td style="text-align: left;">8.7</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.bastion_parms.nameserver</strong></td>
-<td style="text-align: left;">Nameserver for creating bastion</td>
-<td style="text-align: left;">192.168.10.1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.bastion_parms.gateway</strong></td>
-<td style="text-align: left;">Gateway IP for creating bastion  This is how it well be used ip=<ipv4 address>::<nameserver>:<subnet mask></td>
-<td style="text-align: left;">192.168.10.1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.bastion_parms.subnet_mask</strong></td>
-<td style="text-align: left;">IPv4 address of subnetmask</td>
-<td style="text-align: left;">255.255.255.0</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.mgmt_cluster_nameserver</strong></td>
-<td style="text-align: left;">IP Address of Nameserver of Management Cluster</td>
-<td style="text-align: left;">192.168.10.1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.oc_url</strong></td>
-<td style="text-align: left;">URL for OC Client that you want to install on the host</td>
-<td style="text-align: left;">https://... ..openshift-client-linux-4.13.0-ec.4.tar.gz</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.hcp.clusters_namespace</strong></td>
-<td style="text-align: left;">Namespace for Creating Hosted Control Plane</td>
-<td style="text-align: left;">clusters</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.hcp.hosted_cluster_name</strong></td>
-<td style="text-align: left;">Name for the Hosted Cluster</td>
-<td style="text-align: left;">hosted0</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.hcp.basedomain</strong></td>
-<td style="text-align: left;">Base domain for Hosted Cluster</td>
-<td style="text-align: left;">example.com</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.hcp.pull_secret_file</strong></td>
-<td style="text-align: left;">Path for the pull secret  No need to change this as we are copying the pullsecret to same file  /root/ansible_workdir/auth_file</td>
-<td style="text-align: left;">/root/ansible_workdir/auth_file</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.hcp.ocp_release</strong></td>
-<td style="text-align: left;">OCP Release version for Hosted Control Cluster and Nodepool</td>
-<td style="text-align: left;">4.13.0-rc.4-multi</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.hcp.machine_cidr</strong></td>
-<td style="text-align: left;">Machines CIDR for Hosted Cluster</td>
-<td style="text-align: left;">192.168.122.0/24</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.hcp.arch</strong></td>
-<td style="text-align: left;">Architecture for InfraEnv and AgentServiceConfig"</td>
-<td style="text-align: left;">s390x</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.hcp.additional_flags</strong></td>
-<td style="text-align: left;">Any additional flags for creating hcp ( In hcp create cluster agent command )</td>
-<td style="text-align: left;">--fips</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.hcp.pull_secret</strong></td>
-<td style="text-align: left;">Pull Secret of Management Cluster  Make sure to enclose pull_secret in 'single quotes'</td>
-<td style="text-align: left;">'{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com"}}}'</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.mce.version</strong></td>
-<td style="text-align: left;">version for multicluster-engine Operator</td>
-<td style="text-align: left;">2.4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.mce.instance_name</strong></td>
-<td style="text-align: left;">name of the MultiClusterEngine instance</td>
-<td style="text-align: left;">engine</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.mce.delete</strong></td>
-<td style="text-align: left;">true or false - deletes mce and related resources while running deletion playbook</td>
-<td style="text-align: left;">true</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.asc.url_for_ocp_release_file</strong></td>
-<td style="text-align: left;">Add URL for OCP release.txt File</td>
-<td style="text-align: left;">https://...  ..../release.txt</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.asc.db_volume_size</strong></td>
-<td style="text-align: left;">DatabaseStorage Volume Size</td>
-<td style="text-align: left;">10Gi</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.asc.fs_volume_size</strong></td>
-<td style="text-align: left;">FileSystem Storage Volume Size</td>
-<td style="text-align: left;">10Gi</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.asc.ocp_version</strong></td>
-<td style="text-align: left;">OCP Version for AgentServiceConfig</td>
-<td style="text-align: left;">4.13.0-ec.4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.asc.iso_url</strong></td>
-<td style="text-align: left;">Give URL for ISO image</td>
-<td style="text-align: left;">https://...  ...s390x-live.s390x.iso</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.asc.root_fs_url</strong></td>
-<td style="text-align: left;">Give URL for rootfs image</td>
-<td style="text-align: left;">https://...  ... live-rootfs.s390x.img</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.asc.mce_namespace</strong></td>
-<td style="text-align: left;">Namespace where your Multicluster Engine Operator is installed.  Recommended Namespace for MCE is 'multicluster-engine'.  Change this only if MCE is installed in other namespace.</td>
-<td style="text-align: left;">multicluster-engine</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.agents_count</strong></td>
-<td style="text-align: left;">Number of agents for the hosted cluster  The same number of compute nodes will be attached to Hosted Cotrol Plane</td>
-<td style="text-align: left;">2</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.static_ip_parms.static_ip</strong></td>
-<td style="text-align: left;">true or false - use static IPs for agents using NMState</td>
-<td style="text-align: left;">true</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.static_ip_parms.ip</strong></td>
-<td style="text-align: left;">List of IP addresses for agents</td>
-<td style="text-align: left;">192.168.10.1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.static_ip_parms.interface</strong></td>
-<td style="text-align: left;">Interface for agents for configuring NMStateConfig</td>
-<td style="text-align: left;">eth0</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.agent_mac_addr</strong></td>
-<td style="text-align: left;">List of macaddresses for the agents.  Configure in DHCP if you are using dynamic IPs for Agents.</td>
-<td style="text-align: left;">- 52:54:00:ba:d3:f7</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.disk_size</strong></td>
-<td style="text-align: left;">Disk size for agents</td>
-<td style="text-align: left;">100G</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.ram</strong></td>
-<td style="text-align: left;">RAM for agents</td>
-<td style="text-align: left;">16384</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.vcpus</strong></td>
-<td style="text-align: left;">vCPUs for agents</td>
-<td style="text-align: left;">4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.nameserver</strong></td>
-<td style="text-align: left;">Nameserver to be used for agents</td>
-<td style="text-align: left;">192.168.10.1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.network_mode</strong></td>
-<td style="text-align: left;">Network mode for zvm nodes  Supported modes: vswitch,osa, RoCE</td>
-<td style="text-align: left;">vswitch</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.disk_type</strong></td>
-<td style="text-align: left;">Disk type for zvm nodes  Supported disk types: fcp, dasd</td>
-<td style="text-align: left;">dasd</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.vcpus</strong></td>
-<td style="text-align: left;">CPUs for each zvm node</td>
-<td style="text-align: left;">4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.memory</strong></td>
-<td style="text-align: left;">RAM for each zvm node</td>
-<td style="text-align: left;">16384</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nameserver</strong></td>
-<td style="text-align: left;">Nameserver for compute nodes</td>
-<td style="text-align: left;">192.168.10.1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.subnetmask</strong></td>
-<td style="text-align: left;">Subnet mask for compute nodes</td>
-<td style="text-align: left;">255.255.255.0</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.gateway</strong></td>
-<td style="text-align: left;">Gateway for compute nodes</td>
-<td style="text-align: left;">192.168.10.1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes</strong></td>
-<td style="text-align: left;">Set of parameters for zvm nodes  Give the details of each zvm node here</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.name</strong></td>
-<td style="text-align: left;">Name of the zVM guest</td>
-<td style="text-align: left;">m1317002</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.host</strong></td>
-<td style="text-align: left;">Host name of the zVM guests  which we use to login 3270 console</td>
-<td style="text-align: left;">boem1317</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.user</strong></td>
-<td style="text-align: left;">Username for zVM guests to login</td>
-<td style="text-align: left;">m1317002</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.password</strong></td>
-<td style="text-align: left;">password for the zVM guests to login</td>
-<td style="text-align: left;">password</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.interface.ifname</strong></td>
-<td style="text-align: left;">Network interface name for zVM guests</td>
-<td style="text-align: left;">encbdf0</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.interface.nettype</strong></td>
-<td style="text-align: left;">Network type for zVM guests for network connectivity</td>
-<td style="text-align: left;">qeth</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.interface.subchannels</strong></td>
-<td style="text-align: left;">subchannels for zVM guests interfaces</td>
-<td style="text-align: left;">0.0.bdf0,0.0.bdf1,0.0.bdf2</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.interface.options</strong></td>
-<td style="text-align: left;">Configurations options</td>
-<td style="text-align: left;">layer2=1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.interface.ip</strong></td>
-<td style="text-align: left;">IP addresses for to be used for zVM nodes</td>
-<td style="text-align: left;">192.168.10.1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.dasd.disk_id</strong></td>
-<td style="text-align: left;">Disk id for dasd disk to be used for zVM node</td>
-<td style="text-align: left;">4404</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>hypershift.agents_parms.zvm_parameters.nodes.lun</strong></td>
-<td style="text-align: left;">Disk details of fcp disk to be used for zVM node</td>
-<td style="text-align: left;">4404</td>
-</tr>
-</tbody>
-</table>
-<h2 id="17-optional-disconnected-cluster-setup">17 - (Optional) Disconnected cluster setup<a class="headerlink" href="#17-optional-disconnected-cluster-setup" title="Permanent link">#</a></h2>
+<h2 id="16-optional-disconnected-cluster-setup">16 - (Optional) Disconnected cluster setup<a class="headerlink" href="#16-optional-disconnected-cluster-setup" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -1515,7 +1183,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="18-optional-create-compute-node-in-a-day-2-operation">18 - (Optional) Create compute node in a day-2 operation<a class="headerlink" href="#18-optional-create-compute-node-in-a-day-2-operation" title="Permanent link">#</a></h2>
+<h2 id="17-optional-create-compute-node-in-a-day-2-operation">17 - (Optional) Create compute node in a day-2 operation<a class="headerlink" href="#17-optional-create-compute-node-in-a-day-2-operation" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -1572,7 +1240,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="19-optional-agent-based-installer">19 - (Optional) Agent Based Installer<a class="headerlink" href="#19-optional-agent-based-installer" title="Permanent link">#</a></h2>
+<h2 id="18-optional-agent-based-installer">18 - (Optional) Agent Based Installer<a class="headerlink" href="#18-optional-agent-based-installer" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -1601,6 +1269,383 @@
 <td style="text-align: left;"><strong>abi.ocp_installer_url</strong></td>
 <td style="text-align: left;">This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror</td>
 <td style="text-align: left;">'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'</td>
+</tr>
+</tbody>
+</table>
+<h2 id="hosted-control-plane-optional">Hosted Control Plane ( Optional )<a class="headerlink" href="#hosted-control-plane-optional" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>hcp.compute_node_type</strong></td>
+<td style="text-align: left;">Select the compute node type for HCP , either zKVM or zVM</td>
+<td style="text-align: left;">zvm</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.mgmt_cluster_nameserver</strong></td>
+<td style="text-align: left;">IP Address of Nameserver of Management Cluster</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.oc_url</strong></td>
+<td style="text-align: left;">URL for OC Client that you want to install on the host</td>
+<td style="text-align: left;">https://... ..openshift-client-linux-4.13.0-ec.4.tar.gz</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.ansible_key_name</strong></td>
+<td style="text-align: left;">ssh key name</td>
+<td style="text-align: left;">ansible-ocpz</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.pkgs</strong></td>
+<td style="text-align: left;">list of packages for different hosts</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.mce.version</strong></td>
+<td style="text-align: left;">version for multicluster-engine Operator</td>
+<td style="text-align: left;">2.4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.mce.instance_name</strong></td>
+<td style="text-align: left;">name of the MultiClusterEngine instance</td>
+<td style="text-align: left;">engine</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.mce.delete</strong></td>
+<td style="text-align: left;">true or false - deletes mce and related resources while running deletion playbook</td>
+<td style="text-align: left;">true</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.asc.url_for_ocp_release_file</strong></td>
+<td style="text-align: left;">Add URL for OCP release.txt File</td>
+<td style="text-align: left;">https://...  ..../release.txt</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.asc.db_volume_size</strong></td>
+<td style="text-align: left;">DatabaseStorage Volume Size</td>
+<td style="text-align: left;">10Gi</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.asc.fs_volume_size</strong></td>
+<td style="text-align: left;">FileSystem Storage Volume Size</td>
+<td style="text-align: left;">10Gi</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.asc.ocp_version</strong></td>
+<td style="text-align: left;">OCP Version for AgentServiceConfig</td>
+<td style="text-align: left;">4.13.0-ec.4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.asc.iso_url</strong></td>
+<td style="text-align: left;">Give URL for ISO image</td>
+<td style="text-align: left;">https://...  ...s390x-live.s390x.iso</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.asc.root_fs_url</strong></td>
+<td style="text-align: left;">Give URL for rootfs image</td>
+<td style="text-align: left;">https://...  ... live-rootfs.s390x.img</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.asc.mce_namespace</strong></td>
+<td style="text-align: left;">Namespace where your Multicluster Engine Operator is installed.  Recommended Namespace for MCE is 'multicluster-engine'.  Change this only if MCE is installed in other namespace.</td>
+<td style="text-align: left;">multicluster-engine</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.high_availabiliy</strong></td>
+<td style="text-align: left;">Availability for Control Plane</td>
+<td style="text-align: left;">true</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.clusters_namespace</strong></td>
+<td style="text-align: left;">Namespace for Creating Hosted Control Plane</td>
+<td style="text-align: left;">clusters</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.hosted_cluster_name</strong></td>
+<td style="text-align: left;">Name for the Hosted Cluster</td>
+<td style="text-align: left;">hosted0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.basedomain</strong></td>
+<td style="text-align: left;">Base domain for Hosted Cluster</td>
+<td style="text-align: left;">example.com</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.pull_secret_file</strong></td>
+<td style="text-align: left;">Path for the pull secret  No need to change this as we are copying the pullsecret to same file  /root/ansible_workdir/auth_file</td>
+<td style="text-align: left;">/root/ansible_workdir/auth_file</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.ocp_release_image</strong></td>
+<td style="text-align: left;">OCP Release version for Hosted Control Cluster and Nodepool</td>
+<td style="text-align: left;">4.13.0-rc.4-multi</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.arch</strong></td>
+<td style="text-align: left;">Architecture for InfraEnv and AgentServiceConfig"</td>
+<td style="text-align: left;">s390x</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.additional_flags</strong></td>
+<td style="text-align: left;">Any additional flags for creating hcp ( In hcp create cluster agent command )</td>
+<td style="text-align: left;">--fips</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.pull_secret</strong></td>
+<td style="text-align: left;">Pull Secret of Management Cluster  Make sure to enclose pull_secret in 'single quotes'</td>
+<td style="text-align: left;">'{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com"}}}'</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.create</strong></td>
+<td style="text-align: left;">true or false - create bastion with the provided IP</td>
+<td style="text-align: left;">true</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.ip</strong></td>
+<td style="text-align: left;">IPv4 address for bastion of Hosted Cluster</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.user</strong></td>
+<td style="text-align: left;">User for bastion of Hosted Cluster</td>
+<td style="text-align: left;">root</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.host</strong></td>
+<td style="text-align: left;">IPv4 address of KVM host  (kvm host where you want to run all oc commands and create VMs)</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.host_user</strong></td>
+<td style="text-align: left;">User for KVM host</td>
+<td style="text-align: left;">root</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.hostname</strong></td>
+<td style="text-align: left;">Hostname for bastion</td>
+<td style="text-align: left;">bastion</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.base_domain</strong></td>
+<td style="text-align: left;">DNS base domain for the bastion.</td>
+<td style="text-align: left;">ihost.com</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.nameserver</strong></td>
+<td style="text-align: left;">Nameserver for creating bastion</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hhcp.bastion_params.gateway</strong></td>
+<td style="text-align: left;">Gateway IP for creating bastion  This is how it well be used ip=<ipv4 address>::<nameserver>:<subnet mask></td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.subnet_mask</strong></td>
+<td style="text-align: left;">IPv4 address of subnetmask</td>
+<td style="text-align: left;">255.255.255.0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.interface</strong></td>
+<td style="text-align: left;">Interface for bastion</td>
+<td style="text-align: left;">enc1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.file_server.ip</strong></td>
+<td style="text-align: left;">IPv4 address for the file server that will be used to pass config files and iso to KVM host LPAR(s) and bastion VM during their first boot.</td>
+<td style="text-align: left;">192.168.10.201</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.file_server.protocol</strong></td>
+<td style="text-align: left;">Protocol used to serve the files, either 'ftp' or 'http'</td>
+<td style="text-align: left;">http</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.file_server.iso_mount_dir</strong></td>
+<td style="text-align: left;">Directory path relative to the HTTP/FTP accessible directory where RHEL ISO is mounted. For example, if the FTP root is at /home/user1 and the ISO is mounted at /home/user1/RHEL/8.7 then this variable would be RHEL/8.7 - no slash before or after.</td>
+<td style="text-align: left;">RHEL/8.7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.os_variant</strong></td>
+<td style="text-align: left;">rhel os variant for creating bastion</td>
+<td style="text-align: left;">8.7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.disk</strong></td>
+<td style="text-align: left;">rhel os variant for creating bastion</td>
+<td style="text-align: left;">8.7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.network_name</strong></td>
+<td style="text-align: left;">rhel os variant for creating bastion</td>
+<td style="text-align: left;">8.7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.networking_device</strong></td>
+<td style="text-align: left;">The network interface card from Linux's perspective.  Usually enc and then a number that comes from the dev_num of the network adapter.</td>
+<td style="text-align: left;">enc1100</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.language</strong></td>
+<td style="text-align: left;">What language would you like Red Hat Enterprise Linux to use? In UTF-8 language code. Available languages and their corresponding codes can be found here, in the "Locale" column of Table 2.1.</td>
+<td style="text-align: left;">en_US.UTF-8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.timezone</strong></td>
+<td style="text-align: left;">Which timezone would you like Red Hat Enterprise Linux to use? A list of available timezone options can be found here.</td>
+<td style="text-align: left;">America/New_York</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.keyboard</strong></td>
+<td style="text-align: left;">Which keyboard layout would you like Red Hat Enterprise Linux to use?</td>
+<td style="text-align: left;">us</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.compute_count</strong></td>
+<td style="text-align: left;">Number of agents for the hosted cluster  The same number of compute nodes will be attached to Hosted Cotrol Plane</td>
+<td style="text-align: left;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.vcpus</strong></td>
+<td style="text-align: left;">vCPUs for compute nodes</td>
+<td style="text-align: left;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.memory</strong></td>
+<td style="text-align: left;">RAM for compute nodes</td>
+<td style="text-align: left;">16384</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.nameserver</strong></td>
+<td style="text-align: left;">Nameserver for compute nodes</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.storage.type</strong></td>
+<td style="text-align: left;">Storage type for KVM guests  qcow/dasd</td>
+<td style="text-align: left;">qcow</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.storage.qcow.disk_size</strong></td>
+<td style="text-align: left;">Disk size for kvm guests</td>
+<td style="text-align: left;">100G</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.storage.qcow.pool_path</strong></td>
+<td style="text-align: left;">Storage pool path for creating disks</td>
+<td style="text-align: left;">/home/images/</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.storage.dasd</strong></td>
+<td style="text-align: left;">dasd disks for kvm guests</td>
+<td style="text-align: left;">/disk</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.ip_params.static_ip.enabled</strong></td>
+<td style="text-align: left;">true or false - use static IPs for agents using NMState</td>
+<td style="text-align: left;">true</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.ip_params.static_ip.ip</strong></td>
+<td style="text-align: left;">List of IP addresses for agents</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.ip_params.static_ip.interface</strong></td>
+<td style="text-align: left;">Interface for agents for configuring NMStateConfig</td>
+<td style="text-align: left;">eth0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.ip_params.mac</strong></td>
+<td style="text-align: left;">List of macaddresses for the agents.  Configure in DHCP if you are using dynamic IPs for Agents.</td>
+<td style="text-align: left;">- 52:54:00:ba:d3:f7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.network_mode</strong></td>
+<td style="text-align: left;">Network mode for zvm nodes  Supported modes: vswitch,osa, RoCE</td>
+<td style="text-align: left;">vswitch</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.disk_type</strong></td>
+<td style="text-align: left;">Disk type for zvm nodes  Supported disk types: fcp, dasd</td>
+<td style="text-align: left;">dasd</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.subnetmask</strong></td>
+<td style="text-align: left;">Subnet mask for compute nodes</td>
+<td style="text-align: left;">255.255.255.0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.gateway</strong></td>
+<td style="text-align: left;">Gateway for compute nodes</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes</strong></td>
+<td style="text-align: left;">Set of parameters for zvm nodes  Give the details of each zvm node here</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.name</strong></td>
+<td style="text-align: left;">Name of the zVM guest</td>
+<td style="text-align: left;">m1317002</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.host</strong></td>
+<td style="text-align: left;">Host name of the zVM guests  which we use to login 3270 console</td>
+<td style="text-align: left;">boem1317</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvmnodes.user</strong></td>
+<td style="text-align: left;">Username for zVM guests to login</td>
+<td style="text-align: left;">m1317002</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.password</strong></td>
+<td style="text-align: left;">password for the zVM guests to login</td>
+<td style="text-align: left;">password</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.interface.ifname</strong></td>
+<td style="text-align: left;">Network interface name for zVM guests</td>
+<td style="text-align: left;">encbdf0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.interface.nettype</strong></td>
+<td style="text-align: left;">Network type for zVM guests for network connectivity</td>
+<td style="text-align: left;">qeth</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.interface.subchannels</strong></td>
+<td style="text-align: left;">subchannels for zVM guests interfaces</td>
+<td style="text-align: left;">0.0.bdf0,0.0.bdf1,0.0.bdf2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.interface.options</strong></td>
+<td style="text-align: left;">Configurations options</td>
+<td style="text-align: left;">layer2=1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.interface.ip</strong></td>
+<td style="text-align: left;">IP addresses for to be used for zVM nodes</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.dasd.disk_id</strong></td>
+<td style="text-align: left;">Disk id for dasd disk to be used for zVM node</td>
+<td style="text-align: left;">4404</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.lun</strong></td>
+<td style="text-align: left;">Disk details of fcp disk to be used for zVM node</td>
+<td style="text-align: left;">4404</td>
 </tr>
 </tbody>
 </table>
