@@ -1,0 +1,15 @@
+apiVersion: agent-install.openshift.io/v1beta1
+kind: InfraEnv
+metadata:
+  name: "{{ hcp.control_plane.hosted_cluster_name }}"
+  namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
+spec:
+{% if hcp.data_plane.kvm.ip_params.static_ip.enabled == true %}
+  nmStateConfigLabelSelector:
+    matchLabels:
+      infraenv: "static-ip-{{ hcp.control_plane.hosted_cluster_name }}"
+{% endif %}
+  cpuArchitecture: "{{ hcp.control_plane.arch }}"
+  pullSecretRef:
+    name: pull-secret
+  sshAuthorizedKey: "{{ ssh_key }}"

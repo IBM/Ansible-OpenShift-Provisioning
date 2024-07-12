@@ -1,0 +1,151 @@
+---
+- name: Getting Hosted Control Plane Namespace
+  set_fact: 
+    hosted_control_plane_namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
+
+- name: Check if Hosted Control Plane Namespace exists 
+  k8s_info:
+    api_version: v1
+    kind: Namespace
+    name: "{{ hosted_control_plane_namespace }}"
+  register: namespace_check
+  ignore_errors: yes
+
+- name: Create Hosted Control Plane Namespace 
+  k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ hosted_control_plane_namespace }}"
+    state: present
+  when: namespace_check.resources | length == 0 
+
+- name: Get ssh key 
+  ansible.builtin.shell: cat ~/.ssh/{{ hcp.ansible_key_name }}.pub
+  register: ssh_output
+ 
+- name: Load ssh_key into a variable
+  set_fact:
+    ssh_key: "{{ ssh_output.stdout_lines[0] }}"
+
+- name: Get pod name for hcp-cli-download
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: "{{ hcp.asc.mce_namespace }}"
+    label_selectors:
+      - app= hcp-cli-download
+  register: hcp_pod_name
+
+- name: Get hcp.tar.gz file from pod
+  kubernetes.core.k8s_cp:
+    namespace: "{{ hcp.asc.mce_namespace }}"
+    pod: "{{ hcp_pod_name.resources[0].metadata.name }}"
+    remote_path: "/opt/app-root/src/linux/s390x/"
+    local_path: "/root/ansible_workdir"
+    state: from_pod
+
+- name: Extract binary from hcp.tar.gz
+  unarchive:
+    src: /root/ansible_workdir/hcp.tar.gz
+    dest: /usr/local/bin/
+    remote_src: true
+
+- name: Get ICSP for Hosted Control Plane
+  template:
+    src: icsp.yaml.j2
+    dest: /root/ansible_workdir/icsp.yaml
+
+- name: Create a Hosted Cluster
+  command: >
+    hcp create cluster agent 
+    --name={{ hcp.control_plane.hosted_cluster_name }} 
+    --pull-secret=/root/ansible_workdir/auth_file 
+    --agent-namespace={{ hosted_control_plane_namespace }} 
+    --namespace={{ hcp.control_plane.clusters_namespace }} 
+    --base-domain={{ hcp.control_plane.basedomain }} 
+    --api-server-address=api.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }} 
+    --ssh-key ~/.ssh/{{ hcp.ansible_key_name }}.pub
+    {% if hcp.control_plane.high_availabiliy == false %}
+    --control-plane-availability-policy "SingleReplica" 
+    {% endif %}
+    --infra-availability-policy "SingleReplica" 
+    --image-content-sources /root/ansible_workdir/icsp.yaml 
+    {% set release_image = lookup('env', 'HCP_RELEASE_IMAGE') %}
+    {% if release_image is defined and release_image != '' %}
+    --release-image={{ release_image }}
+    {% else %}
+    --release-image=quay.io/openshift-release-dev/ocp-release:{{ hcp.control_plane.ocp_release_image }}
+    {% endif %}
+    {% if hcp.control_plane.additional_flags is defined and hcp.control_plane.additional_flags != '' %}
+    {{ hcp.control_plane.additional_flags }}
+    {% endif %}
+
+- name: Waiting for Hosted Control Plane to be available
+  command: oc wait --timeout=30m --for=condition=Available --namespace={{ hcp.control_plane.clusters_namespace }} hostedcluster/{{ hcp.control_plane.hosted_cluster_name }}
+
+- name: Wait for pods to come up in Hosted Cluster Namespace
+  shell: oc get pods -n {{ hosted_control_plane_namespace }} | wc -l
+  register: pod_count
+  until: pod_count.stdout | int > 30
+  retries: 40
+  delay: 10
+
+- name: Wait for all pods to be in Running State in  Hosted Cluster Namespace
+  shell: oc get pods -n {{ hosted_control_plane_namespace }}  --no-headers | grep -v 'Running\|Completed\|Terminating' | wc -l
+  register: pod_status
+  until: pod_status.stdout == '0'
+  retries: 30
+  delay: 10
+
+- name: Create InfraEnv.yaml
+  template:
+    src: InfraEnv.yaml.j2
+    dest: /root/ansible_workdir/InfraEnv.yaml
+
+- name: Deploy InfraEnv Resource
+  command: oc apply -f /root/ansible_workdir/InfraEnv.yaml
+
+- name: Creating list of mac addresses
+  set_fact:
+    agent_mac_addr: []
+  when:
+    - hcp.data_plane.kvm.ip_params.static_ip.enabled == true
+    - hcp.compute_node_type | lower != 'zvm'
+
+- name: Getting mac addresss for agents
+  set_fact:
+    agent_mac_addr: "{{ hcp.data_plane.kvm.ip_params.mac }}"
+  when: 
+    - ( hcp.data_plane.kvm.ip_params.static_ip.enabled == true ) and ( hcp.data_plane.kvm.ip_params.mac != None )
+    - hcp.compute_node_type | lower != 'zvm'
+
+- name: Generate mac addresses for agents
+  set_fact:
+    agent_mac_addr: "{{ agent_mac_addr +  ['52:54:00' | community.general.random_mac] }}"
+  when:
+    - ( hcp.data_plane.kvm.ip_params.static_ip.enabled == true ) and ( hcp.data_plane.kvm.ip_params.mac == None )
+    - hcp.compute_node_type | lower != 'zvm'
+  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+
+- name: Create NMState Configs
+  template:
+    src:  nmStateConfig.yaml.j2
+    dest: /root/ansible_workdir/nmStateConfig-agent-{{ item }}.yaml
+  when: 
+    - hcp.data_plane.kvm.ip_params.static_ip.enabled == true
+    - hcp.compute_node_type | lower != 'zvm'
+  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+
+- name: Deploy NMState Configs
+  command: oc apply -f /root/ansible_workdir/nmStateConfig-agent-{{ item }}.yaml
+  when:
+    - hcp.data_plane.kvm.ip_params.static_ip.enabled == true
+    - hcp.compute_node_type | lower != 'zvm'
+  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+
+- name: Wait for ISO to generate in InfraEnv 
+  shell: oc get InfraEnv -n  {{ hosted_control_plane_namespace }} --no-headers
+  register: infra
+  until: infra.stdout.split(' ')[-1] != ''
+  retries: 60
+  delay: 20

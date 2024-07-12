@@ -1,0 +1,209 @@
+---
+
+- name: Login to Management Cluster
+  command: oc login {{ api_server }} -u {{ user_name }} -p {{ password }} --insecure-skip-tls-verify=true
+
+- name: Scale in  Nodepool
+  command: oc -n {{ hcp.control_plane.clusters_namespace }} scale nodepool {{ hcp.control_plane.hosted_cluster_name }} --replicas 0
+
+- block:
+    - name: Wait for Worker Nodes to Detach
+      k8s_info:
+        api_version: v1
+        kind: Node
+        kubeconfig: "/root/ansible_workdir/hcp-kubeconfig"
+      register: nodes
+      until: nodes.resources | length == 0
+      retries: 30
+      delay: 10
+  rescue: 
+    - name: Getting basedomain
+      shell: oc get hc {{ hcp.control_plane.hosted_cluster_name }} -n {{ hcp.control_plane.clusters_namespace }} -o json | jq -r '.spec.dns.baseDomain'
+      register: base_domain
+
+    - name: Deleting the compute nodes manually 
+      command: oc delete no compute-{{item}}.{{hcp.control_plane.hosted_cluster_name }}.{{ base_domain.stdout }} --kubeconfig /root/ansible_workdir/hcp-kubeconfig
+      loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+
+    - name: Get machine names
+      command: oc get machine.cluster.x-k8s.io -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} --no-headers
+      register: machines_info
+
+    - name: Create List for machines
+      set_fact:
+        machines: []
+
+    - name: Get the List of machines
+      set_fact:
+        machines: "{{ machines + [machines_info.stdout.split('\n')[item].split(' ')[0]] }}"
+      loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+
+    - name: Patch the machines to remove finalizers
+      shell: oc patch machine.cluster.x-k8s.io "{{ machines[item] }}" -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" -p '{"metadata":{"finalizers":null}}' --type=merge
+      loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+
+- name: Wait for Agentmachines to delete
+  k8s_info:
+    api_version: capi-provider.agent-install.openshift.io/v1alpha1
+    kind: AgentMachine
+  register: agent_machines
+  until: agent_machines.resources | length == 0
+  retries: 30
+  delay: 10
+
+- name: Wait for Machines to delete
+  k8s_info:
+    api_version: cluster.x-k8s.io/v1beta1
+    kind: Machine
+  register: machines
+  until: machines.resources | length == 0
+  retries: 30
+  delay: 10
+
+- name: Get agent names
+  command: oc get agents -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} --no-headers
+  register: agents_info
+
+- name: Create List for agents
+  set_fact:
+    agents: []
+
+- name: Get a List of agents
+  set_fact:
+    agents: "{{ agents + [agents_info.stdout.split('\n')[item].split(' ')[0]] }}"
+  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+
+- name: Delete Agents
+  command: oc delete agent {{ agents[item] }} -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} 
+  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+  
+- name: Remove workdir
+  file:
+    path: /root/ansible_workdir
+    state: absent
+
+- name: Delete InfraEnv resource
+  k8s:
+    state: absent
+    api_version: agent-install.openshift.io/v1beta1
+    kind: InfraEnv
+    name: "{{ hcp.control_plane.hosted_cluster_name }}"
+    namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
+
+- name: Destroy Hosted Control Plane
+  command: hcp destroy cluster agent --name {{ hcp.control_plane.hosted_cluster_name }} --namespace {{ hcp.control_plane.clusters_namespace }}
+
+- name: Delete Clusters Namespace
+  k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ hcp.control_plane.clusters_namespace }}"
+    state: absent
+
+- name: Wait for managed cluster resource to be deleted
+  shell: oc get managedcluster "{{ hcp.control_plane.hosted_cluster_name }}"
+  register: managedcluster
+  until: managedcluster.rc != 0
+  retries: 50
+  delay: 25
+  when: hcp.mce.delete == true
+  ignore_errors: yes
+
+- fail:
+    msg: "Managed cluster resource for HCP is not getting deleted"
+  when: managedcluster.rc == 0 and managedcluster.attempts >= 40
+
+- name: Disable local-cluster component in MCE 
+  command: oc patch mce {{ hcp.mce.instance_name }} -p '{"spec":{"overrides":{"components":[{"name":"local-cluster","enabled":false}]}}}' --type merge
+
+- name: Wait for local-cluster components to be deleted
+  shell: oc get ns local-cluster
+  register: localcluster
+  until: localcluster.rc != 0
+  retries: 40
+  delay: 20
+  when: hcp.mce.delete == true
+  ignore_errors: yes
+
+- fail:
+    msg: "local-cluster namespace is still present"
+  when: localcluster.rc == 0 and localcluster.attempts >= 40
+
+- name: Delete AgentServiceConfig
+  k8s:
+    api_version: agent-install.openshift.io/v1beta1
+    kind: AgentServiceConfig
+    name: agent
+    state: absent
+  when: hcp.mce.delete == true
+
+- name: Delete Provisioning
+  k8s:
+    name: provisioning-configuration
+    api_version: metal3.io/v1alpha1
+    kind: Provisioning
+    state: absent 
+  when: hcp.mce.delete == true
+
+- name: Delete ClusterImageSet
+  k8s:
+    name: "img{{ hcp.control_plane.hosted_cluster_name }}-appsub"
+    api_version: hive.openshift.io/v1
+    kind: ClusterImageSet
+    state: absent
+  when: hcp.mce.delete == true
+
+- name: Delete MCE Instance
+  k8s:
+    name: "{{ hcp.mce.instance_name }}"
+    namespace: "{{hcp.asc.mce_namespace }}"
+    api_version: multicluster.openshift.io/v1
+    kind: MultiClusterEngine
+    state: absent
+    wait: yes
+    wait_timeout: 400
+  when: hcp.mce.delete == true
+
+- name: Delete MCE Subscription
+  k8s:
+    name: multicluster-engine
+    namespace: "{{ hcp.asc.mce_namespace }}"
+    api_version: operators.coreos.com/v1alpha1
+    kind: Subscription
+    state: absent
+  when: hcp.mce.delete == true
+
+- name: Delete Operator Group - MCE 
+  k8s:
+    name: multicluster-engine
+    namespace: "{{ hcp.asc.mce_namespace }}"
+    api_version: operators.coreos.com/v1
+    kind: OperatorGroup
+    state: absent
+  when: hcp.mce.delete == true
+
+- name: Delete MCE Namespace
+  k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ hcp.asc.mce_namespace }}"
+    state: absent
+  when: hcp.mce.delete == true
+
+- name: Delete  initrd.img
+  file:
+    path: /var/lib/libvirt/images/pxeboot/initrd.img
+    state: absent
+  when: hcp.compute_node_type | lower == 'zvm'
+
+- name: Delete  kernel.img
+  file:
+    path: /var/lib/libvirt/images/pxeboot/kernel.img
+    state: absent
+  when: hcp.compute_node_type | lower == 'zvm'
+
+- name: Delete rootfs.img
+  file:
+    path: /var/www/html/rootfs.img
+    state: absent
+  when: hcp.compute_node_type | lower == 'zvm'

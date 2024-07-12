@@ -1,0 +1,27 @@
+---
+
+- name: Get the IPs of Hosted Cluster Workers
+  shell: oc get no -o wide  --kubeconfig=/root/ansible_workdir/hcp-kubeconfig --no-headers|grep -i worker| awk '{print $6}'
+  register: hosted_workers
+
+- name: Configuring HAproxy for Hosted Cluster
+  blockinfile:
+    path: /etc/haproxy/haproxy.cfg
+    block: |
+      listen {{ hcp.control_plane.hosted_cluster_name }}-console
+          mode tcp
+          bind {{ hcp.bastion_params.ip }}:443
+          bind {{ hcp.bastion_params.ip }}:80
+    marker: "# console"
+
+- name: Add Hosted Cluster Worker IPs to Haproxy
+  lineinfile:
+    path: /etc/haproxy/haproxy.cfg
+    line: "    server {{ hcp.control_plane.hosted_cluster_name }}-worker-{{item}} {{ hosted_workers.stdout_lines[item]}}"
+  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+
+- name: restart haproxy
+  service:
+    name: haproxy.service
+    state: restarted
+    enabled: true

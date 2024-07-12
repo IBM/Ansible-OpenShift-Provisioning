@@ -1,0 +1,9 @@
+---
+
+- name: Setup on localhost
+  hosts: localhost
+  vars_files:
+    - "{{playbook_dir}}/secrets.yaml"
+    - "{{playbook_dir}}/../inventories/default/group_vars/hcp.yaml"
+  roles:
+  - create_inventory_setup_hcp

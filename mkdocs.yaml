@@ -14,7 +14,7 @@ nav:
     - 3 Set Variables (host_vars): 'set-variables-host-vars.md'
     - 4 Run the Playbooks: 'run-the-playbooks.md'
     - Run the Playbooks (Disconnected): 'run-the-playbooks-for-disconnected.md'
-    - Run the Playbooks (HyperShift): 'run-the-playbooks-for-hypershift.md'
+    - Run the Playbooks (HostedControlPlane): 'run-the-playbooks-for-hcp.md'
   - Misc:
     - Troubleshooting: 'troubleshooting.md'
     - Acknowledgements: 'acknowledgements.md'

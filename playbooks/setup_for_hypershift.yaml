@@ -1,8 +1,0 @@
----
-
-- name: Setup on localhost
-  hosts: localhost
-  vars_files:
-    - "{{playbook_dir}}/secrets.yaml"
-  roles:
-  - create_inventory_setup_hypershift

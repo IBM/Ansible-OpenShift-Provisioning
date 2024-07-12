@@ -208,76 +208,7 @@
 **rhcos_live_initrd** | CoreOS initramfs to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-initramfs.s390x.img
 **rhcos_live_rootfs** | CoreOS rootfs to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-rootfs.s390x.img
 
-## 16 - Hypershift ( Optional )
-**Variable Name** | **Description** | **Example**
-:--- | :--- | :---
-**hypershift.compute_node_type** | Select the compute node type for HCP , either zKVM or zVM | zvm
-**hypershift.kvm_host** | IPv4 address of KVM host for hypershift  (kvm host where you want to run all oc commands and create VMs)| 192.168.10.1
-**hypershift.kvm_host_user** | User for KVM host | root
-**hypershift.bastion_hypershift** | IPv4 address for bastion of Hosted Cluster | 192.168.10.1
-**hypershift.bastion_hypershift_user** | User for bastion of Hosted Cluster | root
-**hypershift.create_bastion** | true or false - create bastion with the provided IP (hypershift.bastion_hypershift) | true
-**hypershift.networking_device** | The network interface card from Linux's perspective.  Usually enc and then a number that comes from the dev_num of the network adapter. | enc1100
-**hypershift.gateway** | IPv4 Address for gateway from where the kvm_host and bastion are reachable   This for adding ip route from kvm_host to bastion through gateway  | 192.168.10.1
-**hypershift.bastion_parms.interface** | Interface for bastion | enc1
-**hypershift.bastion_parms.hostname** | Hostname for bastion | bastion
-**hypershift.bastion_parms.base_domain** | DNS base domain for the bastion. | ihost.com
-**hypershift.bastion_parms.os_variant** | rhel os variant for creating bastion | 8.7
-**hypershift.bastion_parms.nameserver** | Nameserver for creating bastion | 192.168.10.1
-**hypershift.bastion_parms.gateway** | Gateway IP for creating bastion  This is how it well be used ip=<ipv4 address>::<nameserver>:<subnet mask> | 192.168.10.1
-**hypershift.bastion_parms.subnet_mask** |  IPv4 address of subnetmask | 255.255.255.0
-**hypershift.mgmt_cluster_nameserver** | IP Address of Nameserver of Management Cluster | 192.168.10.1
-**hypershift.oc_url** | URL for OC Client that you want to install on the host | https://... ..openshift-client-linux-4.13.0-ec.4.tar.gz
-**hypershift.hcp.clusters_namespace** | Namespace for Creating Hosted Control Plane | clusters
-**hypershift.hcp.hosted_cluster_name** | Name for the Hosted Cluster  | hosted0
-**hypershift.hcp.basedomain** | Base domain for Hosted Cluster | example.com
-**hypershift.hcp.pull_secret_file** | Path for the pull secret  No need to change this as we are copying the pullsecret to same file  /root/ansible_workdir/auth_file | /root/ansible_workdir/auth_file
-**hypershift.hcp.ocp_release** | OCP Release version for Hosted Control Cluster and Nodepool | 4.13.0-rc.4-multi
-**hypershift.hcp.machine_cidr** | Machines CIDR for Hosted Cluster | 192.168.122.0/24
-**hypershift.hcp.arch** | Architecture for InfraEnv and AgentServiceConfig" | s390x
-**hypershift.hcp.additional_flags** | Any additional flags for creating hcp ( In hcp create cluster agent command ) | --fips
-**hypershift.hcp.pull_secret** | Pull Secret of Management Cluster  Make sure to enclose pull_secret in 'single quotes' | '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com"}}}'
-**hypershift.mce.version** | version for multicluster-engine Operator | 2.4
-**hypershift.mce.instance_name** | name of the MultiClusterEngine instance | engine
-**hypershift.mce.delete** | true or false - deletes mce and related resources while running deletion playbook | true
-**hypershift.asc.url_for_ocp_release_file** | Add URL for OCP release.txt File | https://...  ..../release.txt
-**hypershift.asc.db_volume_size** | DatabaseStorage Volume Size | 10Gi
-**hypershift.asc.fs_volume_size** | FileSystem Storage Volume Size | 10Gi
-**hypershift.asc.ocp_version** | OCP Version for AgentServiceConfig | 4.13.0-ec.4
-**hypershift.asc.iso_url** | Give URL for ISO image | https://...  ...s390x-live.s390x.iso
-**hypershift.asc.root_fs_url** | Give URL for rootfs image | https://...  ... live-rootfs.s390x.img
-**hypershift.asc.mce_namespace** | Namespace where your Multicluster Engine Operator is installed.  Recommended Namespace for MCE is 'multicluster-engine'.  Change this only if MCE is installed in other namespace. | multicluster-engine
-**hypershift.agents_parms.agents_count** | Number of agents for the hosted cluster  The same number of compute nodes will be attached to Hosted Cotrol Plane | 2
-**hypershift.agents_parms.static_ip_parms.static_ip** | true or false - use static IPs for agents using NMState | true
-**hypershift.agents_parms.static_ip_parms.ip** | List of IP addresses for agents | 192.168.10.1
-**hypershift.agents_parms.static_ip_parms.interface** | Interface for agents for configuring NMStateConfig | eth0
-**hypershift.agents_parms.agent_mac_addr** | List of macaddresses for the agents.  Configure in DHCP if you are using dynamic IPs for Agents. | - 52:54:00:ba:d3:f7 
-**hypershift.agents_parms.disk_size** | Disk size for agents | 100G
-**hypershift.agents_parms.ram** | RAM for agents | 16384
-**hypershift.agents_parms.vcpus** | vCPUs for agents | 4
-**hypershift.agents_parms.nameserver** | Nameserver to be used for agents | 192.168.10.1
-**hypershift.agents_parms.zvm_parameters.network_mode** | Network mode for zvm nodes  Supported modes: vswitch,osa, RoCE  |  vswitch
-**hypershift.agents_parms.zvm_parameters.disk_type** | Disk type for zvm nodes  Supported disk types: fcp, dasd | dasd
-**hypershift.agents_parms.zvm_parameters.vcpus** | CPUs for each zvm node | 4
-**hypershift.agents_parms.zvm_parameters.memory** | RAM for each zvm node | 16384
-**hypershift.agents_parms.zvm_parameters.nameserver** | Nameserver for compute nodes | 192.168.10.1
-**hypershift.agents_parms.zvm_parameters.subnetmask** | Subnet mask for compute nodes | 255.255.255.0
-**hypershift.agents_parms.zvm_parameters.gateway** | Gateway for compute nodes | 192.168.10.1
-**hypershift.agents_parms.zvm_parameters.nodes** | Set of parameters for zvm nodes  Give the details of each zvm node here | 
-**hypershift.agents_parms.zvm_parameters.nodes.name** | Name of the zVM guest | m1317002
-**hypershift.agents_parms.zvm_parameters.nodes.host** | Host name of the zVM guests  which we use to login 3270 console | boem1317
-**hypershift.agents_parms.zvm_parameters.nodes.user** | Username for zVM guests to login | m1317002
-**hypershift.agents_parms.zvm_parameters.nodes.password** | password for the zVM guests to login | password
-**hypershift.agents_parms.zvm_parameters.nodes.interface.ifname** | Network interface name for zVM guests | encbdf0
-**hypershift.agents_parms.zvm_parameters.nodes.interface.nettype** | Network type for zVM guests for network connectivity | qeth
-**hypershift.agents_parms.zvm_parameters.nodes.interface.subchannels** | subchannels for zVM guests interfaces | 0.0.bdf0,0.0.bdf1,0.0.bdf2
-**hypershift.agents_parms.zvm_parameters.nodes.interface.options** | Configurations options  | layer2=1
-**hypershift.agents_parms.zvm_parameters.nodes.interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
-**hypershift.agents_parms.zvm_parameters.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404 
-**hypershift.agents_parms.zvm_parameters.nodes.lun** | Disk details of fcp disk to be used for zVM node | 4404
-
-
-## 17 - (Optional) Disconnected cluster setup
+## 16 - (Optional) Disconnected cluster setup
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **disconnected.enabled** | True or False, to enable disconnected mode | False
@@ -309,7 +240,7 @@
 **disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.skipTLS** | True of False same purpose served as in standard image set i.e. skip the tls for the registry   during mirroring.| false
 **disconnected.mirrroing.oc_mirror.image_set.mirror** | YAML containing a list of what needs to be mirrored. See the oc mirror image set documentation. | see oc-mirror [image set](https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-creating-image-set-config_installing-mirroring-disconnected)   documentation
 
-## 18 - (Optional) Create compute node in a day-2 operation
+## 17 - (Optional) Create compute node in a day-2 operation
 
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
@@ -323,7 +254,7 @@
 **day2_compute_node.host_user** | KVM host user which is used to create the VM | root
 **day2_compute_node.host_arch** | KVM host architecture.  | s390x
 
-## 19 - (Optional) Agent Based Installer
+## 18 - (Optional) Agent Based Installer
 
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
@@ -331,3 +262,81 @@
 **abi.ansible_workdir** | This will be work directory name, it will keep required data that need to be present during or after execution | ansible_workdir
 **abi.ocp_installer_version** | Version will contain value of openshift-installer binary version user desired to be used | '4.15.0-rc.8'
 **abi.ocp_installer_url** | This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror | 'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'
+
+
+## Hosted Control Plane ( Optional )
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**hcp.compute_node_type** | Select the compute node type for HCP , either zKVM or zVM | zvm
+**hcp.mgmt_cluster_nameserver** | IP Address of Nameserver of Management Cluster | 192.168.10.1
+**hcp.oc_url** | URL for OC Client that you want to install on the host | https://... ..openshift-client-linux-4.13.0-ec.4.tar.gz
+**hcp.ansible_key_name** | ssh key name | ansible-ocpz
+**hcp.pkgs** | list of packages for different hosts | 
+**hcp.mce.version** | version for multicluster-engine Operator | 2.4
+**hcp.mce.instance_name** | name of the MultiClusterEngine instance | engine
+**hcp.mce.delete** | true or false - deletes mce and related resources while running deletion playbook | true
+**hcp.asc.url_for_ocp_release_file** | Add URL for OCP release.txt File | https://...  ..../release.txt
+**hcp.asc.db_volume_size** | DatabaseStorage Volume Size | 10Gi
+**hcp.asc.fs_volume_size** | FileSystem Storage Volume Size | 10Gi
+**hcp.asc.ocp_version** | OCP Version for AgentServiceConfig | 4.13.0-ec.4
+**hcp.asc.iso_url** | Give URL for ISO image | https://...  ...s390x-live.s390x.iso
+**hcp.asc.root_fs_url** | Give URL for rootfs image | https://...  ... live-rootfs.s390x.img
+**hcp.asc.mce_namespace** | Namespace where your Multicluster Engine Operator is installed.  Recommended Namespace for MCE is 'multicluster-engine'.  Change this only if MCE is installed in other namespace. | multicluster-engine
+**hcp.control_plane.high_availabiliy** | Availability for Control Plane | true
+**hcp.control_plane.clusters_namespace** | Namespace for Creating Hosted Control Plane | clusters
+**hcp.control_plane.hosted_cluster_name** | Name for the Hosted Cluster  | hosted0
+**hcp.control_plane.basedomain** | Base domain for Hosted Cluster | example.com
+**hcp.control_plane.pull_secret_file** | Path for the pull secret  No need to change this as we are copying the pullsecret to same file  /root/ansible_workdir/auth_file | /root/ansible_workdir/auth_file
+**hcp.control_plane.ocp_release_image** | OCP Release version for Hosted Control Cluster and Nodepool | 4.13.0-rc.4-multi
+**hcp.control_plane.arch** | Architecture for InfraEnv and AgentServiceConfig" | s390x
+**hcp.control_plane.additional_flags** | Any additional flags for creating hcp ( In hcp create cluster agent command ) | --fips
+**hcp.control_plane.pull_secret** | Pull Secret of Management Cluster  Make sure to enclose pull_secret in 'single quotes' | '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com"}}}'
+**hcp.bastion_params.create** | true or false - create bastion with the provided IP | true
+**hcp.bastion_params.ip** | IPv4 address for bastion of Hosted Cluster | 192.168.10.1
+**hcp.bastion_params.user** | User for bastion of Hosted Cluster | root
+**hcp.bastion_params.host** | IPv4 address of KVM host  (kvm host where you want to run all oc commands and create VMs)| 192.168.10.1
+**hcp.bastion_params.host_user** | User for KVM host | root
+**hcp.bastion_params.hostname** | Hostname for bastion | bastion
+**hcp.bastion_params.base_domain** | DNS base domain for the bastion. | ihost.com
+**hcp.bastion_params.nameserver** | Nameserver for creating bastion | 192.168.10.1
+**hhcp.bastion_params.gateway** | Gateway IP for creating bastion  This is how it well be used ip=<ipv4 address>::<nameserver>:<subnet mask> | 192.168.10.1
+**hcp.bastion_params.subnet_mask** |  IPv4 address of subnetmask | 255.255.255.0
+**hcp.bastion_params.interface** | Interface for bastion | enc1
+**hcp.bastion_params.file_server.ip** | IPv4 address for the file server that will be used to pass config files and iso to KVM host LPAR(s) and bastion VM during their first boot. | 192.168.10.201
+**hcp.bastion_params.file_server.protocol** | Protocol used to serve the files, either 'ftp' or 'http' | http
+**hcp.bastion_params.file_server.iso_mount_dir** | Directory path relative to the HTTP/FTP accessible directory where RHEL ISO is mounted. For example, if the FTP root is at /home/user1 and the ISO is mounted at /home/user1/RHEL/8.7 then this variable would be RHEL/8.7 - no slash before or after. | RHEL/8.7
+**hcp.bastion_params.os_variant** | rhel os variant for creating bastion | 8.7
+**hcp.bastion_params.disk** | rhel os variant for creating bastion | 8.7
+**hcp.bastion_params.network_name** | rhel os variant for creating bastion | 8.7
+**hcp.bastion_params.networking_device** | The network interface card from Linux's perspective.  Usually enc and then a number that comes from the dev_num of the network adapter. | enc1100
+**hcp.bastion_params.language** | What language would you like Red Hat Enterprise Linux to use? In UTF-8 language code. Available languages and their corresponding codes can be found here, in the "Locale" column of Table 2.1. | en_US.UTF-8
+**hcp.bastion_params.timezone** | Which timezone would you like Red Hat Enterprise Linux to use? A list of available timezone options can be found here. | America/New_York
+**hcp.bastion_params.keyboard** | Which keyboard layout would you like Red Hat Enterprise Linux to use? | us
+**hcp.data_plane.compute_count** | Number of agents for the hosted cluster  The same number of compute nodes will be attached to Hosted Cotrol Plane | 2
+**hcp.data_plane.vcpus** | vCPUs for compute nodes | 4
+**hcp.data_plane.memory** | RAM for compute nodes | 16384
+**hcp.data_plane.nameserver** | Nameserver for compute nodes | 192.168.10.1
+**hcp.data_plane.storage.type** | Storage type for KVM guests  qcow/dasd | qcow
+**hcp.data_plane.storage.qcow.disk_size** | Disk size for kvm guests | 100G
+**hcp.data_plane.storage.qcow.pool_path** | Storage pool path for creating disks | /home/images/
+**hcp.data_plane.storage.dasd** | dasd disks for kvm guests | /disk
+**hcp.data_plane.kvm.ip_params.static_ip.enabled** | true or false - use static IPs for agents using NMState | true
+**hcp.data_plane.kvm.ip_params.static_ip.ip** | List of IP addresses for agents | 192.168.10.1
+**hcp.data_plane.kvm.ip_params.static_ip.interface** | Interface for agents for configuring NMStateConfig | eth0
+**hcp.data_plane.kvm.ip_params.mac** | List of macaddresses for the agents.  Configure in DHCP if you are using dynamic IPs for Agents. | - 52:54:00:ba:d3:f7 
+**hcp.data_plane.zvm.network_mode** | Network mode for zvm nodes  Supported modes: vswitch,osa, RoCE  |  vswitch
+**hcp.data_plane.zvm.disk_type** | Disk type for zvm nodes  Supported disk types: fcp, dasd | dasd
+**hcp.data_plane.zvm.subnetmask** | Subnet mask for compute nodes | 255.255.255.0
+**hcp.data_plane.zvm.gateway** | Gateway for compute nodes | 192.168.10.1
+**hcp.data_plane.zvm.nodes** | Set of parameters for zvm nodes  Give the details of each zvm node here | 
+**hcp.data_plane.zvm.name** | Name of the zVM guest | m1317002
+**hcp.data_plane.zvm.nodes.host** | Host name of the zVM guests  which we use to login 3270 console | boem1317
+**hcp.data_plane.zvmnodes.user** | Username for zVM guests to login | m1317002
+**hcp.data_plane.zvm.nodes.password** | password for the zVM guests to login | password
+**hcp.data_plane.zvm.nodes.interface.ifname** | Network interface name for zVM guests | encbdf0
+**hcp.data_plane.zvm.nodes.interface.nettype** | Network type for zVM guests for network connectivity | qeth
+**hcp.data_plane.zvm.nodes.interface.subchannels** | subchannels for zVM guests interfaces | 0.0.bdf0,0.0.bdf1,0.0.bdf2
+**hcp.data_plane.zvm.nodes.interface.options** | Configurations options  | layer2=1
+**hcp.data_plane.zvm.interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
+**hcp.data_plane.zvm.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404 
+**hcp.data_plane.zvm.nodes.lun** | Disk details of fcp disk to be used for zVM node | 4404

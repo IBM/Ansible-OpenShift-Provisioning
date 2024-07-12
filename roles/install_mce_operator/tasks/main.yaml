@@ -3,7 +3,7 @@
   k8s_info:
     api_version: v1
     kind: Namespace
-    name: "{{ hypershift.asc.mce_namespace }}"
+    name: "{{ hcp.asc.mce_namespace }}"
   register: namespace_check
   ignore_errors: yes
 
@@ -11,7 +11,7 @@
   k8s:
     api_version: v1
     kind: Namespace
-    name: "{{ hypershift.asc.mce_namespace }}"
+    name: "{{ hcp.asc.mce_namespace }}"
     state: present
   when: namespace_check.resources | length == 0 
 
@@ -32,14 +32,14 @@
   command: oc apply -f /root/ansible_workdir/Subscription.yaml
 
 - name: Wait for MCE deployment to be created
-  shell: oc get all -n {{ hypershift.asc.mce_namespace }} | grep -i  deployment | grep -i multicluster-engine | wc -l
+  shell: oc get all -n {{ hcp.asc.mce_namespace }} | grep -i  deployment | grep -i multicluster-engine | wc -l
   register: mce_deploy
   until: mce_deploy.stdout == '1'
   retries: 20
   delay: 5
 
 - name: Wait for MCE deployment to be available
-  shell: oc get deployment multicluster-engine-operator -n {{ hypershift.asc.mce_namespace }} -o=jsonpath='{.status.replicas}{" "}{.status.availableReplicas}'
+  shell: oc get deployment multicluster-engine-operator -n {{ hcp.asc.mce_namespace }} -o=jsonpath='{.status.replicas}{" "}{.status.availableReplicas}'
   register: mce_pod_status
   until: mce_pod_status.stdout.split(' ')[0] == mce_pod_status.stdout.split(' ')[1]
   retries: 20
@@ -61,7 +61,7 @@
   delay: 10 
 
 - name: Enable hypershift-preview component in MCE
-  command: oc patch mce {{ hypershift.mce.instance_name }} -p '{"spec":{"overrides":{"components":[{"name":"hypershift-preview","enabled":true}]}}}' --type merge
+  command: oc patch mce {{ hcp.mce.instance_name }} -p '{"spec":{"overrides":{"components":[{"name":"hypershift-preview","enabled":true}]}}}' --type merge
 
 - name: Create ClusterImageSet.yaml
   template:
