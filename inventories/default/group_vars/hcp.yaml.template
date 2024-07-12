@@ -1,0 +1,141 @@
+hcp:
+  compute_node_type:       # KVM or zVM
+  
+  # Parameters for oc login
+  mgmt_cluster_nameserver:
+  oc_url:
+  
+  ansible_key_name: ansible-ocpz
+  pkgs:
+    kvm: [ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
+    bastion: [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
+    hcp: [ make, jq, git, virt-install ]
+    zvm: [ git, python3-pip, python3-devel, openssl-devel, rust, cargo, libffi-devel, wget, tar, jq, gcc, make, x3270, python39 ]
+
+  # MultiClusterEngine Parameters
+  mce:
+    version:
+    instance_name: engine
+    delete: false
+
+  # AgentServiceConfig Parameters
+
+  asc:
+    db_volume_size: "10Gi"
+    fs_volume_size: "10Gi"
+    ocp_version:
+    iso_url:
+    mce_namespace: multicluster-engine # This is the Recommended Namespace for Multicluster Engine operator
+
+  # Hosted Control Plane Parameters
+  control_plane:
+    high_availabiliy: true
+    clusters_namespace:
+    hosted_cluster_name:
+    basedomain:
+    ocp_release_image:
+    arch: s390x
+    additional_flags: 
+    # Make sure to enclose pull_secret in 'single quotes'
+    pull_secret:
+
+  bastion_params:
+    create: true
+    ip: 
+    user:
+    host:
+    host_user:
+    hostname:
+    base_domain:
+    nameserver:
+    gateway:
+    subnet_mask:
+    interface:
+    file_server:
+      ip: 
+      protocol: http
+      iso_mount_dir: 
+    os_variant:
+    disk:
+    network_name: macvtap
+    networking_device: enc1100 # Device for macvtap network
+
+    language: en_US.UTF-8
+    timezone: America/New_York
+    keyboard: us
+    
+
+
+  data_plane:
+    compute_count:
+    vcpus: 4
+    memory: 16384
+    nameserver: 
+
+    kvm:
+      storage: 
+        type: qcow     # Supported types: qcow, dasd
+        qcow:
+          disk_size: 100G
+          pool_path: "/var/lib/libvirt/images/"
+        dasd:
+            #-
+      ip_params:
+        static_ip:
+          enabled: true
+          interface: eth0
+          ip:     # Required only if static_ip is true
+            #-
+            #-
+        mac:    # If you want to use specific mac addresses, provide them here
+          #-
+      
+
+    zvm:
+      network_mode: vswitch   # Supported modes: vswitch,osa, RoCE, Hipersockets
+      disk_type:              # Supported modes: fcp , dasd
+      subnetmask:
+      gateway:
+
+      nodes:
+        - name:
+          host:
+          user:
+          password:
+          interface:
+            ifname: encbdf0
+            nettype: qeth
+            subchannels: 0.0.bdf0,0.0.bdf1,0.0.bdf2
+            options: layer2=1
+            ip:
+
+          # Required if disk_type is dasd
+          dasd:
+            disk_id:
+
+          # Required if disk_type is fcp
+          lun:
+          - id:
+            paths:
+              - wwpn:
+                fcp:
+
+        - name:
+          host:
+          user:
+          password:
+          interface:
+            ifname: encbdf0
+            nettype: qeth
+            subchannels: 0.0.bdf0,0.0.bdf1,0.0.bdf2
+            options: layer2=1
+            ip:
+
+          dasd:
+            disk_id:
+
+          lun:
+          - id:
+            paths:
+              - wwpn:
+                fcp:

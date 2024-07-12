@@ -1,87 +1,91 @@
 ---
 - name: Install Prerequisites on kvm_host
-  hosts: kvm_host_hypershift
+  hosts: kvm_host_hcp
   become: true
   vars_files:
     - "{{playbook_dir}}/secrets.yaml"
   tasks:
     - name: Setting host
       set_fact:
-        host: 'kvm_host_hypershift'
-      when: hypershift.compute_node_type | lower != 'zvm'
+        host: 'kvm_host_hcp'
+      when: hcp.compute_node_type | lower != 'zvm'
 
     - name: Install Prereqs on host
       import_role:
-        name:  install_prerequisites_host_hypershift
-      when: hypershift.compute_node_type | lower != 'zvm'
+        name:  install_prerequisites_host_hcp
+      when: hcp.compute_node_type | lower != 'zvm'
 
 - name: Create macvtap network
-  hosts: kvm_host_hypershift
+  hosts: kvm_host_hcp
   become: true
   tasks:
     - name: Setting interface name
       set_fact:
         networking:
-          device1: "{{ hypershift.networking_device }}"
-      when: hypershift.compute_node_type | lower != 'zvm'
+          device1: "{{ hcp.bastion_params.networking_device }}"
+        env:
+          vnet_name: macvtap
+      when: hcp.compute_node_type | lower != 'zvm'
 
     - name:  Creating macvtap network
       import_role:
         name: macvtap
-      when: hypershift.compute_node_type | lower != 'zvm'
+      when: hcp.compute_node_type | lower != 'zvm'
 
-- name: Create bastion for hypershift
-  hosts: kvm_host_hypershift
+- name: Create bastion for hcp
+  hosts: kvm_host_hcp
   become: true
   vars_files:
     - "{{playbook_dir}}/secrets.yaml"
   tasks:
     - name: Creating Bastion
       include_role:
-        name: create_bastion_hypershift
+        name: create_bastion_hcp
       when: 
-        - hypershift.create_bastion == true
-        - hypershift.compute_node_type | lower != 'zvm'
+        - hcp.bastion_params.create == true
+        - hcp.compute_node_type | lower != 'zvm'
 
 - name: Configuring Bastion
-  hosts: bastion_hypershift
+  hosts: bastion_hcp
   become: true
   vars_files:
     - "{{playbook_dir}}/secrets.yaml"
   tasks:
     - name: Setting host
       set_fact:
-        host: 'bastion_hypershift'
+        host: 'bastion_hcp'
+        env:
+          ansible_key_name: "{{ hcp.ansible_key_name }}"  
         
     - name: Install Prereqs
       import_role:
-        name: install_prerequisites_host_hypershift
+        name: install_prerequisites_host_hcp
         
     - name: Configure Bastion
       import_role:
-        name: install_prereqs_bastion_hypershift
+        name: install_prereqs_bastion_hcp
 
     - name: Add ansible SSH key to ssh-agent
       import_role:
         name: ssh_agent
 
 - name: Create AgentServiceConfig Hosted Control Plane and InfraEnv
-  hosts: bastion_hypershift
+  hosts: bastion_hcp
   vars_files:
     - "{{playbook_dir}}/secrets.yaml"
   roles:
   - install_mce_operator
-  - create_agentserviceconfig_hypershift
-  - create_hcp_InfraEnv_hypershift
+  - create_agentserviceconfig_hcp
+  - create_hcp_InfraEnv
 
 - name: Download Required images for booting Agents
-  hosts: "{{ 'kvm_host_hypershift' if 'kvm_host_hypershift' in groups['all'] else 'bastion_hypershift' }}"
+  hosts: "{{ 'kvm_host_hcp' if 'kvm_host_hcp' in groups['all'] else 'bastion_hcp' }}"
   become: true
   roles:
-  - setup_for_agents_hypershift
+  - setup_for_agents_hcp
 
 - name: Configure httpd on bastion for hosting rootfs
-  hosts: bastion_hypershift
+  hosts: bastion_hcp
   roles:
-  - download_rootfs_hypershift
+  - download_rootfs_hcp
 

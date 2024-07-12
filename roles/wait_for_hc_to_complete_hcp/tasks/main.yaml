@@ -1,0 +1,44 @@
+---
+
+- name: Wait for All Cluster Operators to be available
+  shell: oc get co --kubeconfig=/root/ansible_workdir/hcp-kubeconfig --no-headers| awk '$3 != "True" {print $1}' | wc -l
+  register: co
+  until: co.stdout == '0'
+  retries: 60
+  delay: 20
+
+- name: Wait for Hosted Control Plane to Complete
+  shell: oc get hc -n {{ hcp.control_plane.clusters_namespace }} --no-headers | awk  '{print $4}'
+  register: hc_status
+  until: hc_status.stdout == "Completed"
+  retries: 40
+  delay: 15
+
+- name: Get URL for Webconsole of Hosted Cluster
+  shell: oc whoami --show-console --kubeconfig=/root/ansible_workdir/hcp-kubeconfig
+  register: console_url
+
+- name: Get Password for Hosted Cluster
+  shell: oc get secret kubeadmin-password -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" -o yaml | grep -i 'password:'
+  register: cluster_password_encoded
+
+- name: Decode the Password
+  shell: echo "{{cluster_password_encoded.stdout_lines[0].split(' ')[-1]}}" | base64 --decode
+  register: cluster_password_decoded
+
+- name: Saving the password in bastion 
+  copy:
+    content: "{{ cluster_password_decoded.stdout_lines[0] }}"
+    dest: /root/ansible_workdir/kubeadmin-password
+
+- name: Get api server of Hosted Cluster
+  shell: "cat /root/ansible_workdir/hcp-kubeconfig | grep -i server:"
+  register: api_server
+
+- name: Display Login Credentials
+  debug:
+    msg: " You can access webconsole of Hosted Cluster here : {{ console_url.stdout }} | Username : 'kubeadmin' Password : {{ cluster_password_decoded.stdout_lines[0] }} "
+
+- name: Display oc login command for CLI
+  debug:
+    msg: " You can access the Hosted Cluster using CLI : oc login {{ api_server.stdout_lines[0].split(': ')[-1] }} -u kubeadmin -p {{ cluster_password_decoded.stdout_lines[0] }} "
