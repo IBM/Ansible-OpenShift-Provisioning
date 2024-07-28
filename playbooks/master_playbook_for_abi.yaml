@@ -6,3 +6,4 @@
 - import_playbook: 4_create_bastion.yaml # Import Playbook To Create Bastion.
 - import_playbook: 5_setup_bastion.yaml # Import Playbook To Configure Bastion.
 - import_playbook: create_abi_cluster.yaml # Import Playbook To Create ABI Cluster.
+- import_playbook: monitor_create_abi_cluster # Import Playbook To Monitor ABI Cluster Installation.

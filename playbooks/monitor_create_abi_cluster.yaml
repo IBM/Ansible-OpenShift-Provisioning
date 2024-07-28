@@ -1,0 +1,10 @@
+---
+
+# Monitoring ABI Installation.
+- name: Monitoring ABI Installation
+  hosts: bastion
+  become: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - abi_install_complete 

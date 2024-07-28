@@ -1,0 +1,17 @@
+- name: Start openshift-installer with 'wait-for install-complete' (async task)
+  tags: wait_for_install_complete.
+  ansible.builtin.command: openshift-install wait-for install-complete --dir=/root/"{{ abi.ansible_workdir }}"
+  # Installer will wait up to ~50 min 
+  async: 3060
+  poll: 0
+  register: watch_install_complete
+
+- name: "Retry wait-for install-complete job ID check until it's finished. This may take some time... To watch progress"
+  tags: wait_for_bootstrap
+  ansible.builtin.async_status:
+    jid: "{{ watch_install_complete.ansible_job_id }}"
+  register: install_complete
+  until: install_complete.finished
+  # Set wait time to 60 min, because it depends highly on system performance and network speed
+  retries: 120
+  delay: 30
