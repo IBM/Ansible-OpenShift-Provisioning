@@ -44,11 +44,8 @@
     local_path: "/root/ansible_workdir"
     state: from_pod
 
-- name: Extract binary from hcp.tar.gz
-  unarchive:
-    src: /root/ansible_workdir/hcp.tar.gz
-    dest: /usr/local/bin/
-    remote_src: true
+- name: Get hcp.tar.gz file from pod
+  ansible.builtin.shell: "oc cp multicluster-engine/{{ hcp_pod_name.resources[0].metadata.name }}:/opt/app-root/src/linux/s390x/ /root/ansible_workdir"
 
 - name: Get ICSP for Hosted Control Plane
   template:
