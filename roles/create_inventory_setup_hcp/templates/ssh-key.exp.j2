@@ -5,7 +5,7 @@ spawn ssh-copy-id -i {{ lookup('env', 'HOME') }}/.ssh/{{ hcp.ansible_key_name }}
 expect "{{ hcp.bastion_params.host_user }}@{{ hcp.bastion_params.host }}'s password:"
 {% else %}
 set password "{{ bastion_root_pw }}"
-spawn ssh-copy-id -i {{ lookup('env', 'HOME') }}/.ssh/{{ env.ansible_key_name }} {{ hcp.bastion_params.user }}@{{ hcp.bastion_params.ip }}
+spawn ssh-copy-id -i {{ lookup('env', 'HOME') }}/.ssh/{{ hcp.ansible_key_name }} {{ hcp.bastion_params.user }}@{{ hcp.bastion_params.ip }}
 expect "{{ hcp.bastion_params.user }}@{{ hcp.bastion_params.ip }}'s password:"
 {% endif %}
 send "$password\r"

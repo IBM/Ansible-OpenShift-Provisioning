@@ -43,15 +43,6 @@
 - name: Deploy AgentServiceConfig
   command: oc apply -f /root/ansible_workdir/agentserviceconfig.yaml
 
-- name: Wait for Agent Service Deployment to be Succeeded
-  shell: oc get AgentServiceConfig agent -o json | jq -r '.status|.conditions[]|.status' | grep False | wc -l
-  register: asc
-  until:
-    - asc.stdout == '0'
-    - asc.stderr == ''
-  retries: 60
-  delay: 20
-
 - name: Wait for MCE to be available
   shell: oc get mce --no-headers | awk  '{print $2}'
   register: mce_status
