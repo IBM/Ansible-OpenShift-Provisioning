@@ -25,10 +25,10 @@
     --ram {{ env.cluster.nodes.control.ram }} \
     {{ env.cluster.nodes.control.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
-    --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.control.mac_address[i]) }} \
+    --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.control.mac[i]) }} \
     --location "http://{{ env.bastion.networking.ip }}:8080/,kernel=agent.{{ ansible_architecture }}-kernel.img,initrd=agent.{{ ansible_architecture }}-initrd.img" \
     --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}-rootfs.img" \
-    {% if (env.cluster.nodes.control.mac_address[i] is defined and env.use_dhcp) %}
+    {% if (env.cluster.nodes.control.mac[i] is defined and env.use_dhcp) %}
     --extra-args "ip=dhcp" \
     {% else %}
     --extra-args "ip={{ env.cluster.nodes.control.ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.control.hostname[i] }}:{{ env.cluster.networking.interface }}:none" \
@@ -59,10 +59,10 @@
     --ram {{ env.cluster.nodes.compute.ram }} \
     {{ env.cluster.nodes.compute.vcpu_model_option }} \
     --vcpus {{ env.cluster.nodes.compute.vcpu }} \
-    --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.compute.mac_address[i]) }} \
+    --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.compute.mac[i]) }} \
     --location "http://{{ env.bastion.networking.ip }}:8080/,kernel=agent.{{ ansible_architecture }}-kernel.img,initrd=agent.{{ ansible_architecture }}-initrd.img" \
     --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}-rootfs.img" \
-    {% if (env.cluster.nodes.compute.mac_address[i] is defined and env.use_dhcp) %}
+    {% if (env.cluster.nodes.compute.mac[i] is defined and env.use_dhcp) %}
     --extra-args "ip=dhcp" \
     {% else %}
     --extra-args "ip={{ env.cluster.nodes.compute.ip[i] }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ env.cluster.nodes.compute.hostname[i] }}:{{ env.cluster.networking.interface }}:none" \
@@ -77,6 +77,7 @@
   async: 3600
   poll: 0
   with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
+  when: env.cluster.nodes.compute is defined
   loop_control:
     extended: yes
     index_var: i
