@@ -1,0 +1,33 @@
+---
+- name: Create Installation directory
+  file:
+    path: /var/lib/libvirt/images/pxeboot
+    state: directory
+    mode: '0755'
+
+- name: Get URL for initrd.img
+  shell: oc -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" get InfraEnv "{{ hcp.control_plane.hosted_cluster_name }}" -ojsonpath="{.status.bootArtifacts.initrd}"
+  register: initrd
+
+- name: Download initrd.img
+  get_url:
+    url: "{{ initrd.stdout }}"
+    dest: /var/lib/libvirt/images/pxeboot/initrd.img
+    validate_certs: false
+
+- name: Get URL for kernel.img
+  shell: oc -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" get InfraEnv "{{ hcp.control_plane.hosted_cluster_name }}" -ojsonpath="{.status.bootArtifacts.kernel}"
+  register: kernel
+
+- name: Download kernel.img
+  get_url:
+    url: "{{ kernel.stdout }}"
+    dest: /var/lib/libvirt/images/pxeboot/kernel.img
+    validate_certs: false
+
+- name: Generate param files
+  template:
+    src: parm-file.parm.j2
+    dest: /root/ansible_workdir/agent-{{ item }}.parm
+  when: hcp.compute_node_type | lower == 'zvm'
+  loop: "{{ range(hcp.data_plane.compute_count | int) | list }}"

@@ -1,0 +1,6 @@
+[hcp]
+{% if hcp.compute_node_type | lower != 'zvm' %}
+kvm_host_hcp ansible_host={{ hcp.bastion_params.host }} ansible_user={{ hcp.bastion_params.host_user }} ansible_become_password={{ kvm_host_password }}
+{% endif %}
+
+bastion_hcp ansible_host={{ hcp.bastion_params.ip }} ansible_user={{ hcp.bastion_params.user }}

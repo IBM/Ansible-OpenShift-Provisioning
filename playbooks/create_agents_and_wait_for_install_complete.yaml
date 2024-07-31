@@ -1,29 +1,36 @@
 - name: Create Agents
-  hosts: kvm_host_hypershift
+  hosts: kvm_host_hcp
   become: true
   roles:
-  - boot_agents_hypershift
+  - boot_agents_hcp
 
 - name: Boot zvm nodes
-  hosts: bastion_hypershift
+  hosts: bastion_hcp
   tasks:
+    - name: Getting packages for zvm
+      set_fact:
+        env:
+          pkgs:
+             zvm: "{{ hcp.pkgs.zvm }}"
+      when: hcp.compute_node_type | lower == 'zvm'
+
     - name:  Install tessia baselib
       import_role:
         name: install_tessia_baselib
-      when: hypershift.compute_node_type | lower == 'zvm'
+      when: hcp.compute_node_type | lower == 'zvm'
 
     - name: Start zvm nodes
-      include_tasks: ../roles/boot_zvm_nodes_hypershift/tasks/main.yaml
-      loop: "{{ range(hypershift.agents_parms.agents_count | int) | list }}"
-      when: hypershift.compute_node_type | lower == 'zvm'
+      include_tasks: ../roles/boot_zvm_nodes_hcp/tasks/main.yaml
+      loop: "{{ range(hcp.data_plane.compute_count| int) | list }}"
+      when: hcp.compute_node_type | lower == 'zvm'
 
 - name: Scale Nodepool & Configure Haproxy on bastion for hosted workers
-  hosts: bastion_hypershift
+  hosts: bastion_hcp
   roles:
-  - scale_nodepool_and_wait_for_compute_hypershift
-  - add_hc_workers_to_haproxy_hypershift
+  - scale_nodepool_and_wait_for_compute_hcp
+  - add_hc_workers_to_haproxy_hcp
 
 - name: Wait for all Console operators to come up
-  hosts: bastion_hypershift
+  hosts: bastion_hcp
   roles:
-  - wait_for_hc_to_complete_hypershift
+  - wait_for_hc_to_complete_hcp

@@ -1,0 +1,12 @@
+- name: Delete Cluster Resources 
+  hosts: bastion_hcp
+  vars_files:
+    - "{{playbook_dir}}/secrets.yaml"
+  roles:
+  - delete_resources_bastion_hcp
+
+- name: Delete Resources on kvm host
+  hosts: kvm_host_hcp
+  become: true
+  roles:
+  - delete_resources_kvm_host_hcp

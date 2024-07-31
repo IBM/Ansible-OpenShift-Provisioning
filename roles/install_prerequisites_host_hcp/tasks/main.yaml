@@ -1,0 +1,72 @@
+---
+- name: Check if SSH key exists
+  stat:
+    path: "~/.ssh/{{ hcp.ansible_key_name }}.pub"
+  register: ssh_key
+
+- name: Generate an OpenSSH keypair with the default values (4096 bits, RSA)
+  community.crypto.openssh_keypair:
+    path: "~/.ssh/{{ hcp.ansible_key_name }}"
+    passphrase: ""
+    comment: "Ansible-OpenShift-Provisioning SSH key"
+    regenerate: full_idempotence
+  register: ssh_key_creation
+  when: ssh_key.stat.exists == false
+
+- name: Create Work Directory
+  file:
+    path: /root/ansible_workdir
+    state: directory
+
+- name: Getting rhel version
+  shell: awk -F 'release ' '{print $2}' /etc/redhat-release | awk '{print $1}'
+  register: rhel_version
+
+- name: Install Packages on kvm_host
+  yum: 
+    name:
+      - "{{ item }}"
+    state: present
+  loop: "{{ hcp.pkgs.kvm }}"
+  when:
+    - host != 'bastion_hcp'
+    - ( rhel_version.stdout| float < 9.0 ) or rhel_version.stdout| float >= 9.0 and  'devel' not in  item
+
+- name: Install Packages for HCP
+  package:
+    name:
+      - "{{ item }}"
+    state: present
+  loop: "{{ hcp.pkgs.hcp }}"
+
+- name: Check if OC installed 
+  command: oc
+  register: oc_installed
+  ignore_errors: yes
+
+- name: Download OC Client
+  get_url:
+    url: "{{ hcp.oc_url }}"
+    dest: /root/ansible_workdir/
+  when: oc_installed.rc != 0
+
+- name: tar oc
+  command: tar -vxzf /root/ansible_workdir/{{ hcp.oc_url.split('/')[-1] }}
+  when: oc_installed.rc != 0
+
+- name: Copy oc to /usr/local/bin/
+  shell: cp oc /usr/local/bin/oc
+  when: oc_installed.rc != 0
+
+- name: Copy oc to /usr/bin/
+  shell: cp oc /usr/bin/oc
+  when: oc_installed.rc != 0
+
+- name: Add Management Cluster Nameserver to /etc/resolv.conf
+  lineinfile:
+    dest: /etc/resolv.conf
+    insertbefore: BOF
+    line: nameserver {{ hcp.mgmt_cluster_nameserver }}
+
+- name: Login to Management Cluster 
+  command: oc login {{ api_server }} -u {{ user_name }} -p {{ password }} --insecure-skip-tls-verify=true
