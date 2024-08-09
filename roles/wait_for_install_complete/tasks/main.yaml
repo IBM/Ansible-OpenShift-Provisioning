@@ -11,6 +11,8 @@
       {{ env.bastion.networking.ip }} oauth-openshift.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
       {{ env.bastion.networking.ip }} console-openshift-console.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
       {{ env.bastion.networking.ip }} api.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
+# When you are running AOP inside a container, then you must enable 'unsafe_writes'
+    unsafe_writes: true
   delegate_to: 127.0.0.1
 
 - name: Get OCP URL
