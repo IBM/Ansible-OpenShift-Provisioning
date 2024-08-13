@@ -350,3 +350,4 @@ abi:
   ansible_workdir: 'ansible_workdir'
   ocp_installer_version: '4.15.0-rc.8'
   ocp_installer_url: 'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'
+  boot_method: pxe
