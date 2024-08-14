@@ -18,7 +18,7 @@
     url: "http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}.iso"
     dest: "/var/lib/libvirt/images/agent.{{ ansible_architecture }}.iso"
     mode: '0644'
-  when: abi.boot_method == "iso"
+  when: abi.boot_method | lower == "iso"
 
 - name: Create CoreOS Control Agent Nodes On The KVM host using PXE boot.
   ansible.builtin.shell: |
@@ -53,7 +53,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: abi.boot_method == "pxe"
+  when: abi.boot_method | lower == "pxe"
 
 - name: Create CoreOS Control Agent Nodes On The KVM host using ISO boot.
   ansible.builtin.shell: |
@@ -78,7 +78,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: abi.boot_method == "iso"
+  when: abi.boot_method | lower == "iso"
 
 - name: Create CoreOS Compute Agent Nodes On The KVM host using PXE boot.
   ansible.builtin.shell: |
@@ -113,7 +113,7 @@
   loop_control:
     extended: yes
     index_var: i
-  when: env.cluster.nodes.compute is defined and abi.boot_method == "pxe"
+  when: env.cluster.nodes.compute is defined and abi.boot_method | lower == "pxe"
 
 - name: Create CoreOS Compute Agent Nodes On The KVM host using ISO boot.
   ansible.builtin.shell: |
@@ -138,4 +138,4 @@
   loop_control:
     extended: yes
     index_var: i
-  when: env.cluster.nodes.compute is defined and abi.boot_method == "iso"
+  when: env.cluster.nodes.compute is defined and abi.boot_method | lower == "iso"

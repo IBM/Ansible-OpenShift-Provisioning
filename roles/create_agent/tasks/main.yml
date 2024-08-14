@@ -4,24 +4,24 @@
   command: openshift-install agent create pxe-files --log-level=debug
   args:
     chdir: ~/{{ abi.ansible_workdir }}
-  when: abi.boot_method == "pxe"
+  when: abi.boot_method | lower == "pxe"
 
 - name: Create Agent Using ISO Image
   command: openshift-install agent create image --log-level=debug
   args:
     chdir: ~/{{ abi.ansible_workdir }}
-  when: abi.boot_method == "iso"
+  when: abi.boot_method | lower == "iso"
 
 - name: Copy initrd.img, kernel.img, and rootfs.img for PXE
   ansible.builtin.copy:
     src: "~/{{ abi.ansible_workdir }}/boot-artifacts/"
     dest: /var/www/html/
     remote_src: yes
-  when: abi.boot_method == "pxe"
+  when: abi.boot_method | lower == "pxe"
 
 - name: Copy ISO image to the server
   ansible.builtin.copy:
     src: "~/{{ abi.ansible_workdir }}/"
     dest: /var/www/html/
     remote_src: yes
-  when: abi.boot_method == "iso"
+  when: abi.boot_method | lower == "iso"

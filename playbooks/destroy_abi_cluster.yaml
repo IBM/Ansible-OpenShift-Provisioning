@@ -7,3 +7,4 @@
   roles:
     - delete_nodes
     - destroy_bastion
+    - cleanup_kvm
