@@ -5,6 +5,8 @@
   connection: local
   become: false
   gather_facts: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml" 
   roles:
     - set_inventory
 
@@ -64,7 +66,7 @@
   become: false
   gather_facts: true
   vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/all.yaml" 
   vars:
     packages: "{{ env.pkgs.controller }}"
     ssh_target: [ "{{ env.file_server.ip }}", "{{ env.file_server.user }}", "{{ env.file_server.pass }}", "{{ path_to_key_pair }}" ]
