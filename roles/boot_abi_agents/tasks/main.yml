@@ -71,6 +71,7 @@
     --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.control.mac[i]) }} \
     --graphics none \
     --noautoconsole \
+    --os-variant {{ env.file_server.iso_os_variant }} \
     --wait=-1 \
   async: 3600
   poll: 0
@@ -131,6 +132,7 @@
     --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.compute.mac[i]) }} \
     --graphics none \
     --noautoconsole \
+    --os-variant {{ env.file_server.iso_os_variant }} \
     --wait=-1 \
   async: 3600
   poll: 0
