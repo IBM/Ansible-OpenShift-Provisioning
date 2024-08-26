@@ -8,13 +8,13 @@
     - name: Loop over node types and include role
       include_role:
         name: check_for_lpar_nodes
-      loop: 
+      loop:
         - bootstrap
         - compute
         - control
       loop_control:
         loop_var: node_type
-  
+
 # Prepare and then create the temporary bootstrap node and the control nodes
 - name: 6 create nodes - prepare KVM guests
   hosts: kvm_host
@@ -44,7 +44,7 @@
         node_type: "bootstrap"
         node_name: "{{ item }}"
         ignition: "bootstrap"
-      include_tasks: 
+      include_tasks:
         file: ../roles/boot_LPAR/tasks/main.yaml
       loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
       when: item in hosts_with_host_vars
@@ -54,7 +54,7 @@
         node_type: "control"
         node_name: "{{ item }}"
         ignition: "master"
-      include_tasks: 
+      include_tasks:
         file: ../roles/boot_LPAR/tasks/main.yaml
       loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
       when: item in hosts_with_host_vars
@@ -68,27 +68,16 @@
     - common
     - create_control_nodes
 
-- name: 6 create nodes - wait for bootstrap to connect control plane (for non-root user)
+- name: 6 create nodes - wait for bootstrap to connect control plane
   hosts: bastion
   become: true
   environment:
-    KUBECONFIG: "/home/{{ env.bastion.access.user }}/.kube/config"
+    KUBECONFIG: "{{ '/home/' if (env.bastion.access.user != 'root') else '/'}}{{ env.bastion.access.user }}/.kube/config"
   gather_facts: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
-    - {role: wait_for_bootstrap, when: env.bastion.access.user != "root"}
-
-- name: 6 create nodes - wait for bootstrap to connect to control plane (for root user)
-  hosts: bastion
-  become: true
-  environment:
-    KUBECONFIG: "/{{ env.bastion.access.user }}/.kube/config"
-  gather_facts: true
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml"
-  roles:
-    - {role: wait_for_bootstrap, when: env.bastion.access.user == "root"}
+    - wait_for_bootstrap
 
 - name: 6 create nodes - once bootstrapping is complete, tear down bootstrap.
   hosts: kvm_host[0]
@@ -111,7 +100,7 @@
         name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
         command: undefine
       ignore_errors: true
-      
+
 - name: 6 create nodes - once bootstrapping is complete, create compute nodes.
   hosts: kvm_host
   tags: create_compute_nodes
@@ -131,7 +120,7 @@
         node_type: "compute"
         node_name: "{{ item }}"
         ignition: "worker"
-      include_tasks: 
+      include_tasks:
         file: ../roles/boot_LPAR/tasks/main.yaml
       loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
       when: item in hosts_with_host_vars
