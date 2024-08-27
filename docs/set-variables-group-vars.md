@@ -209,7 +209,31 @@
 **rhcos_live_initrd** | CoreOS initramfs to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-initramfs.s390x.img
 **rhcos_live_rootfs** | CoreOS rootfs to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-rootfs.s390x.img
 
-## 16 - (Optional) Disconnected cluster setup
+## 16 - (Optional) Create compute node in a day-2 operation
+
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**day2_compute_node.vm_name** | Name of the compute node VM.  | compute-4
+**day2_compute_node.vm_hostname** | Hostnames for compute node. | compute-4
+**day2_compute_node.vm_vm_ip** | IPv4 address of the compute node. | 192.168.10.99
+**day2_compute_node.vm_vm_ipv6** | IPv6 address of the compute node. | fd00::99
+**day2_compute_node.vm_mac** | MAC address of the compute node if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
+**day2_compute_node.vm_interface** | The network interface used for given IP addresses of the compute node. | enc1
+**day2_compute_node.hostname** | The hostname of the KVM host | kvm-host-01
+**day2_compute_node.host_user** | KVM host user which is used to create the VM | root
+**day2_compute_node.host_arch** | KVM host architecture.  | s390x
+
+## 17 - (Optional) Agent Based Installer
+
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**abi.flag** | This is the flag, Will be used to identify during execution. Few checks in the playbook will be depend on this (default value will be False)  | True
+**abi.ansible_workdir** | This will be work directory name, it will keep required data that need to be present during or after execution | ansible_workdir
+**abi.ocp_installer_version** | Version will contain value of openshift-installer binary version user desired to be used | '4.15.0-rc.8'
+**abi.ocp_installer_url** | This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror | 'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'
+
+
+## Disconnected cluster setup (Optional)
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **disconnected.enabled** | True or False, to enable disconnected mode | False
@@ -240,30 +264,6 @@
 **disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.imageURL.repo** | The repo part of registry imageURL from standard image set.  Final imageURL will be as below:  disconnected.registry.url/disconnected.mirroring.oc_mirror.image_set.storageConfig .registry.imageURL.org/disconnected...imageURL.repo | oc-mirror-metadata
 **disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.skipTLS** | True of False same purpose served as in standard image set i.e. skip the tls for the registry   during mirroring.| false
 **disconnected.mirrroing.oc_mirror.image_set.mirror** | YAML containing a list of what needs to be mirrored. See the oc mirror image set documentation. | see oc-mirror [image set](https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-creating-image-set-config_installing-mirroring-disconnected)   documentation
-
-## 17 - (Optional) Create compute node in a day-2 operation
-
-**Variable Name** | **Description** | **Example**
-:--- | :--- | :---
-**day2_compute_node.vm_name** | Name of the compute node VM.  | compute-4
-**day2_compute_node.vm_hostname** | Hostnames for compute node. | compute-4
-**day2_compute_node.vm_vm_ip** | IPv4 address of the compute node. | 192.168.10.99
-**day2_compute_node.vm_vm_ipv6** | IPv6 address of the compute node. | fd00::99
-**day2_compute_node.vm_mac** | MAC address of the compute node if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
-**day2_compute_node.vm_interface** | The network interface used for given IP addresses of the compute node. | enc1
-**day2_compute_node.hostname** | The hostname of the KVM host | kvm-host-01
-**day2_compute_node.host_user** | KVM host user which is used to create the VM | root
-**day2_compute_node.host_arch** | KVM host architecture.  | s390x
-
-## 18 - (Optional) Agent Based Installer
-
-**Variable Name** | **Description** | **Example**
-:--- | :--- | :---
-**abi.flag** | This is the flag, Will be used to identify during execution. Few checks in the playbook will be depend on this (default value will be False)  | True
-**abi.ansible_workdir** | This will be work directory name, it will keep required data that need to be present during or after execution | ansible_workdir
-**abi.ocp_installer_version** | Version will contain value of openshift-installer binary version user desired to be used | '4.15.0-rc.8'
-**abi.ocp_installer_url** | This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror | 'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'
-
 
 ## Hosted Control Plane ( Optional )
 **Variable Name** | **Description** | **Example**

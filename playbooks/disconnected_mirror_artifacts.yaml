@@ -4,6 +4,7 @@
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   tasks:
     - name: mirror ocp artifacts when disconnected install
       ansible.builtin.include_role:
