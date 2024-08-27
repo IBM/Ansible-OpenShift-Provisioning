@@ -90,11 +90,11 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#15-ocp-and-rhcos-coreos">15 - OCP and RHCOS (CoreOS)</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#16-optional-disconnected-cluster-setup">16 - (Optional) Disconnected cluster setup</a>
+    <li class="toctree-l2"><a class="reference internal" href="#16-optional-create-compute-node-in-a-day-2-operation">16 - (Optional) Create compute node in a day-2 operation</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#17-optional-create-compute-node-in-a-day-2-operation">17 - (Optional) Create compute node in a day-2 operation</a>
+    <li class="toctree-l2"><a class="reference internal" href="#17-optional-agent-based-installer">17 - (Optional) Agent Based Installer</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#18-optional-agent-based-installer">18 - (Optional) Agent Based Installer</a>
+    <li class="toctree-l2"><a class="reference internal" href="#disconnected-cluster-setup-optional">Disconnected cluster setup (Optional)</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#hosted-control-plane-optional">Hosted Control Plane ( Optional )</a>
     </li>
@@ -1036,7 +1036,96 @@
 </tr>
 </tbody>
 </table>
-<h2 id="16-optional-disconnected-cluster-setup">16 - (Optional) Disconnected cluster setup<a class="headerlink" href="#16-optional-disconnected-cluster-setup" title="Permanent link">#</a></h2>
+<h2 id="16-optional-create-compute-node-in-a-day-2-operation">16 - (Optional) Create compute node in a day-2 operation<a class="headerlink" href="#16-optional-create-compute-node-in-a-day-2-operation" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>day2_compute_node.vm_name</strong></td>
+<td style="text-align: left;">Name of the compute node VM.</td>
+<td style="text-align: left;">compute-4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>day2_compute_node.vm_hostname</strong></td>
+<td style="text-align: left;">Hostnames for compute node.</td>
+<td style="text-align: left;">compute-4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>day2_compute_node.vm_vm_ip</strong></td>
+<td style="text-align: left;">IPv4 address of the compute node.</td>
+<td style="text-align: left;">192.168.10.99</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>day2_compute_node.vm_vm_ipv6</strong></td>
+<td style="text-align: left;">IPv6 address of the compute node.</td>
+<td style="text-align: left;">fd00::99</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>day2_compute_node.vm_mac</strong></td>
+<td style="text-align: left;">MAC address of the compute node if use_dhcp variable is 'True'.</td>
+<td style="text-align: left;">52:54:00:18:1A:2B</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>day2_compute_node.vm_interface</strong></td>
+<td style="text-align: left;">The network interface used for given IP addresses of the compute node.</td>
+<td style="text-align: left;">enc1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>day2_compute_node.hostname</strong></td>
+<td style="text-align: left;">The hostname of the KVM host</td>
+<td style="text-align: left;">kvm-host-01</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>day2_compute_node.host_user</strong></td>
+<td style="text-align: left;">KVM host user which is used to create the VM</td>
+<td style="text-align: left;">root</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>day2_compute_node.host_arch</strong></td>
+<td style="text-align: left;">KVM host architecture.</td>
+<td style="text-align: left;">s390x</td>
+</tr>
+</tbody>
+</table>
+<h2 id="17-optional-agent-based-installer">17 - (Optional) Agent Based Installer<a class="headerlink" href="#17-optional-agent-based-installer" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>abi.flag</strong></td>
+<td style="text-align: left;">This is the flag, Will be used to identify during execution. Few checks in the playbook will be depend on this (default value will be False)</td>
+<td style="text-align: left;">True</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>abi.ansible_workdir</strong></td>
+<td style="text-align: left;">This will be work directory name, it will keep required data that need to be present during or after execution</td>
+<td style="text-align: left;">ansible_workdir</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>abi.ocp_installer_version</strong></td>
+<td style="text-align: left;">Version will contain value of openshift-installer binary version user desired to be used</td>
+<td style="text-align: left;">'4.15.0-rc.8'</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>abi.ocp_installer_url</strong></td>
+<td style="text-align: left;">This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror</td>
+<td style="text-align: left;">'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'</td>
+</tr>
+</tbody>
+</table>
+<h2 id="disconnected-cluster-setup-optional">Disconnected cluster setup (Optional)<a class="headerlink" href="#disconnected-cluster-setup-optional" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -1185,95 +1274,6 @@
 <td style="text-align: left;"><strong>disconnected.mirrroing.oc_mirror.image_set.mirror</strong></td>
 <td style="text-align: left;">YAML containing a list of what needs to be mirrored. See the oc mirror image set documentation.</td>
 <td style="text-align: left;">see oc-mirror <a href="https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-creating-image-set-config_installing-mirroring-disconnected">image set</a>   documentation</td>
-</tr>
-</tbody>
-</table>
-<h2 id="17-optional-create-compute-node-in-a-day-2-operation">17 - (Optional) Create compute node in a day-2 operation<a class="headerlink" href="#17-optional-create-compute-node-in-a-day-2-operation" title="Permanent link">#</a></h2>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;"><strong>Variable Name</strong></th>
-<th style="text-align: left;"><strong>Description</strong></th>
-<th style="text-align: left;"><strong>Example</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>day2_compute_node.vm_name</strong></td>
-<td style="text-align: left;">Name of the compute node VM.</td>
-<td style="text-align: left;">compute-4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>day2_compute_node.vm_hostname</strong></td>
-<td style="text-align: left;">Hostnames for compute node.</td>
-<td style="text-align: left;">compute-4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>day2_compute_node.vm_vm_ip</strong></td>
-<td style="text-align: left;">IPv4 address of the compute node.</td>
-<td style="text-align: left;">192.168.10.99</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>day2_compute_node.vm_vm_ipv6</strong></td>
-<td style="text-align: left;">IPv6 address of the compute node.</td>
-<td style="text-align: left;">fd00::99</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>day2_compute_node.vm_mac</strong></td>
-<td style="text-align: left;">MAC address of the compute node if use_dhcp variable is 'True'.</td>
-<td style="text-align: left;">52:54:00:18:1A:2B</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>day2_compute_node.vm_interface</strong></td>
-<td style="text-align: left;">The network interface used for given IP addresses of the compute node.</td>
-<td style="text-align: left;">enc1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>day2_compute_node.hostname</strong></td>
-<td style="text-align: left;">The hostname of the KVM host</td>
-<td style="text-align: left;">kvm-host-01</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>day2_compute_node.host_user</strong></td>
-<td style="text-align: left;">KVM host user which is used to create the VM</td>
-<td style="text-align: left;">root</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>day2_compute_node.host_arch</strong></td>
-<td style="text-align: left;">KVM host architecture.</td>
-<td style="text-align: left;">s390x</td>
-</tr>
-</tbody>
-</table>
-<h2 id="18-optional-agent-based-installer">18 - (Optional) Agent Based Installer<a class="headerlink" href="#18-optional-agent-based-installer" title="Permanent link">#</a></h2>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;"><strong>Variable Name</strong></th>
-<th style="text-align: left;"><strong>Description</strong></th>
-<th style="text-align: left;"><strong>Example</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>abi.flag</strong></td>
-<td style="text-align: left;">This is the flag, Will be used to identify during execution. Few checks in the playbook will be depend on this (default value will be False)</td>
-<td style="text-align: left;">True</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>abi.ansible_workdir</strong></td>
-<td style="text-align: left;">This will be work directory name, it will keep required data that need to be present during or after execution</td>
-<td style="text-align: left;">ansible_workdir</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>abi.ocp_installer_version</strong></td>
-<td style="text-align: left;">Version will contain value of openshift-installer binary version user desired to be used</td>
-<td style="text-align: left;">'4.15.0-rc.8'</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>abi.ocp_installer_url</strong></td>
-<td style="text-align: left;">This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror</td>
-<td style="text-align: left;">'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'</td>
 </tr>
 </tbody>
 </table>
