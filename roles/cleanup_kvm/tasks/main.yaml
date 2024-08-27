@@ -1,0 +1,10 @@
+---
+
+- name: Cleaning up install data
+  tags: cleanup_kvm
+  block:
+    - name: Delete downloaded iso image
+      file:
+        path: "/var/lib/libvirt/images/agent.{{ ansible_architecture }}.iso"
+        state: absent
+      when: abi.boot_method | lower == "iso"

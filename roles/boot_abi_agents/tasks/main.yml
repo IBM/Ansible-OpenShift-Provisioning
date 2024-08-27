@@ -12,8 +12,15 @@
     - name: Print virsh list
       ansible.builtin.debug:
         var: cmd_virsh_list
-     
-- name: Create CoreOS Control Agent Nodes On The KVM host.
+
+- name: Download ISO from HTTP URL
+  get_url:
+    url: "http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}.iso"
+    dest: "/var/lib/libvirt/images/agent.{{ ansible_architecture }}.iso"
+    mode: '0644'
+  when: abi.boot_method | lower == "iso"
+
+- name: Create CoreOS Control Agent Nodes On The KVM host using PXE boot.
   ansible.builtin.shell: |
     # Delete Agent node VM, if already exists
     virsh destroy {{ env.cluster.nodes.control.vm_name[i] }} || true
@@ -46,8 +53,35 @@
   loop_control:
     extended: yes
     index_var: i
+  when: abi.boot_method | lower == "pxe"
 
-- name: Create CoreOS Compute Agent Nodes On The KVM host.
+- name: Create CoreOS Control Agent Nodes On The KVM host using ISO boot.
+  ansible.builtin.shell: |
+    # Delete Agent node VM, if already exists
+    virsh destroy {{ env.cluster.nodes.control.vm_name[i] }} || true
+    virsh undefine {{ env.cluster.nodes.control.vm_name[i] }} --remove-all-storage --nvram || true
+    virt-install \
+    --name {{ env.cluster.nodes.control.vm_name[i] }} \
+    --autostart \
+    --memory {{ env.cluster.nodes.control.ram }} \
+    --cpu host \
+    --vcpus {{ env.cluster.nodes.control.vcpu }} \
+    --cdrom "/var/lib/libvirt/images/agent.{{ ansible_architecture }}.iso" \
+    --disk size={{ env.cluster.nodes.control.disk_size }} \
+    --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.control.mac[i]) }} \
+    --graphics none \
+    --noautoconsole \
+    --os-variant {{ env.file_server.iso_os_variant }} \
+    --wait=-1 \
+  async: 3600
+  poll: 0
+  with_sequence: start=0 end={{ (env.cluster.nodes.control.hostname | length) - 1 }} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+  when: abi.boot_method | lower == "iso"
+
+- name: Create CoreOS Compute Agent Nodes On The KVM host using PXE boot.
   ansible.builtin.shell: |
     # Delete Agent node VM, if already exists
     virsh destroy {{ env.cluster.nodes.compute.vm_name[i] }} || true
@@ -77,7 +111,33 @@
   async: 3600
   poll: 0
   with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
-  when: env.cluster.nodes.compute is defined
   loop_control:
     extended: yes
     index_var: i
+  when: env.cluster.nodes.compute is defined and abi.boot_method | lower == "pxe"
+
+- name: Create CoreOS Compute Agent Nodes On The KVM host using ISO boot.
+  ansible.builtin.shell: |
+    # Delete Agent node VM, if already exists
+    virsh destroy {{ env.cluster.nodes.compute.vm_name[i] }} || true
+    virsh undefine {{ env.cluster.nodes.compute.vm_name[i] }} --remove-all-storage --nvram || true
+    virt-install \
+    --name {{ env.cluster.nodes.compute.vm_name[i] }} \
+    --autostart \
+    --memory {{ env.cluster.nodes.compute.ram }} \
+    --cpu host \
+    --vcpus {{ env.cluster.nodes.compute.vcpu }} \
+    --cdrom "/var/lib/libvirt/images/agent.{{ ansible_architecture }}.iso" \
+    --disk size={{ env.cluster.nodes.compute.disk_size }} \
+    --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.compute.mac[i]) }} \
+    --graphics none \
+    --noautoconsole \
+    --os-variant {{ env.file_server.iso_os_variant }} \
+    --wait=-1 \
+  async: 3600
+  poll: 0
+  with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
+  loop_control:
+    extended: yes
+    index_var: i
+  when: env.cluster.nodes.compute is defined and abi.boot_method | lower == "iso"

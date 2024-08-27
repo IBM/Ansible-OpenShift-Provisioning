@@ -31,7 +31,7 @@ Disconnected playbook are mentioned below. Please refer the **4 Run the Playbook
 * A mirror host. This can be any host that can access the internet (mainly the registry being mirrored from) as well as the registry being mirrored to.
   This registries being mirrored from would typically be the Red Hat registries (registry.redhat.io, quay.io etc)
 * The file server, configured mentioned below.
-* Appropriately updated variables in your `all.yaml`. Refer the variables documentation.
+* Appropriately updated variables in your `disconnected.yaml`. Refer the variables documentation.
 
 ### File Server
 
