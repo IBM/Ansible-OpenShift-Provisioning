@@ -47,7 +47,7 @@ disconnected:
             imageURL: # the final value will be {imageURL: disconnected.registry.url/org/repo}
               org: mirror
               repo: oc-mirror-metadata
-           skipTLS: false # standard field form oc-mirror schema
+            skipTLS: false # standard field form oc-mirror schema
         mirror: # this field is also atandard from the oc-mirror schema. It will be substituted as is into the final image set.
           platform:
             architectures:
