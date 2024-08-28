@@ -2,24 +2,24 @@
 
 - name: Cancel async 'approve_certs_task', if exists
   tags: approve_certs
+  when: approve_certs_task is defined and approve_certs_cleanup
   ansible.builtin.async_status:
     jid: "{{ approve_certs_task.ansible_job_id }}"
     mode: cleanup
   failed_when: false
-  when: approve_certs_task is defined and approve_certs_cleanup
 
-- name: Approve all pending CSRs in the next 30 min (async task)
+- name: Approve all pending CSRs in the next 45 min (async task)
   tags: approve_certs
+  when: not approve_certs_cleanup
   ansible.builtin.shell: |
     set -o pipefail
-    for i in {1..120} ; do
+    for i in {1..90} ; do
         # Approve all pending requests
         LIST=$(oc get csr 2> /dev/null | grep -i pending | awk '{print $1}')
         [ ! -z "${LIST}" ] && echo "${LIST}" | xargs oc adm certificate approve || true
-        sleep 15
+        sleep 30
     done
-  # Run for 30 min
-  async: 1800
+  # Run for 45 min
+  async: 2700
   poll: 0
   register: approve_certs_task
-  when: not approve_certs_cleanup
