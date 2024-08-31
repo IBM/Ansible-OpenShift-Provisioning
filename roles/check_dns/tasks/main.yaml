@@ -27,11 +27,13 @@
   shell: "dig +short {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1"
   register: bootstrap_lookup
   failed_when: env.cluster.nodes.bootstrap.ip != bootstrap_lookup.stdout
+  when: env.cluster.nodes.bootstrap is defined
 
 - name: Print results from bootstrap lookup
   tags: check_dns, dns
   debug:
     var: bootstrap_lookup.stdout
+  when: env.cluster.nodes.bootstrap is defined
 
 - name: Check control nodes DNS resolution
   tags: check_dns, dns
