@@ -14,7 +14,9 @@ $TTL 86400
 {{ env.bastion.networking.hostname }} IN A {{ env.bastion.networking.ip }}
 
 ;entry for bootstrap host.
+{% if env.cluster.nodes.bootstrap is defined %}
 {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.cluster.nodes.bootstrap.ip }}
+{% endif %}
 
 ;entries for the control nodes
 

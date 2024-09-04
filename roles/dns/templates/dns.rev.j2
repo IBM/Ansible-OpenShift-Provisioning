@@ -14,6 +14,8 @@ $TTL 86400
 {{ bastion_split_ip.3 }} IN PTR {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.
 
 ;PTR Record IP address to Hostname
+{% if env.cluster.nodes.bootstrap is defined %}
 {{ bootstrap_split_ip.3 }}     IN      PTR     {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.
+{%endif %}
 {{ bastion_split_ip.3 }}     IN      PTR     api-int.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.
 {{ bastion_split_ip.3 }}     IN      PTR     api.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.
