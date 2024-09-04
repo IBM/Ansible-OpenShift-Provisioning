@@ -81,7 +81,7 @@
     --graphics none \
     --console pty,target_type=serial \
     --noautoconsole --wait=-1 \
-    --initrd-inject "/{{ kvm_host_home.stdout }}/{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg" \
+    --initrd-inject "{{ env.file_server.cfgs_dir }}/{{ env.bastion.networking.hostname }}/bastion-ks.cfg" \
     --extra-args "inst.ks=file:/bastion-ks.cfg" \
     {% if (env.bastion.networking.mac is defined and env.use_dhcp) %}
     --extra-args "ip=dhcp" \

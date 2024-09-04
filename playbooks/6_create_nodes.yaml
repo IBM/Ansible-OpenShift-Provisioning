@@ -5,15 +5,24 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   tasks:
-    - name: Loop over node types and include role
-      include_role:
-        name: check_for_lpar_nodes
-      loop:
-        - bootstrap
-        - compute
-        - control
-      loop_control:
-        loop_var: node_type
+    - block:
+      - name: Loop over node types and include role
+        include_role:
+          name: check_for_lpar_nodes
+        loop:
+          - bootstrap
+          - control
+          - compute
+        loop_control:
+          loop_var: node_type
+        register: result
+      ignore_errors: true
+
+    - name: fail the play if the previous command did not succeed
+      fail: msg="Check for lpar nodes failed for bootstrap or control node"
+      when:
+        - "'bootstrap' in result.msg"
+        - "'control' in result.msg"
 
 # Prepare and then create the temporary bootstrap node and the control nodes
 - name: 6 create nodes - prepare KVM guests

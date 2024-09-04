@@ -4,15 +4,15 @@
 # https://ibm.github.io/Ansible-OpenShift-Provisioning/set-variables-group-vars/
 
 # Section 1 - Ansible Controller
+installation_type: kvm
+controller_sudo_pass: #X
+
 env:
-  installation_type: #X
-  controller:
-    sudo_pass: #X
 
 # Section 2 - LPAR(s)
   z:
     high_availability: False
-    ip_forward: "{{ 1 if network_mode | upper == 'NAT' else 0 }}"
+    ip_forward: 0
     lpar1:
       create: True
       hostname: #X
