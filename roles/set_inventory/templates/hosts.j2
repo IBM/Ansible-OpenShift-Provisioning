@@ -1,5 +1,5 @@
 [localhost]
-127.0.0.1 ansible_connection=local ansible_become_password={{ env.controller.sudo_pass }}
+127.0.0.1 ansible_connection=local ansible_become_password={{ controller_sudo_pass }}
 
 [file_server]
 {{ env.file_server.ip }} ansible_user={{ env.file_server.user }} ansible_become_password={{ env.file_server.pass }}
