@@ -11,7 +11,9 @@
 ## Step-1: Initial Setup for ABI
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
 * Update variables in Section (1 - 9) and Section 12 - OpenShift Settings 
-* Update variables in Section - 19 ( Agent Based Installer ) in [all.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template) before running the playbooks.
+* Update variables in Section - 19 ( Agent Based Installer ) in [all.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template) before running the playbooks.
+* Section 7 - ( Bootstrap Node ) need to be comment or remove while using it for ABI.
+* In case of SNO Section 8 - ( Control Nodes )  Virtual CPU should be 8 ( vcpu: 8 )
 * In case of SNO Section 9 ( Compute Nodes ) need to be comment or remove 
 * First playbook to be run is 0_setup.yaml which will create inventory file for ABI and will add ssh key to the kvm host.
 
