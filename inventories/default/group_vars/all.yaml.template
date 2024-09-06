@@ -252,7 +252,6 @@ rhcos_live_rootfs: "rhcos-4.12.3-s390x-live-rootfs.s390x.img"
 
 
 # Section 15 - (Optional) Create additional compute node in a day-2 operation
-
 day2_compute_node:
   vm_name:
   vm_hostname:
