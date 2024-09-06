@@ -1,0 +1,2 @@
+# Packages
+pkgs_zvm: [ git, python3-pip, python3-devel, openssl-devel, rust, cargo, libffi-devel, wget, tar, jq, gcc, make, x3270, python39 ]

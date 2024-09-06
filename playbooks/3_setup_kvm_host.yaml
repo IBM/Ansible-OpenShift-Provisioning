@@ -69,7 +69,7 @@
   gather_facts: true
   become: true
   vars:
-    packages: "{{ env.pkgs.kvm }}"
+    packages: "pkgs_kvm"
   roles:
     - { role: attach_subscription, when:  env.redhat.manage_subscription }
     - install_packages
