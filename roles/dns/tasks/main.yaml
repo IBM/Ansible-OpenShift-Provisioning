@@ -12,11 +12,16 @@
     name: named
     state: started
 
-- name: Split IP addresses for use in templates
+- name: Split Bastion IP addresses for use in templates
   tags: dns
   ansible.builtin.set_fact:
     bastion_split_ip: "{{ env.bastion.networking.ip.split('.') }}"
+
+- name: Split Bootstrap IP addresses for use in templates
+  tags: dns
+  ansible.builtin.set_fact:
     bootstrap_split_ip: "{{ env.cluster.nodes.bootstrap.ip.split('.') }}"
+  when: env.cluster.nodes.bootstrap is defined
 
 - name: Template named.conf file to bastion
   tags: dns
@@ -38,6 +43,14 @@
     mode: "0644"
     backup: yes
 
+- name: Add Bootstrap node to DNS forwarding file on bastion
+  tags: dns
+  ansible.builtin.lineinfile:
+    path: /var/named/{{ env.cluster.networking.metadata_name }}.db
+    insertafter: "entry for bootstrap host"
+    line: "{{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.cluster.nodes.bootstrap.ip }}"
+  when: env.cluster.nodes.bootstrap is defined
+
 - name: Add control nodes to DNS forwarding file on bastion
   tags: dns
   ansible.builtin.lineinfile:
@@ -49,17 +62,18 @@
     extended: yes
     index_var: i
 
-- name: Add compute nodes to DNS forwarding file on bastion
-  tags: dns
-  ansible.builtin.lineinfile:
-    path: /var/named/{{ env.cluster.networking.metadata_name }}.db
-    insertafter: "entries for the compute nodes"
-    line: "{{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.cluster.nodes.compute.ip[i] }}"
-  with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
-  loop_control:
-    extended: yes
-    index_var: i
-  when: env.cluster.nodes.compute.hostname[0] is defined
+- block:
+  - name: Add compute nodes to DNS forwarding file on bastion
+    tags: dns
+    ansible.builtin.lineinfile:
+      path: /var/named/{{ env.cluster.networking.metadata_name }}.db
+      insertafter: "entries for the compute nodes"
+      line: "{{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.cluster.nodes.compute.ip[i] }}"
+    with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
+    loop_control:
+      extended: yes
+      index_var: i
+  when: env.cluster.nodes.compute.hostname is defined and env.cluster.nodes.compute.hostname[0] is defined and (env.cluster.nodes.compute.hostname | length) > 0
 
 - name: Add infrastructure nodes to DNS forwarding file on bastion if requested
   tags: dns

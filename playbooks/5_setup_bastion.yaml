@@ -89,9 +89,8 @@
     - { role: dns, when: env.bastion.options.dns }
     - { role: check_dns, when: env.bastion.options.dns is defined and env.bastion.options.dns }
     - { role: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
-    - { role: sno_haproxy, when: env.bastion.options.loadbalancer.on_bastion and control_node_count | int == 1 }
     - httpd
-    - { role: install_tessia_baselib, when: env.installation_type|lower == "lpar" }
+    - { role: install_tessia_baselib, when: installation_type|lower == "lpar" }
 
 - hosts: bastion
   tags: services, section_2, openvpn
@@ -100,8 +99,8 @@
     openvpn_role: "server"
   roles:
     #- { role: robertdebock.bootstrap, tags: openvpn, when: env.z.high_availability == True }
-    - { role: robertdebock.epel, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and env.installation_type|lower != "lpar" }
-    - { role: robertdebock.openvpn, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and env.installation_type|lower != "lpar" }
+    - { role: robertdebock.epel, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar" }
+    - { role: robertdebock.openvpn, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar" }
 
 - hosts: localhost
   tags: services, section_2, openvpn
@@ -112,7 +111,7 @@
       file:
         state: directory
         path: tmp
-      when: env.setup_openvpn == True and env.z.high_availability == True  and env.installation_type|lower != "lpar"
+      when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"
 
 - hosts: bastion
   tags: services, section_2, openvpn
@@ -129,7 +128,7 @@
         - issued/client.crt
         - private/client.key
         - ta.key
-      when: env.setup_openvpn == True and env.z.high_availability == True  and env.installation_type|lower != "lpar"
+      when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"
 
 - name: setup OpenVPN on KVM host(s).
   hosts: kvm_host
@@ -142,7 +141,7 @@
   pre_tasks:
     - name: Gather facts.
       setup:
-      when: env.setup_openvpn == True and env.z.high_availability == True  and env.installation_type|lower != "lpar"
+      when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"
 
     - name: Create landing directories for certificates and keys on KVM hosts.
       tags: openvpn
@@ -153,7 +152,7 @@
       loop:
         - issued
         - private
-      when: env.setup_openvpn == True and env.z.high_availability == True  and env.installation_type|lower != "lpar"
+      when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"
 
     - name: Copy certificates and keys from controller to KVM hosts.
       tags: openvpn
@@ -166,10 +165,10 @@
         - client.crt
         - client.key
         - ta.key
-      when: env.setup_openvpn == True and env.z.high_availability == True and env.installation_type|lower != "zvm" and env.installation_type|lower != "lpar"
+      when: env.setup_openvpn == True and env.z.high_availability == True and installation_type|lower != "zvm" and installation_type|lower != "lpar"
   roles:
-    - { role: robertdebock.epel, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and env.installation_type|lower != "lpar"  }
-    - { role: robertdebock.openvpn, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and env.installation_type|lower != "lpar" }
+    - { role: robertdebock.epel, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"  }
+    - { role: robertdebock.openvpn, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar" }
 
 - hosts: localhost
   tags: services, section_2, openvpn
@@ -180,13 +179,14 @@
       file:
         state: absent
         path: tmp
-      when: env.setup_openvpn == True and env.z.high_availability == True  and env.installation_type|lower != "lpar"
+      when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"
 
 - hosts: bastion
   tags: get_ocp, section_3
   become: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   roles:
     - common
     - { role: get_ocp, when: abi.flag is not defined or abi.flag != True }
