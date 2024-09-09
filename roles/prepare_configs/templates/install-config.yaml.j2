@@ -8,29 +8,29 @@
 {% else %}
 {% set control_replicas = 0 %}
 {% endif %}
-apiVersion: {{ env.install_config.api_version }}
+apiVersion: {{ install_config_vars.api_version }}
 baseDomain: {{ env.cluster.networking.base_domain }}
 controlPlane:
-  architecture: {{ env.install_config.control.architecture }}
-  hyperthreading: {{ env.install_config.control.hyperthreading }}
+  architecture: {{ install_config_vars.control.architecture }}
+  hyperthreading: {{ install_config_vars.control.hyperthreading }}
   name: master
   replicas: {{ control_replicas }}
 compute:
-- architecture: {{ env.install_config.compute.architecture }}
-  hyperthreading: {{ env.install_config.compute.hyperthreading }}
+- architecture: {{ install_config_vars.compute.architecture }}
+  hyperthreading: {{ install_config_vars.compute.hyperthreading }}
   name: worker
   replicas: {{ compute_replicas }}
 metadata:
   name: {{ env.cluster.networking.metadata_name }}
 networking:
   clusterNetwork:
-  - cidr: {{ env.install_config.cluster_network.cidr }}
-    hostPrefix: {{ env.install_config.cluster_network.host_prefix }}
+  - cidr: {{ install_config_vars.cluster_network.cidr }}
+    hostPrefix: {{ install_config_vars.cluster_network.host_prefix }}
   machineNetwork:
-  - cidr: {{ env.install_config.machine_network }}
-  networkType: {{ env.install_config.cluster_network.type }} 
+  - cidr: {{ install_config_vars.machine_network }}
+  networkType: {{ install_config_vars.cluster_network.type }} 
   serviceNetwork:
-  - {{ env.install_config.service_network }}
+  - {{ install_config_vars.service_network }}
 platform:
   none: {}
 pullSecret: >

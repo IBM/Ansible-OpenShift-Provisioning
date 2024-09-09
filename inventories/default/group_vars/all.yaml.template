@@ -187,30 +187,7 @@ env:
 # All variables below this point do not need to be changed for a default installation #
 #######################################################################################
 
-# Section 11 - OpenShift Settings
-  install_config:
-    api_version: v1
-    compute:
-      architecture: s390x
-      hyperthreading: Enabled
-    control:
-      architecture: s390x
-      hyperthreading: Enabled
-    cluster_network:
-      cidr: 10.128.0.0/14
-      host_prefix: 23
-      type: OVNKubernetes
-    service_network: 172.30.0.0/16
-    machine_network: 192.168.122.0/24
-    fips: 'false'
-
-# Section 12 - (Optional) Proxy
-#  proxy:
-#    http:
-#    https:
-#    no:
-
-# Section 13 - (Optional) Misc
+# Section 11 - (Optional) Misc
   language: en_US.UTF-8
   timezone: America/New_York
   keyboard: us
@@ -231,7 +208,7 @@ env:
     pass:
     path_to_keypair:
 
-# Section 14 - OCP and RHCOS (CoreOS)
+# Section 12 - OCP and RHCOS (CoreOS)
 
 # ocp_download_url with '/' at the end !
 ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/s390x/"
@@ -251,7 +228,7 @@ rhcos_live_initrd: "rhcos-4.12.3-s390x-live-initramfs.s390x.img"
 rhcos_live_rootfs: "rhcos-4.12.3-s390x-live-rootfs.s390x.img"
 
 
-# Section 15 - (Optional) Create additional compute node in a day-2 operation
+# Section 13 - (Optional) Create additional compute node in a day-2 operation
 day2_compute_node:
   vm_name:
   vm_hostname:
@@ -264,7 +241,7 @@ day2_compute_node:
   host_arch:
 
 
-# Section 16 - Agent Based Installer ( Optional )
+# Section 14 - Agent Based Installer ( Optional )
 abi:
   flag: False
   ansible_workdir: 'ansible_workdir'
@@ -272,7 +249,16 @@ abi:
   ocp_installer_url: 'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'
   boot_method: <pxe|iso>
 
+# Openshift Settings  
+# Settings like architecture, hyperthreading, network cidr, etc.
+# This is a hierachical structure having install_config as top level.
+# Check the documentation for parameters and default/example values.
+
 # (Optional) Packages
 # Format to overwrite the packages to be installed is: 
 # pkgs_controller: [ openssh, expect, sshuttle ]
 # Overwrite exists for pkgs_galaxy, pkgs_controller, pkgs_kvm, pkgs_bastion, pkgs_zvm
+
+# (Optional) Proxy
+# Pls check the documentation which vars are present (include examples). If use_proxy is set to true,
+# than proxy_http, proxy_https and proxy_no must be set.

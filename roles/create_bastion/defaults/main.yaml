@@ -1,0 +1,16 @@
+# Openshift Settings
+install_config_defaults:
+  api_version: v1
+  compute:
+    architecture: s390x
+    hyperthreading: Enabled
+  control:
+    architecture: s390x
+    hyperthreading: Enabled
+  cluster_network:
+    cidr: 10.128.0.0/14
+    host_prefix: 23
+    type: OVNKubernetes
+  service_network: 172.30.0.0/16
+  machine_network: 192.168.122.0/24
+  fips: 'false'
