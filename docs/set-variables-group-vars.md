@@ -148,15 +148,7 @@
 **env.cluster.nodes.infra.ipv6** | <b>(Optional)</b> IPv6 address of the infra nodes. iThis list can be expanded to any number of nodes, minimum 2. Use provided list formatting (if use_ipv6 variable is 'True'). | fd00::10fd00::11
 **env.cluster.nodes.infra.hostname** | <b>(Optional)</b> Hostnames for infra nodes. Must match the total number of IP addresses for infra nodes. If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN). | infra-01infra-02
 
-## 11 - (Optional) Packages
-**Variable Name** | **Description** | **Example**
-:--- | :--- | :---
-**env.pkgs.galaxy** | A list of Ansible Galaxy collections that will be installed during the setup playbook. The collections listed are required. Feel free to add more as needed, just make sure to follow the same list format. | community.general
-**env.pkgs.controller** | A list of packages that will be installed on the machine running Ansible during the setup playbook. Feel free to add more as needed, just make sure to follow the same list format. | openssh
-**env.pkgs.kvm** | A list of packages that will be installed on the KVM Host during the setup_kvm_host playbook. Feel free to add more as needed, just make sure to follow the same list format. | qemu-kvm
-**env.pkgs.bastion** | A list of packages that will be installed on the bastion during the setup_bastion playbook. Feel free to add more as needed, just make sure to follow the same list format. | haproxy
-
-## 12 - OpenShift Settings
+## 11 - OpenShift Settings
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **env.install_config.api_version** | Kubernetes API version for the cluster. These install_config variables will be passed to the OCP install_config file. This file is templated in the get_ocp role during the setup_bastion playbook. To make more fine-tuned adjustments to the install_config, you can find it at roles/get_ocp/templates/install-config.yaml.j2 | v1
@@ -171,14 +163,14 @@
 **env.install_config.machine_network** | The IP address block for Nodes IP Pool. The default value is 192.168.122.0/24 For NAT Network Mode. In case of MacvTap it will be depend on Inteface IP assignment. An array with an IP address block in CIDR format. | 192.168.122.0/24
 **env.install_config.fips** | True or False (boolean) for whether or not to use the United States' Federal Information Processing Standards (FIPS). Not yet certified on IBM zSystems. Enclosed in 'single quotes'. | 'false'
 
-## 13 - (Optional) Proxy
+## 12 - (Optional) Proxy
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **env.proxy.http** | (Optional) A proxy URL to use for creating HTTP connections outside the cluster. Will be used in the install-config and applied to other Ansible hosts unless set otherwise in no_proxy below. Must follow this pattern: http://username:pswd>@ip:port | http://ocp-admin:Pa$sw0rd@9.72.10.1:80
 **env.proxy.https** | (Optional) A proxy URL to use for creating HTTPS connections outside the cluster. Will be used in the install-config and applied to other Ansible hosts unless set otherwise in no_proxy below. Must follow this pattern: https://username:pswd@ip:port | https://ocp-admin:Pa$sw0rd@9.72.10.1:80
 **env.proxy.no** | (Optional) A comma-separated list (no spaces) of destination domain names, IP addresses, or other network CIDRs to exclude from proxying. When using a proxy, all necessary IPs and domains for your cluster will be added automatically. See roles/get_ocp/templates/install-config.yaml.j2 for more details on the template. Preface a domain with . to match subdomains only. For example, .y.com matches x.y.com, but not y.com. Use * to bypass the proxy for all listed destinations. | example.com,192.168.10.1
 
-## 14 - (Optional) Misc
+## 13 - (Optional) Misc
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **env.language** | What language would you like Red Hat Enterprise Linux to use? In UTF-8 language code. Available languages and their corresponding codes can be found [here](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/5/html-single/international_language_support_guide/index), in the "Locale" column of Table 2.1. | en_US.UTF-8
@@ -196,7 +188,7 @@
 **env.jumphost.pass** | (Optional) The password for user to login to the jumphost. | ch4ngeMe!
 **env.jumphost.path_to_keypair** | (Optional) The absolute path to the public key file on the jumphost to be copied to the bastion. | /home/admin/.ssh/id_rsa.pub
 
-## 15 - OCP and RHCOS (CoreOS)
+## 14 - OCP and RHCOS (CoreOS)
 
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
@@ -209,7 +201,7 @@
 **rhcos_live_initrd** | CoreOS initramfs to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-initramfs.s390x.img
 **rhcos_live_rootfs** | CoreOS rootfs to be used for the bootstrap, control and compute nodes. | rhcos-4.12.3-s390x-live-rootfs.s390x.img
 
-## 16 - (Optional) Create compute node in a day-2 operation
+## 15 - (Optional) Create compute node in a day-2 operation
 
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
@@ -223,8 +215,7 @@
 **day2_compute_node.host_user** | KVM host user which is used to create the VM | root
 **day2_compute_node.host_arch** | KVM host architecture.  | s390x
 
-## 17 - (Optional) Agent Based Installer
-
+## 16 - (Optional) Agent Based Installer
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **abi.flag** | This is the flag, Will be used to identify during execution. Few checks in the playbook will be depend on this (default value will be False)  | True
@@ -232,6 +223,19 @@
 **abi.ocp_installer_version** | Version will contain value of openshift-installer binary version user desired to be used | '4.15.0-rc.8'
 **abi.ocp_installer_url** | This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror | 'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'
 
+## Packages (Optional)
+* Packages are installed based on the executed playbooks based on the given requirements. This means that these variables have default values which can be overwritten in all.yaml file.
+* The following table describe the current installed packages and their default values.
+* In general is to say that the default values are all required. Feel free to add more if needed but it is required to specify the whole list (include default values).
+* Within the all.yaml.template file you find an example of the parameter including the format. 
+
+**Variable Name** | **Description** | **Default values**
+:--- | :--- | :---
+**pkgs_galaxy** | A list of Ansible Galaxy collections that will be installed during the setup playbook. The collections listed are required. | [ ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt ]
+**pkgs_controller** | A list of packages that will be installed on the machine running Ansible during the setup playbook. | [ openssh, expect, sshuttle ]
+**pkgs_kvm** | A list of packages that will be installed on the KVM Host during the setup_kvm_host playbook. | [ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
+**pkgs_bastion** | A list of packages that will be installed on the bastion during the setup_bastion playbook. Feel free to add more as needed, just make sure to follow the same list format. | [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
+**pkgs_zvm** | A list of packages that will be installed in case of HCP (zVM nodes) or LPAR installation. | [ git, python3-pip, python3-devel, openssl-devel, rust, cargo, libffi-devel, wget, tar, jq, gcc, make, x3270, python39 ]
 
 ## Disconnected cluster setup (Optional)
 **Variable Name** | **Description** | **Example**

@@ -1,0 +1,4 @@
+# Packages
+pkgs_controller: [ openssh, expect, sshuttle ]
+pkgs_kvm: [ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
+pkgs_bastion: [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]

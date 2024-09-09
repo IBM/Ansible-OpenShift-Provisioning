@@ -187,15 +187,7 @@ env:
 # All variables below this point do not need to be changed for a default installation #
 #######################################################################################
 
-# Section 11 - (Optional) Packages
-  pkgs:
-    galaxy: [ ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt ]
-    controller: [ openssh, expect, sshuttle ]
-    kvm: [ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
-    bastion: [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
-    zvm: [ git, python3-pip, python3-devel, openssl-devel, rust, cargo, libffi-devel, wget, tar, jq, gcc, make, x3270, python39 ]
-
-# Section 12 - OpenShift Settings
+# Section 11 - OpenShift Settings
   install_config:
     api_version: v1
     compute:
@@ -212,13 +204,13 @@ env:
     machine_network: 192.168.122.0/24
     fips: 'false'
 
-# Section 13 - (Optional) Proxy
+# Section 12 - (Optional) Proxy
 #  proxy:
 #    http:
 #    https:
 #    no:
 
-# Section 14 - (Optional) Misc
+# Section 13 - (Optional) Misc
   language: en_US.UTF-8
   timezone: America/New_York
   keyboard: us
@@ -239,7 +231,7 @@ env:
     pass:
     path_to_keypair:
 
-# Section 15 - OCP and RHCOS (CoreOS)
+# Section 14 - OCP and RHCOS (CoreOS)
 
 # ocp_download_url with '/' at the end !
 ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/s390x/"
@@ -259,8 +251,7 @@ rhcos_live_initrd: "rhcos-4.12.3-s390x-live-initramfs.s390x.img"
 rhcos_live_rootfs: "rhcos-4.12.3-s390x-live-rootfs.s390x.img"
 
 
-# Section 16 - (Optional) Create additional compute node in a day-2 operation
-
+# Section 15 - (Optional) Create additional compute node in a day-2 operation
 day2_compute_node:
   vm_name:
   vm_hostname:
@@ -273,10 +264,15 @@ day2_compute_node:
   host_arch:
 
 
-# Section 17 - Agent Based Installer ( Optional )
+# Section 16 - Agent Based Installer ( Optional )
 abi:
   flag: False
   ansible_workdir: 'ansible_workdir'
   ocp_installer_version: '4.15.0-rc.8'
   ocp_installer_url: 'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'
   boot_method: <pxe|iso>
+
+# (Optional) Packages
+# Format to overwrite the packages to be installed is: 
+# pkgs_controller: [ openssh, expect, sshuttle ]
+# Overwrite exists for pkgs_galaxy, pkgs_controller, pkgs_kvm, pkgs_bastion, pkgs_zvm
