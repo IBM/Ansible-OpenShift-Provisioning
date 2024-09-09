@@ -1,0 +1,9 @@
+---                                                                                                                                                                                     
+- name: Print the list of Ansible Galaxy collection packages to be installed and updated.
+  tags: install_packages
+  debug: msg={{ pkgs_galaxy }}
+
+- name: Ensure Ansible Galaxy collections have been installed with latest version.
+  tags: galaxy
+  command: ansible-galaxy collection install {{ item }} --upgrade
+  loop: "{{ pkgs_galaxy }}" 

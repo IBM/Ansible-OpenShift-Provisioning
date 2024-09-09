@@ -9,6 +9,7 @@
     - "{{ inventory_dir }}/group_vars/disconnected.yaml" 
   roles:
     - set_inventory
+    - install_galaxy
 
   pre_tasks:
     - name: Check disconnected variables if disconnected cluster will be installed.
@@ -18,11 +19,6 @@
       when: disconnected.enabled
 
   post_tasks:
-    - name: Ensure Ansible Galaxy collections have been installed with latest version.
-      tags: galaxy
-      command: ansible-galaxy collection install {{ item }} --upgrade
-      loop: "{{ env.pkgs.galaxy }}"
-
     - name: Find ibm_zhmc collection install location, if automated LPAR creation is to be used.
       tags: galaxy
       shell: ansible-galaxy collection list ibm.ibm_zhmc | grep -i ansible | cut -c 3-
@@ -68,7 +64,7 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml" 
   vars:
-    packages: "{{ env.pkgs.controller }}"
+    packages: "pkgs_controller"
     ssh_target: [ "{{ env.file_server.ip }}", "{{ env.file_server.user }}", "{{ env.file_server.pass }}", "{{ path_to_key_pair }}" ]
   roles:
     - install_packages

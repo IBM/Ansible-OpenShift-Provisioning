@@ -1,8 +1,7 @@
 ---
 - name: Print the list of packages to be installed and updated.
   tags: install_packages
-  debug:
-    var: packages
+  debug: msg={{ vars[packages] }} 
 
 - name: Installing required packages for Linux machines.
   tags: install_packages
@@ -11,7 +10,7 @@
     name: "{{ item }}"
     state: latest
     update_cache: yes
-  loop: "{{ packages }}"
+  loop: "{{ vars[packages] }}"
   when: ansible_os_family != 'Darwin'
 
 - name: Installing required packages for Mac machines.
@@ -20,5 +19,5 @@
   community.general.homebrew:
     name: "{{ item }}"
     state: latest
-  loop: "{{ packages }}"
+  loop: "{{ vars[packages] }}"
   when: ansible_os_family == 'Darwin'

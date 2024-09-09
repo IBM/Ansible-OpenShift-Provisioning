@@ -71,7 +71,7 @@
   tags: services, section_2
   become: true
   vars:
-    packages: "{{ env.pkgs.bastion }}"
+    packages: "pkgs_bastion"
     control_node_count: "{{ env.cluster.nodes.control.ip | length }}"
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"

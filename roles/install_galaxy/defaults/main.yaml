@@ -1,0 +1,2 @@
+# Packages
+pkgs_galaxy: [ ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt ]
