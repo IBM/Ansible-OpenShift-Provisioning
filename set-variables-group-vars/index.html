@@ -80,19 +80,19 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#10-infra-nodes">10 - Infra Nodes</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#11-optional-packages">11 - (Optional) Packages</a>
+    <li class="toctree-l2"><a class="reference internal" href="#11-openshift-settings">11 - OpenShift Settings</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#12-openshift-settings">12 - OpenShift Settings</a>
+    <li class="toctree-l2"><a class="reference internal" href="#12-optional-proxy">12 - (Optional) Proxy</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#13-optional-proxy">13 - (Optional) Proxy</a>
+    <li class="toctree-l2"><a class="reference internal" href="#13-optional-misc">13 - (Optional) Misc</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#14-optional-misc">14 - (Optional) Misc</a>
+    <li class="toctree-l2"><a class="reference internal" href="#14-ocp-and-rhcos-coreos">14 - OCP and RHCOS (CoreOS)</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#15-ocp-and-rhcos-coreos">15 - OCP and RHCOS (CoreOS)</a>
+    <li class="toctree-l2"><a class="reference internal" href="#15-optional-create-compute-node-in-a-day-2-operation">15 - (Optional) Create compute node in a day-2 operation</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#16-optional-create-compute-node-in-a-day-2-operation">16 - (Optional) Create compute node in a day-2 operation</a>
+    <li class="toctree-l2"><a class="reference internal" href="#16-optional-agent-based-installer">16 - (Optional) Agent Based Installer</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#17-optional-agent-based-installer">17 - (Optional) Agent Based Installer</a>
+    <li class="toctree-l2"><a class="reference internal" href="#packages-optional">Packages (Optional)</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#disconnected-cluster-setup-optional">Disconnected cluster setup (Optional)</a>
     </li>
@@ -776,39 +776,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="11-optional-packages">11 - (Optional) Packages<a class="headerlink" href="#11-optional-packages" title="Permanent link">#</a></h2>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;"><strong>Variable Name</strong></th>
-<th style="text-align: left;"><strong>Description</strong></th>
-<th style="text-align: left;"><strong>Example</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>env.pkgs.galaxy</strong></td>
-<td style="text-align: left;">A list of Ansible Galaxy collections that will be installed during the setup playbook. The collections listed are required. Feel free to add more as needed, just make sure to follow the same list format.</td>
-<td style="text-align: left;">community.general</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.pkgs.controller</strong></td>
-<td style="text-align: left;">A list of packages that will be installed on the machine running Ansible during the setup playbook. Feel free to add more as needed, just make sure to follow the same list format.</td>
-<td style="text-align: left;">openssh</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.pkgs.kvm</strong></td>
-<td style="text-align: left;">A list of packages that will be installed on the KVM Host during the setup_kvm_host playbook. Feel free to add more as needed, just make sure to follow the same list format.</td>
-<td style="text-align: left;">qemu-kvm</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.pkgs.bastion</strong></td>
-<td style="text-align: left;">A list of packages that will be installed on the bastion during the setup_bastion playbook. Feel free to add more as needed, just make sure to follow the same list format.</td>
-<td style="text-align: left;">haproxy</td>
-</tr>
-</tbody>
-</table>
-<h2 id="12-openshift-settings">12 - OpenShift Settings<a class="headerlink" href="#12-openshift-settings" title="Permanent link">#</a></h2>
+<h2 id="11-openshift-settings">11 - OpenShift Settings<a class="headerlink" href="#11-openshift-settings" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -875,7 +843,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="13-optional-proxy">13 - (Optional) Proxy<a class="headerlink" href="#13-optional-proxy" title="Permanent link">#</a></h2>
+<h2 id="12-optional-proxy">12 - (Optional) Proxy<a class="headerlink" href="#12-optional-proxy" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -902,7 +870,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="14-optional-misc">14 - (Optional) Misc<a class="headerlink" href="#14-optional-misc" title="Permanent link">#</a></h2>
+<h2 id="13-optional-misc">13 - (Optional) Misc<a class="headerlink" href="#13-optional-misc" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -984,7 +952,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="15-ocp-and-rhcos-coreos">15 - OCP and RHCOS (CoreOS)<a class="headerlink" href="#15-ocp-and-rhcos-coreos" title="Permanent link">#</a></h2>
+<h2 id="14-ocp-and-rhcos-coreos">14 - OCP and RHCOS (CoreOS)<a class="headerlink" href="#14-ocp-and-rhcos-coreos" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -1036,7 +1004,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="16-optional-create-compute-node-in-a-day-2-operation">16 - (Optional) Create compute node in a day-2 operation<a class="headerlink" href="#16-optional-create-compute-node-in-a-day-2-operation" title="Permanent link">#</a></h2>
+<h2 id="15-optional-create-compute-node-in-a-day-2-operation">15 - (Optional) Create compute node in a day-2 operation<a class="headerlink" href="#15-optional-create-compute-node-in-a-day-2-operation" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -1093,7 +1061,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="17-optional-agent-based-installer">17 - (Optional) Agent Based Installer<a class="headerlink" href="#17-optional-agent-based-installer" title="Permanent link">#</a></h2>
+<h2 id="16-optional-agent-based-installer">16 - (Optional) Agent Based Installer<a class="headerlink" href="#16-optional-agent-based-installer" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -1122,6 +1090,49 @@
 <td style="text-align: left;"><strong>abi.ocp_installer_url</strong></td>
 <td style="text-align: left;">This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror</td>
 <td style="text-align: left;">'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'</td>
+</tr>
+</tbody>
+</table>
+<h2 id="packages-optional">Packages (Optional)<a class="headerlink" href="#packages-optional" title="Permanent link">#</a></h2>
+<ul>
+<li>Packages are installed based on the executed playbooks based on the given requirements. This means that these variables have default values which can be overwritten in all.yaml file.</li>
+<li>The following table describe the current installed packages and their default values.</li>
+<li>In general is to say that the default values are all required. Feel free to add more if needed but it is required to specify the whole list (include default values).</li>
+<li>Within the all.yaml.template file you find an example of the parameter including the format. </li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Default values</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>pkgs_galaxy</strong></td>
+<td style="text-align: left;">A list of Ansible Galaxy collections that will be installed during the setup playbook. The collections listed are required.</td>
+<td style="text-align: left;">[ ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt ]</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>pkgs_controller</strong></td>
+<td style="text-align: left;">A list of packages that will be installed on the machine running Ansible during the setup playbook.</td>
+<td style="text-align: left;">[ openssh, expect, sshuttle ]</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>pkgs_kvm</strong></td>
+<td style="text-align: left;">A list of packages that will be installed on the KVM Host during the setup_kvm_host playbook.</td>
+<td style="text-align: left;">[ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>pkgs_bastion</strong></td>
+<td style="text-align: left;">A list of packages that will be installed on the bastion during the setup_bastion playbook. Feel free to add more as needed, just make sure to follow the same list format.</td>
+<td style="text-align: left;">[ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>pkgs_zvm</strong></td>
+<td style="text-align: left;">A list of packages that will be installed in case of HCP (zVM nodes) or LPAR installation.</td>
+<td style="text-align: left;">[ git, python3-pip, python3-devel, openssl-devel, rust, cargo, libffi-devel, wget, tar, jq, gcc, make, x3270, python39 ]</td>
 </tr>
 </tbody>
 </table>
