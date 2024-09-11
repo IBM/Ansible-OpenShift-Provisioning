@@ -80,19 +80,19 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#10-infra-nodes">10 - Infra Nodes</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#11-openshift-settings">11 - OpenShift Settings</a>
+    <li class="toctree-l2"><a class="reference internal" href="#11-optional-misc">11 - (Optional) Misc</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#12-optional-proxy">12 - (Optional) Proxy</a>
+    <li class="toctree-l2"><a class="reference internal" href="#12-ocp-and-rhcos-coreos">12 - OCP and RHCOS (CoreOS)</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#13-optional-misc">13 - (Optional) Misc</a>
+    <li class="toctree-l2"><a class="reference internal" href="#13-optional-create-compute-node-in-a-day-2-operation">13 - (Optional) Create compute node in a day-2 operation</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#14-ocp-and-rhcos-coreos">14 - OCP and RHCOS (CoreOS)</a>
+    <li class="toctree-l2"><a class="reference internal" href="#14-optional-agent-based-installer">14 - (Optional) Agent Based Installer</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#15-optional-create-compute-node-in-a-day-2-operation">15 - (Optional) Create compute node in a day-2 operation</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#16-optional-agent-based-installer">16 - (Optional) Agent Based Installer</a>
+    <li class="toctree-l2"><a class="reference internal" href="#openshift-settings">OpenShift Settings</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#packages-optional">Packages (Optional)</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#proxy-optional">Proxy (Optional)</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#disconnected-cluster-setup-optional">Disconnected cluster setup (Optional)</a>
     </li>
@@ -776,101 +776,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="11-openshift-settings">11 - OpenShift Settings<a class="headerlink" href="#11-openshift-settings" title="Permanent link">#</a></h2>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;"><strong>Variable Name</strong></th>
-<th style="text-align: left;"><strong>Description</strong></th>
-<th style="text-align: left;"><strong>Example</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>env.install_config.api_version</strong></td>
-<td style="text-align: left;">Kubernetes API version for the cluster. These install_config variables will be passed to the OCP install_config file. This file is templated in the get_ocp role during the setup_bastion playbook. To make more fine-tuned adjustments to the install_config, you can find it at roles/get_ocp/templates/install-config.yaml.j2</td>
-<td style="text-align: left;">v1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.install_config.compute.architecture</strong></td>
-<td style="text-align: left;">Computing architecture for the compute nodes. Must be s390x for clusters on IBM zSystems.</td>
-<td style="text-align: left;">s390x</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.install_config.compute.hyperthreading</strong></td>
-<td style="text-align: left;">Enable or disable hyperthreading on compute nodes. Recommended enabled.</td>
-<td style="text-align: left;">Enabled</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.install_config.control.architecture</strong></td>
-<td style="text-align: left;">Computing architecture for the control nodes. Must be s390x for clusters on IBM zSystems, amd64 for Intel or AMD systems, and arm64 for ARM servers.</td>
-<td style="text-align: left;">s390x</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.install_config.control.hyperthreading</strong></td>
-<td style="text-align: left;">Enable or disable hyperthreading on control nodes. Recommended enabled.</td>
-<td style="text-align: left;">Enabled</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.install_config.cluster_network.cidr</strong></td>
-<td style="text-align: left;">IPv4 block in Internal cluster networking in Classless Inter-Domain Routing (CIDR) notation. Recommended to keep as is.</td>
-<td style="text-align: left;">10.128.0.0/14</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.install_config.cluster_network.host_prefix</strong></td>
-<td style="text-align: left;">The subnet prefix length to assign to each individual node. For example, if hostPrefix is set to 23 then each node is assigned a /23 subnet out of the given cidr. A hostPrefix value of 23 provides 510 (2^(32 - 23) - 2) pod IP addresses.</td>
-<td style="text-align: left;">23</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.install_config.cluster_network.type</strong></td>
-<td style="text-align: left;">The cluster network provider Container Network Interface (CNI) plug-in to install. Either OpenShiftSDN or OVNKubernetes (default).</td>
-<td style="text-align: left;">OVNKubernetes</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.install_config.service_network</strong></td>
-<td style="text-align: left;">The IP address block for services. The default value is 172.30.0.0/16. The OpenShift SDN and OVN-Kubernetes network providers support only a single IP address block for the service network. An array with an IP address block in CIDR format.</td>
-<td style="text-align: left;">172.30.0.0/16</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.install_config.machine_network</strong></td>
-<td style="text-align: left;">The IP address block for Nodes IP Pool. The default value is 192.168.122.0/24 For NAT Network Mode. In case of MacvTap it will be depend on Inteface IP assignment. An array with an IP address block in CIDR format.</td>
-<td style="text-align: left;">192.168.122.0/24</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.install_config.fips</strong></td>
-<td style="text-align: left;">True or False (boolean) for whether or not to use the United States' Federal Information Processing Standards (FIPS). Not yet certified on IBM zSystems. Enclosed in 'single quotes'.</td>
-<td style="text-align: left;">'false'</td>
-</tr>
-</tbody>
-</table>
-<h2 id="12-optional-proxy">12 - (Optional) Proxy<a class="headerlink" href="#12-optional-proxy" title="Permanent link">#</a></h2>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;"><strong>Variable Name</strong></th>
-<th style="text-align: left;"><strong>Description</strong></th>
-<th style="text-align: left;"><strong>Example</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>env.proxy.http</strong></td>
-<td style="text-align: left;">(Optional) A proxy URL to use for creating HTTP connections outside the cluster. Will be used in the install-config and applied to other Ansible hosts unless set otherwise in no_proxy below. Must follow this pattern: http://username:pswd&gt;@ip:port</td>
-<td style="text-align: left;">http://ocp-admin:Pa$sw0rd@9.72.10.1:80</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.proxy.https</strong></td>
-<td style="text-align: left;">(Optional) A proxy URL to use for creating HTTPS connections outside the cluster. Will be used in the install-config and applied to other Ansible hosts unless set otherwise in no_proxy below. Must follow this pattern: https://username:pswd@ip:port</td>
-<td style="text-align: left;">https://ocp-admin:Pa$sw0rd@9.72.10.1:80</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.proxy.no</strong></td>
-<td style="text-align: left;">(Optional) A comma-separated list (no spaces) of destination domain names, IP addresses, or other network CIDRs to exclude from proxying. When using a proxy, all necessary IPs and domains for your cluster will be added automatically. See roles/get_ocp/templates/install-config.yaml.j2 for more details on the template. Preface a domain with . to match subdomains only. For example, .y.com matches x.y.com, but not y.com. Use * to bypass the proxy for all listed destinations.</td>
-<td style="text-align: left;">example.com,192.168.10.1</td>
-</tr>
-</tbody>
-</table>
-<h2 id="13-optional-misc">13 - (Optional) Misc<a class="headerlink" href="#13-optional-misc" title="Permanent link">#</a></h2>
+<h2 id="11-optional-misc">11 - (Optional) Misc<a class="headerlink" href="#11-optional-misc" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -952,7 +858,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="14-ocp-and-rhcos-coreos">14 - OCP and RHCOS (CoreOS)<a class="headerlink" href="#14-ocp-and-rhcos-coreos" title="Permanent link">#</a></h2>
+<h2 id="12-ocp-and-rhcos-coreos">12 - OCP and RHCOS (CoreOS)<a class="headerlink" href="#12-ocp-and-rhcos-coreos" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -1004,7 +910,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="15-optional-create-compute-node-in-a-day-2-operation">15 - (Optional) Create compute node in a day-2 operation<a class="headerlink" href="#15-optional-create-compute-node-in-a-day-2-operation" title="Permanent link">#</a></h2>
+<h2 id="13-optional-create-compute-node-in-a-day-2-operation">13 - (Optional) Create compute node in a day-2 operation<a class="headerlink" href="#13-optional-create-compute-node-in-a-day-2-operation" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -1061,7 +967,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="16-optional-agent-based-installer">16 - (Optional) Agent Based Installer<a class="headerlink" href="#16-optional-agent-based-installer" title="Permanent link">#</a></h2>
+<h2 id="14-optional-agent-based-installer">14 - (Optional) Agent Based Installer<a class="headerlink" href="#14-optional-agent-based-installer" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -1090,6 +996,79 @@
 <td style="text-align: left;"><strong>abi.ocp_installer_url</strong></td>
 <td style="text-align: left;">This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror</td>
 <td style="text-align: left;">'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'</td>
+</tr>
+</tbody>
+</table>
+<h2 id="openshift-settings">OpenShift Settings<a class="headerlink" href="#openshift-settings" title="Permanent link">#</a></h2>
+<ul>
+<li>The parameters bellow have a hierachical structure and need to be added to all.yaml in given format. For example if you want to change the hyperthreading (disable) than you need to specify the following value in all.yaml file:
+  install_config:
+    compute:
+      hyperthreading: Disabled</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example/Default</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>install_config.api_version</strong></td>
+<td style="text-align: left;">Kubernetes API version for the cluster. These install_config variables will be passed to the OCP install_config file. This file is templated in the get_ocp role during the setup_bastion playbook. To make more fine-tuned adjustments to the install_config, you can find it at roles/get_ocp/templates/install-config.yaml.j2</td>
+<td style="text-align: left;">v1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>install_config.compute.architecture</strong></td>
+<td style="text-align: left;">Computing architecture for the compute nodes. Must be s390x for clusters on IBM zSystems.</td>
+<td style="text-align: left;">s390x</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>install_config.compute.hyperthreading</strong></td>
+<td style="text-align: left;">Enable or disable hyperthreading on compute nodes. Recommended enabled.</td>
+<td style="text-align: left;">Enabled</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>install_config.control.architecture</strong></td>
+<td style="text-align: left;">Computing architecture for the control nodes. Must be s390x for clusters on IBM zSystems, amd64 for Intel or AMD systems, and arm64 for ARM servers.</td>
+<td style="text-align: left;">s390x</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>install_config.control.hyperthreading</strong></td>
+<td style="text-align: left;">Enable or disable hyperthreading on control nodes. Recommended enabled.</td>
+<td style="text-align: left;">Enabled</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>install_config.cluster_network.cidr</strong></td>
+<td style="text-align: left;">IPv4 block in Internal cluster networking in Classless Inter-Domain Routing (CIDR) notation. Recommended to keep as is.</td>
+<td style="text-align: left;">10.128.0.0/14</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>install_config.cluster_network.host_prefix</strong></td>
+<td style="text-align: left;">The subnet prefix length to assign to each individual node. For example, if hostPrefix is set to 23 then each node is assigned a /23 subnet out of the given cidr. A hostPrefix value of 23 provides 510 (2^(32 - 23) - 2) pod IP addresses.</td>
+<td style="text-align: left;">23</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>install_config.cluster_network.type</strong></td>
+<td style="text-align: left;">The cluster network provider Container Network Interface (CNI) plug-in to install. Either OpenShiftSDN or OVNKubernetes (default).</td>
+<td style="text-align: left;">OVNKubernetes</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>install_config.service_network</strong></td>
+<td style="text-align: left;">The IP address block for services. The default value is 172.30.0.0/16. The OpenShift SDN and OVN-Kubernetes network providers support only a single IP address block for the service network. An array with an IP address block in CIDR format.</td>
+<td style="text-align: left;">172.30.0.0/16</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>install_config.machine_network</strong></td>
+<td style="text-align: left;">The IP address block for Nodes IP Pool. The default value is 192.168.122.0/24 For NAT Network Mode. In case of MacvTap it will be depend on Inteface IP assignment. An array with an IP address block in CIDR format.</td>
+<td style="text-align: left;">192.168.122.0/24</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>install_config.fips</strong></td>
+<td style="text-align: left;">True or False (boolean) for whether or not to use the United States' Federal Information Processing Standards (FIPS). Not yet certified on IBM zSystems. Enclosed in 'single quotes'.</td>
+<td style="text-align: left;">'false'</td>
 </tr>
 </tbody>
 </table>
@@ -1133,6 +1112,38 @@
 <td style="text-align: left;"><strong>pkgs_zvm</strong></td>
 <td style="text-align: left;">A list of packages that will be installed in case of HCP (zVM nodes) or LPAR installation.</td>
 <td style="text-align: left;">[ git, python3-pip, python3-devel, openssl-devel, rust, cargo, libffi-devel, wget, tar, jq, gcc, make, x3270, python39 ]</td>
+</tr>
+</tbody>
+</table>
+<h2 id="proxy-optional">Proxy (Optional)<a class="headerlink" href="#proxy-optional" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>use_proxy</strong></td>
+<td style="text-align: left;">(Optional) Use proxyx . Default value is 'False'. Possible values are 'True' or 'False'.</td>
+<td style="text-align: left;">False</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>proxy_http</strong></td>
+<td style="text-align: left;">(Optional) A proxy URL to use for creating HTTP connections outside the cluster. Will be used in the install-config and applied to other Ansible hosts unless set otherwise in no_proxy below. Must follow this pattern: http://username:pswd&gt;@ip:port</td>
+<td style="text-align: left;">http://ocp-admin:Pa$sw0rd@9.72.10.1:80</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>proxy_https</strong></td>
+<td style="text-align: left;">(Optional) A proxy URL to use for creating HTTPS connections outside the cluster. Will be used in the install-config and applied to other Ansible hosts unless set otherwise in no_proxy below. Must follow this pattern: https://username:pswd@ip:port</td>
+<td style="text-align: left;">https://ocp-admin:Pa$sw0rd@9.72.10.1:80</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>proxy_no</strong></td>
+<td style="text-align: left;">(Optional) A comma-separated list (no spaces) of destination domain names, IP addresses, or other network CIDRs to exclude from proxying. When using a proxy, all necessary IPs and domains for your cluster will be added automatically. See roles/get_ocp/templates/install-config.yaml.j2 for more details on the template. Preface a domain with . to match subdomains only. For example, .y.com matches x.y.com, but not y.com. Use * to bypass the proxy for all listed destinations.</td>
+<td style="text-align: left;">example.com,192.168.10.1</td>
 </tr>
 </tbody>
 </table>
