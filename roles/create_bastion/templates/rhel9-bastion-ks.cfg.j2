@@ -53,7 +53,7 @@ bootloader --append="crashkernel=auto" --location=mbr --boot-drive=vda
 clearpart --all --initlabel --drives=vda
 
 # Disk partitioning information
-{% if env.install_config.control.architecture == 'arm64' %}
+{% if install_config.control.architecture == 'arm64' %}
 # TODO: Special setup for arm required, because our arm server requires /boot/efi partition with efi file system
 ignoredisk --only-use=vda
 # System bootloader configuration
