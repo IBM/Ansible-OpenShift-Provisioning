@@ -1,0 +1,9 @@
+# rhcos_download_url with '/' at the end !                                                                                                                                                                       
+rhcos_download_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/"
+
+rhcos_os_variant: rhl9
+
+# RHCOS live image filenames
+rhcos_live_kernel: "rhcos-live-kernel-s390x"
+rhcos_live_initrd: "rhcos-live-initramfs.s390x.img"
+rhcos_live_rootfs: "rhcos-live-rootfs.s390x.img"

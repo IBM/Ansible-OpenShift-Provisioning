@@ -1,3 +1,15 @@
+# ocp_download_url with '/' at the end !
+ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/latest/s390x/"
+# ocp client and installer filenames
+ocp_client_tgz: "openshift-client-linux.tar.gz"
+ocp_install_tgz: "openshift-install-linux.tar.gz"
+
+# rhcos_download_url with '/' at the end !
+rhcos_download_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/"
+
+# RHCOS live image filenames
+rhcos_live_rootfs: "rhcos-live-rootfs.s390x.img"
+
 # Openshift Settings
 install_config_defaults:
   api_version: v1
