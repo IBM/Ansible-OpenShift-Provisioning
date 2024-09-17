@@ -859,19 +859,22 @@
 </tbody>
 </table>
 <h2 id="12-ocp-and-rhcos-coreos">12 - OCP and RHCOS (CoreOS)<a class="headerlink" href="#12-ocp-and-rhcos-coreos" title="Permanent link">#</a></h2>
+<ul>
+<li>These parameters are responsible which version of OCP, RHCOS and os variant AOP is using. The default value is 'latest' for s390x architecture. I you want to install a different version or a different architecture you need to specify specify the following parameters in all.yaml file:</li>
+</ul>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;"><strong>Variable Name</strong></th>
 <th style="text-align: left;"><strong>Description</strong></th>
-<th style="text-align: left;"><strong>Example</strong></th>
+<th style="text-align: left;"><strong>Example/Default</strong></th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>ocp_download_url</strong></td>
 <td style="text-align: left;">Link to the mirror for the OpenShift client and installer from Red Hat.</td>
-<td style="text-align: left;">https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/s390x/</td>
+<td style="text-align: left;">https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ocp_client_tgz</strong></td>
@@ -886,27 +889,27 @@
 <tr>
 <td style="text-align: left;"><strong>rhcos_download_url</strong></td>
 <td style="text-align: left;">Link to the CoreOS files to be used for the bootstrap, control and compute nodes. Feel free to change to a different version.</td>
-<td style="text-align: left;">https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/4.12.3/</td>
+<td style="text-align: left;">https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/latest/s390x/</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>rhcos_os_variant</strong></td>
 <td style="text-align: left;">CoreOS base OS. Use the OS string as defined in 'osinfo-query os -f short-id'</td>
-<td style="text-align: left;">rhel8.6</td>
+<td style="text-align: left;">rhl9</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>rhcos_live_kernel</strong></td>
 <td style="text-align: left;">CoreOS kernel filename to be used for the bootstrap, control and compute nodes.</td>
-<td style="text-align: left;">rhcos-4.12.3-s390x-live-kernel-s390x</td>
+<td style="text-align: left;">rhcos-live-kernel-s390x</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>rhcos_live_initrd</strong></td>
 <td style="text-align: left;">CoreOS initramfs to be used for the bootstrap, control and compute nodes.</td>
-<td style="text-align: left;">rhcos-4.12.3-s390x-live-initramfs.s390x.img</td>
+<td style="text-align: left;">rhcos-live-initramfs.s390x.img</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>rhcos_live_rootfs</strong></td>
 <td style="text-align: left;">CoreOS rootfs to be used for the bootstrap, control and compute nodes.</td>
-<td style="text-align: left;">rhcos-4.12.3-s390x-live-rootfs.s390x.img</td>
+<td style="text-align: left;">rhcos-live-rootfs.s390x.img</td>
 </tr>
 </tbody>
 </table>
