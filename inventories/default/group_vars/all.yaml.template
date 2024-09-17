@@ -209,24 +209,7 @@ env:
     path_to_keypair:
 
 # Section 12 - OCP and RHCOS (CoreOS)
-
-# ocp_download_url with '/' at the end !
-ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/s390x/"
-# ocp client and installer filenames
-ocp_client_tgz: "openshift-client-linux.tar.gz"
-ocp_install_tgz: "openshift-install-linux.tar.gz"
-
-# rhcos_download_url with '/' at the end !
-rhcos_download_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.12/4.12.3/"
-
-# For rhcos_os_variant use the OS string as defined in 'osinfo-query os -f short-id'
-rhcos_os_variant: rhel8.6
-
-# RHCOS live image filenames
-rhcos_live_kernel: "rhcos-4.12.3-s390x-live-kernel-s390x"
-rhcos_live_initrd: "rhcos-4.12.3-s390x-live-initramfs.s390x.img"
-rhcos_live_rootfs: "rhcos-4.12.3-s390x-live-rootfs.s390x.img"
-
+# ocp download_url and rhcos download url
 
 # Section 13 - (Optional) Create additional compute node in a day-2 operation
 day2_compute_node:
