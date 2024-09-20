@@ -132,4 +132,4 @@
       include_tasks:
         file: ../roles/boot_LPAR/tasks/main.yaml
       loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
-      when: item in hosts_with_host_vars
+      when: env.cluster.nodes[node_type].vm_name is defined and item in hosts_with_host_vars
