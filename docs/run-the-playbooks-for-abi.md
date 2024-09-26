@@ -20,6 +20,7 @@
 * In case of SNO Section 8 - ( `Control Nodes` )  Virtual CPU should be 8 ( `vcpu: 8` )
 * In case of SNO Section 9 ( `Compute Nodes` ) need to be comment or remove
 * First playbook to be run is `0_setup.yaml` which will create inventory file for ABI and will add ssh key to the kvm host.
+* In case of z/VM update variables in [zvm.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/zvm.yaml).
 
 * Run this shell command:
 ```
