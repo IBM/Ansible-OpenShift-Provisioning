@@ -10,19 +10,6 @@
       debug: 
         msg: "Booting {{ env.cluster.networking.metadata_name }}-{{ item }}"
 
-    - name: Print multiple line debug message
-      debug:
-        msg: "{{ multiline_message | join('\n') }}"
-      vars:
-        multiline_message:
-          - --zvmname "{{ zvm.nodes[item].name }}"
-          - --zvmhost "{{ zvm.nodes[item].host }}"
-          - --zvmuser "{{ zvm.nodes[item].user }}"
-          - --zvmpass "{{ zvm.nodes[item].password }}"
-          - --cpu "{{ zvm.vcpus }}"
-          - --memory "{{ zvm.memory }}"
-          - --network "{{ zvm.network_mode }}"
-
     - name: Booting zvm node
       shell: |
         python /root/ansible_workdir/boot_nodes.py \
