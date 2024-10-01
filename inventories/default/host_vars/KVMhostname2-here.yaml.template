@@ -1,5 +1,7 @@
 # Section 1 - KVM Host
 networking:
+  mode: #X Type of network type. Required only when creating LPAR cluster
+  internal_ip: #X Internal IP for the LPAR Required only when booting LPAR cluster with hipersockets
   hostname: #X
   ip: #X
   ipv6: #X

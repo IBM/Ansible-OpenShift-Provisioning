@@ -63,6 +63,7 @@ env:
       vcpu_model_option: "--cpu host"
     networking:
       ip: #X
+      internal_ip: #X Required only when creating LPAR cluster with hipersockets
       ipv6: #X
       mac: #X
       hostname: #X

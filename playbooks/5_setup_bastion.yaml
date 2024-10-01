@@ -66,6 +66,23 @@
   roles:
     - ssh_copy_id
 
+- name: 5 Setting up of hipersocket card on bastion when booting LPAR nodes with hipersocket card (if in lpar)
+  hosts: bastion
+  become: True
+  tasks:
+  - name: Check if vars file exists
+    stat:
+      path: "{{ inventory_dir }}/host_vars/{{ env.cluster.nodes.bootstrap.vm_name }}.yaml"
+    register: vars_file
+  - name: Include the vars
+    include_vars:
+      file: "{{ inventory_dir }}/host_vars/{{ env.cluster.nodes.bootstrap.vm_name }}.yaml"
+    when: vars_file.stat.exists
+  - name: Attaching Hipersocket card to bastion
+    ansible.builtin.include_tasks:
+      file: ../roles/bastion_setup_hipersocket_LPAR/tasks/main.yml
+    when: vars_file.stat.exists and networking.mode is defined and networking.mode=='hipersocket'
+
 - name: 5 setup bastion - configure bastion node with essential services
   hosts: bastion
   tags: services, section_2

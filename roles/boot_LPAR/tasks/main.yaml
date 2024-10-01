@@ -31,7 +31,7 @@
       set_fact:
         ipv6_string: "ip=[{{ node.networking.ipv6 }}]::[{{ node.networking.ipv6_gateway }}]:{{ node.networking.ipv6_prefix }}::{{ env.cluster.networking.interface }}:none"
       when: env.use_ipv6  == true
-    
+
     - name: set live disk lun
       set_fact:
         live_disk_lun: "{{ node.lpar.livedisk.lun if (node.lpar.livedisk.lun is defined and node.lpar.livedisk.lun is not none) else 'na' }}"
@@ -60,11 +60,11 @@
           --netset_ip {{ node.networking.ip }} \ 
           --netset_gateway {{ node.networking.gateway }} \
           --netset_network_type osa \
-          --netset_network_device "{{ node.lpar.networking.nic.card1.dev_num }}" \
+          --netset_network_device 0.0.1100,0.0.1101,0.0.1102 \
           --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
           --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
           --log_level DEBUG \
-          --cmdline 'rd.neednet=1 console=ttysclp0 {% if node.lpar.storage_group_1.type | lower == "fcp" %}coreos.inst.install_dev=sda{% endif %}{% if node.lpar.storage_group_1.type | lower == "dasd" %}coreos.inst.install_dev=/dev/dasda{% endif %} coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/{{ ignition }}.ign ip={{ node.networking.ip }}::{{ node.networking.gateway }}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ node.networking.device1 }}:none nameserver={{ env.cluster.networking.nameserver1 }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 rd.znet=qeth,{{ node.lpar.networking.nic.card1.dev_num }},layer2=1 {{ ipv6_string }} {% if node.lpar.storage_group_1.type | lower == "fcp" %}{{ rd_zfcp_string }}{% endif %}{% if node.lpar.storage_group_1.type | lower == "dasd" %}{{ rd_dasd_string }}{% endif %}'
+          --cmdline 'rd.neednet=1 console=ttysclp0 {% if node.lpar.storage_group_1.type | lower == "fcp" %}coreos.inst.install_dev=sda{% endif %}{% if node.lpar.storage_group_1.type | lower == "dasd" %}coreos.inst.install_dev=/dev/dasda{% endif %} coreos.live.rootfs_url=http://{% if node.networking.mode == "hipersocket" %}{{ env.bastion.networking.internal_ip }}{% else %}{{ env.bastion.networking.ip }}{% endif %}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{% if node.networking.mode == "hipersocket" %}{{ env.bastion.networking.internal_ip }}{% else %}{{ env.bastion.networking.ip }}{% endif %}:8080/ignition/{{ ignition }}.ign ip={% if node.networking.mode == "hipersocket" %}{{ node.networking.internal_ip }}{% else %}{{ node.networking.ip }}{% endif %}::{{ node.networking.nameserver1 }}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ node.networking.device1 }}:none nameserver={{ env.cluster.networking.nameserver1 }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 {% if node.networking.mode | lower != "roce" %}rd.znet=qeth,{{ node.lpar.networking.nic.card1.dev_num }},layer2=1{% endif %} {{ ipv6_string }} {% if node.lpar.storage_group_1.type | lower == "fcp" %}{{ rd_zfcp_string }}{% endif %}{% if node.lpar.storage_group_1.type | lower == "dasd" %}{{ rd_dasd_string }}{% endif %}'
 
     - name: Booting lpar node
       shell: |
@@ -85,8 +85,8 @@
           --netset_ip {{ node.networking.ip }} \ 
           --netset_gateway {{ node.networking.gateway }} \
           --netset_network_type osa \
-          --netset_network_device "{{ node.lpar.networking.nic.card1.dev_num }}" \
+          --netset_network_device 0.0.1100,0.0.1101,0.0.1102 \
           --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
           --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
           --log_level DEBUG \
-          --cmdline 'rd.neednet=1 console=ttysclp0 {% if node.lpar.storage_group_1.type | lower == "fcp" %}coreos.inst.install_dev=sda{% endif %}{% if node.lpar.storage_group_1.type | lower == "dasd" %}coreos.inst.install_dev=/dev/dasda{% endif %} coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/{{ ignition }}.ign ip={{ node.networking.ip }}::{{ node.networking.gateway }}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ node.networking.device1 }}:none nameserver={{ env.cluster.networking.nameserver1 }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 rd.znet=qeth,{{ node.lpar.networking.nic.card1.dev_num }},layer2=1 {{ ipv6_string }} {% if node.lpar.storage_group_1.type | lower == "fcp" %}{{ rd_zfcp_string }}{% endif %}{% if node.lpar.storage_group_1.type | lower == "dasd" %}{{ rd_dasd_string }}{% endif %}'
+          --cmdline 'rd.neednet=1 console=ttysclp0 {% if node.lpar.storage_group_1.type | lower == "fcp" %}coreos.inst.install_dev=sda{% endif %}{% if node.lpar.storage_group_1.type | lower == "dasd" %}coreos.inst.install_dev=/dev/dasda{% endif %} coreos.live.rootfs_url=http://{% if node.networking.mode == "hipersocket" %}{{ env.bastion.networking.internal_ip }}{% else %}{{ env.bastion.networking.ip }}{% endif %}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{% if node.networking.mode == "hipersocket" %}{{ env.bastion.networking.internal_ip }}{% else %}{{ env.bastion.networking.ip }}{% endif %}:8080/ignition/{{ ignition }}.ign ip={% if node.networking.mode == "hipersocket" %}{{ node.networking.internal_ip }}{% else %}{{ node.networking.ip }}{% endif %}::{{ node.networking.nameserver1 }}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ node.networking.device1 }}:none nameserver={{ env.cluster.networking.nameserver1 }} cio_ignore=all,!condev zfcp.allow_lun_scan=0 {% if node.networking.mode | lower != "roce" %}rd.znet=qeth,{{ node.lpar.networking.nic.card1.dev_num }},layer2=1{% endif %} {{ ipv6_string }} {% if node.lpar.storage_group_1.type | lower == "fcp" %}{{ rd_zfcp_string }}{% endif %}{% if node.lpar.storage_group_1.type | lower == "dasd" %}{{ rd_dasd_string }}{% endif %}'
