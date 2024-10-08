@@ -37,15 +37,13 @@
   register: hcp_pod_name
 
 - name: Get hcp.tar.gz file from pod
-  kubernetes.core.k8s_cp:
-    namespace: "{{ hcp.asc.mce_namespace }}"
-    pod: "{{ hcp_pod_name.resources[0].metadata.name }}"
-    remote_path: "/opt/app-root/src/linux/s390x/"
-    local_path: "/root/ansible_workdir"
-    state: from_pod
-
-- name: Get hcp.tar.gz file from pod
   ansible.builtin.shell: "oc cp multicluster-engine/{{ hcp_pod_name.resources[0].metadata.name }}:/opt/app-root/src/linux/s390x/ /root/ansible_workdir"
+
+- name: Extract binary from hcp.tar.gz
+  unarchive:
+    src: /root/ansible_workdir/hcp.tar.gz
+    dest: /usr/local/bin/
+    remote_src: true
 
 - name: Get ICSP for Hosted Control Plane
   template:
