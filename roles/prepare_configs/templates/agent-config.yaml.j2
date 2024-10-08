@@ -4,6 +4,7 @@ metadata:
   name: {{ env.cluster.networking.metadata_name }}
 rendezvousIP: {{ env.cluster.nodes.control.ip[0] }}
 
+{% if installation_type | lower != 'zvm' %}
 hosts:
 {% for item in range( env.cluster.nodes.control.ip | length ) %}
   - hostname: "{{ env.cluster.nodes.control.hostname[item] }}"
@@ -64,4 +65,5 @@ hosts:
             next-hop-interface: eth0
             table-id: 254 
 {% endfor %}
+{% endif %}
 {% endif %}

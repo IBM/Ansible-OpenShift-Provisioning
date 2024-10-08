@@ -1,0 +1,37 @@
+# For a comprehensive description of each variable, please see documentation here:
+# https://ibm.github.io/Ansible-OpenShift-Provisioning/set-variables-group-vars/ 
+# ZVM Section
+
+zvm:
+    network_mode:       # Supported modes: vswitch
+    disk_type:          # Supported modes: fcp , dasd
+    subnetmask:
+    gateway:
+    nameserver:
+    vcpus:
+    memory:
+
+    nodes:
+      - name:
+        host:
+        user:
+        password:
+        interface:
+          ifname: encbdf0 
+          nettype: qeth
+          subchannels: 0.0.bdf0,0.0.bdf1,0.0.bdf2
+          options: layer2=1
+          ip:
+
+        # Required if disk_type is dasd
+        dasd:
+          disk_id: 
+
+        # Required if disk_type is fcp
+        lun:
+          - id:
+            paths:
+              - wwpn:
+                fcp:
+              - wwpn:
+                fcp:

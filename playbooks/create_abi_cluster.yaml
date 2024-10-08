@@ -6,14 +6,30 @@
   become: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
-    - "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
+    - "{{ inventory_dir }}/group_vars/zvm.yaml"
   roles:
     - common # Common Variable the will be used by all the inwalked roles.
     - download_ocp_installer # Download Openshift Installer.
     - prepare_configs # Prepare AgentConfig & InstallConfig.
     - create_agent # Create Agents || Build initrd.img, rootfs.img & kernelfs.img.
 
-# Boot ABI Agents. 
+- name: Start z/VM Nodes
+  hosts: bastion
+  become: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/zvm.yaml"
+  tasks:
+    - block:
+        - name: Setup Param File
+          include_role:
+            name: setup_params
+
+        - name: Boot z/VM Guests
+          include_tasks: ../roles/boot_zvm_nodes/tasks/main.yaml
+          loop: "{{ range( zvm.nodes | length ) | list }}"
+      when: installation_type | lower == 'zvm'
+
+# Boot ABI KVM Agents.
 - name: Boot ABI Agents
   hosts: kvm_host[0]
   become: false
@@ -21,4 +37,4 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - common
-    - boot_abi_agents 
+    - { role: boot_abi_agents, when: installation_type | lower == 'kvm' }

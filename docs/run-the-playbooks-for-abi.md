@@ -1,21 +1,26 @@
-# Run the Playbooks
-## Prerequisites 
-* KVM host with root user access or user with sudo privileges.
+# Run the Agent Based Installer (ABI) Playbooks
+## Prerequisites
+* KVM host with root user access or user with sudo privileges. ( applicable only in case of KVM)
+* z/VM bastion with root user access or user with sudo privileges. ( applicable only in case of z/VM)
+* z/VM Host with desired network cards enabled and storage details. ( applicable only in case of z/VM)
 
 ## Note: 
-* This playbook only support for single node cluster (SNO) on KVM using ABI.
-* As of now we are supporting only macvtap for Agent based installation (ABI) on KVM
+* This playbook support SNO, Compact and HA type of OCP cluster installation on KVM using ABI.
+* This playbook support both macvtap and NAT network mode for Agent based installation (ABI) on KVM.
+* This playbook only support SNO and Compact type of OCP cluster installation on z/VM using ABI.
+* As of now this playbook support OCP cluster installation using `vSwitch` network on z/VM with both type of storage `fcp` and `dasd`.
 
 ### Steps: 
 
 ## Step-1: Initial Setup for ABI
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
-* Update variables in Section (1 - 9) and Section 12 - OpenShift Settings 
-* Update variables in Section - 19 ( Agent Based Installer ) in [all.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template) before running the playbooks.
-* Section 7 - ( Bootstrap Node ) need to be comment or remove while using it for ABI.
-* In case of SNO Section 8 - ( Control Nodes )  Virtual CPU should be 8 ( vcpu: 8 )
-* In case of SNO Section 9 ( Compute Nodes ) need to be comment or remove 
-* First playbook to be run is 0_setup.yaml which will create inventory file for ABI and will add ssh key to the kvm host.
+* Update variables in Section (1 - 9) and OpenShift Settings with `machine_network`
+* Update variables in Section - 14 ( `Agent Based Installer` ) in [all.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template) before running the playbooks.
+* Section 7 - ( `Bootstrap Node` ) need to be comment or remove while using it for ABI.
+* In case of SNO Section 8 - ( `Control Nodes` )  Virtual CPU should be 8 ( `vcpu: 8` )
+* In case of SNO Section 9 ( `Compute Nodes` ) need to be comment or remove
+* First playbook to be run is `0_setup.yaml` which will create inventory file for ABI and will add ssh key to the kvm host.
+* In case of z/VM update variables in [zvm.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/zvm.yaml).
 
 * Run this shell command:
 ```

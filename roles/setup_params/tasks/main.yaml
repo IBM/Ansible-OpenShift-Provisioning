@@ -1,0 +1,27 @@
+---
+- name: Generate param files
+  template:
+    src: param-file.param.j2
+    dest: ~/{{ abi.ansible_workdir }}/{{ env.cluster.networking.metadata_name }}-{{ item }}.param
+  with_sequence: start=0 end={{ (zvm.nodes | length) - 1 }} stride=1
+  loop_control:
+    extended: yes
+    index_var: item
+
+- name: Copy rootfs.img
+  ansible.builtin.copy:
+    src: "~/{{ abi.ansible_workdir }}/boot-artifacts/agent.{{ ansible_architecture }}-rootfs.img"
+    dest: /var/www/html/rootfs.img
+    remote_src: yes
+
+- name: Copy initrd.img
+  ansible.builtin.copy:
+    src: "~/{{ abi.ansible_workdir }}/boot-artifacts/agent.{{ ansible_architecture }}-initrd.img"
+    dest: /var/lib/libvirt/images/pxeboot/initrd.img
+    remote_src: yes
+
+- name: Copy kernel.img
+  ansible.builtin.copy:
+    src: "~/{{ abi.ansible_workdir }}/boot-artifacts/agent.{{ ansible_architecture }}-kernel.img"
+    dest: /var/lib/libvirt/images/pxeboot/kernel.img
+    remote_src: yes
