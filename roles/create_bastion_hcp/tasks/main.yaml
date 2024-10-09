@@ -16,14 +16,14 @@
 
 - name: Setting vars for bstion.ks file creation
   set_fact:
+    install_config_vars:
+        control:
+          architecture: "s390x"
     env:
       language: "{{ hcp.bastion_params.language }}"
       timezone: "{{ hcp.bastion_params.timezone }}"
       keyboard: "{{ hcp.bastion_params.keyboard }}"
       use_ipv6: False
-      install_config_vars:
-        control:
-          architecture: "s390x"
       cluster:
         networking:
           base_domain: "{{ hcp.bastion_params.base_domain }}"
