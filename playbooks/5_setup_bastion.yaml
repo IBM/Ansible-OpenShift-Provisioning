@@ -66,10 +66,17 @@
   roles:
     - ssh_copy_id
 
-- name: 5 Setting up of hipersocket card on bastion when booting LPAR nodes with hipersocket card (if in lpar)
+- name: 5 Setting up of HiperSocket card on bastion when booting LPAR nodes with HiperSocket card (if in lpar)
   hosts: bastion
   become: True
   tasks:
+  - name: Getting the Hipervisor Details
+    command: lscpu
+    register: hipervisor_info
+  - name: Fail the play if bastion is on the KVM guest
+    fail:
+      msg: Currently not supported for LPAR clsuter with this particular mode when bastion is on KVM host.
+    when: "'KVM' in hipervisor_info.stdout"
   - name: Check if vars file exists
     stat:
       path: "{{ inventory_dir }}/host_vars/{{ env.cluster.nodes.bootstrap.vm_name }}.yaml"
@@ -78,10 +85,10 @@
     include_vars:
       file: "{{ inventory_dir }}/host_vars/{{ env.cluster.nodes.bootstrap.vm_name }}.yaml"
     when: vars_file.stat.exists
-  - name: Attaching Hipersocket card to bastion
+  - name: Attaching HiperSocket card to bastion
     ansible.builtin.include_tasks:
       file: ../roles/bastion_setup_hipersocket_LPAR/tasks/main.yml
-    when: vars_file.stat.exists and networking.mode is defined and networking.mode=='hipersocket'
+    when: vars_file.stat.exists and networking.mode is defined and networking.mode | lower =='hipersocket'
 
 - name: 5 setup bastion - configure bastion node with essential services
   hosts: bastion
