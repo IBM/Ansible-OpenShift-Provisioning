@@ -55,7 +55,6 @@ hcp:
       ip: 
       protocol: http
       iso_mount_dir: 
-    os_variant:
     disk:
     network_name: macvtap
     networking_device: enc1100 # Device for macvtap network
