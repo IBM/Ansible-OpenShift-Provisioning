@@ -16,6 +16,13 @@
   tags: dns
   ansible.builtin.set_fact:
     bastion_split_ip: "{{ env.bastion.networking.ip.split('.') }}"
+  when: env.bastion.networking.internal_ip is not defined or env.bastion.networking.internal_ip == None
+
+- name: Split Bastion Internal_IP addresses for use in templates
+  tags: dns
+  ansible.builtin.set_fact:
+    bastion_split_ip: "{{ env.bastion.networking.internal_ip.split('.') }}"
+  when: env.bastion.networking.internal_ip is defined and env.bastion.networking.internal_ip != None
 
 - name: Split Bootstrap IP addresses for use in templates
   tags: dns

@@ -11,7 +11,7 @@ $TTL 86400
 @ IN NS {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}.
 
 ;IP Address for Name Server
-{{ env.bastion.networking.hostname }} IN A {{ env.bastion.networking.ip }}
+{{ env.bastion.networking.hostname }} IN A {% if env.bastion.networking.internal_ip is defined and env.bastion.networking.internal_ip!=None %}{{ env.bastion.networking.internal_ip }}{% else %}{{ env.bastion.networking.ip }}{% endif %}
 
 ;entry for bootstrap host.
 {% if env.cluster.nodes.bootstrap is defined %}
