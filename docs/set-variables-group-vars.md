@@ -65,7 +65,7 @@
 **env.bastion.resources.vcpu** | How many virtual CPUs would you like to allocate to the bastion? Recommended 4 or more. | 4
 **env.bastion.resources.vcpu_model_option** | Configure the CPU model and CPU features exposed to the guest | --cpu host
 **env.bastion.networking.ip** | IPv4 address for the bastion. | 192.168.10.3
-**env.bastion.networking.internal_ip** | Private IPv4 address for bastion required when installing LPAR cluster with HiperSocket. Currently supports only when bastion is on LPAR or on zVM host. Incase of zVM bastion enable the HiperSocket prior to the playbook run with vmcp commands on the bastion. | 10.42.16.1  
+**env.bastion.networking.internal_ip** | Private IPv4 address for bastion required when installing LPAR cluster with HiperSocket. Currently supports only when bastion is on LPAR or on zVM host. Incase of zVM bastion enable the HiperSocket prior to the playbook run with vmcp commands on the bastion. Alternative Option would be setting up the bridge port on OSA or RoCE. | 10.42.16.1  
 **env.bastion.networking.ipv6** | IPv6 address for the bastion if use_ipv6 variable is 'True'. | fd00::3
 **env.bastion.networking.mac** | MAC address for the bastion if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
 **env.bastion.networking.hostname** | Hostname of the bastion. Will be combined with env.bastion.networking.base_domain to create a Fully Qualified Domain Name (FQDN). | ocpz-bastion
