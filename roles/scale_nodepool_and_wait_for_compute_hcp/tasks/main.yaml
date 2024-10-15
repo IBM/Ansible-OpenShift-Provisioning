@@ -4,6 +4,7 @@
   k8s_info:
     api_version: agent-install.openshift.io/v1beta1
     kind: Agent
+    namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
   register: agents
   until: agents.resources | length == {{ hcp.data_plane.compute_count }}
   retries: 30
