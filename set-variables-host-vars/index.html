@@ -152,6 +152,16 @@
 <td style="text-align: left;">192.168.10.2</td>
 </tr>
 <tr>
+<td style="text-align: left;"><strong>networking.internal_ip</strong></td>
+<td style="text-align: left;">The internal IPv4 address of the LPAR required when booting the LPAR with HiperSocket card. Currently supports only when bastion is on LPAR or on zVM host. Incase of zVM bastion enable the HiperSocket card prior to the playbook run with vmcp commands on the bastion. Alternative Option would be setting up the bridge port on OSA or RoCE.</td>
+<td style="text-align: left;">10.42.6.2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>networking.mode</strong></td>
+<td style="text-align: left;">Type of network card</td>
+<td style="text-align: left;">osa/roce/hipersocket</td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>networking.ipv6</strong></td>
 <td style="text-align: left;">IPv6 address for the bastion if use_ipv6 variable is 'True'.</td>
 <td style="text-align: left;">fd00::3</td>

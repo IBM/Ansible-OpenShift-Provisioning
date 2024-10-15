@@ -405,6 +405,11 @@
 <td style="text-align: left;">192.168.10.3</td>
 </tr>
 <tr>
+<td style="text-align: left;"><strong>env.bastion.networking.internal_ip</strong></td>
+<td style="text-align: left;">Private IPv4 address for bastion required when installing LPAR cluster with HiperSocket. Currently supports only when bastion is on LPAR or on zVM host. Incase of zVM bastion enable the HiperSocket prior to the playbook run with vmcp commands on the bastion. Alternative Option would be setting up the bridge port on OSA or RoCE.</td>
+<td style="text-align: left;">10.42.16.1</td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>env.bastion.networking.ipv6</strong></td>
 <td style="text-align: left;">IPv6 address for the bastion if use_ipv6 variable is 'True'.</td>
 <td style="text-align: left;">fd00::3</td>
