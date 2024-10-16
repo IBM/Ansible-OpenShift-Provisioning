@@ -4,7 +4,7 @@
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
   when: hcp.data_plane.kvm.storage.type != 'dasd'
 
-- name: Boot Agents
+- name: Boot Agents with pxe artifacts
   shell: |
     {% if hcp.data_plane.kvm.ip_params.static_ip.enabled == true %}
     mac_address=$(oc get NmStateConfig static-ip-nmstate-config-{{ hcp.control_plane.hosted_cluster_name }}-{{ item }} -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} -o json | jq -r '.spec.interfaces[] | .macAddress')
@@ -36,3 +36,36 @@
   async: 3600
   poll: 0
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+  when: hcp.data_plane.kvm.boot_method | lower != 'iso'
+
+- name: Boot Agents with iso
+  shell: |
+    {% if hcp.data_plane.kvm.ip_params.static_ip.enabled == true %}
+    mac_address=$(oc get NmStateConfig static-ip-nmstate-config-{{ hcp.control_plane.hosted_cluster_name }}-{{ item }} -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} -o json | jq -r '.spec.interfaces[] | .macAddress')
+    {% else %}
+    mac_address="{{ hcp.data_plane.kvm.ip_params.mac[item] }}"
+    {% endif %}
+    {% if hcp.data_plane.kvm.storage.type != "dasd" %}
+    disk_param="{{ hcp.data_plane.kvm.storage.qcow.pool_path }}test-agent{{ item }}.qcow2"
+    {% else %}
+    disk_param="{{ hcp.data_plane.kvm.storage.dasd[item] }}"
+    {% endif %}
+
+    virt-install \
+    --name "{{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }}" \ 
+    --autostart \
+    --memory="{{ hcp.data_plane.memory }}" \
+    --cpu host \
+    --vcpus="{{ hcp.data_plane.vcpus }}" \
+    --network network:{{ hcp.bastion_params.network_name }},mac=$mac_address \ 
+    --cdrom "/var/lib/libvirt/images/pxeboot/image.iso" \ 
+    --disk $disk_param \
+    --graphics none \
+    --noautoconsole \
+    --os-variant detect=on,require=off \ 
+    --wait=-1
+  async: 3600
+  poll: 0
+  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+  when: hcp.data_plane.kvm.boot_method | lower == 'iso'
+

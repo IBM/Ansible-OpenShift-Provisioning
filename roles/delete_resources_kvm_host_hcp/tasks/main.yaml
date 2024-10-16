@@ -12,11 +12,20 @@
   file:
     path: /var/lib/libvirt/images/pxeboot/initrd.img
     state: absent
+  when: hcp.data_plane.kvm.boot_method | lower != 'iso'
 
 - name: Delete  kernel.img
   file:
     path: /var/lib/libvirt/images/pxeboot/kernel.img
     state: absent
+  when: hcp.data_plane.kvm.boot_method | lower != 'iso'
+
+- name: Delete  kernel.img
+  file:
+    path: /var/lib/libvirt/images/pxeboot/image.iso
+    state: absent
+  when: hcp.data_plane.kvm.boot_method | lower == 'iso'
+
 
 - name: Destroy bastion
   command: virsh destroy {{ hcp.control_plane.hosted_cluster_name }}-bastion
