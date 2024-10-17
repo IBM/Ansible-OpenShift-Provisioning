@@ -159,3 +159,4 @@
   ansible.builtin.service:
     name: NetworkManager
     state: restarted
+  when: installation_type | lower != 'zvm'

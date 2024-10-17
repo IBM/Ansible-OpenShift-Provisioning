@@ -353,3 +353,25 @@
 **hcp.data_plane.zvm.interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
 **hcp.data_plane.zvm.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404 
 **hcp.data_plane.zvm.nodes.lun** | Disk details of fcp disk to be used for zVM node | 4404
+
+## ZVM ( Optional )
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**zvm.network_mode** | Network mode for zvm nodes  Supported modes: vswitch,osa, RoCE  |  vswitch
+**zvm.disk_type** | Disk type for zvm nodes  Supported disk types: fcp, dasd | dasd
+**zvm.subnetmask** | Subnet mask for compute nodes | 255.255.255.0
+**zvm.gateway** | Gateway for compute nodes | 192.168.10.1
+**zvm.vcpus** | vCPUs for compute nodes | 4
+**zvm.memory** | RAM for compute nodes | 16384
+**zvm.nodes** | Set of parameters for zvm nodes  Give the details of each zvm node here |
+**zvm.nodes.name** | Name of the zVM guest | m1317002
+**zvm.nodes.host** | Host name of the zVM guests  which we use to login 3270 console | boem1317
+**zvm.nodes.user** | Username for zVM guests to login | m1317002
+**zvm.nodes.password** | password for the zVM guests to login | password
+**zvm.nodes.interface.ifname** | Network interface name for zVM guests | encbdf0
+**zvm.nodes.interface.nettype** | Network type for zVM guests for network connectivity | qeth
+**zvm.nodes.interface.subchannels** | subchannels for zVM guests interfaces | 0.0.bdf0,0.0.bdf1,0.0.bdf2
+**zvm.nodes.interface.options** | Configurations options  | layer2=1
+**zvm.interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
+**zvm.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404
+**zvm.nodes.lun** | Disk details of fcp disk to be used for zVM node | 840a
