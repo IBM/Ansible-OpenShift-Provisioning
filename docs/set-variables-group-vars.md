@@ -328,10 +328,11 @@
 **hcp.data_plane.vcpus** | vCPUs for compute nodes | 4
 **hcp.data_plane.memory** | RAM for compute nodes | 16384
 **hcp.data_plane.nameserver** | Nameserver for compute nodes | 192.168.10.1
-**hcp.data_plane.storage.type** | Storage type for KVM guests  qcow/dasd | qcow
-**hcp.data_plane.storage.qcow.disk_size** | Disk size for kvm guests | 100G
-**hcp.data_plane.storage.qcow.pool_path** | Storage pool path for creating disks | /home/images/
-**hcp.data_plane.storage.dasd** | dasd disks for kvm guests | /disk
+**hcp.data_plane.kvm.boot_method** | Boot method for booting agents. Supported methods: pxe, iso | pxe
+**hcp.data_plane.kvm.storage.type** | Storage type for KVM guests  qcow/dasd | qcow
+**hcp.data_plane.kvm.storage.qcow.disk_size** | Disk size for kvm guests | 100G
+**hcp.data_plane.kvm.storage.qcow.pool_path** | Storage pool path for creating disks | /home/images/
+**hcp.data_plane.kvm.storage.dasd** | dasd disks for kvm guests | /disk
 **hcp.data_plane.kvm.ip_params.static_ip.enabled** | true or false - use static IPs for agents using NMState | true
 **hcp.data_plane.kvm.ip_params.static_ip.ip** | List of IP addresses for agents | 192.168.10.1
 **hcp.data_plane.kvm.ip_params.static_ip.interface** | Interface for agents for configuring NMStateConfig | eth0

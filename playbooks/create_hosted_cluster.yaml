@@ -86,6 +86,8 @@
 
 - name: Configure httpd on bastion for hosting rootfs
   hosts: bastion_hcp
-  roles:
-  - download_rootfs_hcp
-
+  tasks:
+    - name: Download rootfs image
+      include_role:
+        name: download_rootfs_hcp
+      when: ( hcp.data_plane.kvm.boot_method | lower != 'iso' and hcp.compute_node_type | lower == 'kvm' ) or hcp.compute_node_type | lower != 'kvm'

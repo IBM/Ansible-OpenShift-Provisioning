@@ -72,6 +72,7 @@ hcp:
     nameserver: 
 
     kvm:
+      boot_method: pxe   # Supported methods : pxe, iso
       storage: 
         type: qcow     # Supported types: qcow, dasd
         qcow:
