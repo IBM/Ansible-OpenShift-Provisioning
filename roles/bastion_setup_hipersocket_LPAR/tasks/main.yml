@@ -1,0 +1,29 @@
+- name: Setting the Hipersocket card on the bastion
+  command:
+    cmd: "chzdev -e {{ lpar.networking.nic.card1.dev_num.split(',')[0].split('.')[-1] }}-{{ lpar.networking.nic.card1.dev_num.split(',')[-1].split('.')[-1]  }} layer2=1"
+
+- name: Add the IP address to the hipersocket card on bastion
+  command:
+    cmd: ip addr add '{{ env.bastion.networking.internal_ip }}/24' dev '{{ networking.device1 }}'
+  register: result
+  failed_when: "'exists' not in result.stderr and result.rc != 0"
+
+- name: Enabiling the IP forwarding to OSA when networking mode is hipersocket
+  command:
+    cmd: sysctl -w net.ipv4.ip_forward=1
+
+- name: Allowing masquerade on bastion when networking mode is hipersocket
+  command:
+    cmd: iptables -t nat -A POSTROUTING -o '{{ env.cluster.networking.interface }}' -j MASQUERADE
+
+- name: Enabiling the firewall masquerade
+  firewalld:
+    masquerade: yes
+    permanent: true
+    state: enabled
+    zone: public
+
+- name: Restart firewall service
+  systemd:
+    name: firewalld
+    state: restarted

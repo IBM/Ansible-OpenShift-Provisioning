@@ -15,6 +15,8 @@
 :--- | :--- | :---
 **networking.hostname** | The hostname of the LPAR with RHEL installed natively (the KVM host). | kvm-host-01
 **networking.ip** | The IPv4 address of the LPAR with RHEL installed natively (the KVM host). | 192.168.10.2
+**networking.internal_ip** | The internal IPv4 address of the LPAR required when booting the LPAR with HiperSocket card. Currently supports only when bastion is on LPAR or on zVM host. Incase of zVM bastion enable the HiperSocket card prior to the playbook run with vmcp commands on the bastion. Alternative Option would be setting up the bridge port on OSA or RoCE.| 10.42.6.2
+**networking.mode** | Type of network card | osa/roce/hipersocket 
 **networking.ipv6** | IPv6 address for the bastion if use_ipv6 variable is 'True'. | fd00::3
 **networking.subnetmask** | The subnet that the LPAR resides in within your network. | 255.255.255.0
 **networking.gateway** | The IPv4 address of the gateway to the network where the KVM host resides. | 192.168.10.0
