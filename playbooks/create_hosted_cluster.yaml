@@ -90,4 +90,4 @@
     - name: Download rootfs image
       include_role:
         name: download_rootfs_hcp
-      when: hcp.data_plane.kvm.boot_method | lower != 'iso'
+      when: ( hcp.data_plane.kvm.boot_method | lower != 'iso' and hcp.compute_node_type | lower == 'kvm' ) or hcp.compute_node_type | lower != 'kvm'
