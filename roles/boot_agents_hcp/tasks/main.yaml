@@ -46,7 +46,7 @@
     mac_address="{{ hcp.data_plane.kvm.ip_params.mac[item] }}"
     {% endif %}
     {% if hcp.data_plane.kvm.storage.type != "dasd" %}
-    disk_param="{{ hcp.data_plane.kvm.storage.qcow.pool_path }}test-agent{{ item }}.qcow2"
+    disk_param="{{ hcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}-agent{{ item }}.qcow2"
     {% else %}
     disk_param="{{ hcp.data_plane.kvm.storage.dasd[item] }}"
     {% endif %}
