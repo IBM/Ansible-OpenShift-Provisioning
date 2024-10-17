@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/run-the-playbooks-for-abi/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>Run the Playbooks - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <title>Run the Agent Based Installer (ABI) Playbooks - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,7 +13,7 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Run the Playbooks";
+        var mkdocs_page_name = "Run the Agent Based Installer (ABI) Playbooks";
         var mkdocs_page_input_path = "run-the-playbooks-for-abi.md";
         var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/run-the-playbooks-for-abi/";
       </script>
@@ -88,7 +88,7 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
-      <li class="breadcrumb-item active">Run the Playbooks</li>
+      <li class="breadcrumb-item active">Run the Agent Based Installer (ABI) Playbooks</li>
     <li class="wy-breadcrumbs-aside">
           <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/run-the-playbooks-for-abi.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
@@ -98,27 +98,32 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="run-the-playbooks">Run the Playbooks<a class="headerlink" href="#run-the-playbooks" title="Permanent link">#</a></h1>
+                <h1 id="run-the-agent-based-installer-abi-playbooks">Run the Agent Based Installer (ABI) Playbooks<a class="headerlink" href="#run-the-agent-based-installer-abi-playbooks" title="Permanent link">#</a></h1>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h2>
 <ul>
-<li>KVM host with root user access or user with sudo privileges.</li>
+<li>KVM host with root user access or user with sudo privileges. ( applicable only in case of KVM)</li>
+<li>z/VM bastion with root user access or user with sudo privileges. ( applicable only in case of z/VM)</li>
+<li>z/VM Host with desired network cards enabled and storage details. ( applicable only in case of z/VM)</li>
 </ul>
 <h2 id="note">Note:<a class="headerlink" href="#note" title="Permanent link">#</a></h2>
 <ul>
-<li>This playbook only support for single node cluster (SNO) on KVM using ABI.</li>
-<li>As of now we are supporting only macvtap for Agent based installation (ABI) on KVM</li>
+<li>This playbook support SNO, Compact and HA type of OCP cluster installation on KVM using ABI.</li>
+<li>This playbook support both macvtap and NAT network mode for Agent based installation (ABI) on KVM.</li>
+<li>This playbook only support SNO and Compact type of OCP cluster installation on z/VM using ABI.</li>
+<li>As of now this playbook support OCP cluster installation using <code>vSwitch</code> network on z/VM with both type of storage <code>fcp</code> and <code>dasd</code>.</li>
 </ul>
 <h3 id="steps">Steps:<a class="headerlink" href="#steps" title="Permanent link">#</a></h3>
 <h2 id="step-1-initial-setup-for-abi">Step-1: Initial Setup for ABI<a class="headerlink" href="#step-1-initial-setup-for-abi" title="Permanent link">#</a></h2>
 <ul>
 <li>Navigate to the <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning">root folder of the cloned Git repository</a> in your terminal (<code>ls</code> should show <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg">ansible.cfg</a>).</li>
-<li>Update variables in Section (1 - 9) and Section 12 - OpenShift Settings </li>
-<li>Update variables in Section - 19 ( Agent Based Installer ) in <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template">all.yaml</a> before running the playbooks.</li>
-<li>Section 7 - ( Bootstrap Node ) need to be comment or remove while using it for ABI.</li>
-<li>In case of SNO Section 8 - ( Control Nodes )  Virtual CPU should be 8 ( vcpu: 8 )</li>
-<li>In case of SNO Section 9 ( Compute Nodes ) need to be comment or remove </li>
+<li>Update variables in Section (1 - 9) and OpenShift Settings with <code>machine_network</code></li>
+<li>Update variables in Section - 14 ( <code>Agent Based Installer</code> ) in <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template">all.yaml</a> before running the playbooks.</li>
+<li>Section 7 - ( <code>Bootstrap Node</code> ) need to be comment or remove while using it for ABI.</li>
+<li>In case of SNO Section 8 - ( <code>Control Nodes</code> )  Virtual CPU should be 8 ( <code>vcpu: 8</code> )</li>
+<li>In case of SNO Section 9 ( <code>Compute Nodes</code> ) need to be comment or remove</li>
+<li>First playbook to be run is <code>0_setup.yaml</code> which will create inventory file for ABI and will add ssh key to the kvm host.</li>
 <li>
-<p>First playbook to be run is 0_setup.yaml which will create inventory file for ABI and will add ssh key to the kvm host.</p>
+<p>In case of z/VM update variables in <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/zvm.yaml">zvm.yaml</a>.</p>
 </li>
 <li>
 <p>Run this shell command:</p>

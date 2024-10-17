@@ -98,6 +98,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#hosted-control-plane-optional">Hosted Control Plane ( Optional )</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#zvm-optional">ZVM ( Optional )</a>
+    </li>
     </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
@@ -1676,6 +1678,108 @@
 <td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.lun</strong></td>
 <td style="text-align: left;">Disk details of fcp disk to be used for zVM node</td>
 <td style="text-align: left;">4404</td>
+</tr>
+</tbody>
+</table>
+<h2 id="zvm-optional">ZVM ( Optional )<a class="headerlink" href="#zvm-optional" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>zvm.network_mode</strong></td>
+<td style="text-align: left;">Network mode for zvm nodes  Supported modes: vswitch,osa, RoCE</td>
+<td style="text-align: left;">vswitch</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.disk_type</strong></td>
+<td style="text-align: left;">Disk type for zvm nodes  Supported disk types: fcp, dasd</td>
+<td style="text-align: left;">dasd</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.subnetmask</strong></td>
+<td style="text-align: left;">Subnet mask for compute nodes</td>
+<td style="text-align: left;">255.255.255.0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.gateway</strong></td>
+<td style="text-align: left;">Gateway for compute nodes</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.vcpus</strong></td>
+<td style="text-align: left;">vCPUs for compute nodes</td>
+<td style="text-align: left;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.memory</strong></td>
+<td style="text-align: left;">RAM for compute nodes</td>
+<td style="text-align: left;">16384</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes</strong></td>
+<td style="text-align: left;">Set of parameters for zvm nodes  Give the details of each zvm node here</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.name</strong></td>
+<td style="text-align: left;">Name of the zVM guest</td>
+<td style="text-align: left;">m1317002</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.host</strong></td>
+<td style="text-align: left;">Host name of the zVM guests  which we use to login 3270 console</td>
+<td style="text-align: left;">boem1317</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.user</strong></td>
+<td style="text-align: left;">Username for zVM guests to login</td>
+<td style="text-align: left;">m1317002</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.password</strong></td>
+<td style="text-align: left;">password for the zVM guests to login</td>
+<td style="text-align: left;">password</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.interface.ifname</strong></td>
+<td style="text-align: left;">Network interface name for zVM guests</td>
+<td style="text-align: left;">encbdf0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.interface.nettype</strong></td>
+<td style="text-align: left;">Network type for zVM guests for network connectivity</td>
+<td style="text-align: left;">qeth</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.interface.subchannels</strong></td>
+<td style="text-align: left;">subchannels for zVM guests interfaces</td>
+<td style="text-align: left;">0.0.bdf0,0.0.bdf1,0.0.bdf2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.interface.options</strong></td>
+<td style="text-align: left;">Configurations options</td>
+<td style="text-align: left;">layer2=1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.interface.ip</strong></td>
+<td style="text-align: left;">IP addresses for to be used for zVM nodes</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.dasd.disk_id</strong></td>
+<td style="text-align: left;">Disk id for dasd disk to be used for zVM node</td>
+<td style="text-align: left;">4404</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.lun</strong></td>
+<td style="text-align: left;">Disk details of fcp disk to be used for zVM node</td>
+<td style="text-align: left;">840a</td>
 </tr>
 </tbody>
 </table>
