@@ -44,5 +44,5 @@
       register: agent_name
 
     - name: Approve agents 	
-      shell: oc -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{ item }}.{{hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.hcp.basedomain }}"}}' --type merge
+      shell: oc -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{ item }}.{{hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge
 

@@ -127,7 +127,9 @@
 
 - fail:
     msg: "local-cluster namespace is still present"
-  when: localcluster.rc == 0 and localcluster.attempts >= 40 and  hcp.mce.delete == true
+  when: 
+    - hcp.mce.delete == true
+    - localcluster.rc == 0 and localcluster.attempts >= 40
 
 - name: Delete AgentServiceConfig
   k8s:
