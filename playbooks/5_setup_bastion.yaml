@@ -70,25 +70,29 @@
   hosts: bastion
   become: True
   tasks:
-  - name: Getting the Hipervisor Details
-    command: lscpu
-    register: hipervisor_info
-  - name: Fail the play if bastion is on the KVM guest
-    fail:
-      msg: Currently not supported for LPAR clsuter with this particular mode when bastion is on KVM host.
-    when: "'KVM' in hipervisor_info.stdout"
-  - name: Check if vars file exists
-    stat:
-      path: "{{ inventory_dir }}/host_vars/{{ env.cluster.nodes.bootstrap.vm_name }}.yaml"
-    register: vars_file
-  - name: Include the vars
-    include_vars:
-      file: "{{ inventory_dir }}/host_vars/{{ env.cluster.nodes.bootstrap.vm_name }}.yaml"
-    when: vars_file.stat.exists
-  - name: Attaching HiperSocket card to bastion
-    ansible.builtin.include_tasks:
-      file: ../roles/bastion_setup_hipersocket_LPAR/tasks/main.yml
-    when: vars_file.stat.exists and networking.mode is defined and networking.mode | lower =='hipersocket'
+  - name: Enabliling the HiperSocket card on bastion if installation_type is lpar else will be skipped.
+    block:
+    - name: Getting the Hipervisor Details
+      command: lscpu
+      register: hipervisor_info
+    - name: Fail the play if bastion is on the KVM guest
+      fail:
+        msg: Currently not supported for LPAR clsuter with this particular mode when bastion is on KVM host.
+      when: "'KVM' in hipervisor_info.stdout"
+    - name: Check if vars file exists
+      stat:
+        path: "{{ inventory_dir }}/host_vars/{{ env.cluster.nodes.bootstrap.vm_name }}.yaml"
+      register: vars_file
+      delegate_to: localhost
+    - name: Include the vars
+      include_vars:
+        file: "{{ inventory_dir }}/host_vars/{{ env.cluster.nodes.bootstrap.vm_name }}.yaml"
+      when: vars_file.stat.exists
+    - name: Attaching HiperSocket card to bastion
+      ansible.builtin.include_tasks:
+        file: ../roles/bastion_setup_hipersocket_LPAR/tasks/main.yml
+      when: vars_file.stat.exists and networking.mode is defined and networking.mode | lower =='hipersocket'
+    when: installation_type | lower =="lpar"
 
 - name: 5 setup bastion - configure bastion node with essential services
   hosts: bastion
