@@ -1560,22 +1560,27 @@
 <td style="text-align: left;">192.168.10.1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>hcp.data_plane.storage.type</strong></td>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.boot_method</strong></td>
+<td style="text-align: left;">Boot method for booting agents. Supported methods: pxe, iso</td>
+<td style="text-align: left;">pxe</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.storage.type</strong></td>
 <td style="text-align: left;">Storage type for KVM guests  qcow/dasd</td>
 <td style="text-align: left;">qcow</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>hcp.data_plane.storage.qcow.disk_size</strong></td>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.storage.qcow.disk_size</strong></td>
 <td style="text-align: left;">Disk size for kvm guests</td>
 <td style="text-align: left;">100G</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>hcp.data_plane.storage.qcow.pool_path</strong></td>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.storage.qcow.pool_path</strong></td>
 <td style="text-align: left;">Storage pool path for creating disks</td>
 <td style="text-align: left;">/home/images/</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>hcp.data_plane.storage.dasd</strong></td>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.storage.dasd</strong></td>
 <td style="text-align: left;">dasd disks for kvm guests</td>
 <td style="text-align: left;">/disk</td>
 </tr>
