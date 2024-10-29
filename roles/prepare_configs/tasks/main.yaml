@@ -1,4 +1,9 @@
 ---
+- name: Delete OCP Work Directory For Idempotency.
+  file:
+    path: ~/ansible_workdir
+    state: absent
+
 - name: Create Work Directory
   file:
     path: ~/ansible_workdir
