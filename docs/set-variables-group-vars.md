@@ -320,7 +320,6 @@
 **hcp.bastion_params.file_server.iso_mount_dir** | Directory path relative to the HTTP/FTP accessible directory where RHEL ISO is mounted. For example, if the FTP root is at /home/user1 and the ISO is mounted at /home/user1/RHEL/8.7 then this variable would be RHEL/8.7 - no slash before or after. | RHEL/8.7
 **hcp.bastion_params.disk** | rhel os variant for creating bastion | 8.7
 **hcp.bastion_params.network_name** | rhel os variant for creating bastion | 8.7
-**hcp.bastion_params.networking_device** | The network interface card from Linux's perspective.  Usually enc and then a number that comes from the dev_num of the network adapter. | enc1100
 **hcp.bastion_params.language** | What language would you like Red Hat Enterprise Linux to use? In UTF-8 language code. Available languages and their corresponding codes can be found here, in the "Locale" column of Table 2.1. | en_US.UTF-8
 **hcp.bastion_params.timezone** | Which timezone would you like Red Hat Enterprise Linux to use? A list of available timezone options can be found here. | America/New_York
 **hcp.bastion_params.keyboard** | Which keyboard layout would you like Red Hat Enterprise Linux to use? | us

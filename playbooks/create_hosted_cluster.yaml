@@ -19,10 +19,14 @@
   hosts: kvm_host_hcp
   become: true
   tasks:
+    - name: Getting interface name
+      shell: ip -o -f inet addr show | grep "{{ hcp.bastion_params.host}}" | awk '{print $2}' | tr -d ':'
+      register: network_interface
+
     - name: Setting interface name
       set_fact:
         networking:
-          device1: "{{ hcp.bastion_params.networking_device }}"
+          device1: "{{ network_interface.stdout }}"
         env:
           vnet_name: macvtap
       when: hcp.compute_node_type | lower != 'zvm'
