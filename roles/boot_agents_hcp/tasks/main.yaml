@@ -2,7 +2,7 @@
 - name: Create qemu image for agents
   command: "qemu-img create -f qcow2 {{ hcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}-agent{{ item }}.qcow2 {{ hcp.data_plane.kvm.storage.qcow.disk_size }}"
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
-  when: hcp.data_plane.kvm.storage.type != 'dasd'
+  when: hcp.data_plane.kvm.storage.type | lower != 'dasd'
 
 - name: Boot Agents with pxe artifacts
   shell: |
@@ -11,7 +11,7 @@
     {% else %}
     mac_address="{{ hcp.data_plane.kvm.ip_params.mac[item] }}"
     {% endif %}
-    {% if hcp.data_plane.kvm.storage.type != "dasd" %}
+    {% if hcp.data_plane.kvm.storage.type | lower != "dasd" %}
     disk_param="{{ hcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}-agent{{ item }}.qcow2"
     {% else %}
     disk_param="{{ hcp.data_plane.kvm.storage.dasd[item] }}"
@@ -45,7 +45,7 @@
     {% else %}
     mac_address="{{ hcp.data_plane.kvm.ip_params.mac[item] }}"
     {% endif %}
-    {% if hcp.data_plane.kvm.storage.type != "dasd" %}
+    {% if hcp.data_plane.kvm.storage.type | lower != "dasd" %}
     disk_param="{{ hcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}-agent{{ item }}.qcow2"
     {% else %}
     disk_param="{{ hcp.data_plane.kvm.storage.dasd[item] }}"
