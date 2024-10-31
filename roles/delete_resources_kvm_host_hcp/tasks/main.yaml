@@ -31,3 +31,15 @@
 
 - name: Undefine bastion
   command: virsh undefine {{ hcp.control_plane.hosted_cluster_name }}-bastion --remove-all-storage
+
+- name: Stop the storage pool
+  tags: delete_storage, pool
+  community.libvirt.virt_pool:
+    name: "{{ hcp.control_plane.hosted_cluster_name }}-vdisk"
+    state: stopped
+
+- name: Delete the storage pool
+  tags: delete_storage, pool
+  community.libvirt.virt_pool:
+    name: "{{ hcp.control_plane.hosted_cluster_name }}-vdisk"
+    state: absent
