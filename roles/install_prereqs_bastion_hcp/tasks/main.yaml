@@ -111,13 +111,24 @@
   with_items:
   - internal
   - public
-
+  
 - name: allow traffic at port 6443 
   firewalld:
     port: 6443/tcp
     permanent: yes
     zone: "{{ item }}"
     state: enabled
+  with_items:
+  - internal
+  - public
+
+- name: allow traffic to 53 port for DNS 
+  tags: firewall
+  firewalld:
+    port: 53/udp
+    zone: "{{ item }}"
+    state: enabled
+    permanent: true
   with_items:
   - internal
   - public
@@ -149,3 +160,42 @@
     name: firewalld.service
     state: restarted
     enabled: true
+
+# Configuring Nameserver on bastion for HCP
+
+- name: Enable named
+  tags: dns
+  ansible.builtin.systemd:
+    name: named
+    enabled: yes
+
+- name: Start named
+  tags: dns
+  ansible.builtin.systemd:
+    name: named
+    state: started
+
+- name: Template named.conf file to bastion
+  tags: dns
+  ansible.builtin.template:
+    src: dns-named.conf.j2
+    dest: /etc/named.conf
+    owner: root
+    group: root
+    mode: "0644"
+    backup: yes
+
+- name: Template DNS forwarding file to bastion
+  tags: dns
+  ansible.builtin.template:
+    src: forward.zone.j2
+    dest: /var/named/{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}.zone
+    owner: named
+    group: named
+    mode: "0644"
+    backup: yes
+
+- name: Restart named to update changes made to DNS
+  ansible.builtin.systemd:
+    name: named
+    state: restarted

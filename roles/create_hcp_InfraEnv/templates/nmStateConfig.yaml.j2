@@ -27,7 +27,7 @@ spec:
     dns-resolver:
       config:
         server:
-          - "{{ hcp.data_plane.nameserver }}"
+          - "{{ hcp.bastion_params.ip }}"
 
   interfaces:
     - name: "{{ hcp.data_plane.kvm.ip_params.static_ip.interface }}"
