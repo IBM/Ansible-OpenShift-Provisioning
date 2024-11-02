@@ -199,3 +199,9 @@
   ansible.builtin.systemd:
     name: named
     state: restarted
+
+- name: Add HCP Nameserver to /etc/resolv.conf of bastion
+  lineinfile:
+    dest: /etc/resolv.conf
+    insertbefore: BOF
+    line: nameserver {{ hcp.bastion_params.ip }}
