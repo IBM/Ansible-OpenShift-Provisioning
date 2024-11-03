@@ -23,12 +23,12 @@
               metadata_name: "{{ hcp.control_plane.hosted_cluster_name }}"
         storage:
           pool_path: "{{ hcp.data_plane.kvm.storage.qcow.pool_path }}"
-      when: hcp.data_plane.kvm.storage.type | lower  != 'dasd'
+      when: hcp.data_plane.kvm.storage.type | lower  != 'dasd' and hcp.compute_node_type | lower == 'kvm'
 
     - name: Configure Storage pool
       import_role:
         name: configure_storage
-      when: hcp.data_plane.kvm.storage.type | lower  != 'dasd'
+      when: hcp.data_plane.kvm.storage.type | lower  != 'dasd' and hcp.compute_node_type | lower == 'kvm'
 
 - name: Create macvtap network
   hosts: kvm_host_hcp
