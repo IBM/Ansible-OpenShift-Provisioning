@@ -14,8 +14,8 @@
         kubeconfig: "/root/ansible_workdir/hcp-kubeconfig"
       register: nodes
       until: nodes.resources | length == 0
-      retries: 30
-      delay: 10
+      retries: 50
+      delay: 15
   rescue: 
     - name: Getting basedomain
       shell: oc get hc {{ hcp.control_plane.hosted_cluster_name }} -n {{ hcp.control_plane.clusters_namespace }} -o json | jq -r '.spec.dns.baseDomain'
