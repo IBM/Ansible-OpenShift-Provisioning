@@ -157,12 +157,6 @@
     name: named
     enabled: yes
 
-- name: Start named
-  tags: dns
-  ansible.builtin.systemd:
-    name: named
-    state: started
-
 - name: Template named.conf file to bastion
   tags: dns
   ansible.builtin.template:
