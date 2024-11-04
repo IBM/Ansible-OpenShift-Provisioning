@@ -157,6 +157,11 @@
     name: named
     enabled: yes
 
+# management_basedomain 
+- name: Getting basedomain of management cluster for forwarding 
+  set_fact:
+    management_basedomain: "{{ api_server.split('.')[-2] }}.{{ api_server.split('.')[-1].split(':')[0] }}"
+
 - name: Template named.conf file to bastion
   tags: dns
   ansible.builtin.template:

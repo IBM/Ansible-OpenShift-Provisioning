@@ -11,7 +11,7 @@ options {
 
 	recursion yes;
 	allow-recursion { any; };
-	forwarders { {{ hcp.mgmt_cluster_nameserver }}; };
+	forwarders { {{ hcp.bastion_params.nameserver }}; };
 
 	dnssec-enable yes;
 	dnssec-validation no;
@@ -46,4 +46,9 @@ zone "{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomai
         allow-query { any; };
         allow-transfer { none; };
         allow-update { none; };
+};
+
+zone "{{ management_basedomain }}" {
+        type forward;
+		forwarders { {{ hcp.mgmt_cluster_nameserver }}; };
 };
