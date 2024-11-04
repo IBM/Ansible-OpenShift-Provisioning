@@ -149,18 +149,6 @@
     persistent: true
     state: true
 
-- name: restart haproxy 
-  service:
-    name: haproxy.service
-    state: restarted
-    enabled: true
-
-- name: Restart firewalld.service
-  service:
-    name: firewalld.service
-    state: restarted
-    enabled: true
-
 # Configuring Nameserver on bastion for HCP
 
 - name: Enable named
@@ -195,13 +183,26 @@
     mode: "0644"
     backup: yes 
 
-- name: Restart named to update changes made to DNS
-  ansible.builtin.systemd:
-    name: named
-    state: restarted
-
 - name: Add HCP Nameserver to /etc/resolv.conf of bastion
   lineinfile:
     dest: /etc/resolv.conf
     insertbefore: BOF
     line: nameserver {{ hcp.bastion_params.ip }}
+
+- name: Restart named to update changes made to DNS
+  service:
+    name: named.service
+    state: restarted
+    enabled: true
+
+- name: restart haproxy 
+  service:
+    name: haproxy.service
+    state: restarted
+    enabled: true
+
+- name: Restart firewalld.service
+  service:
+    name: firewalld.service
+    state: restarted
+    enabled: true
