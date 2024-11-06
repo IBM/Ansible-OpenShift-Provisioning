@@ -1,8 +1,11 @@
 # Run the Agent Based Installer (ABI) Playbooks
 ## Prerequisites
-* KVM host with root user access or user with sudo privileges. ( applicable only in case of KVM)
-* z/VM bastion with root user access or user with sudo privileges. ( applicable only in case of z/VM)
-* z/VM Host with desired network cards enabled and storage details. ( applicable only in case of z/VM)
+* KVM
+    * Host with root user access or user with sudo privileges.
+* z/VM
+    * Bastion with root user access or user with sudo privileges.
+    * Host with desired network cards enabled and storage details.
+* Checklist for Disconnected Cluster Installation ( [Disconnected Pre-requisites](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/docs/run-the-playbooks-for-disconnected.md#pre-requisites) )
 
 ## Note: 
 * This playbook support SNO, Compact and HA type of OCP cluster installation on KVM using ABI.
@@ -21,6 +24,7 @@
 * In case of SNO Section 9 ( `Compute Nodes` ) need to be comment or remove
 * First playbook to be run is `0_setup.yaml` which will create inventory file for ABI and will add ssh key to the kvm host.
 * In case of z/VM update variables in [zvm.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/zvm.yaml).
+* In case of disconnected cluster installation update variables in [disconnected.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/disconnected.yaml).
 
 * Run this shell command:
 ```
@@ -33,7 +37,9 @@ ansible-playbook playbooks/0_setup.yaml
     * 3_setup_kvm_host.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml))
     * 4_create_bastion.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/4_create_bastion.yaml))
     * 5_setup_bastion.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/5_setup_bastion.yaml))
+    * disconnected_mirror_artifacts.yaml  (when disconnected is True) [code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/disconnected_mirror_artifacts.yaml)
     * create_abi_cluster.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_abi_cluster.yaml))
+    * monitor_create_abi_cluster.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/monitor_create_abi_cluster.yaml))
    
 * Watch Ansible as it completes the installation, correcting errors if they arise.
 * To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml

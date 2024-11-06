@@ -92,7 +92,7 @@
       ansible.builtin.include_tasks:
         file: ../roles/bastion_setup_hipersocket_LPAR/tasks/main.yml
       when: vars_file.stat.exists and networking.mode is defined and networking.mode | lower =='hipersocket'
-    when: installation_type | lower =="lpar"
+    when: installation_type | lower == "lpar"
 
 - name: 5 setup bastion - configure bastion node with essential services
   hosts: bastion
@@ -103,6 +103,7 @@
     control_node_count: "{{ env.cluster.nodes.control.ip | length }}"
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   pre_tasks:
     - name: Import initial-resolv.yaml
       ansible.builtin.import_role:

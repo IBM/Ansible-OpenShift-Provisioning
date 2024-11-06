@@ -30,4 +30,9 @@ api-int.{{ env.cluster.networking.metadata_name }} IN    CNAME {{ env.bastion.ne
 apps.{{ env.cluster.networking.metadata_name }}  IN    CNAME {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}.
 *.apps.{{ env.cluster.networking.metadata_name }}  IN    CNAME {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}.
 
+{% if disconnected.enabled %}
+;entry for mirror host.
+{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.file_server.ip }}
+{% endif %}
+
 ;EOF
