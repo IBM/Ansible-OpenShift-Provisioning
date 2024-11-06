@@ -319,14 +319,13 @@
 **hcp.bastion_params.file_server.protocol** | Protocol used to serve the files, either 'ftp' or 'http' | http
 **hcp.bastion_params.file_server.iso_mount_dir** | Directory path relative to the HTTP/FTP accessible directory where RHEL ISO is mounted. For example, if the FTP root is at /home/user1 and the ISO is mounted at /home/user1/RHEL/8.7 then this variable would be RHEL/8.7 - no slash before or after. | RHEL/8.7
 **hcp.bastion_params.disk** | rhel os variant for creating bastion | 8.7
-**hcp.bastion_params.network_name** | rhel os variant for creating bastion | 8.7
+**hcp.bastion_params.network_name** | Name of the network which you want to use for guets VMs to connect | 8.7
 **hcp.bastion_params.language** | What language would you like Red Hat Enterprise Linux to use? In UTF-8 language code. Available languages and their corresponding codes can be found here, in the "Locale" column of Table 2.1. | en_US.UTF-8
 **hcp.bastion_params.timezone** | Which timezone would you like Red Hat Enterprise Linux to use? A list of available timezone options can be found here. | America/New_York
 **hcp.bastion_params.keyboard** | Which keyboard layout would you like Red Hat Enterprise Linux to use? | us
 **hcp.data_plane.compute_count** | Number of agents for the hosted cluster  The same number of compute nodes will be attached to Hosted Cotrol Plane | 2
 **hcp.data_plane.vcpus** | vCPUs for compute nodes | 4
 **hcp.data_plane.memory** | RAM for compute nodes | 16384
-**hcp.data_plane.nameserver** | Nameserver for compute nodes | 192.168.10.1
 **hcp.data_plane.kvm.boot_method** | Boot method for booting agents. Supported methods: pxe, iso | pxe
 **hcp.data_plane.kvm.storage.type** | Storage type for KVM guests  qcow/dasd | qcow
 **hcp.data_plane.kvm.storage.qcow.disk_size** | Disk size for kvm guests | 100G
