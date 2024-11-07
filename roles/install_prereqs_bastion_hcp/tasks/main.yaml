@@ -12,6 +12,24 @@
     name: "{{ hcp.pkgs.bastion }}"
     state: present
 
+- name: Getting rhel version
+  shell: awk -F 'release ' '{print $2}' /etc/redhat-release | awk '{print $1}'
+  register: rhel_version
+
+- name: Update sshd_config
+  blockinfile:
+    path: /etc/ssh/sshd_config
+    block: |
+      PasswordAuthentication yes
+      PermitRootLogin yes
+  when: rhel_version.stdout| float >= 9.0
+
+- name: Restart sshd service
+  service:
+    name: sshd
+    state: restarted
+  when: rhel_version.stdout| float >= 9.0
+  
 # Creating one directory for Storing Files
 - name: Create Work Directory
   file:
