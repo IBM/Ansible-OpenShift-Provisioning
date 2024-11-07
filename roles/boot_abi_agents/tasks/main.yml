@@ -28,6 +28,7 @@
     virt-install \
     --name {{ env.cluster.nodes.control.vm_name[i] }} \
     --autostart \
+    --osinfo detect=on,require=off \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }},cache=none,io=native \
     --ram {{ env.cluster.nodes.control.ram }} \
     {{ env.cluster.nodes.control.vcpu_model_option }} \
@@ -63,6 +64,7 @@
     virt-install \
     --name {{ env.cluster.nodes.control.vm_name[i] }} \
     --autostart \
+    --osinfo detect=on,require=off \
     --memory {{ env.cluster.nodes.control.ram }} \
     --cpu host \
     --vcpus {{ env.cluster.nodes.control.vcpu }} \
@@ -89,6 +91,7 @@
     virt-install \
     --name {{ env.cluster.nodes.compute.vm_name[i] }} \
     --autostart \
+    --osinfo detect=on,require=off \
     --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }},cache=none,io=native \
     --ram {{ env.cluster.nodes.compute.ram }} \
     {{ env.cluster.nodes.compute.vcpu_model_option }} \
@@ -124,6 +127,7 @@
     virt-install \
     --name {{ env.cluster.nodes.compute.vm_name[i] }} \
     --autostart \
+    --osinfo detect=on,require=off \
     --memory {{ env.cluster.nodes.compute.ram }} \
     --cpu host \
     --vcpus {{ env.cluster.nodes.compute.vcpu }} \
