@@ -53,6 +53,13 @@
     insertafter: '^lang.*'
     line: "rootpw {{ bastion_root_pw }}"
 
+- name: Enable password based authentication for bastion
+  blockinfile:
+    path: /home/libvirt/bastion.ks
+    insertafter: '^#!/usr/bin/env bash'
+    block: |
+      sed -i -e '/PermitRootLogin/ c\PermitRootLogin yes' /etc/ssh/sshd_config
+
 - name: Adding ssh key to bastion
   blockinfile:
     path: /home/libvirt/bastion.ks
