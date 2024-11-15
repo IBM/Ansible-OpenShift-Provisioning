@@ -31,3 +31,21 @@
 
 - name: Undefine bastion
   command: virsh undefine {{ hcp.control_plane.hosted_cluster_name }}-bastion --remove-all-storage
+
+- name: Stop the storage pool
+  community.libvirt.virt_pool:
+    name: "{{ hcp.control_plane.hosted_cluster_name }}-vdisk"
+    state: inactive
+  when: hcp.data_plane.kvm.storage.type | lower  != 'dasd' and hcp.compute_node_type | lower == 'kvm'
+
+- name: Delete the storage pool
+  community.libvirt.virt_pool:
+    name: "{{ hcp.control_plane.hosted_cluster_name }}-vdisk"
+    state: absent
+  when: hcp.data_plane.kvm.storage.type | lower  != 'dasd' and hcp.compute_node_type | lower == 'kvm'
+
+- name: Delete directory created for Storage pool
+  ansible.builtin.file:
+    path: "{{ hcp.data_plane.kvm.storage.qcow.pool_path }}{{ hcp.control_plane.hosted_cluster_name }}"
+    state: absent
+  when: hcp.data_plane.kvm.storage.type | lower  != 'dasd' and hcp.compute_node_type | lower == 'kvm'

@@ -14,15 +14,34 @@
       import_role:
         name:  install_prerequisites_host_hcp
       when: hcp.compute_node_type | lower != 'zvm'
+     
+    - name: Setting vars for storage pool configuration
+      set_fact:
+        env:
+          cluster:
+            networking:
+              metadata_name: "{{ hcp.control_plane.hosted_cluster_name }}"
+        storage:
+          pool_path: "{{ hcp.data_plane.kvm.storage.qcow.pool_path }}"
+      when: hcp.data_plane.kvm.storage.type | lower  != 'dasd' and hcp.compute_node_type | lower == 'kvm'
+
+    - name: Configure Storage pool
+      import_role:
+        name: configure_storage
+      when: hcp.data_plane.kvm.storage.type | lower  != 'dasd' and hcp.compute_node_type | lower == 'kvm'
 
 - name: Create macvtap network
   hosts: kvm_host_hcp
   become: true
   tasks:
+    - name: Getting interface name
+      shell: ip -o -f inet addr show | grep "{{ hcp.bastion_params.host}}" | awk '{print $2}' | tr -d ':'
+      register: network_interface
+
     - name: Setting interface name
       set_fact:
         networking:
-          device1: "{{ hcp.bastion_params.networking_device }}"
+          device1: "{{ network_interface.stdout }}"
         env:
           vnet_name: macvtap
       when: hcp.compute_node_type | lower != 'zvm'
@@ -68,7 +87,7 @@
     - name: Add ansible SSH key to ssh-agent
       import_role:
         name: ssh_agent
-
+    
 - name: Create AgentServiceConfig Hosted Control Plane and InfraEnv
   hosts: bastion_hcp
   vars_files:
