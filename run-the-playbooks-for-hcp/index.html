@@ -124,14 +124,18 @@
                 <h1 id="run-the-playbooks">Run the Playbooks<a class="headerlink" href="#run-the-playbooks" title="Permanent link">#</a></h1>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h2>
 <ul>
-<li>Running OCP Cluster ( Management Cluster )  </li>
+<li>Running OCP Cluster ( Management Cluster ), with a storage class provisoned on it.</li>
 <li>KVM host with root user access or user with sudo privileges if compute nodes are KVM.</li>
 <li>zvm host ( bastion ) and nodes if compute nodes are zVM.</li>
 </ul>
 <h3 id="network-prerequisites">Network Prerequisites<a class="headerlink" href="#network-prerequisites" title="Permanent link">#</a></h3>
 <ul>
-<li>DNS entry to resolve api.${cluster}.${domain} , api-int.${cluster}.${domain} , *apps.${cluster}.${domain} to a load balancer deployed to redirect incoming traffic to the ingresses pod  ( Bastion ).</li>
-<li>If using dynamic IP for agents, make sure you have entries in DHCP Server for macaddresses you are using in installation to map to  IPv4 addresses and along with this DHCP server should make your IPs to use nameserver which you have configured.</li>
+<li>
+<p>Add HCP bastion IP as forwarder in management cluster nameserver , or add DNS entry to resolve api.${cluster}.${domain} , api-int.${cluster}.${domain} , *apps.${cluster}.${domain} to a load balancer deployed to redirect incoming traffic to the ingresses pod  ( Bastion ).</p>
+</li>
+<li>
+<p>If using dynamic IP for agents, make sure you have entries in DHCP Server for macaddresses you are using in installation to map to  IPv4 addresses and along with this DHCP server should make your IPs to use nameserver which you have configured.</p>
+</li>
 </ul>
 <h2 id="note">Note:<a class="headerlink" href="#note" title="Permanent link">#</a></h2>
 <ul>
