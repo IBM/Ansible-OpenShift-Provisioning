@@ -12,6 +12,24 @@
     name: "{{ hcp.pkgs.bastion }}"
     state: present
 
+- name: Getting rhel version
+  shell: awk -F 'release ' '{print $2}' /etc/redhat-release | awk '{print $1}'
+  register: rhel_version
+
+- name: Update sshd_config
+  blockinfile:
+    path: /etc/ssh/sshd_config
+    block: |
+      PasswordAuthentication yes
+      PermitRootLogin yes
+  when: rhel_version.stdout| float >= 9.0
+
+- name: Restart sshd service
+  service:
+    name: sshd
+    state: restarted
+  when: rhel_version.stdout| float >= 9.0
+  
 # Creating one directory for Storing Files
 - name: Create Work Directory
   file:
@@ -111,13 +129,24 @@
   with_items:
   - internal
   - public
-
+  
 - name: allow traffic at port 6443 
   firewalld:
     port: 6443/tcp
     permanent: yes
     zone: "{{ item }}"
     state: enabled
+  with_items:
+  - internal
+  - public
+
+- name: allow traffic to 53 port for DNS 
+  tags: firewall
+  firewalld:
+    port: 53/udp
+    zone: "{{ item }}"
+    state: enabled
+    permanent: true
   with_items:
   - internal
   - public
@@ -137,6 +166,51 @@
     name: haproxy_connect_any
     persistent: true
     state: true
+
+# Configuring Nameserver on bastion for HCP
+
+- name: Enable named
+  tags: dns
+  ansible.builtin.systemd:
+    name: named
+    enabled: yes
+
+# management_basedomain 
+- name: Getting basedomain of management cluster for forwarding 
+  set_fact:
+    management_basedomain: "{{ api_server.split('.')[-2] }}.{{ api_server.split('.')[-1].split(':')[0] }}"
+
+- name: Template named.conf file to bastion
+  tags: dns
+  ansible.builtin.template:
+    src: dns-named.conf.j2
+    dest: /etc/named.conf
+    owner: root
+    group: root
+    mode: "0644"
+    backup: yes
+
+- name: Template DNS forwarding file to bastion
+  tags: dns
+  ansible.builtin.template:
+    src: forward.zone.j2
+    dest: /var/named/{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}.zone
+    owner: named
+    group: named
+    mode: "0644"
+    backup: yes 
+
+- name: Add HCP Nameserver to /etc/resolv.conf of bastion
+  lineinfile:
+    dest: /etc/resolv.conf
+    insertbefore: BOF
+    line: nameserver {{ hcp.bastion_params.ip }}
+
+- name: Restart named to update changes made to DNS
+  service:
+    name: named.service
+    state: restarted
+    enabled: true
 
 - name: restart haproxy 
   service:
