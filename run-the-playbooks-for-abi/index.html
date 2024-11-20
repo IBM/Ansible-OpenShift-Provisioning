@@ -101,9 +101,16 @@
                 <h1 id="run-the-agent-based-installer-abi-playbooks">Run the Agent Based Installer (ABI) Playbooks<a class="headerlink" href="#run-the-agent-based-installer-abi-playbooks" title="Permanent link">#</a></h1>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h2>
 <ul>
-<li>KVM host with root user access or user with sudo privileges. ( applicable only in case of KVM)</li>
-<li>z/VM bastion with root user access or user with sudo privileges. ( applicable only in case of z/VM)</li>
-<li>z/VM Host with desired network cards enabled and storage details. ( applicable only in case of z/VM)</li>
+<li>KVM<ul>
+<li>Host with root user access or user with sudo privileges.</li>
+</ul>
+</li>
+<li>z/VM<ul>
+<li>Bastion with root user access or user with sudo privileges.</li>
+<li>Host with desired network cards enabled and storage details.</li>
+</ul>
+</li>
+<li>Checklist for Disconnected Cluster Installation ( <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/docs/run-the-playbooks-for-disconnected.md#pre-requisites">Disconnected Pre-requisites</a> )</li>
 </ul>
 <h2 id="note">Note:<a class="headerlink" href="#note" title="Permanent link">#</a></h2>
 <ul>
@@ -122,8 +129,9 @@
 <li>In case of SNO Section 8 - ( <code>Control Nodes</code> )  Virtual CPU should be 8 ( <code>vcpu: 8</code> )</li>
 <li>In case of SNO Section 9 ( <code>Compute Nodes</code> ) need to be comment or remove</li>
 <li>First playbook to be run is <code>0_setup.yaml</code> which will create inventory file for ABI and will add ssh key to the kvm host.</li>
+<li>In case of z/VM update variables in <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/zvm.yaml">zvm.yaml</a>.</li>
 <li>
-<p>In case of z/VM update variables in <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/zvm.yaml">zvm.yaml</a>.</p>
+<p>In case of disconnected cluster installation update variables in <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/disconnected.yaml">disconnected.yaml</a>.</p>
 </li>
 <li>
 <p>Run this shell command:</p>
@@ -141,7 +149,9 @@
 <li>3_setup_kvm_host.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml">code</a>)</li>
 <li>4_create_bastion.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/4_create_bastion.yaml">code</a>)</li>
 <li>5_setup_bastion.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/5_setup_bastion.yaml">code</a>)</li>
+<li>disconnected_mirror_artifacts.yaml  (when disconnected is True) <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/disconnected_mirror_artifacts.yaml">code</a></li>
 <li>create_abi_cluster.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_abi_cluster.yaml">code</a>)</li>
+<li>monitor_create_abi_cluster.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/monitor_create_abi_cluster.yaml">code</a>)</li>
 </ul>
 </li>
 <li>
