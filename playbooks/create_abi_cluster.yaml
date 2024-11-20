@@ -7,9 +7,11 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/zvm.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   roles:
     - common # Common Variable the will be used by all the inwalked roles.
-    - download_ocp_installer # Download Openshift Installer.
+    - { role: offline_artifacts, when: disconnected.enabled } # Update CA Certificates & Download OCP Packages
+    - { role: download_ocp_installer, when: not disconnected.enabled } # Download Openshift Installer.
     - prepare_configs # Prepare AgentConfig & InstallConfig.
     - create_agent # Create Agents || Build initrd.img, rootfs.img & kernelfs.img.
 

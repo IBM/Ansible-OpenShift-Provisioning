@@ -1,0 +1,105 @@
+---
+- name: Offline Artifacts
+  block:
+    - name: Get user home directory  
+      shell: >
+          getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
+      changed_when: false
+      register: user_home
+
+    - name: Delete OCP download directory for idempotency.
+      become: true
+      file:
+        path: "{{ user_home.stdout }}/ocp_pkgs"
+        state: absent
+
+    - name: Create OCP download directory  
+      file:
+        path: "{{ user_home.stdout }}/ocp_pkgs"
+        state: directory
+
+    - name: Unzip OCP client and oc-mirror  
+      ansible.builtin.unarchive:
+        src: "{{ item }}"
+        dest: "{{ user_home.stdout }}/ocp_pkgs/"
+        remote_src: yes
+      loop:
+        - "{{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
+        - "{{ env.file_server.protocol }}://{{ env.file_server.user + ':' + env.file_server.pass + '@' if env.file_server.protocol == 'ftp' else '' }}{{ env.file_server.ip }}{{ ':' + env.file_server.port if env.file_server.port | default('') | length > 0 else '' }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+
+    - name: Copy kubectl, oc, and oc-mirror binaries to /usr/local/sbin  
+      become: true
+      ansible.builtin.copy:
+        src: "{{ user_home.stdout }}/ocp_pkgs/{{ item }}"
+        dest: /usr/sbin/{{ item }}
+        owner: root
+        group: root
+        mode: "755"
+        remote_src: yes
+      loop:
+        - kubectl
+        - oc
+        - oc-mirror
+
+    - name: Check if directory {{ user_home.stdout }}/.docker exists  
+      ansible.builtin.stat:
+        path: "{{ user_home.stdout }}/.docker"
+      register: home_docker
+
+    - name: Create directory {{ user_home.stdout }}/.docker  
+      file:
+        path: "{{ user_home.stdout }}/.docker"
+        state: directory
+      when: not home_docker.stat.exists
+
+    - name: create pull secret file for mirroring  
+      ansible.builtin.template:
+        src: mirror-secret.json.j2
+        dest: "{{ user_home.stdout }}/.docker/config.json"
+        backup: yes
+        force: yes
+
+    - name: create ca cert file for adding to ca trust when ca is not trusted and updating ca trust  
+      become: true
+      block:
+        - name: create ca cert file when ca is untrusted
+          ansible.builtin.template:
+            src: ca.crt.j2
+            dest: /etc/pki/ca-trust/source/anchors/registry.crt
+            force: yes
+        - name: update ca trust with the cert file
+          ansible.builtin.shell: |
+            set -o pipefail
+            update-ca-trust
+      when: not disconnected.registry.ca_trusted
+    
+    - name: run the oc adm release extract command
+      block:
+        - name: run the oc adm release extract command
+          ansible.builtin.shell: |
+            set -o pipefail
+            oc adm -a {{ user_home.stdout }}/.docker/config.json release extract \
+            --command=openshift-install "{{ disconnected.registry.url }}/openshift/release-images:{{ disconnected.mirroring.oc_mirror.release_image_tag }}"
+          register: cmd_oc_extract
+          args:
+            chdir: "{{ user_home.stdout }}/ocp_pkgs"
+
+        - name: print output of cmd_oc_extract
+          ansible.builtin.debug:
+            var: cmd_oc_extract
+
+        - name: Copy openshift-install binaries to /usr/local/sbin  
+          become: true
+          ansible.builtin.copy:
+            src: "{{ user_home.stdout }}/ocp_pkgs/openshift-install"
+            dest: /usr/sbin/openshift-install
+            owner: root
+            group: root
+            mode: "755"
+            remote_src: yes
+
+    - name: Install NMState package
+      ansible.builtin.yum:
+        name: nmstate
+        state: latest
+        skip_broken: yes
