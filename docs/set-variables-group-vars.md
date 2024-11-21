@@ -350,7 +350,7 @@
 **hcp.data_plane.zvm.nodes.interface.options** | Configurations options  | layer2=1
 **hcp.data_plane.zvm.interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
 **hcp.data_plane.zvm.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404 
-**hcp.data_plane.zvm.nodes.lun** | Disk details of fcp disk to be used for zVM node | 4404
+**hcp.data_plane.zvm.nodes.lun** | Disk details of fcp disk to be used for zVM node | 0.0.4404
 
 ## ZVM ( Optional )
 **Variable Name** | **Description** | **Example**

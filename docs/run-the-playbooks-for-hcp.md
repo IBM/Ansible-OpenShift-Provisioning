@@ -26,9 +26,11 @@ ansible-vault create playbooks/secrets.yaml
 ```
 kvm_host_password: '<password for kvm host for the specified user>'
 bastion_root_pw: '<password_you_want_to_keep_for_bastion>'
-api_server: '<api-server-url>:<port>'
-user_name: '<username>'
-password: '<password>'
+
+# Management cluster login credentials
+api_server: '<api-server-url ot management cluster>:<port>' 
+user_name: '<username >'
+password: '<password >'
 ```
 
 * You can edit the encrypted file using below command
@@ -39,7 +41,7 @@ ansible-vault edit playbooks/secrets.yaml
 
 ## Step-2: Initial Setup for Hosted Control Plane
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
-* Update variables as per the compute node type (zKVM /zVM) in [hcp.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/hcp.yaml.template) ( hcp.yaml.template )before running the playbooks.
+* Update variables as per the compute node type (zKVM /zVM) in [hcp.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/hcp.yaml.template) ( hcp.yaml.template )before running the playbooks.
 * First playbook to be run is setup_for_hcp.yaml which will create inventory file for HCP and will add ssh key to the kvm host.
 
 * Run this shell command:
@@ -48,7 +50,9 @@ ansible-playbook playbooks/setup_for_hcp.yaml --ask-vault-pass
 ```
 
 ## Step-3: Create Hosted Cluster 
-* Run each part step-by-step by running one playbook at a time, or all at once using [hcp.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/hcp.yaml).
+* Run each part step-by-step by running one playbook at a time, or all at once using [hcp.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/hcp.yaml).
+    * If bastion is already available ( bastion_params.create = false ) , just give ip ,user, and nameserver under bastion_params section and remaining parameters under bastion_params can be ignored. 
+    
 * Here's the full list of playbooks to be run in order, full descriptions of each can be found further down the page:
     * create_hosted_cluster.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_hosted_cluster.yaml))
     * create_agents_and_wait_for_install_complete.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_agents_and_wait_for_install_complete.yaml))
@@ -111,7 +115,7 @@ ansible-playbook playbooks/hcp.yaml --ask-vault-pass
 * Destroy the Hosted Control Plane and other resources created as part of installation
 
 ### Procedure
-* Run the playbook [destroy_cluster_hcp.yaml](https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/destroy_cluster_hcp.yaml) to destroy all the resources created while installation
+* Run the playbook [destroy_cluster_hcp.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/destroy_cluster_hcp.yaml) to destroy all the resources created while installation
 ```
 ansible-playbook playbooks/destroy_cluster_hcp.yaml --ask-vault-pass
 ```
