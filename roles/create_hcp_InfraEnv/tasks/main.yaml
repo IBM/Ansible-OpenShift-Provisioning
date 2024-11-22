@@ -60,7 +60,7 @@
     --base-domain={{ hcp.control_plane.basedomain }} 
     --api-server-address=api.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }} 
     --ssh-key ~/.ssh/{{ hcp.ansible_key_name }}.pub
-    {% if hcp.control_plane.high_availabiliy == false %}
+    {% if hcp.control_plane.high_availability == false %}
     --control-plane-availability-policy "SingleReplica" 
     {% endif %}
     --infra-availability-policy "SingleReplica" 

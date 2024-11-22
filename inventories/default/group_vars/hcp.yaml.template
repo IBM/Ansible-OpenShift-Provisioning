@@ -29,7 +29,7 @@ hcp:
 
   # Hosted Control Plane Parameters
   control_plane:
-    high_availabiliy: true
+    high_availability: true
     clusters_namespace:
     hosted_cluster_name:
     basedomain:
