@@ -29,7 +29,7 @@
       loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
     - name: Get machine names
-      command: oc get machine.cluster.x-k8s.io -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} --no-headers
+      command: oc get machine.cluster.x-k8s.io -n {{ hcp.control_plane.hosted_cluster_name }}-agents --no-headers
       register: machines_info
 
     - name: Create List for machines
@@ -42,14 +42,14 @@
       loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
     - name: Patch the machines to remove finalizers
-      shell: oc patch machine.cluster.x-k8s.io "{{ machines[item] }}" -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" -p '{"metadata":{"finalizers":null}}' --type=merge
+      shell: oc patch machine.cluster.x-k8s.io "{{ machines[item] }}" -n "{{ hcp.control_plane.hosted_cluster_name }}-agents" -p '{"metadata":{"finalizers":null}}' --type=merge
       loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
 - name: Wait for Agentmachines to delete
   k8s_info:
     api_version: capi-provider.agent-install.openshift.io/v1alpha1
     kind: AgentMachine
-    namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
+    namespace: "{{ hcp.control_plane.hosted_cluster_name }}-agents"
   register: agent_machines
   until: agent_machines.resources | length == 0
   retries: 30
@@ -59,14 +59,14 @@
   k8s_info:
     api_version: cluster.x-k8s.io/v1beta1
     kind: Machine
-    namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
+    namespace: "{{ hcp.control_plane.hosted_cluster_name }}-agents"
   register: machines
   until: machines.resources | length == 0
   retries: 30
   delay: 10
 
 - name: Get agent names
-  command: oc get agents -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} --no-headers
+  command: oc get agents -n {{ hcp.control_plane.hosted_cluster_name }}-agents --no-headers
   register: agents_info
 
 - name: Create List for agents
@@ -79,7 +79,7 @@
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
 - name: Delete Agents
-  command: oc delete agent {{ agents[item] }} -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} 
+  command: oc delete agent {{ agents[item] }} -n {{ hcp.control_plane.hosted_cluster_name }}-agents 
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
   
 - name: Remove workdir
@@ -93,7 +93,7 @@
     api_version: agent-install.openshift.io/v1beta1
     kind: InfraEnv
     name: "{{ hcp.control_plane.hosted_cluster_name }}"
-    namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
+    namespace: "{{ hcp.control_plane.hosted_cluster_name }}-agents"
 
 - name: Destroy Hosted Control Plane
   command: hcp destroy cluster agent --name {{ hcp.control_plane.hosted_cluster_name }} --namespace {{ hcp.control_plane.clusters_namespace }}

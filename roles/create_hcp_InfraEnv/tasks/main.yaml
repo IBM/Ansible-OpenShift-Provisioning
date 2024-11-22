@@ -1,21 +1,25 @@
 ---
-- name: Getting Hosted Control Plane Namespace
+- name: Formulating Hosted Control Plane Namespace
   set_fact: 
-    hosted_control_plane_namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
+    agents_namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
 
-- name: Check if Hosted Control Plane Namespace exists 
+- name: Formulating Agents Namespace
+  set_fact: 
+    agents_namespace: "{{ hcp.control_plane.hosted_cluster_name }}-agents"
+
+- name: Check if Agents Namespace exists
   k8s_info:
     api_version: v1
     kind: Namespace
-    name: "{{ hosted_control_plane_namespace }}"
+    name: "{{ agents_namespace }}"
   register: namespace_check
   ignore_errors: yes
 
-- name: Create Hosted Control Plane Namespace 
+- name: Create Agents Namespace 
   k8s:
     api_version: v1
     kind: Namespace
-    name: "{{ hosted_control_plane_namespace }}"
+    name: "{{ agents_namespace }}"
     state: present
   when: namespace_check.resources | length == 0 
 
@@ -55,7 +59,7 @@
     hcp create cluster agent 
     --name={{ hcp.control_plane.hosted_cluster_name }} 
     --pull-secret=/root/ansible_workdir/auth_file 
-    --agent-namespace={{ hosted_control_plane_namespace }} 
+    --agent-namespace={{ agents_namespace }} 
     --namespace={{ hcp.control_plane.clusters_namespace }} 
     --base-domain={{ hcp.control_plane.basedomain }} 
     --api-server-address=api.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }} 
@@ -78,14 +82,14 @@
 - name: Waiting for Hosted Control Plane to be available
   command: oc wait --timeout=30m --for=condition=Available --namespace={{ hcp.control_plane.clusters_namespace }} hostedcluster/{{ hcp.control_plane.hosted_cluster_name }}
 
-- name: Wait for pods to come up in Hosted Cluster Namespace
+- name: Wait for pods to come up in Hosted Control Plane Namespace
   shell: oc get pods -n {{ hosted_control_plane_namespace }} | wc -l
   register: pod_count
   until: pod_count.stdout | int > 30
   retries: 40
   delay: 10
 
-- name: Wait for all pods to be in Running State in  Hosted Cluster Namespace
+- name: Wait for all pods to be in Running State in  Hosted Control Plane Namespace
   shell: oc get pods -n {{ hosted_control_plane_namespace }}  --no-headers | grep -v 'Running\|Completed\|Terminating' | wc -l
   register: pod_status
   until: pod_status.stdout == '0'
@@ -139,7 +143,7 @@
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
 - name: Wait for ISO to generate in InfraEnv 
-  shell: oc get InfraEnv -n  {{ hosted_control_plane_namespace }} --no-headers
+  shell: oc get InfraEnv -n  {{ agents_namespace }} --no-headers
   register: infra
   until: infra.stdout.split(' ')[-1] != ''
   retries: 60
