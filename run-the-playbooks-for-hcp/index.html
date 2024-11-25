@@ -160,9 +160,11 @@
 </ul>
 <pre class="codehilite"><code>kvm_host_password: '&lt;password for kvm host for the specified user&gt;'
 bastion_root_pw: '&lt;password_you_want_to_keep_for_bastion&gt;'
-api_server: '&lt;api-server-url&gt;:&lt;port&gt;'
-user_name: '&lt;username&gt;'
-password: '&lt;password&gt;'
+
+# Management cluster login credentials
+api_server: '&lt;api-server-url ot management cluster&gt;:&lt;port&gt;' 
+user_name: '&lt;username &gt;'
+password: '&lt;password &gt;'
 </code></pre>
 
 <ul>
@@ -177,7 +179,7 @@ password: '&lt;password&gt;'
 <h2 id="step-2-initial-setup-for-hosted-control-plane">Step-2: Initial Setup for Hosted Control Plane<a class="headerlink" href="#step-2-initial-setup-for-hosted-control-plane" title="Permanent link">#</a></h2>
 <ul>
 <li>Navigate to the <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning">root folder of the cloned Git repository</a> in your terminal (<code>ls</code> should show <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg">ansible.cfg</a>).</li>
-<li>Update variables as per the compute node type (zKVM /zVM) in <a href="https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/hcp.yaml.template">hcp.yaml</a> ( hcp.yaml.template )before running the playbooks.</li>
+<li>Update variables as per the compute node type (zKVM /zVM) in <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/hcp.yaml.template">hcp.yaml</a> ( hcp.yaml.template )before running the playbooks.</li>
 <li>
 <p>First playbook to be run is setup_for_hcp.yaml which will create inventory file for HCP and will add ssh key to the kvm host.</p>
 </li>
@@ -190,7 +192,12 @@ password: '&lt;password&gt;'
 
 <h2 id="step-3-create-hosted-cluster">Step-3: Create Hosted Cluster<a class="headerlink" href="#step-3-create-hosted-cluster" title="Permanent link">#</a></h2>
 <ul>
-<li>Run each part step-by-step by running one playbook at a time, or all at once using <a href="https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/hcp.yaml">hcp.yaml</a>.</li>
+<li>
+<p>Run each part step-by-step by running one playbook at a time, or all at once using <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/hcp.yaml">hcp.yaml</a>.</p>
+<ul>
+<li>If bastion is already available ( bastion_params.create = false ) , just give ip ,user, and nameserver under bastion_params section and remaining parameters under bastion_params can be ignored. </li>
+</ul>
+</li>
 <li>
 <p>Here's the full list of playbooks to be run in order, full descriptions of each can be found further down the page:</p>
 <ul>
@@ -267,7 +274,7 @@ password: '&lt;password&gt;'
 </ul>
 <h3 id="procedure">Procedure<a class="headerlink" href="#procedure" title="Permanent link">#</a></h3>
 <ul>
-<li>Run the playbook <a href="https://github.com/veera-damisetti/Ansible-OpenShift-Provisioning/blob/main/playbooks/destroy_cluster_hcp.yaml">destroy_cluster_hcp.yaml</a> to destroy all the resources created while installation</li>
+<li>Run the playbook <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/destroy_cluster_hcp.yaml">destroy_cluster_hcp.yaml</a> to destroy all the resources created while installation</li>
 </ul>
 <pre class="codehilite"><code>ansible-playbook playbooks/destroy_cluster_hcp.yaml --ask-vault-pass
 </code></pre>
