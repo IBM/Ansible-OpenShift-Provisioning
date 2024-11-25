@@ -1,7 +1,7 @@
 ---
 - name: Formulating Hosted Control Plane Namespace
   set_fact: 
-    agents_namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
+    hosted_control_plane_namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
 
 - name: Formulating Agents Namespace
   set_fact: 
