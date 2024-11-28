@@ -96,6 +96,19 @@
   retries: 30
   delay: 10
 
+- name: Create Pull Secret for Agents
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: pull-secret
+        namespace: "{{ agents_namespace }}"
+      type: kubernetes.io/dockerconfigjson
+      data:
+        .dockerconfigjson: "{{ lookup('file', '/root/ansible_workdir/auth_file') | b64encode }}"
+
 - name: Create InfraEnv.yaml
   template:
     src: InfraEnv.yaml.j2
