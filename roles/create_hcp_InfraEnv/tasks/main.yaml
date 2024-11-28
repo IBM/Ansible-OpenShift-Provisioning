@@ -107,7 +107,7 @@
         namespace: "{{ agents_namespace }}"
       type: kubernetes.io/dockerconfigjson
       data:
-        .dockerconfigjson: "{{ lookup('file', '/root/ansible_workdir/auth_file') | b64encode }}"
+        .dockerconfigjson: "{{ hcp.control_plane.pull_secret | b64encode }}"
 
 - name: Create InfraEnv.yaml
   template:
