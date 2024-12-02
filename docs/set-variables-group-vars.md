@@ -221,7 +221,7 @@
 **install_config.cluster_network.type** | The cluster network provider Container Network Interface (CNI) plug-in to install. Either OpenShiftSDN or OVNKubernetes (default). | OVNKubernetes
 **install_config.service_network** | The IP address block for services. The default value is 172.30.0.0/16. The OpenShift SDN and OVN-Kubernetes network providers support only a single IP address block for the service network. An array with an IP address block in CIDR format. | 172.30.0.0/16
 **install_config.machine_network** | The IP address block for Nodes IP Pool. The default value is 192.168.122.0/24 For NAT Network Mode. In case of MacvTap it will be depend on Inteface IP assignment. An array with an IP address block in CIDR format. | 192.168.122.0/24
-**install_config.fips** | True or False (boolean) for whether or not to use the United States' Federal Information Processing Standards (FIPS). Not yet certified on IBM zSystems. Enclosed in 'single quotes'. | 'false'
+**install_config.fips** | true or false (boolean) for whether or not to use the United States' Federal Information Processing Standards (FIPS). Not yet certified on IBM zSystems. | false
 
 ## Packages (Optional)
 * Packages are installed based on the executed playbooks based on the given requirements. This means that these variables have default values which can be overwritten in all.yaml file.

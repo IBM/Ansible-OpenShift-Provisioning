@@ -7,4 +7,4 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
-    - abi_install_complete 
+    - abi_install_complete

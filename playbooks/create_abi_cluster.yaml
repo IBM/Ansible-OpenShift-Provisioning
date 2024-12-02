@@ -21,15 +21,16 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/zvm.yaml"
   tasks:
-    - block:
+    - name: Support for z/VM
+      when: installation_type | lower == 'zvm'
+      block:
         - name: Setup Param File
-          include_role:
+          ansible.builtin.include_role:
             name: setup_params
 
         - name: Boot z/VM Guests
-          include_tasks: ../roles/boot_zvm_nodes/tasks/main.yaml
-          loop: "{{ range( zvm.nodes | length ) | list }}"
-      when: installation_type | lower == 'zvm'
+          ansible.builtin.include_tasks: ../roles/boot_zvm_nodes/tasks/main.yaml
+          loop: "{{ range(zvm.nodes | length) | list }}"
 
 # Boot ABI KVM Agents.
 - name: Boot ABI Agents

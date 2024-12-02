@@ -1,5 +1,23 @@
+# Openshift Settings
+install_config_defaults:
+  api_version: v1
+  compute:
+    architecture: s390x
+    hyperthreading: Enabled
+  control:
+    architecture: s390x
+    hyperthreading: Enabled
+  cluster_network:
+    cidr: 10.128.0.0/14
+    host_prefix: 23
+    type: OVNKubernetes
+  service_network: 172.30.0.0/16
+  machine_network: 192.168.122.0/24
+  fips: false
+
 # ocp_download_url with '/' at the end !
 ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/latest/s390x/"
 # ocp client and installer filenames
 ocp_client_tgz: "openshift-client-linux.tar.gz"
 ocp_install_tgz: "openshift-install-linux.tar.gz"
+ocp_install_fips_tgz: "openshift-install-rhel9"
