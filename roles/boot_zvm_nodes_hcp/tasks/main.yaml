@@ -33,16 +33,16 @@
       when: "{{ hcp.data_plane.zvm.disk_type | lower == 'fcp' }}"
 
     - name: Wait for the agent to come up 
-      shell: oc get agents -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" --no-headers -o custom-columns=NAME:.metadata.name,APPROVED:.spec.approved | awk '$2 == "false"' | wc -l 
+      shell: oc get agents -n "{{ hcp.control_plane.hosted_cluster_name }}-agents" --no-headers -o custom-columns=NAME:.metadata.name,APPROVED:.spec.approved | awk '$2 == "false"' | wc -l 
       register: agent_count
       until: agent_count.stdout | int == 1
       retries: 40
       delay: 10
 
     - name: Get the name of agent 
-      shell: oc get agents -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} --no-headers -o custom-columns=NAME:.metadata.name,APPROVED:.spec.approved | awk '$2 == "false"' 
+      shell: oc get agents -n {{ hcp.control_plane.hosted_cluster_name }}-agents --no-headers -o custom-columns=NAME:.metadata.name,APPROVED:.spec.approved | awk '$2 == "false"' 
       register: agent_name
 
     - name: Approve agents 	
-      shell: oc -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{ item }}.{{hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge
+      shell: oc -n {{ hcp.control_plane.hosted_cluster_name }}-agents  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{ item }}.{{hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge
 

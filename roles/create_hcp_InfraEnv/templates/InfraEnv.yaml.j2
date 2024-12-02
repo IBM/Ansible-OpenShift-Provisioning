@@ -2,7 +2,7 @@ apiVersion: agent-install.openshift.io/v1beta1
 kind: InfraEnv
 metadata:
   name: "{{ hcp.control_plane.hosted_cluster_name }}"
-  namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
+  namespace: "{{ hcp.control_plane.hosted_cluster_name }}-agents"
 spec:
 {% if hcp.data_plane.kvm.ip_params.static_ip.enabled == true %}
   nmStateConfigLabelSelector:
