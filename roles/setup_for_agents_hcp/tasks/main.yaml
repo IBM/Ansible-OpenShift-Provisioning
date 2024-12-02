@@ -6,7 +6,7 @@
     mode: '0755'
 
 - name: Get URL for initrd.img
-  shell: oc -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" get InfraEnv "{{ hcp.control_plane.hosted_cluster_name }}" -ojsonpath="{.status.bootArtifacts.initrd}"
+  shell: oc -n "{{ hcp.control_plane.hosted_cluster_name }}-agents" get InfraEnv "{{ hcp.control_plane.hosted_cluster_name }}" -ojsonpath="{.status.bootArtifacts.initrd}"
   register: initrd
   when: ( hcp.data_plane.kvm.boot_method | lower != 'iso' and hcp.compute_node_type | lower == 'kvm' ) or hcp.compute_node_type | lower != 'kvm'
 
@@ -18,7 +18,7 @@
   when: ( hcp.data_plane.kvm.boot_method | lower != 'iso' and hcp.compute_node_type | lower == 'kvm' ) or hcp.compute_node_type | lower != 'kvm'
 
 - name: Get URL for kernel.img
-  shell: oc -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" get InfraEnv "{{ hcp.control_plane.hosted_cluster_name }}" -ojsonpath="{.status.bootArtifacts.kernel}"
+  shell: oc -n "{{ hcp.control_plane.hosted_cluster_name }}-agents" get InfraEnv "{{ hcp.control_plane.hosted_cluster_name }}" -ojsonpath="{.status.bootArtifacts.kernel}"
   register: kernel
   when: ( hcp.data_plane.kvm.boot_method | lower != 'iso' and hcp.compute_node_type | lower == 'kvm' ) or hcp.compute_node_type | lower != 'kvm'
 
@@ -30,7 +30,7 @@
   when: ( hcp.data_plane.kvm.boot_method | lower != 'iso' and hcp.compute_node_type | lower == 'kvm' ) or hcp.compute_node_type | lower != 'kvm'
 
 - name: Get URL for ISO
-  shell: oc -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" get InfraEnv "{{ hcp.control_plane.hosted_cluster_name }}" -ojsonpath="{.status.isoDownloadURL}"
+  shell: oc -n "{{ hcp.control_plane.hosted_cluster_name }}-agents" get InfraEnv "{{ hcp.control_plane.hosted_cluster_name }}" -ojsonpath="{.status.isoDownloadURL}"
   register: iso
   when: hcp.data_plane.kvm.boot_method | lower == 'iso' and  hcp.compute_node_type | lower == 'kvm'
 

@@ -4,32 +4,32 @@
   command: virsh destroy {{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} 
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
-- name: Undefine Agents
+- name: Undefine the Agents
   command: virsh undefine {{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} --remove-all-storage
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
-- name: Delete  initrd.img
+- name: Delete the initrd.img
   file:
     path: /var/lib/libvirt/images/pxeboot/initrd.img
     state: absent
   when: ( hcp.data_plane.kvm.boot_method | lower != 'iso' and hcp.compute_node_type | lower == 'kvm' ) or hcp.compute_node_type | lower != 'kvm'
 
-- name: Delete  kernel.img
+- name: Delete the kernel.img
   file:
     path: /var/lib/libvirt/images/pxeboot/kernel.img
     state: absent
   when: ( hcp.data_plane.kvm.boot_method | lower != 'iso' and hcp.compute_node_type | lower == 'kvm' ) or hcp.compute_node_type | lower != 'kvm'
 
-- name: Delete iso
+- name: Delete ISO
   file:
     path: /var/lib/libvirt/images/pxeboot/image.iso
     state: absent
   when: hcp.data_plane.kvm.boot_method | lower == 'iso' and hcp.compute_node_type | lower == 'kvm'
 
-- name: Destroy bastion
+- name: Destroy Bastion
   command: virsh destroy {{ hcp.control_plane.hosted_cluster_name }}-bastion
 
-- name: Undefine bastion
+- name: Undefine Bastion
   command: virsh undefine {{ hcp.control_plane.hosted_cluster_name }}-bastion --remove-all-storage
 
 - name: Stop the storage pool
