@@ -4,7 +4,7 @@
   k8s_info:
     api_version: agent-install.openshift.io/v1beta1
     kind: Agent
-    namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
+    namespace: "{{ hcp.control_plane.hosted_cluster_name }}-agents"
   register: agents
   until: agents.resources | length == {{ hcp.data_plane.compute_count }}
   retries: 30
@@ -12,7 +12,7 @@
   when: hcp.compute_node_type | lower != 'zvm'
 
 - name: Get agent names
-  command: oc get agents -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} --no-headers
+  command: oc get agents -n {{ hcp.control_plane.hosted_cluster_name }}-agents --no-headers
   register: agents_info
   when: hcp.compute_node_type | lower != 'zvm'
 
@@ -28,7 +28,7 @@
   when: hcp.compute_node_type | lower != 'zvm'
 
 - name: Patch Agents
-  shell: oc -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}  patch agent {{ agents[item] }} -p '{"spec":{"installation_disk_id":"/dev/vda","approved":true,"hostname":"compute-{{item}}.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge
+  shell: oc -n {{ hcp.control_plane.clusters_namespace }}-agents  patch agent {{ agents[item] }} -p '{"spec":{"approved":true,"hostname":"compute-{{item}}.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
   when: hcp.compute_node_type | lower != 'zvm'
 

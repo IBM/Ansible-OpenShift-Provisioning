@@ -66,7 +66,7 @@
   delay: 10
 
 - name: Get agent names
-  command: oc get agents -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} --no-headers
+  command: oc get agents -n {{ hcp.control_plane.hosted_cluster_name }}-agents --no-headers
   register: agents_info
 
 - name: Create List for agents
@@ -79,7 +79,7 @@
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
 - name: Delete Agents
-  command: oc delete agent {{ agents[item] }} -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} 
+  command: oc delete agent {{ agents[item] }} -n {{ hcp.control_plane.hosted_cluster_name }}-agents 
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
   
 - name: Remove workdir
@@ -93,7 +93,7 @@
     api_version: agent-install.openshift.io/v1beta1
     kind: InfraEnv
     name: "{{ hcp.control_plane.hosted_cluster_name }}"
-    namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
+    namespace: "{{ hcp.control_plane.hosted_cluster_name }}-agents"
 
 - name: Destroy Hosted Control Plane
   command: hcp destroy cluster agent --name {{ hcp.control_plane.hosted_cluster_name }} --namespace {{ hcp.control_plane.clusters_namespace }}

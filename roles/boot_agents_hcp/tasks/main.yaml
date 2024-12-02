@@ -7,7 +7,7 @@
 - name: Boot Agents with pxe artifacts
   shell: |
     {% if hcp.data_plane.kvm.ip_params.static_ip.enabled == true %}
-    mac_address=$(oc get NmStateConfig static-ip-nmstate-config-{{ hcp.control_plane.hosted_cluster_name }}-{{ item }} -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} -o json | jq -r '.spec.interfaces[] | .macAddress')
+    mac_address=$(oc get NmStateConfig static-ip-nmstate-config-{{ hcp.control_plane.hosted_cluster_name }}-{{ item }} -n {{ hcp.control_plane.hosted_cluster_name }}-agents -o json | jq -r '.spec.interfaces[] | .macAddress')
     {% else %}
     mac_address="{{ hcp.data_plane.kvm.ip_params.mac[item] }}"
     {% endif %}
@@ -41,7 +41,7 @@
 - name: Boot Agents with iso
   shell: |
     {% if hcp.data_plane.kvm.ip_params.static_ip.enabled == true %}
-    mac_address=$(oc get NmStateConfig static-ip-nmstate-config-{{ hcp.control_plane.hosted_cluster_name }}-{{ item }} -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} -o json | jq -r '.spec.interfaces[] | .macAddress')
+    mac_address=$(oc get NmStateConfig static-ip-nmstate-config-{{ hcp.control_plane.hosted_cluster_name }}-{{ item }} -n {{ hcp.control_plane.hosted_cluster_name }}-agents -o json | jq -r '.spec.interfaces[] | .macAddress')
     {% else %}
     mac_address="{{ hcp.data_plane.kvm.ip_params.mac[item] }}"
     {% endif %}
