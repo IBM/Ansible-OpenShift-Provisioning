@@ -31,6 +31,10 @@ bastion_root_pw: '<password_you_want_to_keep_for_bastion>'
 api_server: '<api-server-url ot management cluster>:<port>' 
 user_name: '<username >'
 password: '<password >'
+
+# HMC login Credentials
+hmca_username: '<user>'
+hmca_password: '<password>'
 ```
 
 * You can edit the encrypted file using below command

@@ -1,5 +1,5 @@
 hcp:
-  compute_node_type:       # KVM or zVM
+  compute_node_type:       # KVM , zVM , lpar
   
   # Parameters for oc login
   mgmt_cluster_nameserver:
@@ -138,3 +138,41 @@ hcp:
             paths:
               - wwpn:
                 fcp:
+    
+    lpar:
+      network_mode: vswitch   # Supported modes: osa, RoCE
+      disk_type:              # Supported modes: fcp , dasd
+      subnetmask:
+      gateway:
+
+      nodes:
+        - name:
+          hmc_host:
+          interface:
+            ifname: encbdf0
+            nettype: qeth
+            subchannels: 0.0.bdf0,0.0.bdf1,0.0.bdf2
+            options: layer2=1
+            ip:
+
+          # Required if disk_type is dasd
+          dasd:
+            disk_id:
+
+          # Required if disk_type is fcp
+          lun:
+          - id:
+            paths:
+              - wwpn:
+                fcp:
+
+          # Live disk details
+          live_disk: 
+            disk_type: 
+            devicenr:
+            lun:
+            wwpn:
+            password:
+      
+      
+
