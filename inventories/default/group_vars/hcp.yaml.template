@@ -141,7 +141,7 @@ hcp:
     
     lpar:
       network_mode: vswitch   # Supported modes: osa, RoCE
-      disk_type:              # Supported modes: fcp , dasd
+      disk_type:              # Supported modes: fcp , dasd , NVMe
       subnetmask:
       gateway:
 
