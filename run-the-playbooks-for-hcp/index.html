@@ -138,10 +138,16 @@
 </li>
 </ul>
 <h2 id="note">Note:<a class="headerlink" href="#note" title="Permanent link">#</a></h2>
-<ul>
-<li>As of now we are supporting only macvtap for Hosted Control Plane Agent based installation for KVM compute nodes.</li>
-<li>Supported network modes for zVM : vswitch, OSA, RoCE, Hipersockets</li>
-</ul>
+<p>Supported Confugurations: 
+*  KVM Compute nodes 
+    *  Network type: MacVTap ( Static IP / DHCP )
+    *  Disk types: QCOW, DASD
+*  z/VM Compute nodes
+    *  Network types:  vSwitch, OSA , RoCE , Hipersockets 
+    *  Disk types: FCP, DASD
+*  LPAR Compute nodes ( Classical LPAR only )
+    *   Network types:  OSA , RoCE 
+    *   Disk types: FCP, DASD, NVMe</p>
 <h2 id="step-1-setup-ansible-vault-for-management-cluster-credentials">Step-1: Setup Ansible Vault for Management Cluster Credentials<a class="headerlink" href="#step-1-setup-ansible-vault-for-management-cluster-credentials" title="Permanent link">#</a></h2>
 <h3 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h3>
 <ul>
@@ -165,6 +171,10 @@ bastion_root_pw: '&lt;password_you_want_to_keep_for_bastion&gt;'
 api_server: '&lt;api-server-url ot management cluster&gt;:&lt;port&gt;' 
 user_name: '&lt;username &gt;'
 password: '&lt;password &gt;'
+
+# HMC login Credentials ( Required only if compute_node_type is LPAR )
+hmca_username: '&lt;user&gt;'
+hmca_password: '&lt;password&gt;'
 </code></pre>
 
 <ul>
