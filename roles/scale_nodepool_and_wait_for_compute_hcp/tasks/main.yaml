@@ -28,7 +28,7 @@
   when: hcp.compute_node_type | lower == 'kvm'
 
 - name: Patch Agents
-  shell: oc -n {{ hcp.control_plane.clusters_namespace }}-agents  patch agent {{ agents[item] }} -p '{"spec":{"approved":true,"hostname":"compute-{{item}}.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge
+  shell: oc -n {{ hcp.control_plane.hosted_cluster_name }}-agents  patch agent {{ agents[item] }} -p '{"spec":{"approved":true,"hostname":"compute-{{item}}.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
   when: hcp.compute_node_type | lower == 'kvm'
 
