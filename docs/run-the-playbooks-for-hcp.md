@@ -9,8 +9,16 @@
 
 * If using dynamic IP for agents, make sure you have entries in DHCP Server for macaddresses you are using in installation to map to  IPv4 addresses and along with this DHCP server should make your IPs to use nameserver which you have configured.
 ## Note: 
-* As of now we are supporting only macvtap for Hosted Control Plane Agent based installation for KVM compute nodes.
-* Supported network modes for zVM : vswitch, OSA, RoCE, Hipersockets
+Supported Confugurations: 
+*  KVM Compute nodes 
+    *  Network type: MacVTap ( Static IP / DHCP )
+    *  Disk types: QCOW, DASD
+*  z/VM Compute nodes
+    *  Network types:  vSwitch, OSA , RoCE , Hipersockets 
+    *  Disk types: FCP, DASD
+*  LPAR Compute nodes ( Classical LPAR only )
+    *   Network types:  OSA , RoCE 
+    *   Disk types: FCP, DASD, NVMe
 
 ## Step-1: Setup Ansible Vault for Management Cluster Credentials
 ### Overview
@@ -32,7 +40,7 @@ api_server: '<api-server-url ot management cluster>:<port>'
 user_name: '<username >'
 password: '<password >'
 
-# HMC login Credentials
+# HMC login Credentials ( Required only if compute_node_type is LPAR )
 hmca_username: '<user>'
 hmca_password: '<password>'
 ```
