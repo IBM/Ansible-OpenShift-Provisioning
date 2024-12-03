@@ -8,12 +8,12 @@
     - name: Setting host
       set_fact:
         host: 'kvm_host_hcp'
-      when: hcp.compute_node_type | lower != 'zvm'
+      when: hcp.compute_node_type | lower == 'kvm'
 
     - name: Install Prereqs on host
       import_role:
         name:  install_prerequisites_host_hcp
-      when: hcp.compute_node_type | lower != 'zvm'
+      when: hcp.compute_node_type | lower == 'kvm'
      
     - name: Setting vars for storage pool configuration
       set_fact:
@@ -44,12 +44,12 @@
           device1: "{{ network_interface.stdout }}"
         env:
           vnet_name: macvtap
-      when: hcp.compute_node_type | lower != 'zvm'
+      when: hcp.compute_node_type | lower == 'kvm'
 
     - name:  Creating macvtap network
       import_role:
         name: macvtap
-      when: hcp.compute_node_type | lower != 'zvm'
+      when: hcp.compute_node_type | lower == 'kvm'
 
 - name: Create bastion for hcp
   hosts: kvm_host_hcp
@@ -62,7 +62,7 @@
         name: create_bastion_hcp
       when: 
         - hcp.bastion_params.create == true
-        - hcp.compute_node_type | lower != 'zvm'
+        - hcp.compute_node_type | lower == 'kvm'
 
 - name: Configuring Bastion
   hosts: bastion_hcp
