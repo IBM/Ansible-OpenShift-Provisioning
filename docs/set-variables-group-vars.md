@@ -351,6 +351,26 @@
 **hcp.data_plane.zvm.interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
 **hcp.data_plane.zvm.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404 
 **hcp.data_plane.zvm.nodes.lun** | Disk details of fcp disk to be used for zVM node | 0.0.4404
+**hcp.data_plane.lpar.network_mode** | Network mode for zvm nodes  Supported modes: vswitch,osa, RoCE  |  vswitch
+**hcp.data_plane.lpar.disk_type** | Disk type for zvm nodes  Supported disk types: fcp, dasd | dasd
+**hcp.data_plane.lpar.subnetmask** | Subnet mask for compute nodes | 255.255.255.0
+**hcp.data_plane.lpar.gateway** | Gateway for compute nodes | 192.168.10.1
+**hcp.data_plane.lpar.nodes** | Set of parameters for zvm nodes  Give the details of each zvm node here | 
+**hcp.data_plane.lpar.name** | Name of the zVM guest | m1317002
+**hcp.data_plane.lpar.nodes.hmc_host** | Host name of the zVM guests  which we use to login 3270 console | boem1317
+**hcp.data_plane.lpar.nodes.interface.ifname** | Network interface name for zVM guests | encbdf0
+**hcp.data_plane.lpar.nodes.interface.nettype** | Network type for zVM guests for network connectivity | qeth
+**hcp.data_plane.lpar.nodes.interface.subchannels** | subchannels for zVM guests interfaces | 0.0.bdf0,0.0.bdf1,0.0.bdf2
+**hcp.data_plane.lpar.nodes.interface.options** | Configurations options  | layer2=1
+**hcp.data_plane.lpar.interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
+**hcp.data_plane.lpar.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404 
+**hcp.data_plane.lpar.nodes.lun** | Disk details of fcp disk to be used for zVM node | 0.0.4404
+**hcp.data_plane.lpar.nodes.live_disk.disk_type** | Live disk type for booting LPAR | scsi 
+**hcp.data_plane.lpar.nodes.live_disk.devicenr** | devicenr for the live disk | 8001
+**hcp.data_plane.lpar.nodes.live_disk.lun** | lun id  for the live disk | 40xxxxxxxxxxxxx
+**hcp.data_plane.lpar.nodes.live_disk.wwpn** | wwpn for the live disk | 500507630xxxxxxx
+**hcp.data_plane.lpar.nodes.live_disk.password** | password of the live disk | xxxxxx
+
 
 ## ZVM ( Optional )
 **Variable Name** | **Description** | **Example**

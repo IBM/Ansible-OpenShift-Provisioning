@@ -48,6 +48,21 @@
     dest: /var/www/html/rootfs.img
     validate_certs: false
 
+- name: Copy kernel.img to /var/www/html/
+  ansible.builtin.copy:
+    src: /var/lib/libvirt/images/pxeboot/kernel.img
+    dest: /var/www/html/kernel.img
+    remote_src: true
+  when: hcp.compute_node_type | lower == 'lpar'
+
+- name: Copy initrd.img to /var/www/html/
+  ansible.builtin.copy:
+    src: /var/lib/libvirt/images/pxeboot/initrd.img
+    dest: /var/www/html/initrd.img
+    remote_src: true
+  when: hcp.compute_node_type | lower == 'lpar'
+
+
 - name: restart httpd 
   service:
     name: httpd.service

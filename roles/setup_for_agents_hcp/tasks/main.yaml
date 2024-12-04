@@ -45,5 +45,5 @@
   template:
     src: parm-file.parm.j2
     dest: /root/ansible_workdir/agent-{{ item }}.parm
-  when: hcp.compute_node_type | lower == 'zvm'
+  when: hcp.compute_node_type | lower != 'kvm'
   loop: "{{ range(hcp.data_plane.compute_count | int) | list }}"

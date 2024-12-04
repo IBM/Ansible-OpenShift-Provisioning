@@ -1,5 +1,5 @@
 #!/usr/bin/expect
-{% if hcp.compute_node_type | lower != 'zvm' %}
+{% if hcp.compute_node_type | lower == 'kvm' %}
 set password "{{ kvm_host_password }}"
 spawn ssh-copy-id -i {{ lookup('env', 'HOME') }}/.ssh/{{ hcp.ansible_key_name }} {{ hcp.bastion_params.host_user }}@{{ hcp.bastion_params.host }}
 expect "{{ hcp.bastion_params.host_user }}@{{ hcp.bastion_params.host }}'s password:"

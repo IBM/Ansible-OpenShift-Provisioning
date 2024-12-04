@@ -9,28 +9,28 @@
   until: agents.resources | length == {{ hcp.data_plane.compute_count }}
   retries: 30
   delay: 10
-  when: hcp.compute_node_type | lower != 'zvm'
+  when: hcp.compute_node_type | lower == 'kvm'
 
 - name: Get agent names
   command: oc get agents -n {{ hcp.control_plane.hosted_cluster_name }}-agents --no-headers
   register: agents_info
-  when: hcp.compute_node_type | lower != 'zvm'
+  when: hcp.compute_node_type | lower == 'kvm'
 
 - name: Create List for agents
   set_fact:
     agents: []
-  when: hcp.compute_node_type | lower != 'zvm'
+  when: hcp.compute_node_type | lower == 'kvm'
 
 - name: Get a List of agents 
   set_fact:
     agents: "{{ agents + [agents_info.stdout.split('\n')[item].split(' ')[0]] }}"
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
-  when: hcp.compute_node_type | lower != 'zvm'
+  when: hcp.compute_node_type | lower == 'kvm'
 
 - name: Patch Agents
-  shell: oc -n {{ hcp.control_plane.clusters_namespace }}-agents  patch agent {{ agents[item] }} -p '{"spec":{"approved":true,"hostname":"compute-{{item}}.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge
+  shell: oc -n {{ hcp.control_plane.hosted_cluster_name }}-agents  patch agent {{ agents[item] }} -p '{"spec":{"approved":true,"hostname":"compute-{{item}}.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
-  when: hcp.compute_node_type | lower != 'zvm'
+  when: hcp.compute_node_type | lower == 'kvm'
 
 - name: Scale Nodepool 
   command: oc -n {{ hcp.control_plane.clusters_namespace }} scale nodepool {{ hcp.control_plane.hosted_cluster_name }} --replicas {{ hcp.data_plane.compute_count }}
