@@ -36,7 +36,7 @@
         --cmdline "$(cat /root/ansible_workdir/agent-{{ item }}.parm)" 
 
     - name: Wait for the agent to come up 
-      shell: oc get agents -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" --no-headers -o custom-columns=NAME:.metadata.name,APPROVED:.spec.approved | awk '$2 == "false"' | wc -l 
+      shell: oc get agents -n {{ hcp.control_plane.hosted_cluster_name }}-agents --no-headers -o custom-columns=NAME:.metadata.name,APPROVED:.spec.approved | awk '$2 == "false"' | wc -l 
       register: agent_count
       until: agent_count.stdout | int == 1
       retries: 40
