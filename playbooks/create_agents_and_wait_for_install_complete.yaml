@@ -2,50 +2,50 @@
   hosts: kvm_host_hcp
   become: true
   roles:
-  - boot_agents_hcp
+    - boot_agents_hcp
 
 - name: Boot zvm nodes
   hosts: bastion_hcp
   tasks:
     - name: Getting packages for zvm
-      set_fact:
+      ansible.builtin.set_fact.set_fact:
         env:
           pkgs:
-             zvm: "{{ hcp.pkgs.zvm }}"
+            zvm: "{{ hcp.pkgs.zvm }}"
       when: hcp.compute_node_type | lower == 'zvm'
 
-    - name:  Install tessia baselib
-      import_role:
+    - name: Install tessia baselib
+      ansible.builtin.import_role:
         name: install_tessia_baselib
       when: hcp.compute_node_type | lower == 'zvm'
 
     - name: Start zvm nodes
       include_tasks: ../roles/boot_zvm_nodes_hcp/tasks/main.yaml
-      loop: "{{ range(hcp.data_plane.compute_count| int) | list }}"
+      loop: "{{ range(hcp.data_plane.compute_count | int) | list }}"
       when: hcp.compute_node_type | lower == 'zvm'
-    
+
 - name: Boot LPARs
   hosts: bastion_hcp
   vars_files:
     - "{{playbook_dir}}/secrets.yaml"
   tasks:
 
-    - name:  Install tessia baselib
-      import_role:
+    - name: Install tessia baselib
+      ansible.builtin.import_role:
         name: install_tessia_baselib
       when: hcp.compute_node_type | lower == 'lpar'
 
     - name: Boot LPARs
-      include_tasks: ../roles/boot_LPAR_hcp/tasks/main.yaml
-      loop: "{{ range(hcp.data_plane.compute_count| int) | list }}"
+      ansible.builtin.include_tasks: ../roles/boot_LPAR_hcp/tasks/main.yaml
+      loop: "{{ range(hcp.data_plane.compute_count | int) | list }}"
       when: hcp.compute_node_type | lower == 'lpar'
 
 
 - name: Scale Nodepool & Configure Haproxy on bastion for hosted workers
   hosts: bastion_hcp
   roles:
-  - scale_nodepool_and_wait_for_compute_hcp
-  - add_hc_workers_to_haproxy_hcp
+    - scale_nodepool_and_wait_for_compute_hcp
+    - add_hc_workers_to_haproxy_hcp
 
 - name: Wait for all Console operators to come up
   hosts: bastion_hcp
