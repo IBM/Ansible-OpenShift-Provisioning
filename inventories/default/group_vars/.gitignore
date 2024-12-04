@@ -2,4 +2,6 @@
 !.gitignore
 !all.yaml.template
 !hcp.yaml.template
+!disconnected.yaml
+!zvm.yaml
 

@@ -1,27 +1,41 @@
 ---
 
-- name: Create Agent Using PXE Boot
-  command: openshift-install agent create pxe-files --log-level=debug
+- name: Create Agent Using PXE Boot (fips = false)
+  ansible.builtin.command: openshift-install agent create pxe-files --log-level=debug
   args:
     chdir: ~/{{ abi.ansible_workdir }}
-  when: abi.boot_method | lower == "pxe"
+  when: abi.boot_method | lower == "pxe" and not install_config_vars.fips
 
-- name: Create Agent Using ISO Image
-  command: openshift-install agent create image --log-level=debug
+- name: Create Agent Using ISO Image (fips = false)
+  ansible.builtin.command: openshift-install agent create image --log-level=debug
   args:
     chdir: ~/{{ abi.ansible_workdir }}
-  when: abi.boot_method | lower == "iso"
+  when: abi.boot_method | lower == "iso" and not install_config_vars.fips
+
+- name: Create Agent Using PXE Boot (fips = true)
+  ansible.builtin.command: openshift-install-fips agent create pxe-files --log-level=debug
+  args:
+    chdir: ~/{{ abi.ansible_workdir }}
+  when: abi.boot_method | lower == "pxe" and install_config_vars.fips
+
+- name: Create Agent Using ISO Image (fips = true)
+  ansible.builtin.command: openshift-install-fips agent create image --log-level=debug
+  args:
+    chdir: ~/{{ abi.ansible_workdir }}
+  when: abi.boot_method | lower == "iso" and install_config_vars.fips
 
 - name: Copy initrd.img, kernel.img, and rootfs.img for PXE
   ansible.builtin.copy:
     src: "~/{{ abi.ansible_workdir }}/boot-artifacts/"
     dest: /var/www/html/
-    remote_src: yes
+    mode: '645'
+    remote_src: true
   when: abi.boot_method | lower == "pxe"
 
 - name: Copy ISO image to the server
   ansible.builtin.copy:
     src: "~/{{ abi.ansible_workdir }}/"
     dest: /var/www/html/
-    remote_src: yes
+    mode: '645'
+    remote_src: true
   when: abi.boot_method | lower == "iso"

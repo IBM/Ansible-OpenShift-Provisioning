@@ -31,23 +31,23 @@
       when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none)
     - block:
         - name: Gather package facts on jumphost
-          package_facts:
+          ansible.builtin.package_facts:
             manager: auto
           when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none)
 
         - name: Check if 'expect' is installed on jumphost, for use in ssh-copy-id role for NAT.
-          set_fact:
+          ansible.builtin.set_fact:
             expect_installed: "{{ 'expect' in ansible_facts.packages }}"
           when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none)
 
         - name: Fail if 'expect' package is not installed on jumphost
-          fail:
+          ansible.builtin.fail:
             msg: "'expect' package is not installed on jumphost"
           when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none) and (not expect_installed)
       rescue:
         - name: Package 'expect' must be installed on the jumphost, attempting to install it. #Using 'block' and 'rescue' to avoid running the 'package' module (which requires 'sudo') unless necessary.
           become: true
-          package:
+          ansible.builtin.package:
             name: expect
           when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none)
   roles:
