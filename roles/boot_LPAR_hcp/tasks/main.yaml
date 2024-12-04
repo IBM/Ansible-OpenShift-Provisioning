@@ -26,10 +26,10 @@
         --devicenr "{{ hcp.data_plane.lpar.nodes[item].live_disk.devicenr }}" \
         --livedisklun "{{ hcp.data_plane.lpar.nodes[item].live_disk.lun }}" \ 
         --livediskwwpn "{{ hcp.data_plane.lpar.nodes[item].live_disk.wwpn }}" \
-        --netset_ip "{{ hcp.data_plane.zvm.nodes[item].interface.ip }}" \
-        --netset_gateway "{{ hcp.data_plane.zvm.gateway }}" \
+        --netset_ip "{{ hcp.data_plane.lpar.nodes[item].interface.ip }}" \
+        --netset_gateway "{{ hcp.data_plane.lpar.gateway }}" \
         --netset_network_type "osa" \
-        --netset_network_device "{{ hcp.data_plane.zvm.nodes[item].interface.subchannels }}" \       
+        --netset_network_device "{{ hcp.data_plane.lpar.nodes[item].interface.subchannels }}" \       
         --netset_password "{{ hcp.data_plane.lpar.nodes[item].live_disk.password }}" \
         --netset_dns "{{ hcp.bastion_params.ip }}" \
         --log_level DEBUG \

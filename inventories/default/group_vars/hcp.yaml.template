@@ -140,7 +140,7 @@ hcp:
                 fcp:
     
     lpar:
-      network_mode: vswitch   # Supported modes: osa, RoCE
+      network_mode: osa   # Supported modes: osa, RoCE
       disk_type:              # Supported modes: fcp , dasd , NVMe
       subnetmask:
       gateway:
@@ -149,9 +149,9 @@ hcp:
         - name:
           hmc_host:
           interface:
-            ifname: encbdf0
+            ifname: enc1100
             nettype: qeth
-            subchannels: 0.0.bdf0,0.0.bdf1,0.0.bdf2
+            subchannels: 0.0.1100,0.0.1101,0.0.1102
             options: layer2=1
             ip:
 
