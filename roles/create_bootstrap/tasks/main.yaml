@@ -33,7 +33,7 @@
     --console pty,target_type=serial \
     --wait=-1 \
     --noautoconsole
-  timeout: 360
+  timeout: 480
   register: cmd_output
 
 - name: Debug, print above command output

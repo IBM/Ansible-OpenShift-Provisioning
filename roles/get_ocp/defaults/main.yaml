@@ -25,10 +25,10 @@ install_config_defaults:
     type: OVNKubernetes
   service_network: 172.30.0.0/16
   machine_network: 192.168.122.0/24
-  fips: 'false'
+  fips: false
 
 # (Optional) Proxy
-use_proxy: False 
+use_proxy: false
 proxy_http:
 proxy_https:
 proxy_no:
