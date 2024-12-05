@@ -26,25 +26,25 @@
         --devicenr "{{ hcp.data_plane.lpar.nodes[item].live_disk.devicenr }}" \
         --livedisklun "{{ hcp.data_plane.lpar.nodes[item].live_disk.lun }}" \ 
         --livediskwwpn "{{ hcp.data_plane.lpar.nodes[item].live_disk.wwpn }}" \
-        --netset_ip "{{ hcp.data_plane.zvm.nodes[item].interface.ip }}" \
-        --netset_gateway "{{ hcp.data_plane.zvm.gateway }}" \
+        --netset_ip "{{ hcp.data_plane.lpar.nodes[item].interface.ip }}" \
+        --netset_gateway "{{ hcp.data_plane.lpar.gateway }}" \
         --netset_network_type "osa" \
-        --netset_network_device "{{ hcp.data_plane.zvm.nodes[item].interface.subchannels }}" \       
+        --netset_network_device "{{ hcp.data_plane.lpar.nodes[item].interface.subchannels }}" \       
         --netset_password "{{ hcp.data_plane.lpar.nodes[item].live_disk.password }}" \
         --netset_dns "{{ hcp.bastion_params.ip }}" \
         --log_level DEBUG \
         --cmdline "$(cat /root/ansible_workdir/agent-{{ item }}.parm)" 
 
     - name: Wait for the agent to come up 
-      shell: oc get agents -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" --no-headers -o custom-columns=NAME:.metadata.name,APPROVED:.spec.approved | awk '$2 == "false"' | wc -l 
+      shell: oc get agents -n {{ hcp.control_plane.hosted_cluster_name }}-agents --no-headers -o custom-columns=NAME:.metadata.name,APPROVED:.spec.approved | awk '$2 == "false"' | wc -l 
       register: agent_count
       until: agent_count.stdout | int == 1
       retries: 40
       delay: 10
 
     - name: Get the name of agent 
-      shell: oc get agents -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} --no-headers -o custom-columns=NAME:.metadata.name,APPROVED:.spec.approved | awk '$2 == "false"' 
+      shell: oc get agents -n {{ hcp.control_plane.hosted_cluster_name }}-agents --no-headers -o custom-columns=NAME:.metadata.name,APPROVED:.spec.approved | awk '$2 == "false"' 
       register: agent_name
 
     - name: Approve agents 	
-      shell: oc -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{ item }}.{{hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge 
+      shell: oc -n {{ hcp.control_plane.hosted_cluster_name }}-agents  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{ item }}.{{hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge 
