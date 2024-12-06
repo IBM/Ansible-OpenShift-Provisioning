@@ -12,7 +12,7 @@
 
     - name: Booting LPAR
       shell: |
-        python /root/ansible_workdir/boot_lpar.py \
+        python3 /root/ansible_workdir/boot_lpar.py \
         --cpcname "{{ hcp.data_plane.lpar.nodes[item].name.split('lp')[0] }}" \
         --lparname "{{ hcp.data_plane.lpar.nodes[item].name }}" \
         --hmchost "{{ hcp.data_plane.lpar.nodes[item].hmc_host }}" \

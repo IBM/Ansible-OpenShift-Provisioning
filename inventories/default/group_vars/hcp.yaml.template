@@ -17,6 +17,7 @@ hcp:
     version:
     instance_name: engine
     delete: false
+    catalogsource_name: redhat-operators 
 
   # AgentServiceConfig Parameters
 

@@ -1,13 +1,23 @@
 ---
 
 - name: Login to Management Cluster
-  command: oc login {{ api_server }} -u {{ user_name }} -p {{ password }} --insecure-skip-tls-verify=true
+  ansible.builtin.command: oc login {{ api_server }} -u {{ user_name }} -p {{ password }} --insecure-skip-tls-verify=true
+
+- name: Checking Nodepool
+  ansible.builtin.command: oc get np -n {{ hcp.control_plane.clusters_namespace }}
+  register: np_check
 
 - name: Scale in  Nodepool
-  command: oc -n {{ hcp.control_plane.clusters_namespace }} scale nodepool {{ hcp.control_plane.hosted_cluster_name }} --replicas 0
+  ansible.builtin.command: oc -n {{ hcp.control_plane.clusters_namespace }} scale nodepool {{ hcp.control_plane.hosted_cluster_name }} --replicas 0
+  when: "'{{ hcp.control_plane.hosted_cluster_name }}' in np_check.stdout"
+
+- name: Checking Hosted Cluster
+  ansible.builtin.command: oc get hc -n {{ hcp.control_plane.clusters_namespace }}
+  register: hc_check
 
 - name: Create Kubeconfig for Hosted Cluster
-  shell: hcp create kubeconfig --namespace {{ hcp.control_plane.clusters_namespace }} --name {{ hcp.control_plane.hosted_cluster_name }} > /root/ansible_workdir/hcp-kubeconfig
+  ansible.builtin.shell: hcp create kubeconfig --namespace {{ hcp.control_plane.clusters_namespace }} --name {{ hcp.control_plane.hosted_cluster_name }} > /root/ansible_workdir/hcp-kubeconfig
+  when: "'{{ hcp.control_plane.hosted_cluster_name }}' in hc_check.stdout"
 
 - block:
     - name: Wait for Worker Nodes to Detach
@@ -21,28 +31,28 @@
       delay: 15
   rescue: 
     - name: Getting basedomain
-      shell: oc get hc {{ hcp.control_plane.hosted_cluster_name }} -n {{ hcp.control_plane.clusters_namespace }} -o json | jq -r '.spec.dns.baseDomain'
+      ansible.builtin.shell: oc get hc {{ hcp.control_plane.hosted_cluster_name }} -n {{ hcp.control_plane.clusters_namespace }} -o json | jq -r '.spec.dns.baseDomain'
       register: base_domain
 
     - name: Deleting the compute nodes manually 
-      command: oc delete no compute-{{item}}.{{hcp.control_plane.hosted_cluster_name }}.{{ base_domain.stdout }} --kubeconfig /root/ansible_workdir/hcp-kubeconfig
+      ansible.builtin.command: oc delete no compute-{{item}}.{{hcp.control_plane.hosted_cluster_name }}.{{ base_domain.stdout }} --kubeconfig /root/ansible_workdir/hcp-kubeconfig
       loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
     - name: Get machine names
-      command: oc get machine.cluster.x-k8s.io -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} --no-headers
+      ansible.builtin.command: oc get machine.cluster.x-k8s.io -n {{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }} --no-headers
       register: machines_info
 
     - name: Create List for machines
-      set_fact:
+      ansible.builtin.set_fact:
         machines: []
 
     - name: Get the List of machines
-      set_fact:
+      ansible.builtin.set_fact:
         machines: "{{ machines + [machines_info.stdout.split('\n')[item].split(' ')[0]] }}"
       loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
     - name: Patch the machines to remove finalizers
-      shell: oc patch machine.cluster.x-k8s.io "{{ machines[item] }}" -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" -p '{"metadata":{"finalizers":null}}' --type=merge
+      ansible.builtin.shell: oc patch machine.cluster.x-k8s.io "{{ machines[item] }}" -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" -p '{"metadata":{"finalizers":null}}' --type=merge
       loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
 - name: Wait for Agentmachines to delete
@@ -66,24 +76,24 @@
   delay: 10
 
 - name: Get agent names
-  command: oc get agents -n {{ hcp.control_plane.hosted_cluster_name }}-agents --no-headers
+  ansible.builtin.command: oc get agents -n {{ hcp.control_plane.hosted_cluster_name }}-agents --no-headers
   register: agents_info
 
 - name: Create List for agents
-  set_fact:
+  ansible.builtin.set_fact:
     agents: []
 
 - name: Get a List of agents
-  set_fact:
+  ansible.builtin.set_fact:
     agents: "{{ agents + [agents_info.stdout.split('\n')[item].split(' ')[0]] }}"
-  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+  loop: "{{ range(agents_info.stdout_lines | length ) | list }}"
 
 - name: Delete Agents
-  command: oc delete agent {{ agents[item] }} -n {{ hcp.control_plane.hosted_cluster_name }}-agents 
-  loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+  ansible.builtin.command: oc delete agent {{ agents[item] }} -n {{ hcp.control_plane.hosted_cluster_name }}-agents 
+  loop: "{{ range(agents_info.stdout_lines | length ) | list }}"
   
 - name: Remove workdir
-  file:
+  ansible.builtin.file:
     path: /root/ansible_workdir
     state: absent
 
@@ -95,8 +105,13 @@
     name: "{{ hcp.control_plane.hosted_cluster_name }}"
     namespace: "{{ hcp.control_plane.hosted_cluster_name }}-agents"
 
+- name: Checking Hosted Cluster
+  ansible.builtin.command: oc get hc -n {{ hcp.control_plane.clusters_namespace }}
+  register: hc_check
+
 - name: Destroy Hosted Control Plane
-  command: hcp destroy cluster agent --name {{ hcp.control_plane.hosted_cluster_name }} --namespace {{ hcp.control_plane.clusters_namespace }}
+  ansible.builtin.command: hcp destroy cluster agent --name {{ hcp.control_plane.hosted_cluster_name }} --namespace {{ hcp.control_plane.clusters_namespace }}
+  when: "'{{ hcp.control_plane.hosted_cluster_name }}' in hc_check.stdout"
 
 - name: Delete Clusters Namespace
   k8s:
@@ -106,7 +121,7 @@
     state: absent
 
 - name: Wait for managed cluster resource to be deleted
-  shell: oc get managedcluster "{{ hcp.control_plane.hosted_cluster_name }}"
+  ansible.builtin.shell: oc get managedcluster "{{ hcp.control_plane.hosted_cluster_name }}"
   register: managedcluster
   until: managedcluster.rc != 0
   retries: 50
@@ -118,11 +133,11 @@
   when: managedcluster.rc == 0 and managedcluster.attempts >= 40
 
 - name: Disable local-cluster component in MCE 
-  command: oc patch mce {{ hcp.mce.instance_name }} -p '{"spec":{"overrides":{"components":[{"name":"local-cluster","enabled":false}]}}}' --type merge
+  ansible.builtin.command: oc patch mce {{ hcp.mce.instance_name }} -p '{"spec":{"overrides":{"components":[{"name":"local-cluster","enabled":false}]}}}' --type merge
   when: hcp.mce.delete == true
 
 - name: Wait for local-cluster components to be deleted
-  shell: oc get ns local-cluster
+  ansible.builtin.shell: oc get ns local-cluster
   register: localcluster
   until: localcluster.rc != 0
   retries: 40
