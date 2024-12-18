@@ -2,6 +2,13 @@
 - name: mirror artifacts in disconnected mode
   tags: mirror_artifacts
   block:
+    - name: Setting Up nameserver on mirror host to resolve DNS
+      ansible.builtin.template:
+        src: resolv.conf.j2
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: "644"
     - name: Get user home directory
       tags: mirror_artifacts
       shell: >

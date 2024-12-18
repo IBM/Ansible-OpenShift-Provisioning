@@ -32,7 +32,7 @@ apps.{{ env.cluster.networking.metadata_name }}  IN    CNAME {{ env.bastion.netw
 
 {% if disconnected.enabled %}
 ;entry for mirror host.
-{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.file_server.ip }}
+{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ disconnected.mirroring.host.ip }}
 {% endif %}
 
 ;EOF
