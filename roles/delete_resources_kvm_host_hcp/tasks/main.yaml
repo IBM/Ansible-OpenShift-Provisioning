@@ -1,36 +1,50 @@
 ---
+- name: List all VMs
+  community.libvirt.virt:
+      command: list_vms
+  register: all_vms
+
+- name: List only running VMs
+  community.libvirt.virt:
+    command: list_vms
+    state: running
+  register: running_vms
 
 - name: Destroy Agent VMs
-  command: virsh destroy {{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} 
+  ansible.builtin.command: virsh destroy {{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} 
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+  when: "{{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} in all_vms.list_vms"
 
 - name: Undefine the Agents
-  command: virsh undefine {{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} --remove-all-storage
+  ansible.builtin.command: virsh undefine {{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} --remove-all-storage
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
+  when: "{{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} in running_vms.list_vms"
 
 - name: Delete the initrd.img
-  file:
+  ansible.builtin.file:
     path: /var/lib/libvirt/images/pxeboot/initrd.img
     state: absent
   when: ( hcp.data_plane.kvm.boot_method | lower != 'iso' and hcp.compute_node_type | lower == 'kvm' ) or hcp.compute_node_type | lower != 'kvm'
 
 - name: Delete the kernel.img
-  file:
+  ansible.builtin.file:
     path: /var/lib/libvirt/images/pxeboot/kernel.img
     state: absent
   when: ( hcp.data_plane.kvm.boot_method | lower != 'iso' and hcp.compute_node_type | lower == 'kvm' ) or hcp.compute_node_type | lower != 'kvm'
 
 - name: Delete ISO
-  file:
+  ansible.builtin.file:
     path: /var/lib/libvirt/images/pxeboot/image.iso
     state: absent
   when: hcp.data_plane.kvm.boot_method | lower == 'iso' and hcp.compute_node_type | lower == 'kvm'
 
 - name: Destroy Bastion
-  command: virsh destroy {{ hcp.control_plane.hosted_cluster_name }}-bastion
+  ansible.builtin.command: virsh destroy {{ hcp.control_plane.hosted_cluster_name }}-bastion
+  when: "{{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} in all_vms.list_vms"
 
 - name: Undefine Bastion
-  command: virsh undefine {{ hcp.control_plane.hosted_cluster_name }}-bastion --remove-all-storage
+  ansible.builtin.command: virsh undefine {{ hcp.control_plane.hosted_cluster_name }}-bastion --remove-all-storage
+  when: "{{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} in running_vms.list_vms"
 
 - name: Stop the storage pool
   community.libvirt.virt_pool:
