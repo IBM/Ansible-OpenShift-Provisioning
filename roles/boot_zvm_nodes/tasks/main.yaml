@@ -12,7 +12,7 @@
 
     - name: Booting zvm node
       shell: |
-        python /root/ansible_workdir/boot_nodes.py \
+        python3 /root/ansible_workdir/boot_nodes.py \
         --zvmname "{{ zvm.nodes[item].name }}" \
         --zvmhost "{{ zvm.nodes[item].host }}" \
         --zvmuser "{{ zvm.nodes[item].user }}" \
