@@ -24,6 +24,7 @@
         --initrd http://"{{ hcp.bastion_params.ip }}":8080/initrd.img \
         --livedisktype "{{ hcp.data_plane.lpar.nodes[item].live_disk.disk_type }}" \
         --devicenr "{{ hcp.data_plane.lpar.nodes[item].live_disk.devicenr }}" \
+        --livediskuuid "{{ hcp.data_plane.lpar.nodes[item].live_disk.uuid }}" \
         --livedisklun "{{ hcp.data_plane.lpar.nodes[item].live_disk.lun }}" \ 
         --livediskwwpn "{{ hcp.data_plane.lpar.nodes[item].live_disk.wwpn }}" \
         --netset_ip "{{ hcp.data_plane.lpar.nodes[item].interface.ip }}" \

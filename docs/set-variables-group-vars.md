@@ -367,6 +367,7 @@
 **hcp.data_plane.lpar.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404 
 **hcp.data_plane.lpar.nodes.lun** | Disk details of fcp disk to be used for zVM node | 0.0.4404
 **hcp.data_plane.lpar.nodes.live_disk.disk_type** | Live disk type for booting LPAR | scsi 
+**hcp.data_plane.lpar.nodes.live_disk.uuid** | UUID for the live disk | 600507000000000000xxxx
 **hcp.data_plane.lpar.nodes.live_disk.devicenr** | devicenr for the live disk | 8001
 **hcp.data_plane.lpar.nodes.live_disk.lun** | lun id  for the live disk | 40xxxxxxxxxxxxx
 **hcp.data_plane.lpar.nodes.live_disk.wwpn** | wwpn for the live disk | 500507630xxxxxxx
