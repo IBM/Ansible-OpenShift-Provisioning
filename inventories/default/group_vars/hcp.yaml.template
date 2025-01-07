@@ -170,10 +170,14 @@ hcp:
           # Live disk details
           live_disk: 
             disk_type: 
-            devicenr:
-            lun:
-            wwpn:
-            password:
+            uuid: ''
+            password: ''
+            
+	    # following paramaters are required only in case of classical LPAR
+            devicenr: ''
+            lun: ''
+            wwpn: ''
+            
       
       
 
