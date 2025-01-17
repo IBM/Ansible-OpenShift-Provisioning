@@ -122,21 +122,21 @@
     agent_mac_addr: []
   when:
     - hcp.data_plane.kvm.ip_params.static_ip.enabled == true
-    - hcp.compute_node_type | lower != 'zvm'
+    - hcp.compute_node_type | lower == 'kvm'
 
 - name: Getting mac addresss for agents
   set_fact:
     agent_mac_addr: "{{ hcp.data_plane.kvm.ip_params.mac }}"
   when: 
     - ( hcp.data_plane.kvm.ip_params.static_ip.enabled == true ) and ( hcp.data_plane.kvm.ip_params.mac != None )
-    - hcp.compute_node_type | lower != 'zvm'
+    - hcp.compute_node_type | lower == 'kvm'
 
 - name: Generate mac addresses for agents
   set_fact:
     agent_mac_addr: "{{ agent_mac_addr +  ['52:54:00' | community.general.random_mac] }}"
   when:
     - ( hcp.data_plane.kvm.ip_params.static_ip.enabled == true ) and ( hcp.data_plane.kvm.ip_params.mac == None )
-    - hcp.compute_node_type | lower != 'zvm'
+    - hcp.compute_node_type | lower == 'kvm'
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
 - name: Create NMState Configs
@@ -145,14 +145,14 @@
     dest: /root/ansible_workdir/nmStateConfig-agent-{{ item }}.yaml
   when: 
     - hcp.data_plane.kvm.ip_params.static_ip.enabled == true
-    - hcp.compute_node_type | lower != 'zvm'
+    - hcp.compute_node_type | lower == 'kvm'
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
 - name: Deploy NMState Configs
   command: oc apply -f /root/ansible_workdir/nmStateConfig-agent-{{ item }}.yaml
   when:
     - hcp.data_plane.kvm.ip_params.static_ip.enabled == true
-    - hcp.compute_node_type | lower != 'zvm'
+    - hcp.compute_node_type | lower == 'kvm'
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
 
 - name: Wait for ISO to generate in InfraEnv 

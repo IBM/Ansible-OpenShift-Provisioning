@@ -1,4 +1,12 @@
 ---
+- name: Ensure the PXE boot directory exists
+  ansible.builtin.file:
+    path: /var/lib/libvirt/images/pxeboot
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
 - name: Generate param files
   ansible.builtin.template:
     src: param-file.param.j2

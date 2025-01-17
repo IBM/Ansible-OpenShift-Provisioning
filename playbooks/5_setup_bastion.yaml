@@ -119,7 +119,7 @@
     - { role: check_dns, when: env.bastion.options.dns is defined and env.bastion.options.dns }
     - { role: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
     - httpd
-    - { role: install_tessia_baselib, when: installation_type|lower == "lpar" }
+    - { role: install_tessia_baselib, when: ( installation_type|lower == "lpar" ) or ( installation_type|lower == "zvm" ) }
 
 - hosts: bastion
   tags: services, section_2, openvpn
