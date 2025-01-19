@@ -19,6 +19,8 @@ parser.add_argument("--cmdline", type=str, help="kernel cmdline", required=True,
 parser.add_argument("--initrd", type=str, help="Initrd URI", required=True, default='')
 
 #live disk info
+parser.add_argument("--dpm_enabled", type=str, help="True if CPC is dpm enabled", default='False')
+parser.add_argument("--livediskuuid", type=str, help="UUID of the scsi device required for DPM lpars only")
 parser.add_argument("--livedisktype", type=str, help="Can be of type dasd or scsi", required=True, default='')
 parser.add_argument("--devicenr", type=str, help="deviceenr for the live disk image")
 parser.add_argument("--netset_ip", type=str, help="network setup ip for the live image")
@@ -62,7 +64,6 @@ lpar_memory = args.memory
 lpar_parameters = {
     "boot_params": {
         "boot_method" : args.livedisktype.lower(),
-        "devicenr": args.devicenr,
         'netsetup': {
             "mac": None,
             "ip": args.netset_ip,
@@ -82,9 +83,12 @@ lpar_parameters = {
 }
 if args.livedisktype.lower()=="dasd" and args.livedisklun=="na" and args.livediskwwpn=="na":
     pass
+elif args.livedisktype.lower()=="scsi" and args.dpm_enabled and args.livediskuuid!="na":
+    lpar_parameters["boot_params"]["uuid"]=args.livediskuuid
 elif args.livedisktype.lower()=="scsi" and args.livedisklun!="na" and args.livediskwwpn!="na":
     lpar_parameters["boot_params"]["lun"]=args.livedisklun
     lpar_parameters["boot_params"]["wwpn"]=args.livediskwwpn
+    lpar_parameters["boot_params"]["devicenr"]=args.devicenr
 else:
     raise Exception("Please check the live disk details")
 hmc.start(lpar_name, lpar_cpu, lpar_memory, lpar_parameters)
