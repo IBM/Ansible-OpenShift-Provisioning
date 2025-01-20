@@ -19,7 +19,7 @@
     backup: yes
   loop:
     - ~/ansible_workdir/agent-config.yaml
-    - ~/ansible_workdir/agent-config.yaml.orig
+    - ~/ansible_workdir/agent-config.yaml.bkp
 
 - name: Check if SSH key exists
   stat:
@@ -46,4 +46,4 @@
     backup: yes
   loop:
     - ~/ansible_workdir/install-config.yaml
-    - ~/ansible_workdir/install-config.yaml.orig
+    - ~/ansible_workdir/install-config.yaml.bkp
