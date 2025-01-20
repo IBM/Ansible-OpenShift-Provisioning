@@ -12,11 +12,14 @@
 - name: Prepare Agent Config
   ansible.builtin.template:
     src: agent-config.yaml.j2
-    dest: ~/ansible_workdir/agent-config.yaml
+    dest: "{{ item }}"
     owner: root
     group: root
     mode: "0755"
     backup: yes
+  loop:
+    - ~/ansible_workdir/agent-config.yaml
+    - ~/ansible_workdir/agent-config-backup.yaml
 
 - name: Check if SSH key exists
   stat:
@@ -36,8 +39,11 @@
     ssh_key: ssh_key
   ansible.builtin.template:
     src: install-config.yaml.j2
-    dest: ~/ansible_workdir/install-config.yaml
+    dest: "{{ item }}"
     owner: root
     group: root
     mode: "0755"
     backup: yes
+  loop:
+    - ~/ansible_workdir/install-config.yaml
+    - ~/ansible_workdir/install-config-backup.yaml
