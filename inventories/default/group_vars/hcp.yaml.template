@@ -52,6 +52,8 @@ hcp:
     gateway:
     subnet_mask:
     interface:
+    internal_ip:  # Required for HS
+
     file_server:
       ip: 
       protocol: http
