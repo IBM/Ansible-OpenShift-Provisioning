@@ -157,6 +157,12 @@ hcp:
             subchannels: 0.0.1100,0.0.1101,0.0.1102
             options: layer2=1
             ip:
+          
+          hipersockets:
+            internal_ip:
+            ifname: ''
+            subchannels: ''
+              
 
           # Required if disk_type is dasd
           dasd:

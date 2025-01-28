@@ -1,11 +1,11 @@
 ---
 
 - name: Configuring  Hipersockets interface 
-  shell: chzdev -e "{{ hcp.data_plane.lpar.nodes[item].interface.subchannels.split(',')[0].split('.')[-1] }}-{{ hcp.data_plane.lpar.nodes[item].interface.subchannels.split(',')[-1].split('.')[-1] }}" layer2=1
+  shell: chzdev -e "{{ hcp.data_plane.lpar.nodes[item].hipersockets.subchannels.split(',')[0].split('.')[-1] }}-{{ hcp.data_plane.lpar.nodes[item].hipersockets.subchannels.split(',')[-1].split('.')[-1] }}" layer2=1
   when: "{{ hcp.data_plane.lpar.network_mode | lower == 'hipersockets' }}"
 
 - name: Adding internal IP address to bastion 
-  shell: ip addr add "{{ hcp.bastion_params.internal_ip }}"/24 dev "{{ hcp.data_plane.lpar.nodes[item].interface.ifname }}"
+  shell: ip addr add "{{ hcp.bastion_params.internal_ip }}"/24 dev "{{ hcp.data_plane.lpar.nodes[item].hipersockets.ifname }}"
   register: ip_result
   when: "{{ hcp.data_plane.lpar.network_mode | lower == 'hipersockets' }}"
   failed_when: "'exists' not in ip_result.stderr and ip_result.rc != 0"
@@ -25,7 +25,7 @@
 - name: Add masquerade in firewalld
   shell: firewall-cmd --permanent --zone=public --add-masquerade
 
-- name: reload firewalld
+- name: Reload firewalld
   shell: firewall-cmd --reload
 
 - name: Allow masquerade on bastion 
