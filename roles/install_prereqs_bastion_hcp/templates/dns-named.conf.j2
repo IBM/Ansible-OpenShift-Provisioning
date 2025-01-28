@@ -1,5 +1,5 @@
 options {
-	listen-on port 53 { 127.0.0.1; {{ hcp.bastion_params.ip }};};
+	listen-on port 53 { 127.0.0.1; {{ hcp.bastion_params.ip }}; {% if hcp.compute_node_type | lower == 'lpar' and hcp.data_plane.lpar.network_mode | lower == 'hipersockets' %} {{ hcp.bastion_params.internal_ip }}; {% endif %} };
 	listen-on-v6 port 53 { ::1; };
 	directory 	"/var/named";
 	dump-file 	"/var/named/data/cache_dump.db";
