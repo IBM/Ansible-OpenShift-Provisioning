@@ -15,3 +15,23 @@
   # Set wait time to 60 min, because it depends highly on system performance and network speed
   retries: 120
   delay: 30
+
+- name: "SSH in to control/compute nodes from bastion after successful cluster creation"
+  tags: ssh_to_nodes
+  ansible.builtin.shell: |
+    ssh -o StrictHostKeyChecking=no -i ~/.ssh/{{ env.ansible_key_name }} core@{{ item }}
+  with_items:
+    - "{{ env.cluster.nodes.control.ip }}"
+    - "{{ env.cluster.nodes.compute.ip }}"
+  register: ssh_results
+  when: install_complete.finished
+  retries: 3
+  delay: 10
+  vars:
+    ansible_ssh_common_args: "-o ProxyCommand='ssh -W %h:%p -q root@{{ env.bastion.networking.ip }}'"
+  delegate_to: "{{ env.bastion.networking.ip }}"
+
+- name: Show the result of the bastion SSH login
+  tags: ssh_to_nodes
+  debug:
+    var: ssh_results
