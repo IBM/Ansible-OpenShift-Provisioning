@@ -29,6 +29,7 @@
       until: nodes.resources | length == 0
       retries: 50
       delay: 15
+      when: "'{{ hcp.control_plane.hosted_cluster_name }}' in hc_check.stdout"
   rescue: 
     - name: Getting basedomain
       ansible.builtin.shell: oc get hc {{ hcp.control_plane.hosted_cluster_name }} -n {{ hcp.control_plane.clusters_namespace }} -o json | jq -r '.spec.dns.baseDomain'
