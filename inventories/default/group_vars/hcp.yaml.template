@@ -143,7 +143,7 @@ hcp:
                 fcp:
     
     lpar:
-      network_mode: osa   # Supported modes: osa, RoCE
+      network_mode: osa   # Supported modes: osa, RoCE, Hipersockets
       disk_type:              # Supported modes: fcp , dasd , NVMe
       subnetmask:
       gateway:
