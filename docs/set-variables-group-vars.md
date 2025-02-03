@@ -352,18 +352,21 @@
 **hcp.data_plane.zvm.interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
 **hcp.data_plane.zvm.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404 
 **hcp.data_plane.zvm.nodes.lun** | Disk details of fcp disk to be used for zVM node | 0.0.4404
-**hcp.data_plane.lpar.network_mode** | Network mode for zvm nodes  Supported modes: vswitch,osa, RoCE  |  vswitch
+**hcp.data_plane.lpar.network_mode** | Network mode for zvm nodes  Supported modes: osa, RoCE, Hipersockets  |  vswitch
 **hcp.data_plane.lpar.disk_type** | Disk type for zvm nodes  Supported disk types: fcp, dasd | dasd
 **hcp.data_plane.lpar.subnetmask** | Subnet mask for compute nodes | 255.255.255.0
 **hcp.data_plane.lpar.gateway** | Gateway for compute nodes | 192.168.10.1
 **hcp.data_plane.lpar.nodes** | Set of parameters for zvm nodes  Give the details of each zvm node here | 
 **hcp.data_plane.lpar.name** | Name of the zVM guest | m1317002
-**hcp.data_plane.lpar.nodes.hmc_host** | Host name of the zVM guests  which we use to login 3270 console | boem1317
-**hcp.data_plane.lpar.nodes.interface.ifname** | Network interface name for zVM guests | encbdf0
-**hcp.data_plane.lpar.nodes.interface.nettype** | Network type for zVM guests for network connectivity | qeth
-**hcp.data_plane.lpar.nodes.interface.subchannels** | subchannels for zVM guests interfaces | 0.0.bdf0,0.0.bdf1,0.0.bdf2
+**hcp.data_plane.lpar.nodes.hmc_host** | Host name of the LPAR  which we use to login 3270 console | boem1317
+**hcp.data_plane.lpar.nodes.interface.ifname** | Network interface name for LPAR | encbdf0
+**hcp.data_plane.lpar.nodes.interface.nettype** | Network type for LPAR for network connectivity | qeth
+**hcp.data_plane.lpar.nodes.interface.subchannels** | subchannels for LPAR interfaces | 0.0.bdf0,0.0.bdf1,0.0.bdf2
 **hcp.data_plane.lpar.nodes.interface.options** | Configurations options  | layer2=1
-**hcp.data_plane.lpar.interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
+**hcp.data_plane.lpar.interface.ip** | IP addresses for to be used for LPAR nodes | 192.168.10.1
+**hcp.data_plane.lpar.hipersockets.internal_ip** | Internal IP address for Hipersocket interface | 10.13.43.2
+**hcp.data_plane.lpar.hipersockets.ifname** | Hipersockets interface name | encf000
+**hcp.data_plane.lpar.hipersockets.subchannels** | subchannels for Hipersockets interfaces | 0.0.f000,0.0.f001,0.0.f002
 **hcp.data_plane.lpar.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404 
 **hcp.data_plane.lpar.nodes.lun** | Disk details of fcp disk to be used for zVM node | 0.0.4404
 **hcp.data_plane.lpar.nodes.live_disk.disk_type** | Live disk type for booting LPAR | scsi 

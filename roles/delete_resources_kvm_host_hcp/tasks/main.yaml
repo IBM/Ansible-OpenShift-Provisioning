@@ -13,12 +13,12 @@
 - name: Destroy Agent VMs
   ansible.builtin.command: virsh destroy {{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} 
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
-  when: "{{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} in all_vms.list_vms"
+  when: "'{{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }}' in all_vms.list_vms"
 
 - name: Undefine the Agents
   ansible.builtin.command: virsh undefine {{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} --remove-all-storage
   loop: "{{ range(hcp.data_plane.compute_count|int) | list }}"
-  when: "{{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} in running_vms.list_vms"
+  when: "'{{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }}' in running_vms.list_vms"
 
 - name: Delete the initrd.img
   ansible.builtin.file:
@@ -40,11 +40,11 @@
 
 - name: Destroy Bastion
   ansible.builtin.command: virsh destroy {{ hcp.control_plane.hosted_cluster_name }}-bastion
-  when: "{{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} in all_vms.list_vms"
+  when: "'{{ hcp.control_plane.hosted_cluster_name }}-bastion' in all_vms.list_vms"
 
 - name: Undefine Bastion
   ansible.builtin.command: virsh undefine {{ hcp.control_plane.hosted_cluster_name }}-bastion --remove-all-storage
-  when: "{{ hcp.control_plane.hosted_cluster_name }}-agent-{{ item }} in running_vms.list_vms"
+  when: "'{{ hcp.control_plane.hosted_cluster_name }}-bastion' in running_vms.list_vms"
 
 - name: Stop the storage pool
   community.libvirt.virt_pool:
