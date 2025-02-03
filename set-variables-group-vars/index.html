@@ -1681,7 +1681,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hcp.data_plane.lpar.network_mode</strong></td>
-<td style="text-align: left;">Network mode for zvm nodes  Supported modes: vswitch,osa, RoCE</td>
+<td style="text-align: left;">Network mode for zvm nodes  Supported modes: osa, RoCE, Hipersockets</td>
 <td style="text-align: left;">vswitch</td>
 </tr>
 <tr>
@@ -1711,22 +1711,22 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.hmc_host</strong></td>
-<td style="text-align: left;">Host name of the zVM guests  which we use to login 3270 console</td>
+<td style="text-align: left;">Host name of the LPAR  which we use to login 3270 console</td>
 <td style="text-align: left;">boem1317</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.interface.ifname</strong></td>
-<td style="text-align: left;">Network interface name for zVM guests</td>
+<td style="text-align: left;">Network interface name for LPAR</td>
 <td style="text-align: left;">encbdf0</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.interface.nettype</strong></td>
-<td style="text-align: left;">Network type for zVM guests for network connectivity</td>
+<td style="text-align: left;">Network type for LPAR for network connectivity</td>
 <td style="text-align: left;">qeth</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.interface.subchannels</strong></td>
-<td style="text-align: left;">subchannels for zVM guests interfaces</td>
+<td style="text-align: left;">subchannels for LPAR interfaces</td>
 <td style="text-align: left;">0.0.bdf0,0.0.bdf1,0.0.bdf2</td>
 </tr>
 <tr>
@@ -1736,8 +1736,23 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hcp.data_plane.lpar.interface.ip</strong></td>
-<td style="text-align: left;">IP addresses for to be used for zVM nodes</td>
+<td style="text-align: left;">IP addresses for to be used for LPAR nodes</td>
 <td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.hipersockets.internal_ip</strong></td>
+<td style="text-align: left;">Internal IP address for Hipersocket interface</td>
+<td style="text-align: left;">10.13.43.2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.hipersockets.ifname</strong></td>
+<td style="text-align: left;">Hipersockets interface name</td>
+<td style="text-align: left;">encf000</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.hipersockets.subchannels</strong></td>
+<td style="text-align: left;">subchannels for Hipersockets interfaces</td>
+<td style="text-align: left;">0.0.f000,0.0.f001,0.0.f002</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.dasd.disk_id</strong></td>
