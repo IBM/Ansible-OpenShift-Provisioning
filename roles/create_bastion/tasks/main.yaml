@@ -88,6 +88,12 @@
     {% else %}
     --extra-args "ip={{ env.bastion.networking.ip }}::{{ env.bastion.networking.gateway }}:{{ env.bastion.networking.subnetmask }}:{{ env.bastion.networking.hostname }}::none" \
     {% endif %}
+    {% if (install_config_vars.fips is defined and install_config_vars.fips) %}
+    --extra-args "fips=1" \
+    {% endif %}
+    {% if (install_config_vars.selinux is defined and install_config_vars.selinux==0) %}
+    --extra-args "selinux=0" \
+    {% endif %}
     --extra-args "{{ _vm_console }}"
   timeout: 420
   register: cmd_output
