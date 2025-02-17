@@ -83,12 +83,11 @@ lpar_parameters = {
 }
 if args.livedisktype.lower()=="dasd" and args.livedisklun=="na" and args.livediskwwpn=="na":
     pass
-elif args.livedisktype.lower()=="scsi" and args.dpm_enabled and args.livediskuuid!="na":
-    lpar_parameters["boot_params"]["uuid"]=args.livediskuuid
 elif args.livedisktype.lower()=="scsi" and args.livedisklun!="na" and args.livediskwwpn!="na":
     lpar_parameters["boot_params"]["lun"]=args.livedisklun
     lpar_parameters["boot_params"]["wwpn"]=args.livediskwwpn
     lpar_parameters["boot_params"]["devicenr"]=args.devicenr
+    lpar_parameters["boot_params"]["uuid"]=args.livediskuuid
 else:
     raise Exception("Please check the live disk details")
 hmc.start(lpar_name, lpar_cpu, lpar_memory, lpar_parameters)
