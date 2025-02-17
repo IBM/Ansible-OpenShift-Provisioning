@@ -52,6 +52,8 @@ hcp:
     gateway:
     subnet_mask:
     interface:
+    internal_ip:  # Required for HS
+
     file_server:
       ip: 
       protocol: http
@@ -141,7 +143,7 @@ hcp:
                 fcp:
     
     lpar:
-      network_mode: osa   # Supported modes: osa, RoCE
+      network_mode: osa   # Supported modes: osa, RoCE, Hipersockets
       disk_type:              # Supported modes: fcp , dasd , NVMe
       subnetmask:
       gateway:
@@ -155,6 +157,12 @@ hcp:
             subchannels: 0.0.1100,0.0.1101,0.0.1102
             options: layer2=1
             ip:
+          
+          hipersockets:
+            internal_ip:
+            ifname: ''
+            subchannels: ''
+              
 
           # Required if disk_type is dasd
           dasd:
@@ -170,10 +178,13 @@ hcp:
           # Live disk details
           live_disk: 
             disk_type: 
-            devicenr:
-            lun:
-            wwpn:
-            password:
+            password: ''
+       
+            uuid: ''   # Required only in case of DPM LPAR 
+            
+           # following paramaters are required only in case of classical LPAR
+            devicenr: ''
+            lun: ''
+            wwpn: ''
+            
       
-      
-

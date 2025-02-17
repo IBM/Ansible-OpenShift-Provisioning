@@ -1,4 +1,37 @@
 ---
+
+- name: Configuring  Hipersockets interface 
+  shell: chzdev -e "{{ hcp.data_plane.lpar.nodes[item].hipersockets.subchannels.split(',')[0].split('.')[-1] }}-{{ hcp.data_plane.lpar.nodes[item].hipersockets.subchannels.split(',')[-1].split('.')[-1] }}" layer2=1
+  when: "{{ hcp.data_plane.lpar.network_mode | lower == 'hipersockets' }}"
+
+- name: Adding internal IP address to bastion 
+  shell: ip addr add "{{ hcp.bastion_params.internal_ip }}"/24 dev "{{ hcp.data_plane.lpar.nodes[item].hipersockets.ifname }}"
+  register: ip_result
+  when: "{{ hcp.data_plane.lpar.network_mode | lower == 'hipersockets' }}"
+  failed_when: "'exists' not in ip_result.stderr and ip_result.rc != 0"
+
+- name: Enable IP Forwarding on the bastion
+  lineinfile:
+    path: /etc/sysctl.conf
+    regexp: '^net\.ipv4\.ip_forward'
+    line: 'net.ipv4.ip_forward = 1'
+    state: present
+  when: "{{ hcp.data_plane.lpar.network_mode | lower == 'hipersockets' }}"
+
+- name: Reload sysctl settings
+  command: sysctl -p
+  when: "{{ hcp.data_plane.lpar.network_mode | lower == 'hipersockets' }}"
+
+- name: Add masquerade in firewalld
+  shell: firewall-cmd --permanent --zone=public --add-masquerade
+
+- name: Reload firewalld
+  shell: firewall-cmd --reload
+
+- name: Allow masquerade on bastion 
+  shell: sudo iptables -t nat -A POSTROUTING -o "{{ hcp.bastion_params.interface }}" -j MASQUERADE
+  when: "{{ hcp.data_plane.lpar.network_mode | lower == 'hipersockets' }}"
+
 - name: Creating agents 
   block:
     - name: Getting script for booting
@@ -24,6 +57,7 @@
         --initrd http://"{{ hcp.bastion_params.ip }}":8080/initrd.img \
         --livedisktype "{{ hcp.data_plane.lpar.nodes[item].live_disk.disk_type }}" \
         --devicenr "{{ hcp.data_plane.lpar.nodes[item].live_disk.devicenr }}" \
+        --livediskuuid "{{ hcp.data_plane.lpar.nodes[item].live_disk.uuid }}" \
         --livedisklun "{{ hcp.data_plane.lpar.nodes[item].live_disk.lun }}" \ 
         --livediskwwpn "{{ hcp.data_plane.lpar.nodes[item].live_disk.wwpn }}" \
         --netset_ip "{{ hcp.data_plane.lpar.nodes[item].interface.ip }}" \
