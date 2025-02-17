@@ -83,4 +83,4 @@
       register: agent_name
 
     - name: Approve agents 	
-      shell: oc -n {{ hcp.control_plane.hosted_cluster_name }}-agents  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{ item }}.{{hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge 
+      shell: oc -n {{ hcp.control_plane.hosted_cluster_name }}-agents  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{{% if hcp.data_plane.lpar.disk_type | lower == 'fcp' %}"installation_disk_id":"/dev/sda"{% endif %}{% if hcp.data_plane.lpar.disk_type | lower == 'dasd' %}"installation_disk_id":"/dev/dasda"{% endif %},"approved":true,"hostname":"compute-{{ item }}.{{hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge 
