@@ -99,5 +99,5 @@ lpar:
     livediskuuid: #X Required when 'dpm_enabled' is true
     livedisk_root_pass: #X
 
-# Type of LPAR(dpm or pr/sm), True if dpm
+# Type of LPAR(dpm or pr/sm), 'True' if dpm. Allowed values ['True', 'False']
   dpm_enabled: 'False'
