@@ -53,6 +53,8 @@ hcp:
     subnet_mask:
     interface:
     internal_ip:  # Required for HS
+    hipersockets: "" # Required only in case of Hipersockets_converged for zVM
+
 
     file_server:
       ip: 
@@ -94,7 +96,7 @@ hcp:
       
 
     zvm:
-      network_mode: vswitch   # Supported modes: vswitch,osa, RoCE, Hipersockets
+      network_mode: vswitch   # Supported modes: vswitch,osa, RoCE, Hipersockets, Hipersockets_converged
       disk_type:              # Supported modes: fcp , dasd
       subnetmask:
       gateway:
