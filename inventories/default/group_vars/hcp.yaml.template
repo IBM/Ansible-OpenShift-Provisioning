@@ -54,6 +54,7 @@ hcp:
     interface:
     internal_ip:  # Required for HS
     hipersockets: "" # Required only in case of Hipersockets_converged for zVM
+    user_id: # Required only in case of Hipersockets_converged for zVM
 
 
     file_server:
