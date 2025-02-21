@@ -41,3 +41,9 @@
   roles:
     - common
     - { role: boot_abi_agents, when: installation_type | lower == 'kvm' }
+
+- name: Setup SSH agent
+  tags: ssh_to_nodes
+  hosts: bastion
+  roles:
+    - ssh_agent
