@@ -19,17 +19,18 @@ parser.add_argument("--cmdline", type=str, help="kernel cmdline", required=True,
 parser.add_argument("--initrd", type=str, help="Initrd URI", required=True, default='')
 
 #live disk info
+parser.add_argument("--dpm_enabled", type=str, help="True if CPC is dpm enabled", default='False')
+parser.add_argument("--livediskuuid", type=str, help="UUID of the scsi device required for DPM lpars only", default='')
 parser.add_argument("--livedisktype", type=str, help="Can be of type dasd or scsi", required=True, default='')
-parser.add_argument("--livediskuuid", type=str, help="UUID for the live disk image")
-parser.add_argument("--devicenr", type=str, help="deviceenr for the live disk image")
+parser.add_argument("--devicenr", type=str, help="deviceenr for the live disk image", default='')
 parser.add_argument("--netset_ip", type=str, help="network setup ip for the live image")
 parser.add_argument("--netset_gateway", type=str)
 parser.add_argument("--netset_network_type", type=str, help="could be of type osa or pci")
 parser.add_argument("--netset_network_device", type=str, help="network device id")
 parser.add_argument("--netset_password", type=str, help="live disk password")
 parser.add_argument("--netset_dns", type=list_of_strings, help="comma seperated list of dns addresss in order")
-parser.add_argument("--livedisklun", type=str, help="Lun id when the disk type is scsi and will be na when disktype is dasd")
-parser.add_argument("--livediskwwpn", type=str, help="wwpn id of the scsi disk and will be na when disktype is dasd")
+parser.add_argument("--livedisklun", type=str, help="Lun id when the disk type is scsi and will be na when disktype is dasd", default='')
+parser.add_argument("--livediskwwpn", type=str, help="wwpn id of the scsi disk and will be na when disktype is dasd", default='')
 
 parser.add_argument("--log_level", type=str, help="can be of type INFO or DEBUG")
 args = parser.parse_args()
@@ -63,8 +64,6 @@ lpar_memory = args.memory
 lpar_parameters = {
     "boot_params": {
         "boot_method" : args.livedisktype.lower(),
-        "uuid" : args.livediskuuid,
-        "devicenr": args.devicenr,
         'netsetup': {
             "mac": None,
             "ip": args.netset_ip,
@@ -87,6 +86,8 @@ if args.livedisktype.lower()=="dasd" and args.livedisklun=="na" and args.livedis
 elif args.livedisktype.lower()=="scsi" and args.livedisklun!="na" and args.livediskwwpn!="na":
     lpar_parameters["boot_params"]["lun"]=args.livedisklun
     lpar_parameters["boot_params"]["wwpn"]=args.livediskwwpn
+    lpar_parameters["boot_params"]["devicenr"]=args.devicenr
+    lpar_parameters["boot_params"]["uuid"]=args.livediskuuid
 else:
     raise Exception("Please check the live disk details")
 hmc.start(lpar_name, lpar_cpu, lpar_memory, lpar_parameters)

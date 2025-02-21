@@ -3,12 +3,14 @@
 - name: Configuring  Hipersockets interface 
   shell: chzdev -e "{{ hcp.data_plane.lpar.nodes[item].hipersockets.subchannels.split(',')[0].split('.')[-1] }}-{{ hcp.data_plane.lpar.nodes[item].hipersockets.subchannels.split(',')[-1].split('.')[-1] }}" layer2=1
   when: "{{ hcp.data_plane.lpar.network_mode | lower == 'hipersockets' }}"
+  ignore_errors: true
 
 - name: Adding internal IP address to bastion 
   shell: ip addr add "{{ hcp.bastion_params.internal_ip }}"/24 dev "{{ hcp.data_plane.lpar.nodes[item].hipersockets.ifname }}"
   register: ip_result
   when: "{{ hcp.data_plane.lpar.network_mode | lower == 'hipersockets' }}"
   failed_when: "'exists' not in ip_result.stderr and ip_result.rc != 0"
+  ignore_errors: true
 
 - name: Enable IP Forwarding on the bastion
   lineinfile:
@@ -79,6 +81,11 @@
     - name: Get the name of agent 
       shell: oc get agents -n {{ hcp.control_plane.hosted_cluster_name }}-agents --no-headers -o custom-columns=NAME:.metadata.name,APPROVED:.spec.approved | awk '$2 == "false"' 
       register: agent_name
-
+ 
+    - name: Getting installation disk
+      set_fact:
+        installation_disk_id: "{% if hcp.data_plane.lpar.disk_type | lower == 'fcp' %}ccw-{{ hcp.data_plane.lpar.nodes[item].lun[0].paths[0].fcp }}-zfcp-{{ hcp.data_plane.lpar.nodes[item].lun[0].paths[0].wwpn }}:{{ hcp.data_plane.lpar.nodes[item].lun[0].id }}{% endif %}{% if hcp.data_plane.lpar.disk_type | lower == 'dasd' %}ccw-0.0.{{ hcp.data_plane.lpar.nodes[item].dasd.disk_id }}{% endif %}"
+ 
     - name: Approve agents 	
-      shell: oc -n {{ hcp.control_plane.hosted_cluster_name }}-agents  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"approved":true,"hostname":"compute-{{ item }}.{{hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge 
+      shell: oc -n {{ hcp.control_plane.hosted_cluster_name }}-agents  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"installation_disk_id":"/dev/disk/by-path/{{ installation_disk_id }}","approved":true,"hostname":"compute-{{ item }}.{{hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge
+ 

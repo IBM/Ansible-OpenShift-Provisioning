@@ -15,4 +15,3 @@
   # Set wait time to 60 min, because it depends highly on system performance and network speed
   retries: 120
   delay: 30
-
