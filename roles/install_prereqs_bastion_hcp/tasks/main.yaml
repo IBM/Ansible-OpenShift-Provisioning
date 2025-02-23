@@ -229,6 +229,7 @@
 - name: Attaching Hipersockets interface
   shell: vmcp attach "{{ hcp.bastion_params.hipersockets.split(',')[0].split('.')[-1] }}-{{ hcp.bastion_params.hipersockets.split(',')[-1].split('.')[-1] }}" to "{{ hcp.bastion_params.user_id }}"
   when: "{{ hcp.data_plane.zvm.network_mode | lower == 'hipersockets_converged' }}"
+  ignore_errors: true
 
 - name: Configuring  Hipersockets interface 
   shell: chzdev -e "{{ hcp.bastion_params.hipersockets.split(',')[0].split('.')[-1] }}-{{ hcp.bastion_params.hipersockets.split(',')[-1].split('.')[-1] }}" layer2=1
