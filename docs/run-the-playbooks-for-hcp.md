@@ -64,6 +64,7 @@ ansible-playbook playbooks/setup_for_hcp.yaml --ask-vault-pass
 ## Step-3: Create Hosted Cluster 
 * Run each part step-by-step by running one playbook at a time, or all at once using [hcp.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/hcp.yaml).
     * If bastion is already available ( bastion_params.create = false ) , just give ip ,user, and nameserver under bastion_params section and remaining parameters under bastion_params can be ignored. 
+    * For zVM with network type Hipersockets converged, give ip, user, nameserver, internal_ip, hipersockets, user_id under bastion_params section and remaining parameters under bastion_params can be ignored.
     
 * Here's the full list of playbooks to be run in order, full descriptions of each can be found further down the page:
     * create_hosted_cluster.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/create_hosted_cluster.yaml))
