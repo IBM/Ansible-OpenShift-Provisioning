@@ -44,3 +44,7 @@
   debug:
     var: ssh_results
   when: ssh_results is defined
+
+- name: Display cluster details post-install
+  debug:
+    msg: "{{ install_complete.stderr_lines }}"
