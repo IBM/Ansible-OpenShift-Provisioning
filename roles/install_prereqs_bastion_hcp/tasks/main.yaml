@@ -223,3 +223,45 @@
     name: firewalld.service
     state: restarted
     enabled: true
+
+# Hipersockets setup for zVM
+
+- name: Attaching Hipersockets interface
+  shell: vmcp attach "{{ hcp.bastion_params.hipersockets.split(',')[0].split('.')[-1] }}-{{ hcp.bastion_params.hipersockets.split(',')[-1].split('.')[-1] }}" to "{{ hcp.bastion_params.user_id }}"
+  when: "{{ hcp.data_plane.zvm.network_mode | lower == 'hipersockets_converged' }}"
+  ignore_errors: true
+
+- name: Configuring  Hipersockets interface 
+  shell: chzdev -e "{{ hcp.bastion_params.hipersockets.split(',')[0].split('.')[-1] }}-{{ hcp.bastion_params.hipersockets.split(',')[-1].split('.')[-1] }}" layer2=1
+  when: "{{ hcp.data_plane.zvm.network_mode | lower == 'hipersockets_converged' }}"
+
+- name: Enable IP Forwarding on the bastion
+  lineinfile:
+    path: /etc/sysctl.conf
+    regexp: '^net\.ipv4\.ip_forward'
+    line: 'net.ipv4.ip_forward = 1'
+    state: present
+  when: "{{ hcp.data_plane.zvm.network_mode | lower == 'hipersockets_converged' }}"
+
+- name: Reload sysctl settings
+  command: sysctl -p
+  when: "{{ hcp.data_plane.zvm.network_mode | lower == 'hipersockets_converged' }}"
+
+- name: Add masquerade in firewalld
+  shell: firewall-cmd --permanent --zone=public --add-masquerade
+  when: "{{ hcp.data_plane.zvm.network_mode | lower == 'hipersockets_converged' }}"
+
+- name: Reload firewalld
+  shell: firewall-cmd --reload
+  when: "{{ hcp.data_plane.zvm.network_mode | lower == 'hipersockets_converged' }}"
+
+- name: Allow masquerade on bastion 
+  shell: sudo iptables -t nat -A POSTROUTING -o "{{ hcp.bastion_params.interface }}" -j MASQUERADE
+  when: "{{ hcp.data_plane.zvm.network_mode | lower == 'hipersockets_converged' }}"
+
+- name: Adding internal IP address to bastion
+  shell: ip addr add "{{ hcp.bastion_params.internal_ip }}"/24 dev enc"{{ hcp.bastion_params.hipersockets.split(',')[0].split('.')[-1] }}"
+  register: ip_result
+  when: "{{ hcp.data_plane.zvm.network_mode | lower == 'hipersockets_converged' }}"
+  failed_when: "'exists' not in ip_result.stderr and ip_result.rc != 0"
+

@@ -22,7 +22,7 @@ parameters = {
     }
 
 interfaces=[]
-if args.network.lower() == 'osa' or args.network.lower() == 'hipersockets':
+if args.network.lower() == 'osa' or 'hipersockets' in args.network.lower():
     interfaces=[{ "type": "osa", "id": "{{ hcp.data_plane.zvm.nodes[item].interface.subchannels.split(',') | map('regex_replace', '0.0.', '') | join(',') }}"}]
 
 elif args.network.lower() == 'roce':
