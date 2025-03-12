@@ -206,6 +206,7 @@ hmca_password: '&lt;password&gt;'
 <p>Run each part step-by-step by running one playbook at a time, or all at once using <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/hcp.yaml">hcp.yaml</a>.</p>
 <ul>
 <li>If bastion is already available ( bastion_params.create = false ) , just give ip ,user, and nameserver under bastion_params section and remaining parameters under bastion_params can be ignored. </li>
+<li>For zVM with network type Hipersockets converged, give ip, user, nameserver, internal_ip, hipersockets, user_id under bastion_params section and remaining parameters under bastion_params can be ignored.</li>
 </ul>
 </li>
 <li>
