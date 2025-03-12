@@ -95,7 +95,7 @@
     --extra-args "selinux=0" \
     {% endif %}
     --extra-args "{{ _vm_console }}"
-  timeout: 420
+  timeout: 620
   register: cmd_output
 
 - name: Debug, print above command output

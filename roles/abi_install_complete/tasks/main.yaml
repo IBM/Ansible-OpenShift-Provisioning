@@ -18,5 +18,5 @@
 
 - name: Display cluster details post-install
   debug:
-    msg: "{{ install_complete.stderr_lines }}"
+    msg: "{{ install_complete.stdout }}"
 
