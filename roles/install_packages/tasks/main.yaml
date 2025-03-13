@@ -3,18 +3,18 @@
   tags: install_packages
   debug: msg={{ vars[packages] }} 
 
-- name: Getting RHEL Version
-  shell: awk -F 'release ' '{print $2}' /etc/redhat-release | awk '{print $1}'
-  register: rhel_version
+- name: Getting OS Version
+  shell: cat /etc/*release | grep 'VERSION_ID' | cut -d "=" -f 2 | tr -d '"'
+  register: os_version
 
-- name: Installing libvirt-devel packages for Linux machines.
+- name: Installing libvirt-devel packages for RHEL machines.
   tags: install_packages
   become: true
   ansible.builtin.package:
     name: "libvirt-devel"
     state: latest
     update_cache: yes
-  when: ( ansible_os_family != 'Darwin') and ( rhel_version.stdout| float < 9.0 )
+  when: ( ansible_os_family | lower == 'redhat') and ( os_version.stdout| float < 9.0 )
 
 - name: Installing required packages for Linux machines.
   tags: install_packages

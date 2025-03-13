@@ -16,31 +16,35 @@
   retries: 120
   delay: 30
 
-- name: "SSH in to control/compute nodes from bastion after successful cluster creation"
-  tags: ssh_to_nodes
-  block: 
-    - name: Setting up ssh-agent
-      tags: ssh_to_nodes
-      include_role:
-        name: ssh_agent
-
-    - name: SSH in to control/compute nodes from bastion
-      tags: ssh_to_nodes
-      ansible.builtin.shell: |
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/{{ env.ansible_key_name }} core@{{ item }}
-      with_items:
-        - "{{ env.cluster.nodes.control.ip }}"
-        - "{{ env.cluster.nodes.compute.ip }}"
-      register: ssh_results
-      retries: 5
-      delay: 10
-      vars:
-        ansible_ssh_common_args: "-o ProxyCommand='ssh -W %h:%p -q root@{{ env.bastion.networking.ip }}'"
-      delegate_to: "{{ env.bastion.networking.ip }}"
-  when: install_complete.finished
-  
-- name: Show the result of the bastion SSH login
-  tags: ssh_to_nodes
+- name: Display cluster details post-install
   debug:
-    var: ssh_results
-  when: ssh_results is defined
+    msg: "{{ install_complete.stdout }}"
+
+- name: Create ~/.kube directory if it does not exist
+  tags: kubeconfig
+  file:
+    path: ~/.kube
+    state: directory
+    mode: '0755'
+
+- name: Copy kubeconfig to ~/.kube/config
+  tags: kubeconfig
+  copy:
+    src: /root/{{ abi.ansible_workdir }}/auth/kubeconfig
+    dest: ~/.kube/config
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_gid }}" 
+    mode: '0600'
+    remote_src: yes
+
+- name: Check if kubeconfig was copied
+  tags: kubeconfig
+  stat:
+    path: ~/.kube/config
+  register: kubeconfig_status
+
+- name: Display kubeconfig message
+  tags: kubeconfig
+  debug:
+    msg: "Kubeconfig is set at ~/.kube/config. No need to export KUBECONFIG unless you want to use a different one."
+  when: kubeconfig_status.stat.exists
