@@ -200,6 +200,7 @@ env:
   use_ipv6: True
   use_dhcp: False
   setup_openvpn: False
+  ipsec_enabled: False
 
 #jumphost if network mode is NAT
   jumphost:
