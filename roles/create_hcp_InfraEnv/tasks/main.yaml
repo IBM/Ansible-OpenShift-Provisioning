@@ -93,7 +93,7 @@
   shell: oc get pods -n {{ hosted_control_plane_namespace }}  --no-headers | grep -v 'Running\|Completed\|Terminating' | wc -l
   register: pod_status
   until: pod_status.stdout == '0'
-  retries: 30
+  retries: 40
   delay: 10
 
 - name: Create Pull Secret for Agents
