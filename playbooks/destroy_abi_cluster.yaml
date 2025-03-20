@@ -1,14 +1,21 @@
 ---
 - hosts: localhost
-  tags: localhost
   connection: local
   become: false
   gather_facts: true
   vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/disconnected.yaml"
     - "{{ inventory_dir }}/group_vars/zvm.yaml"
+  vars:
+    packages: "pkgs_controller"
+    ssh_target: ["{{ env.z.lpar1.ip }}","{{ env.z.lpar1.user }}","{{ env.z.lpar1.pass }}","{{ path_to_key_pair }}"]
   roles:
     - set_inventory
+    - install_packages
+    - ssh_key_gen
+    - ssh_agent
+    - ssh_copy_id
 
 - name: Destroy ABI Cluster
   hosts: kvm_host[0]
