@@ -41,7 +41,9 @@ disconnected:
               replace: with
       release_image_tag: '4.13.1-multi'
       image_set: # this field is a standard image set from oc-mirror documentation. The only exception is the storageConfig which is altered to allow substitution of disconnected.registry.url
+        apiVersion: mirror.openshift.io/v2alpha1 # update the version with v2alpha1 for oc-mirror v2 plugin and v1alpha2 for v1 plugin
         storageConfig:
+          enable: False # enable this flag if oc-mirror v1 plugin is used since storageConfig is removed for v2 plugin
           registry:
             enabled: True # use registry storage backend. Currently only method supproted
             imageURL: # the final value will be {imageURL: disconnected.registry.url/org/repo}

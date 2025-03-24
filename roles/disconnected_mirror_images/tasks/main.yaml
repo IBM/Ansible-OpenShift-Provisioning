@@ -19,18 +19,18 @@
       tags: mirror_artifacts
       become: true
       file:
-        path: "{{ user_home.stdout }}/ocpinst"
+        path: "{{ user_home.stdout }}/ocpinst_disconnected"
         state: absent
     - name: Create OCP download directory
       tags: mirror_artifacts
       file:
-        path: "{{ user_home.stdout }}/ocpinst"
+        path: "{{ user_home.stdout }}/ocpinst_disconnected"
         state: directory
     - name: Unzip OCP client and oc-mirror
       tags: mirror_artifacts
       ansible.builtin.unarchive:
         src: "{{ item }}"
-        dest: "{{ user_home.stdout }}/ocpinst/"
+        dest: "{{ user_home.stdout }}/ocpinst_disconnected/"
         remote_src: yes
       loop:
         - "{{ disconnected.mirroring.client_download.ocp_download_url }}{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
@@ -39,7 +39,7 @@
       tags: mirror_artifacts
       become: true
       ansible.builtin.copy:
-        src: "{{ user_home.stdout }}/ocpinst/{{ item }}"
+        src: "{{ user_home.stdout }}/ocpinst_disconnected/{{ item }}"
         dest: /usr/sbin/{{ item }}
         owner: root
         group: root
@@ -100,59 +100,116 @@
       tags: mirror_artifacts
       ansible.builtin.template:
         src: imageset.yaml.j2
-        dest: "{{ user_home.stdout }}/ocpinst/imageset.yaml"
+        dest: "{{ user_home.stdout }}/ocpinst_disconnected/imageset.yaml"
     - name: mirror the imageset to registry
       tags: mirror_artifacts
       block:
-        - name: mirror the imageset to registry
+        - name: mirror the imageset to registry for oc-mirror plugin v1
           ansible.builtin.shell: |
             set -o pipefail
-            oc mirror --config {{ user_home.stdout }}/ocpinst/imageset.yaml docker://{{ disconnected.registry.url}} --ignore-history{{ ' --continue-on-error' if disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error == True }} \
+            oc mirror --config {{ user_home.stdout }}/ocpinst_disconnected/imageset.yaml docker://{{ disconnected.registry.url}} --ignore-history{{ ' --continue-on-error' if disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error == True }} \
              {{ ' --source-skip-tls' if disconnected.mirroring.oc_mirror.oc_mirror_args.source_skip_tls == True }}
           # ignore-history set by default for idempotency
           register: cmd_oc_mirror
           args:
-            chdir: "{{ user_home.stdout }}/ocpinst"
+            chdir: "{{ user_home.stdout }}/ocpinst_disconnected"
+          when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v1alpha2"
+        - name: dry run the imageset for creating mapping.txt file for oc-mirror plugin v2
+          ansible.builtin.shell: |
+            set -o pipefail
+            oc mirror --v2 --config {{ user_home.stdout }}/ocpinst_disconnected/imageset.yaml --workspace file://{{ user_home.stdout }}/ocpinst_disconnected docker://{{ disconnected.registry.url}} --dry-run
+          args:
+            chdir: "{{ user_home.stdout }}/ocpinst_disconnected"
+          when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v2alpha1"
+        - name: mirror the imageset to registry for oc-mirror plugin v2
+          ansible.builtin.shell: |
+            set -o pipefail
+            oc mirror --v2 --config {{ user_home.stdout }}/ocpinst_disconnected/imageset.yaml --workspace file://{{ user_home.stdout }}/ocpinst_disconnected docker://{{ disconnected.registry.url}}
+          register: cmd_oc_mirror
+          args:
+            chdir: "{{ user_home.stdout }}/ocpinst_disconnected"
+          when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v2alpha1"
         - name: print output of imageset mirroring
           ansible.builtin.debug:
             var: cmd_oc_mirror
-    - name: Get the results directory from oc mirror operation
+    - name: Get the results directory from oc mirror v1 plugin operation
       tags: mirror_artifacts
       ansible.builtin.shell: |
         set -o pipefail
-        ls {{ user_home.stdout }}/ocpinst/oc-mirror-workspace/ | grep results
+        ls {{ user_home.stdout }}/ocpinst_disconnected/oc-mirror-workspace/ | grep results
       register: oc_mirror_results_dir_name
+      when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v1alpha2"
     - name: perform post mirror actions if requested
       tags: mirror_artifacts
       block:
-        - name: create a copy of the mappings file
-          ansible.builtin.copy:
-            src: "{{ user_home.stdout }}/ocpinst/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/mapping.txt"
-            dest: "{{ user_home.stdout }}/ocpinst/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/post_mapping.txt"
-            mode: preserve
-            remote_src: True
-        - name: replace provided values in the mappings
-          ansible.builtin.replace:
-            path: "{{ user_home.stdout }}/ocpinst/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/post_mapping.txt"
-            regexp: "{{ item.regexp }}"
-            replace: "{{ item.replace }}"
-          with_items: "{{ disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.list }}"
-          when:  disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled
-        - name: manually mirror patched mappings to registry
-          ansible.builtin.shell: |
-            set -o pipefail
-            oc image mirror -a {{ user_home.stdout }}/.docker/config.json -f {{ user_home.stdout }}/ocpinst/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/post_mapping.txt --insecure --filter-by-os='.*' --continue-on-error || true
-          args:
-            chdir: "{{ user_home.stdout }}/ocpinst"
-          register: cmd_oc_image_mirror
-        - name: print output of oc image mirror
-          ansible.builtin.debug:
-            var: cmd_oc_image_mirror
+        - name: post mirroring operation for oc mirror v1 plugin
+          block:
+            - name: create a copy of the mappings file
+              ansible.builtin.copy:
+                src: "{{ user_home.stdout }}/ocpinst_disconnected/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/mapping.txt"
+                dest: "{{ user_home.stdout }}/ocpinst_disconnected/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/post_mapping.txt"
+                mode: preserve
+                remote_src: True
+            - name: replace provided values in the mappings
+              ansible.builtin.replace:
+                path: "{{ user_home.stdout }}/ocpinst_disconnected/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/post_mapping.txt"
+                regexp: "{{ item.regexp }}"
+                replace: "{{ item.replace }}"
+              with_items: "{{ disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.list }}"
+              when:  disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled
+            - name: manually mirror patched mappings to registry
+              ansible.builtin.shell: |
+                set -o pipefail
+                oc image mirror -a {{ user_home.stdout }}/.docker/config.json -f {{ user_home.stdout }}/ocpinst_disconnected/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/post_mapping.txt --insecure --filter-by-os='.*' --continue-on-error || true
+              args:
+                chdir: "{{ user_home.stdout }}/ocpinst_disconnected"
+              register: cmd_oc_image_mirror
+            - name: print output of oc image mirror
+              ansible.builtin.debug:
+                var: cmd_oc_image_mirror
+          when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v1alpha2"
+        - name: post mirroring operation for oc mirror v2 plugin
+          block:
+            - name: Check if directory {{ user_home.stdout }}/.config exists
+              tags: mirror_artifacts
+              ansible.builtin.stat:
+                path: "{{ user_home.stdout }}/.config"
+              register: container_registry_home
+            - name: Create directory {{ user_home.stdout }}/.config/containers
+              tags: mirror_artifacts
+              file:
+                path: "{{ user_home.stdout }}/.config/containers"
+                state: directory
+              when: not container_registry_home.stat.exists
+            - name: prepare registries.conf for oc-mirror mirroring
+              tags: mirror_artifacts
+              ansible.builtin.template:
+                src: registries.conf.j2
+                dest: "{{ user_home.stdout }}/.config/containers/registries.conf"
+            - name: mirror the imageset to registry for oc-mirror plugin v2
+              ansible.builtin.shell: |
+                set -o pipefail
+                oc mirror --v2 --config {{ user_home.stdout }}/ocpinst_disconnected/imageset.yaml --workspace file://{{ user_home.stdout }}/ocpinst_disconnected docker://{{ disconnected.registry.url}}
+              register: cmd_oc_image_mirror
+              args:
+                chdir: "{{ user_home.stdout }}/ocpinst_disconnected"
+            - name: print output of oc image mirror
+              ansible.builtin.debug:
+                var: cmd_oc_image_mirror
+          when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v2alpha1"
       when:  disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled
-    - name: Fetch the files that need to be applied on the cluster to the controller
+    - name: Fetch the files that need to be applied on the cluster to the controller for oc-mirror v1 plugin
       tags: mirror_artifacts
       ansible.posix.synchronize:
         mode: pull
-        src: "{{ user_home.stdout }}/ocpinst/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/*"
+        src: "{{ user_home.stdout }}/ocpinst_disconnected/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/*"
         dest: "../.oc-mirror-results"
+      when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v1alpha2"
+    - name: Fetch the files that need to be applied on the cluster to the controller for oc-mirror v2 plugin
+      tags: mirror_artifacts
+      ansible.posix.synchronize:
+        mode: pull
+        src: "{{ user_home.stdout }}/ocpinst_disconnected/working-dir/cluster-resources/*"
+        dest: "../.oc-mirror-results"
+      when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v2alpha1"
   when: disconnected.enabled
