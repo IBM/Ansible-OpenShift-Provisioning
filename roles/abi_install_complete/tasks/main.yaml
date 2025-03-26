@@ -1,24 +1,41 @@
-- name: Start openshift-installer with 'wait-for install-complete' (async task)
-  tags: wait_for_install_complete.
-  ansible.builtin.command: openshift-install wait-for install-complete --dir=/root/"{{ abi.ansible_workdir }}"
-  # Installer will wait up to ~50 min 
-  async: 3060
-  poll: 0
-  register: watch_install_complete
+---
+- name: wait-for install-complete
+  block:
+    - name: Start openshift-installer with 'wait-for install-complete' (async task)
+      ansible.builtin.command: openshift-install agent wait-for install-complete --dir=/root/"{{ abi.ansible_workdir }}"
+      # Installer will wait up to ~70 min
+      async: 4260
+      poll: 0
+      register: watch_install_complete
 
-- name: "Retry wait-for install-complete job ID check until it's finished. This may take some time... To watch progress"
-  tags: wait_for_bootstrap
-  ansible.builtin.async_status:
-    jid: "{{ watch_install_complete.ansible_job_id }}"
-  register: install_complete
-  until: install_complete.finished
-  # Set wait time to 60 min, because it depends highly on system performance and network speed
-  retries: 120
-  delay: 30
+    - name: "Retry wait-for install-complete job ID check until it's finished. This may take some time... To watch progress"
+      ansible.builtin.async_status:
+        jid: "{{ watch_install_complete.ansible_job_id }}"
+      register: install_complete
+      until: install_complete.finished
+      # Set wait time to 71 min, because it depends highly on system performance and network speed
+      retries: 141
+      delay: 2
+  when: not install_config_vars.fips
 
-- name: Display cluster details post-install
-  debug:
-    msg: "{{ install_complete.stdout }}"
+- name: FIPS wait-for install-complete
+  block:
+    - name: Start openshift-installer with 'wait-for install-complete' (async task)
+      ansible.builtin.command: openshift-install-fips agent wait-for install-complete --dir=/root/"{{ abi.ansible_workdir }}"
+      # Installer will wait up to ~71 min
+      async: 4260
+      poll: 0
+      register: watch_install_complete
+
+    - name: "Retry wait-for install-complete job ID check until it's finished. This may take some time... To watch progress"
+      ansible.builtin.async_status:
+        jid: "{{ watch_install_complete.ansible_job_id }}"
+      register: install_complete
+      until: install_complete.finished
+      # Set wait time to 70 min, because it depends highly on system performance and network speed
+      retries: 140
+      delay: 30
+  when: install_config_vars.fips
 
 - name: Create ~/.kube directory if it does not exist
   tags: kubeconfig
@@ -48,3 +65,11 @@
   debug:
     msg: "Kubeconfig is set at ~/.kube/config. No need to export KUBECONFIG unless you want to use a different one."
   when: kubeconfig_status.stat.exists
+
+- name: Display cluster details post-install
+  debug:
+    msg:
+      - Installation completed!
+      - Access the OpenShift web-console here --> https://console-openshift-console.apps.{{env.cluster.networking.metadata_name}}.{{env.cluster.networking.base_domain}}
+      - kubeadmin password of cluster is stored in ~/{{ abi.ansible_workdir }}/auth/kubeadmin-password on bastion.
+      - Login command --> oc login https://api.{{env.cluster.networking.metadata_name}}.{{env.cluster.networking.base_domain}}:6443 -u kubeadmin -p $( cat ~/{{ abi.ansible_workdir }}/auth/kubeadmin-password )
