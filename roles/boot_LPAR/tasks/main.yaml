@@ -95,7 +95,7 @@
           --netset_ip {{ node.networking.ip }} \ 
           --netset_gateway {{ node.networking.gateway }} \
           --netset_network_type osa \
-          --netset_network_device "{{ node.lpar.networking.nic.card1.dev_num }}" \
+          --netset_network_device "{{ node.lpar.networking.nic.osa_card.dev_num }}" \
           --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
           --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
           --log_level DEBUG \
