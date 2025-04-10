@@ -15,7 +15,7 @@
       until: install_complete.finished
       # Set wait time to 71 min, because it depends highly on system performance and network speed
       retries: 141
-      delay: 2
+      delay: 30
   when: not install_config_vars.fips
 
 - name: FIPS wait-for install-complete
