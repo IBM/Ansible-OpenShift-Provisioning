@@ -200,8 +200,10 @@
 :--- | :--- | :---
 **abi.flag** | This is the flag, Will be used to identify during execution. Few checks in the playbook will be depend on this (default value will be False)  | True
 **abi.ansible_workdir** | This will be work directory name, it will keep required data that need to be present during or after execution | ansible_workdir
-**abi.ocp_installer_version** | Version will contain value of openshift-installer binary version user desired to be used | '4.15.0-rc.8'
-**abi.ocp_installer_url** | This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror | 'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'
+**abi.ocp_installer_version** | Version will contain value of openshift-installer binary version user desired to be used | '4.15.8'
+**abi.ocp_installer_url** | This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror | 'https://mirror.openshift.com/pub/openshift-v4/'
+**abi.architecture** | The installer binary supports two architecture options: multi and s390x. Users are required to specify the appropriate architecture value based on their deployment environment. | 'multi/s390x'
+**abi.boot_method** | Specifies the boot type for Agent-based Installation (ABI). Users must choose either iso or pxe based on the deployment method. Note: iso boot is supported only on KVM platforms. | 'iso/pxe'
 
 ## OpenShift Settings
 * The parameters bellow have a hierachical structure and need to be added to all.yaml in given format. For example if you want to change the hyperthreading (disable) than you need to specify the following value in all.yaml file:
