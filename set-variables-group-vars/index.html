@@ -1000,12 +1000,22 @@
 <tr>
 <td style="text-align: left;"><strong>abi.ocp_installer_version</strong></td>
 <td style="text-align: left;">Version will contain value of openshift-installer binary version user desired to be used</td>
-<td style="text-align: left;">'4.15.0-rc.8'</td>
+<td style="text-align: left;">'4.15.8'</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>abi.ocp_installer_url</strong></td>
+<td style="text-align: left;"><strong>abi.ocp_installer_base_url</strong></td>
 <td style="text-align: left;">This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror</td>
-<td style="text-align: left;">'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/'</td>
+<td style="text-align: left;">'https://mirror.openshift.com/pub/openshift-v4/'</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>abi.architecture</strong></td>
+<td style="text-align: left;">The installer binary supports two architecture options: multi and s390x. Users are required to specify the appropriate architecture value based on their deployment environment.</td>
+<td style="text-align: left;">'multi/s390x'</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>abi.boot_method</strong></td>
+<td style="text-align: left;">Specifies the boot type for Agent-based Installation (ABI). Users must choose either iso or pxe based on the deployment method. Note: iso boot is supported only on KVM platforms.</td>
+<td style="text-align: left;">'iso/pxe'</td>
 </tr>
 </tbody>
 </table>
