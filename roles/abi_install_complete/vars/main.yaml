@@ -1,0 +1,6 @@
+install_config_vars: |
+  {%- if install_config is defined and install_config is iterable -%}
+  {{ install_config_defaults | combine (install_config, recursive=True) }}
+  {%- else -%}
+  {{ install_config_defaults }}
+  {%- endif -%}

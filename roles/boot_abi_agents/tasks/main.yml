@@ -60,6 +60,7 @@
   loop_control:
     extended: true
     index_var: i
+    pause: 10
   when: abi.boot_method | lower == "pxe"
 
 - name: Create CoreOS Control Agent Nodes On The KVM host using ISO boot.
@@ -86,6 +87,7 @@
   loop_control:
     extended: true
     index_var: i
+    pause: 10
   when: abi.boot_method | lower == "iso"
 
 - name: Create CoreOS Compute Agent Nodes On The KVM host using PXE boot.
@@ -128,6 +130,7 @@
   loop_control:
     extended: true
     index_var: i
+    pause: 10
   when: env.cluster.nodes.compute is defined and abi.boot_method | lower == "pxe"
 
 - name: Create CoreOS Compute Agent Nodes On The KVM host using ISO boot.
@@ -154,4 +157,5 @@
   loop_control:
     extended: true
     index_var: i
+    pause: 10
   when: env.cluster.nodes.compute is defined and abi.boot_method | lower == "iso"
