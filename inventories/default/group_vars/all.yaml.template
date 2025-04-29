@@ -200,7 +200,9 @@ env:
   use_ipv6: True
   use_dhcp: False
   setup_openvpn: False
-  ipsec_enabled: False
+
+# Uncomment the line below to enable IPSec network configuration.
+# ipsec_enabled: true
 
 #jumphost if network mode is NAT
   jumphost:
