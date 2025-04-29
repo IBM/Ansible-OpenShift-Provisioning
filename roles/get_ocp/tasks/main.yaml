@@ -98,7 +98,7 @@
   copy:
     src: cluster-network-03-config.yml
     dest: /root/ocpinst/manifests/cluster-network-03-config.yml
-  when: env.ipsec_enabled
+  when: env.ipsec_enabled is defined and env.ipsec_enabled != None and env.ipsec_enabled
 
 - name: List the files in the manifests directory
   tags: get_ocp
