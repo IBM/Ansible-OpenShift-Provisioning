@@ -92,6 +92,24 @@
     /root/ocpinst/openshift-install create manifests --dir=/root/ocpinst/
   become: true
 
+- name: Copy the file when ipsec flag is enabled
+  tags: get_ocp
+  become: true
+  copy:
+    src: cluster-network-03-config.yml
+    dest: /root/ocpinst/manifests/cluster-network-03-config.yml
+  when: env.ipsec_enabled is defined and env.ipsec_enabled != None and env.ipsec_enabled
+
+- name: List the files in the manifests directory
+  tags: get_ocp
+  become: true
+  command: "ls -lrt /root/ocpinst/manifests/"
+  register: manifests_list
+
+- debug:
+    msg: "{{ manifests_list }}"    
+
+
 - name: Set masters schedulable parameter to false
   tags: get_ocp
   become: true

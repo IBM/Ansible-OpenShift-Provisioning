@@ -166,6 +166,7 @@
 **env.jumphost.user** | (Optional) The user name to login to the jumphost. | admin
 **env.jumphost.pass** | (Optional) The password for user to login to the jumphost. | ch4ngeMe!
 **env.jumphost.path_to_keypair** | (Optional) The absolute path to the public key file on the jumphost to be copied to the bastion. | /home/admin/.ssh/id_rsa.pub
+**env.ipsec_enabled** | (Optional) If IPSEC network configuration has to be enabled, this flag should be set to true | 
 
 ## 12 - OCP and RHCOS (CoreOS)
 * These parameters are responsible which version of OCP, RHCOS and os variant AOP is using. The default value is 'latest' for s390x architecture. I you want to install a different version or a different architecture you need to specify specify the following parameters in all.yaml file:
