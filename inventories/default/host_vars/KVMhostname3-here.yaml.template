@@ -56,6 +56,9 @@ lpar:
   networking:
     subnet_cidr: #X
     nic:
+    # Enable below card only when network.mode is hipersocket
+    # osa_card:
+    #   dev_num: #X Example: 0.0.1100,0.0.1101,0.0.1102
       card1:
         name: #X
         adapter: #X
