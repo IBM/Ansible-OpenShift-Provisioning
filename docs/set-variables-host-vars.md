@@ -67,6 +67,7 @@
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **lpar.networking.subnet_cidr** | The same value as the above variable but in Classless Inter-Domain Routing (CIDR) notation. | 23
+**lpar.networking.nic.osa_card.dev_num** | <b>(Optional) Required only when network mode is HIPERSOCKET</b>The logical device number for the OSA Network Interface Card (NIC). In hex format. |
 **lpar.networking.nic.card1.name** | The logical name of the Network Interface Card (NIC) within the HMC. An arbitrary value that is human-readable that points to the NIC. | SYS-NIC-01
 **lpar.networking.nic.card1.adapter** | The physical adapter name reference to the logical adapter for the LPAR. | 10Gb-A
 **lpar.networking.nic.card1.port** | The port number for the NIC. | 0
