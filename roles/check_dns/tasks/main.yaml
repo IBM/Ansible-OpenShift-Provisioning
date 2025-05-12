@@ -14,6 +14,18 @@
   failed_when: env.bastion.networking.internal_ip != bastion_lookup.stdout
   when: env.bastion.networking.internal_ip is defined and env.bastion.networking.internal_ip != None
 
+- name: Set expected IP for DNS check
+  set_fact:
+    expected_ip: >-
+      {{
+        env.bastion.networking.internal_ip
+        if env.bastion.networking.internal_ip is defined and env.bastion.networking.internal_ip is not none else
+        (
+          env.bastion.networking.ip
+          if env.bastion.options.loadbalancer.on_bastion else
+          env.bastion.options.loadbalancer.public_ip
+        )
+      }}
 
 - name: Check internal cluster DNS resolution for external API and apps services
   tags: check_dns, dns
@@ -23,14 +35,32 @@
     - "apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
     - "test.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
   register: services_lookup
-  failed_when: ((env.bastion.options.loadbalancer.on_bastion == True) and (env.bastion.networking.ip != services_lookup.stdout)) or ((env.bastion.options.loadbalancer.on_bastion == False) and (env.bastion.options.loadbalancer.public_ip != services_lookup.stdout) )
+  changed_when: false
+
+- name: Fail if any external DNS record resolves to wrong IP
+  fail:
+    msg: >
+      DNS mismatch: {{ item.item }} resolved to {{ item.stdout }},
+      expected {{ expected_ip }}
+  loop: "{{ services_lookup.results }}"
+  when: item.stdout != expected_ip
+  tags: check_dns, dns    
 
 - name: Check internal cluster DNS resolution for internal API services
   tags: check_dns, dns
   shell: "dig +short api-int.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1"
   register: api_int_lookup
-  failed_when: ((env.bastion.options.loadbalancer.on_bastion == True) and (env.bastion.networking.ip != api_int_lookup.stdout)) or ((env.bastion.options.loadbalancer.on_bastion == False) and (env.bastion.options.loadbalancer.private_ip != api_int_lookup.stdout) )
+  changed_when: false
 
+- name: Fail if internal DNS record resolves to wrong IP
+  fail:
+    msg: >
+      DNS mismatch: api-int.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
+      resolved to {{ api_int_lookup.stdout }},
+      expected {{ expected_ip }}
+  when: api_int_lookup.stdout != expected_ip
+  tags: check_dns, dns    
+    
 - name: Check internal cluster DNS resolution for bootstrap
   tags: check_dns, dns
   shell: "dig +short {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1"
