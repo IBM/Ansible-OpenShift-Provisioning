@@ -4,6 +4,7 @@ The documentation for this project can be found [here](https://ibm.github.io/Ans
 Release v2.3.0:
 This README contains the information for the current release only.
 The whole history of the releases can be found [here](https://github.com/IBM/Ansible-OpenShift-Provisioning/releases).
+This release was tested with OpenShift v4.19 and below.
 
 ## What's new:
 * Add support for fips and some minor code allignments
