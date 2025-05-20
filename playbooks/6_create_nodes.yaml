@@ -53,6 +53,7 @@
         node_type: "bootstrap"
         node_name: "{{ item }}"
         ignition: "bootstrap"
+        node_mac: "{% if env.use_dhcp and env.cluster.nodes[node_type].mac is defined and env.cluster.nodes[node_type].mac != None %}{{ env.cluster.nodes[node_type].mac }}{% else %}null{% endif %}"
       include_tasks:
         file: ../roles/boot_LPAR/tasks/main.yaml
       loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
@@ -63,6 +64,7 @@
         node_type: "control"
         node_name: "{{ item }}"
         ignition: "master"
+        node_mac: "{% if env.use_dhcp and env.cluster.nodes[node_type].mac is defined and env.cluster.nodes[node_type].mac != None %}{{ env.cluster.nodes[node_type].mac[env.cluster.nodes[node_type].vm_name.index(item)] }}{% else %}null{% endif %}"
       include_tasks:
         file: ../roles/boot_LPAR/tasks/main.yaml
       loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
@@ -129,7 +131,11 @@
         node_type: "compute"
         node_name: "{{ item }}"
         ignition: "worker"
+        node_mac: "{% if env.use_dhcp and env.cluster.nodes[node_type].mac is defined and env.cluster.nodes[node_type].mac != None %}{{ env.cluster.nodes[node_type].mac[env.cluster.nodes[node_type].vm_name.index(item)] }}{% else %}null{% endif %}"
       include_tasks:
         file: ../roles/boot_LPAR/tasks/main.yaml
       loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
-      when: env.cluster.nodes[node_type].vm_name is defined and item in hosts_with_host_vars
+      when:
+        - env.cluster.nodes[node_type].vm_name is defined
+        - env.cluster.nodes[node_type].vm_name | length > 0
+        - item in hosts_with_host_vars

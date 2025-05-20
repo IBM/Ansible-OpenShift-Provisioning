@@ -82,7 +82,7 @@ lpar_parameters = {
     }
 }
 if args.livedisktype.lower()=="dasd" and args.livedisklun=="na" and args.livediskwwpn=="na":
-    pass
+    lpar_parameters["boot_params"]["devicenr"]=args.devicenr
 elif args.livedisktype.lower()=="scsi" and args.livedisklun!="na" and args.livediskwwpn!="na":
     lpar_parameters["boot_params"]["lun"]=args.livedisklun
     lpar_parameters["boot_params"]["wwpn"]=args.livediskwwpn
