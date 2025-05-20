@@ -1,7 +1,7 @@
 {% for item in disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.list if item.regexp is not none %}
 [[registry]]
 prefix = "{{ item.regexp }}"
-location = "brew.registry.redhat.io"
+location = "{{ item.replace }}"
 
 {% endfor %}
 [[registry]]
