@@ -1,7 +1,7 @@
 ---
 - name: Download OpenShift Installer (fips=false)
   ansible.builtin.get_url:
-    url: "{{ abi.ocp_installer_base_url }}/{{ abi.architecture | lower }}/clients/ocp/{{ abi.ocp_installer_version }}/{{ 's390x/' if abi.architecture | lower == 'multi' else '' }}{{ ocp_install_tgz }}"
+    url: "{{ abi.ocp_installer_base_url }}{{ abi.architecture | lower }}/clients/ocp/{{ abi.ocp_installer_version }}/{{ 's390x/' if abi.architecture | lower == 'multi' else '' }}{{ ocp_install_tgz }}"
     dest: "/tmp/{{ ocp_install_tgz }}"
     mode: '0640'
     validate_certs: false
@@ -9,7 +9,7 @@
 
 - name: Download OpenShift Installer (fips=true)
   ansible.builtin.get_url:
-    url: "{{ abi.ocp_installer_base_url }}/{{ abi.architecture | lower }}/clients/ocp/{{ abi.ocp_installer_version }}/{{ 's390x/' if abi.architecture | lower == 'multi' else '' }}{{ ocp_install_fips_tgz }}-{{ install_config_vars.control.architecture | lower }}.tar.gz"
+    url: "{{ abi.ocp_installer_base_url }}{{ abi.architecture | lower }}/clients/ocp/{{ abi.ocp_installer_version }}/{{ 's390x/' if abi.architecture | lower == 'multi' else '' }}{{ ocp_install_fips_tgz }}-{{ install_config_vars.control.architecture | lower }}.tar.gz"
     dest: "/tmp/{{ ocp_install_fips_tgz }}-{{ install_config_vars.control.architecture | lower }}.tar.gz"
     mode: '0640'
     validate_certs: false
@@ -31,7 +31,7 @@
 
 - name: Download OpenShift Client
   ansible.builtin.get_url:
-    url: "{{ abi.ocp_installer_base_url }}/{{ abi.architecture | lower }}/clients/ocp/{{ abi.ocp_installer_version }}/{{ 's390x/' if abi.architecture | lower == 'multi' else '' }}{{ ocp_client_tgz }}"
+    url: "{{ abi.ocp_installer_base_url }}{{ abi.architecture | lower }}/clients/ocp/{{ abi.ocp_installer_version }}/{{ 's390x/' if abi.architecture | lower == 'multi' else '' }}{{ ocp_client_tgz }}"
     dest: "/tmp/{{ ocp_client_tgz }}"
     mode: '0755'
     validate_certs: false
