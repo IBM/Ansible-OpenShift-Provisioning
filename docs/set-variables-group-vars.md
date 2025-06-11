@@ -253,6 +253,7 @@
 :--- | :--- | :---
 **disconnected.enabled** | True or False, to enable disconnected mode | False
 **disconnected.registry.url** | String containing url of disconnected registry with or without port and without protocol | registry.tt.testing:5000
+**disconnected.registry.ip** | String containing ip of the registry, which will be used for resolving dns | `192.168.151.1`
 **disconnected.registry.pull_secret** | String containing pull secret of the disconnected registry to be applied on the *cluster*.  Make sure to enclose pull_secret in 'single quotes' and it has appropriate pull access. | '{"auths":{"registry.tt..testing:5000":{"auth":"b3Blb...4yQQ==","email":"test.user@example.com"}}}'
 **disconnected.registry.mirror_pull_ecret** | String containing pull secret to use for mirroring. Contains Red Hat secret and registry pull  secret. Make sure to enclose pull_secret in 'single quotes' and must be able to push to mirror registry. | '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com", "registry.tt..testing:5000":...user@example.com"}}}'
 **disconnected.registry.ca_trusted** | True or False to indicate that mirror registry CA is implicitly trusted or needs to be made trusted on mirror host and cluster. | False

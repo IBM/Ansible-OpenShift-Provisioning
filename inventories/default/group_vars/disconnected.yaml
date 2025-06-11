@@ -3,6 +3,7 @@ disconnected:
   enabled: False
   registry:
     url: 'registry url'
+    ip: 'registry reachable ip'
     pull_secret: '' # this is similar to env.redhat.pull_secret but it will only contain secrets to be applied to the cluster in disconnected mode.
     mirror_pull_secret: '' # this should contain a pull secret that contains the combination of env.redhat.pull_secret and pull secret  with push access to mirror registry for mirroring
     ca_trusted: False
