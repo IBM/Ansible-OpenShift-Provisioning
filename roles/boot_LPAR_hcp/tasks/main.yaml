@@ -67,7 +67,7 @@
         --netset_network_type "osa" \
         --netset_network_device "{{ hcp.data_plane.lpar.nodes[item].interface.subchannels }}" \       
         --netset_password "{{ hcp.data_plane.lpar.nodes[item].live_disk.password }}" \
-        --netset_dns "{{ hcp.bastion_params.ip }}" \
+        --netset_dns "{{ hcp.mgmt_cluster_nameserver }}" \
         --log_level DEBUG \
         --cmdline "$(cat /root/ansible_workdir/agent-{{ item }}.parm)" 
 
