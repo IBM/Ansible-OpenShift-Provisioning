@@ -47,6 +47,7 @@
     url: "{{ rootfs.stdout }}"
     dest: /var/www/html/rootfs.img
     validate_certs: false
+    timeout: 60
 
 - name: Copy kernel.img to /var/www/html/
   ansible.builtin.copy:
