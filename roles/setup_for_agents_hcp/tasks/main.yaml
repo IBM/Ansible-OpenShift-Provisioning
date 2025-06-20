@@ -15,6 +15,7 @@
     url: "{{ initrd.stdout }}"
     dest: /var/lib/libvirt/images/pxeboot/initrd.img
     validate_certs: false
+    timeout: 60
   when: ( hcp.data_plane.kvm.boot_method | lower != 'iso' and hcp.compute_node_type | lower == 'kvm' ) or hcp.compute_node_type | lower != 'kvm'
 
 - name: Get URL for kernel.img
@@ -27,6 +28,7 @@
     url: "{{ kernel.stdout }}"
     dest: /var/lib/libvirt/images/pxeboot/kernel.img
     validate_certs: false
+    timeout: 60
   when: ( hcp.data_plane.kvm.boot_method | lower != 'iso' and hcp.compute_node_type | lower == 'kvm' ) or hcp.compute_node_type | lower != 'kvm'
 
 - name: Get URL for ISO
@@ -39,6 +41,7 @@
     url: "{{ iso.stdout }}"
     dest: /var/lib/libvirt/images/pxeboot/image.iso
     validate_certs: false
+    timeout: 60
   when: hcp.data_plane.kvm.boot_method | lower == 'iso' and  hcp.compute_node_type | lower == 'kvm'
 
 - name: Generate param files
