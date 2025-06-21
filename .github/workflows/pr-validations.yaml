@@ -1,0 +1,42 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  check-pr-title:
+    name: Ensure PR Title Standards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title syntax
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const validKeywords = ['fix', 'feat', 'chore', 'docs', 'perf', 'test'];
+            const title = context.payload.pull_request?.title || '';
+
+            const match = title.match(/^(\w+):\s.+/);
+            if (!match) {
+              core.setFailed(`❌ PR title "${title}" does not match the pattern "prefix: title"`);
+              return;
+            }
+
+            const keyword = match[1];
+            if (!validKeywords.includes(keyword)) {
+              core.setFailed(`❌ Invalid PR keyword "${keyword}". Must be one of: ${validKeywords.join(', ')}`);
+            }
+
+  check-pr-description:
+    name: Validate PR Description
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR description presence
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request?.body || '';
+
+            if (!body.trim()) {
+              core.setFailed('❌ PR description (body) must not be empty.');
+            }
