@@ -1,0 +1,62 @@
+name: Metadata_Validator
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  check-pr-title:
+    name: PR_Title_Linter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title syntax
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const validKeywords = ['fix', 'feat', 'chore', 'docs', 'perf', 'test'];
+            const title = context.payload.pull_request?.title || '';
+
+            const match = title.match(/^(\w+):\s.+/);
+            if (!match) {
+              core.setFailed(
+                `Invalid PR title format: "${title}"\n\n` +
+                `PR title must follow this format -> prefix: descriptive message\n\n` +
+                `Example -> feat: Add optional setup_file_server.yaml playbook\n\n` +
+                `Allowed keywords:\n` +
+                `  - {"type": "feat", "section": "Features"}\n` +
+                `  - {"type": "fix", "section": "Bug Fixes"}\n` +
+                `  - {"type": "chore", "section": "Miscellaneous"}\n` +
+                `  - {"type": "docs", "section": "Documentation"}\n` +
+                `  - {"type": "perf", "section": "Performance"}\n` +
+                `  - {"type": "test", "section": "Tests"}\n\n` +
+                `This format helps organize changelogs and enforces clarity.`
+              );
+              return;
+            }
+
+            const keyword = match[1];
+            if (!validKeywords.includes(keyword)) {
+              core.setFailed(`Invalid Prefix "${keyword}"\n` +
+              `Allowed keywords:\n` +
+                `  - {"type": "feat", "section": "Features"}\n` +
+                `  - {"type": "fix", "section": "Bug Fixes"}\n` +
+                `  - {"type": "chore", "section": "Miscellaneous"}\n` +
+                `  - {"type": "docs", "section": "Documentation"}\n` +
+                `  - {"type": "perf", "section": "Performance"}\n` +
+                `  - {"type": "test", "section": "Tests"}\n\n`
+                );
+            }
+
+  check-pr-description:
+    name: PR_Description_Validator
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR description presence
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request?.body || '';
+
+            if (!body.trim()) {
+              core.setFailed('PR description (body) must not be empty.');
+            }
