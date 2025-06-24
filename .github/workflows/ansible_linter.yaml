@@ -33,12 +33,10 @@ jobs:
       - name: Run ansible-lint on changed Ansible files
         run: |
           files=$(git diff --name-only --diff-filter=ACMRT upstream/${{ github.base_ref }} -- '*.yml' '*.yaml')
-          
           if [[ -z "$files" ]]; then
             echo "No yaml files changed"
             exit 0
           fi
-          
           echo "Linting changed Ansible files:"
           echo "$files"
           echo "$files" | xargs ansible-lint

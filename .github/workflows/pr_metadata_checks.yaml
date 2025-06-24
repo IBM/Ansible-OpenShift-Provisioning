@@ -60,3 +60,4 @@ jobs:
             if (!body.trim()) {
               core.setFailed('PR description (body) must not be empty.');
             }
+            
