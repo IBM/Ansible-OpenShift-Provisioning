@@ -1,4 +1,14 @@
 ---
+- name: Create CatalogSource.yaml from template 
+  template:
+    src: CatalogSource.yaml.j2
+    dest: /root/ansible_workdir/CatalogSource.yaml
+  when: hcp.mce.catalogsource_image is defined and hcp.mce.catalogsource_image | length > 0
+
+- name: Deploy CatalogSource
+  command: oc apply -f /root/ansible_workdir/CatalogSource.yaml
+  when: hcp.mce.catalogsource_image is defined and hcp.mce.catalogsource_image | length > 0
+
 - name: Check if multicluster-engine Namespace exists 
   k8s_info:
     api_version: v1

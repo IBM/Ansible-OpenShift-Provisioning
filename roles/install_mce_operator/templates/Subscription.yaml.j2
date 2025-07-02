@@ -5,7 +5,7 @@ metadata:
   namespace: "{{ hcp.asc.mce_namespace }}"
 spec:
   sourceNamespace: openshift-marketplace
-  source: {{ hcp.mce.catalogsource_name }}
+  source: redhat-operators
   channel: stable-{{ hcp.mce.version }}
   installPlanApproval: Automatic
   name: multicluster-engine
