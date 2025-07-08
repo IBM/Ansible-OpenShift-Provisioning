@@ -1,0 +1,24 @@
+- name: Extract UUID from cex_pair
+  set_fact:
+    cex_uuid: "{{ cex_pair.split(':')[0] }}"
+    cex_bdf: "{{ cex_pair.split(':')[1] }}"
+
+- name: Debug CEX assignment
+  debug:
+    msg: "Attaching CEX UUID {{ cex_uuid }} to VM {{ vm_name }}"
+
+- name: Generate hostdev XML from template
+  template:
+    src: hostdev.xml.j2
+    dest: "/tmp/cex_{{ vm_name }}_{{ cex_uuid }}.xml"
+
+- name: Check if CEX UUID already attached
+  shell: |
+    virsh dumpxml {{ vm_name }} | grep -q "{{ cex_uuid }}"
+  register: cex_attached
+  ignore_errors: true
+
+- name: Attach CEX device if not already attached
+  shell: |
+    virsh attach-device {{ vm_name }} /tmp/cex_{{ vm_name }}_{{ cex_uuid }}.xml --persistent
+  when: cex_attached.rc != 0
