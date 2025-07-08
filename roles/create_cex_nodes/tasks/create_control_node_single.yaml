@@ -1,0 +1,58 @@
+- name: Set facts for current control node
+  set_fact:
+    vm_name: "{{ control_node_name }}"
+    vm_hostname: "{{ env.cluster.nodes.control.hostname[control_index] }}"
+    vm_mac: "{{ env.cluster.nodes.control.mac[control_index] | default('') }}"
+    vm_ip: "{{ env.cluster.nodes.control.ip[control_index] }}"
+    vm_ipv6: "{{ env.cluster.nodes.control.ipv6[control_index] | default('') }}"
+
+- name: Check if VM {{ vm_name }} already exists
+  command: "virsh dominfo {{ vm_name }}"
+  register: vm_check
+  failed_when: false
+  changed_when: false
+
+- name: Skip creation of VM {{ vm_name }} if it already exists
+  debug:
+    msg: "VM {{ vm_name }} already exists, skipping creation."
+  when: vm_check.rc == 0
+
+- name: Create CoreOS control node VM {{ vm_name }}
+  shell: |
+    virt-install \
+      --name {{ vm_name }} \
+      --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
+      --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.control.disk_size }},cache=none,io=native \
+      --ram {{ env.cluster.nodes.control.ram }} \
+      {{ env.cluster.nodes.control.vcpu_model_option }} \
+      --vcpus {{ env.cluster.nodes.control.vcpu }} \
+      --network network={{ env.vnet_name }}{% if vm_mac and env.use_dhcp %},mac={{ vm_mac }}{% endif %} \
+      --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
+      --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=vda" \
+      --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }}" \
+      {% if env.use_dhcp and vm_mac %}
+      --extra-args "ip=dhcp" \
+      {% else %}
+      --extra-args "ip={{ vm_ip }}::{{ env.cluster.networking.gateway }}:{{ env.cluster.networking.subnetmask }}:{{ vm_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ env.cluster.networking.interface }}:none:1500" \
+      --extra-args "{{ ('ip=[' + vm_ipv6 + ']::[' + env.cluster.networking.ipv6_gateway +']:' + env.cluster.networking.ipv6_prefix | string + '::' + env.cluster.networking.interface + ':none' ) if env.use_ipv6 == True else '' }}" \
+      {% endif %}
+      --extra-args "nameserver={{ env.cluster.networking.nameserver1 }}{% if env.cluster.networking.nameserver2 is defined %},{{ env.cluster.networking.nameserver2 }}{% endif %}" \
+      --extra-args "coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/master.ign" \
+      --extra-args "{{ _vm_console }}" \
+      --memballoon none \
+      --graphics none \
+      --console pty,target_type=serial \
+      --wait=-1 \
+      --noautoconsole
+  args:
+    executable: /bin/bash
+
+- name: Set CEX cards for {{ vm_name }}
+  set_fact:
+    cex_cards: ["{{ env.cluster.nodes.control.cex_card[control_index] }}"]
+
+- name: Attach each CEX device from assignment list
+  include_tasks: attach_cex_device.yaml
+  loop: "{{ cex_cards }}"
+  loop_control:
+    loop_var: cex_pair
