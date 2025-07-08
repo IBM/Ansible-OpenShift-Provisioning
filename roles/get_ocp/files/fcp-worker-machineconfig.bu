@@ -1,0 +1,23 @@
+variant: openshift  
+version: 4.19.0  
+metadata:  
+  name: 99-worker-s390x-cex-luks-config  
+  labels:  
+    machineconfiguration.openshift.io/role: worker  
+openshift:
+  fips: true
+  kernel_arguments:  
+    - rd.luks.key=/etc/luks/cex.key  
+storage:
+  filesystems:
+    - device: /dev/mapper/root
+      format: xfs
+      label: root
+      wipe_filesystem: true
+  luks:
+    - cex: 
+        enabled: true
+      device: /dev/disk/by-label/root
+      label: luks-root
+      name: root
+      wipe_volume: true

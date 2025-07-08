@@ -1,0 +1,22 @@
+---
+
+- name: Create control nodes with CEX
+  include_tasks: create_control_node_loop.yaml
+  when:
+    - cex | bool
+    - create_phase | default('control') == 'control'
+    - env.cluster.nodes.control.vm_name is defined
+    - env.cluster.nodes.control.vm_name | length > 0
+
+- name: Wait 600 seconds before creating compute nodes
+  ansible.builtin.pause:
+    minutes: 10 
+  when: create_phase | default('control') == 'control'
+
+- name: Create compute nodes with CEX
+  include_tasks: create_compute_node_loop.yaml
+  when:
+    - cex | bool
+    - create_phase | default('compute') == 'compute'
+    - env.cluster.nodes.compute.vm_name is defined
+    - env.cluster.nodes.compute.vm_name | length > 0
