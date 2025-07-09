@@ -290,7 +290,7 @@
 **hcp.pkgs** | list of packages for different hosts | 
 **hcp.mce.version** | version for multicluster-engine Operator | 2.4
 **hcp.mce.instance_name** | name of the MultiClusterEngine instance | engine
-**hcp.mce.catalogsource_name** | Name of the catalogsource for operatorhub | redhat-operators
+**hcp.mce.catalogsource_image** | Image ID for installing MCE | 970287
 **hcp.mce.delete** | true or false - deletes mce and related resources while running deletion playbook | true
 **hcp.asc.url_for_ocp_release_file** | Add URL for OCP release.txt File | https://...  ..../release.txt
 **hcp.asc.db_volume_size** | DatabaseStorage Volume Size | 10Gi
