@@ -1,0 +1,6 @@
+- name: Loop over compute node names and call per-node logic
+  include_tasks: create_compute_node_single.yaml
+  loop: "{{ env.cluster.nodes.compute.vm_name }}"
+  loop_control:
+    loop_var: compute_node_name
+    index_var: control_index

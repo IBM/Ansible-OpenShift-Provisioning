@@ -1,0 +1,102 @@
+---
+
+- name: CEX create nodes - find LPAR host files
+  hosts: localhost
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  tasks:
+    - block:
+        - name: Loop over node types and include role
+          include_role:
+            name: check_for_lpar_nodes
+          loop:
+            - bootstrap
+            - control
+            - compute
+          loop_control:
+            loop_var: node_type
+          register: result
+      ignore_errors: true
+
+    - name: Fail the play if the previous command did not succeed
+      fail:
+        msg: "Check for LPAR nodes failed for bootstrap or control node"
+      when:
+        - "'bootstrap' in result.msg"
+        - "'control' in result.msg"
+
+- name: CEX create nodes - prepare KVM guests
+  hosts: kvm_host
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - { role: prep_kvm_guests, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
+    - { role: delete_nodes, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
+
+- name: CEX create nodes - create bootstrap
+  hosts: kvm_host[0]
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - { role: common, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
+    - { role: create_bootstrap, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
+
+# CONTROL NODE CREATION
+- name: CEX create nodes - create control nodes
+  hosts: kvm_host
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - role: common
+    - role: create_cex_nodes
+      vars:
+        create_phase: "control"
+      when: cex | bool
+
+- name: CEX create nodes - wait for bootstrap to connect control plane
+  hosts: bastion
+  become: true
+  gather_facts: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  environment:
+    KUBECONFIG: "{{ '/home/' if (env.bastion.access.user != 'root') else '/'}}{{ env.bastion.access.user }}/.kube/config"
+  roles:
+    - wait_for_bootstrap
+
+- name: CEX create nodes - tear down bootstrap
+  hosts: kvm_host[0]
+  gather_facts: false
+  tags: teardown_bootstrap
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  tasks:
+    - name: Destroy bootstrap VM
+      community.libvirt.virt:
+        name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
+        command: destroy
+      ignore_errors: true
+      when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars
+
+    - name: Undefine bootstrap VM
+      community.libvirt.virt:
+        name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
+        command: undefine
+      ignore_errors: true
+
+# COMPUTE NODE CREATION
+- name: CEX create nodes - create compute nodes
+  hosts: kvm_host
+  gather_facts: false
+  tags: create_cex_nodes
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+  roles:
+    - role: common
+    - role: create_cex_nodes
+      vars:
+        create_phase: "compute"
+      when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars

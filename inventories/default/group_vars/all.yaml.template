@@ -6,6 +6,8 @@
 # Section 1 - Ansible Controller
 installation_type: kvm
 controller_sudo_pass: #X
+cex: False
+luks_device: #[dasd | fcp | virt ] 
 
 env:
 
@@ -140,6 +142,10 @@ env:
 #         - X
 #         - X
 #         - X
+        cex_card:
+          - 68cd2d83-3eef-4e45-b22c-534f90b16cb9:xx.xxxx #xx.xxxx means the CEX cca card number from lszcrypt.
+          - ba3f873c-3022-4534-9072-eb0d4530b137:xx.xxxx
+          - 610e4724-c8c1-45ed-a498-ccfdadc1f2ca:xx.xxxx
 
 # Section 9 - Compute Nodes
       compute:
@@ -162,6 +168,9 @@ env:
         hostname:
 #         - X
 #         - X
+        cex_card:
+          - 5c84eefb-cb45-4519-86d3-ba23e65e8896:xx.xxxx #xx.xxxx means the CEX cca card number from lszcrypt
+          - 60cf6ec4-2741-44e2-84d2-0746f133db16:xx.xxxx
 
 # Section 10 - Infra Nodes
 #      infra:

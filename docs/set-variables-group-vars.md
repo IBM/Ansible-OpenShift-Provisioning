@@ -12,6 +12,8 @@
 :--- | :--- | :---
 **installation_type** | Can be of type kvm or lpar. Some packages will be ignored for installation in case of non lpar based installation. | kvm 
 **controller_sudo_pass** | The password to the machine running Ansible (localhost). This will only be used for two things. To ensure you've installed the pre-requisite packages if you're on Linux, and to add the login URL to your /etc/hosts file. | Pas$w0rd!
+**cex** | Whether to enable cex based luks encryption, default to False.
+**luks_device** | Specify the storage device type used for LUKS encryption. This setting determines which MCO Ignition configuration will be applied. Use in combination with the cex parameter.  [dasd, fcp, virt]
 
 ## 2 - LPAR(s)
 **Variable Name** | **Description** | **Example**
@@ -123,6 +125,7 @@
 **env.cluster.nodes.control.ipv6** | IPv6 address for the control nodes. Use iprovided list formatting (if use_ipv6 variable is 'True'). | fd00::5fd00::6fd00::7
 **env.cluster.nodes.control.mac** | MAC address for the control node if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
 **env.cluster.nodes.control.hostname** | Hostnames for control nodes. Must match the total number of IP addresses for control nodes (usually 3). If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN). | control-01control-02control-03
+**env.cluster.nodes.control.cex_card** | Configure the CCA Crypto Express (CEX) card and assign the domain number to correspond with the control hostname specified in the environment configuration. The UUID's are hardcoded. Add more as needed using the format: UUID:00.0028
 
 ## 9 - Compute Nodes
 **Variable Name** | **Description** | **Example**
@@ -136,6 +139,7 @@
 **env.cluster.nodes.control.ipv6** | IPv6 address for the compute nodes. Use iprovided list formatting (if use_ipv6 variable is 'True'). | fd00::8fd00::9
 **env.cluster.nodes.compute.mac** | MAC address for the compute node if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
 **env.cluster.nodes.compute.hostname** | Hostnames for compute nodes. Must match the total number of IP addresses and VM names for compute nodes. If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN). | compute-01compute-02
+**env.cluster.nodes.compute.cex_card** | Configure the CCA Crypto Express (CEX) card and assign the domain number to correspond with the compute hostname specified in the environment configuration. The UUID's are hardcoded. Add more as needed using the format: UUID:00.0028
 
 ## 10 - Infra Nodes
 **Variable Name** | **Description** | **Example**
