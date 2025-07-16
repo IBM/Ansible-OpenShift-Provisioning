@@ -67,7 +67,7 @@
         --netset_network_type "osa" \
         --netset_network_device "{{ hcp.data_plane.lpar.nodes[item].interface.subchannels }}" \       
         --netset_password "{{ hcp.data_plane.lpar.nodes[item].live_disk.password }}" \
-        --netset_dns "{{ hcp.bastion_params.ip }}" \
+        --netset_dns "{{ hcp.mgmt_cluster_nameserver }}" \
         --log_level DEBUG \
         --cmdline "$(cat /root/ansible_workdir/agent-{{ item }}.parm)" 
 
@@ -81,11 +81,14 @@
     - name: Get the name of agent 
       shell: oc get agents -n {{ hcp.control_plane.hosted_cluster_name }}-agents --no-headers -o custom-columns=NAME:.metadata.name,APPROVED:.spec.approved | awk '$2 == "false"' 
       register: agent_name
- 
-    - name: Getting installation disk
-      set_fact:
-        installation_disk_id: "{% if hcp.data_plane.lpar.disk_type | lower == 'fcp' %}ccw-{{ hcp.data_plane.lpar.nodes[item].lun[0].paths[0].fcp }}-zfcp-{{ hcp.data_plane.lpar.nodes[item].lun[0].paths[0].wwpn }}:{{ hcp.data_plane.lpar.nodes[item].lun[0].id }}{% endif %}{% if hcp.data_plane.lpar.disk_type | lower == 'dasd' %}ccw-0.0.{{ hcp.data_plane.lpar.nodes[item].dasd.disk_id }}{% endif %}"
- 
+
+    - name: Get the by-path value for disk
+      ansible.builtin.set_fact:
+        installation_disk_path: "{% if hcp.data_plane.lpar.disk_type | lower == 'fcp' %}ccw-{{ hcp.data_plane.lpar.nodes[item].lun[0].paths[0].fcp }}-fc-{{ hcp.data_plane.lpar.nodes[item].lun[0].paths[0].wwpn }}-lun-{{ hcp.data_plane.lpar.nodes[item].lun[0].id }}{% endif %}{% if hcp.data_plane.lpar.disk_type | lower == 'dasd' %}ccw-0.0.{{ hcp.data_plane.lpar.nodes[item].dasd.disk_id }}{% endif %}"
+    
+    - name: Getting installation disk path 
+      shell: oc get agents -n {{ hcp.control_plane.hosted_cluster_name }}-agents -o json | jq -r '.items[].metadata.annotations["agent.agent-install.openshift.io/inventory"] | fromjson | .disks[] | select(.by_path == "/dev/disk/by-path/{{ installation_disk_path | lower }}") | .path'
+      register: installation_disk_path_name
+     
     - name: Approve agents 	
-      shell: oc -n {{ hcp.control_plane.hosted_cluster_name }}-agents  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"installation_disk_id":"/dev/disk/by-path/{{ installation_disk_id }}","approved":true,"hostname":"compute-{{ item }}.{{hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge
- 
+      shell: oc -n {{ hcp.control_plane.hosted_cluster_name }}-agents  patch agent {{ agent_name.stdout.split(' ')[0]  }} -p '{"spec":{"installation_disk_id":"{{ installation_disk_path_name.stdout }}","approved":true,"hostname":"compute-{{ item }}.{{hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}"}}' --type merge

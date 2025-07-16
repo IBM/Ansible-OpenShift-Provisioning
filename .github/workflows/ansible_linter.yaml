@@ -1,0 +1,42 @@
+name: Ansible_Syntax_Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  ansible-lint:
+    name: Ansible_Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Ansible and ansible-lint
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible ansible-lint
+
+      - name: Fetch base branch from upstream (handles forks)
+        run: |
+          git remote add upstream https://github.com/${{ github.repository }}.git
+          git fetch upstream ${{ github.base_ref }}
+
+      - name: Run ansible-lint on changed Ansible files
+        run: |
+          files=$(git diff --name-only --diff-filter=ACMRT upstream/${{ github.base_ref }} -- '*.yml' '*.yaml')
+          if [[ -z "$files" ]]; then
+            echo "No yaml files changed"
+            exit 0
+          fi
+          echo "Linting changed Ansible files:"
+          echo "$files"
+          echo "$files" | xargs ansible-lint
