@@ -1,0 +1,39 @@
+- name: Load vfio_ap kernel module
+  ansible.builtin.modprobe:
+    name: vfio_ap
+    state: present
+
+- name: Set defaults AP masks
+  ansible.builtin.shell: |
+    echo 0x0 > /sys/bus/ap/apmask
+    echo 0x0 > /sys/bus/ap/aqmask
+  args:
+    executable: /bin/bash
+
+- name: Combine all CEX card assignments from control and compute nodes
+  set_fact:
+    cex_cards: "{{ (env.cluster.nodes.control.cex_card | default([])) + (env.cluster.nodes.compute.cex_card | default([])) }}"
+
+- name: Deduplicate CEX cards list (in case of shared UUIDs)
+  set_fact:
+    cex_cards: "{{ cex_cards | unique }}"
+
+- name: Debug final list of CEX UUID assignments
+  debug:
+    var: cex_cards
+
+- name: Create VFIO assignment script for all CEX cards
+  template:
+    src: assign_cards.sh.j2
+    dest: /tmp/assign_all_cex_cards.sh
+    mode: '0755'
+
+- name: Execute VFIO assignment script
+  shell: /tmp/assign_all_cex_cards.sh
+  args:
+    executable: /bin/bash
+
+- name: Housekeep temporary assignment script
+  file:
+    path: /tmp/assign_all_cex_cards.sh
+    state: absent

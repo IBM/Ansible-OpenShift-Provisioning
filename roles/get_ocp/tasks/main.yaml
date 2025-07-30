@@ -84,6 +84,8 @@
     - /root/ocpinst/install-config.yaml
     - /root/ocpinst/install-config-backup.yaml
 
+
+
 - name: Create manifests
   tags: get_ocp
   ansible.builtin.shell: |
@@ -128,6 +130,18 @@
     - openshift
     - .openshift_install.log
     - .openshift_install_state.json
+
+- name: Copy LUKS MachineConfig files for control and compute nodes
+  tags: get_ocp
+  become: true
+  copy:
+    src: "{{ luks_device | lower }}-{{ item }}-machineconfig.yaml"
+    dest: "/root/ocpinst/openshift/99-{{ item }}-luks-machineconfig.yaml"
+    mode: "0755"
+  loop:
+    - master
+    - worker
+  when: luks_device is defined and luks_device | lower in ['virt', 'dasd', 'fcp']
 
 - name: Set ownership of ocpinst directory contents to root
   tags: get_ocp
