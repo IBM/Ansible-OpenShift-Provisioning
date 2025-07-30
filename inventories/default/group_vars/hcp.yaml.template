@@ -17,7 +17,7 @@ hcp:
     version:
     instance_name: engine
     delete: false
-    catalogsource_name: redhat-operators 
+    catalogsource_image:    # Required only if we need to create the Catalogsource for installing MCE
 
   # AgentServiceConfig Parameters
 
