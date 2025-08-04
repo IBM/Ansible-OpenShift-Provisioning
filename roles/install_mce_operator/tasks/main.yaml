@@ -24,7 +24,7 @@
     kind: Namespace
     name: "{{ hcp.asc.mce_namespace }}"
     state: present
-  when: namespace_check.resources | length == 0
+  when: namespace_check.resources is not defined or namespace_check.resources | length == 0
 
 - name: Create OperatorGroup.yaml
   ansible.builtin.template:
@@ -48,6 +48,7 @@
   ansible.builtin.shell: |
     set -o pipefail
     oc get all -n {{ hcp.asc.mce_namespace }} | grep -i deployment | grep -i multicluster-engine | wc -l
+  register: mce_deploy
   until: mce_deploy.stdout == '1'
   retries: 20
   delay: 5
