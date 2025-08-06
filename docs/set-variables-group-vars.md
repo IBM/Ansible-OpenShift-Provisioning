@@ -12,6 +12,7 @@
 :--- | :--- | :---
 **installation_type** | Can be of type kvm or lpar. Some packages will be ignored for installation in case of non lpar based installation. | kvm 
 **controller_sudo_pass** | The password to the machine running Ansible (localhost). This will only be used for two things. To ensure you've installed the pre-requisite packages if you're on Linux, and to add the login URL to your /etc/hosts file. | Pas$w0rd!
+**cex_device** | Specify the storage device type used for LUKS encryption. This setting determines enable cex MCO Ignition configuration will be applied. Use in combination with the cex parameter.  [dasd, fcp, virt]
 
 ## 2 - LPAR(s)
 **Variable Name** | **Description** | **Example**
@@ -409,3 +410,9 @@
 **zvm.interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
 **zvm.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404
 **zvm.nodes.lun** | Disk details of fcp disk to be used for zVM node | 840a
+
+## Crypto Express Card based LUKS encryption specific for zKVM ( Optional )
+**Variable Name** | **Description** | **Example**
+**cex** | Whether to enable cex based luks encryption, default to False
+**cex_device** | Specify the storage device type used for LUKS encryption. This setting determines which MCO Ignition configuration will be applied from the defaults. Do not override the default value. Use in combination with the cex parameter. | [dasd, fcp, virt]
+**cex_uuid_map** | This var is required only for KVM installations using vfio_ap mediated device. Omit it when deploying on LPAR installation. Use in combination with cex and cex_device. Specify guest hostname: "UUID:domain" UUID can be generated from uuidgen command and domain can be retrieved from lszcrypt | upi-cex-control-1: "68cd2d83-3eef-4e45-b22c-534f90b16cb9:00.0035"

@@ -5,8 +5,34 @@
   ansible.builtin.include_vars:
     file: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yaml"
 
+- name: Load cex_hostdev_map from JSON file
+  set_fact:
+    cex_hostdev_map: "{{ lookup('file', '/root/.cex_hostdev_map.json') | from_json }}"
+  when: cex_uuid_map is defined
+
+- name: Debug rendered cex_hostdev per control node
+  debug:
+    msg: "VM: {{ vm_name }}, Hostdev: {{ cex_hostdev }}"
+  vars:
+    vm_name: "{{ env.cluster.nodes.control.vm_name[i] }}"
+    cex_hostdev: >-
+      {% if cex and cex_device is defined and cex_hostdev_map is defined and vm_name in cex_hostdev_map %}
+      --hostdev={{ cex_hostdev_map[vm_name] }}
+      {% else %}
+      ""
+      {% endif %}
+  with_sequence: start=0 end={{ (env.cluster.nodes.control.hostname | length) - 1 }}
+  loop_control:
+    index_var: i
+
 - name: Create CoreOS control nodes on the the KVM host.
   tags: create_control_nodes
+  vars:
+    vm_name: "{{ env.cluster.nodes.control.vm_name[i] }}"
+    cex_hostdev: >-
+      {% if cex and cex_device is defined and cex_hostdev_map is defined and vm_name in cex_hostdev_map %}
+      --hostdev={{ cex_hostdev_map[vm_name] }}
+      {% endif %}
   shell: |
     virt-install \
     --name {{ env.cluster.nodes.control.vm_name[i] }} \
@@ -34,7 +60,8 @@
     --graphics none \
     --console pty,target_type=serial \
     --wait=-1 \
-    --noautoconsole
+    --noautoconsole \
+    {{ cex_hostdev }}
   timeout: 360
   with_sequence: start=0 end={{ (env.cluster.nodes.control.hostname | length) - 1 }} stride=1
   loop_control:
@@ -72,6 +99,7 @@
     --graphics none \
     --wait=-1 \
     --noautoconsole
+
   when: env.z.high_availability == True and inventory_hostname == env.z.lpar1.hostname and env.cluster.nodes.control.vm_name[0] not in hosts_with_host_vars
 
 - name: Create the second CoreOS control node on the first KVM host, if cluster is to be highly available.
