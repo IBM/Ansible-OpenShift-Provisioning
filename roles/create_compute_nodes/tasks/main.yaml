@@ -1,4 +1,7 @@
 ---
+- name: Load cex_hostdev_map from JSON
+  set_fact:
+    cex_hostdev_map: "{{ lookup('file', '/root/.cex_hostdev_map.json') | from_json }}"
 
 - name: Install CoreOS on compute nodes
   tags: create_compute_nodes
@@ -30,7 +33,10 @@
     --memballoon none \
     --graphics none \
     --wait=-1 \
-    --noautoconsole
+    --noautoconsole \
+    {% set vm_name = env.cluster.nodes.compute.vm_name[i] %}
+    {% set hostdev = '--hostdev ' + cex_hostdev_map[vm_name] if cex_device is defined and cex_hostdev_map is defined and vm_name in cex_hostdev_map else '' %}
+    {{ hostdev }}
   timeout: 360
   with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
   loop_control:

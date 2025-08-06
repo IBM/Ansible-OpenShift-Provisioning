@@ -1,0 +1,38 @@
+#!/bin/bash
+# Reference document for the cex configuration in zKVM
+# https://www.ibm.com/docs/en/linux-on-systems?topic=management-configuring-crypto-express-adapters-kvm-guests
+
+# Configure each CEX card
+{% for entry in cex_cards %}
+{% set uuid = entry.split(':')[0] %}
+{% set matrix_val = entry.split(':')[1] %}
+{% set adapter = matrix_val.split('.')[0] %}
+{% set domain = matrix_val.split('.')[1] %}
+
+uuid="{{ uuid }}"
+matrix_val="{{ matrix_val }}"
+adapter="{{ adapter }}"
+domain="{{ domain }}"
+
+uuid_path="/sys/devices/vfio_ap/matrix/$uuid"
+matrix_file="$uuid_path/matrix"
+
+if [ -d "$uuid_path" ]; then
+    if grep -q "{{ matrix_val }}" "$matrix_file" 2>/dev/null; then
+        echo "[INFO] UUID $uuid already configured with matrix {{ matrix_val }} — skipping."
+    else
+        echo "[WARN] UUID $uuid exists, but matrix entry '{{ matrix_val }}' not found!"
+        echo "[WARN] Please reboot the node and try again."
+        exit 1
+    fi
+else
+    modprobe vfio_ap
+    echo 0x0 > /sys/bus/ap/apmask
+    echo 0x0 > /sys/bus/ap/aqmask
+    echo "[INFO] Creating UUID $uuid with adapter $adapter and domain $domain"
+    echo "$uuid" > /sys/devices/vfio_ap/matrix/mdev_supported_types/vfio_ap-passthrough/create
+    echo "0x$adapter" > "$uuid_path/assign_adapter"
+    echo "0x$domain" > "$uuid_path/assign_domain"
+fi
+
+{% endfor %}
