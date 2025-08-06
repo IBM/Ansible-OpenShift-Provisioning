@@ -1,0 +1,16 @@
+variant: openshift
+version: 4.19.0
+metadata:
+  name: master-luks-storage
+  labels:
+    machineconfiguration.openshift.io/role: master
+openshift:
+  fips: true
+  kernel_arguments:
+    - rd.luks.key=/etc/luks/cex.key
+boot_device:
+  layout: s390x-eckd
+  luks:
+    device: /dev/dasda
+    cex:
+      enabled: true

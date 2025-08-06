@@ -1,2 +1,16 @@
 [localhost]
-127.0.0.1 ansible_connection=local
+127.0.0.1 ansible_connection=local ansible_become_password=
+
+[file_server]
+172.23.10.1 ansible_user= ansible_become_password=
+
+[kvm_host]
+a3elp53.lnxero1.boe ansible_host=172.23.236.53 ansible_user=root ansible_become_password=pass4root
+
+
+
+[bastion]
+upi-bastion ansible_host=192.168.122.10 ansible_user=root ansible_become_password=pass4root
+
+[jumphost]
+a3elp53.lnxero1.boe ansible_host=172.23.236.53 ansible_user=root ansible_become_password=pass4root
