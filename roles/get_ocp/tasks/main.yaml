@@ -129,6 +129,49 @@
     - .openshift_install.log
     - .openshift_install_state.json
 
+- name: Generate Butane Ignition configs if CEX device is defined
+  tags: get_ocp
+  become: true
+  block:
+    - name: Generate Butane file for nodes
+      template:
+        src: cex-butane-machineconfig.bu.j2
+        dest: "{{ output_dir }}/99-{{ node_role }}-s390x-cex-luks-config.bu"
+      loop:
+        - master
+        - worker
+      loop_control:
+        loop_var: node_role
+      vars:
+        luks_device: "{{ butane_default[cex_device].device }}"
+        layout: "{{ butane_default[cex_device].layout }}"
+
+    - name: Download Butane binary for s390x
+      get_url:
+        url: https://mirror.openshift.com/pub/openshift-v4/clients/butane/latest/butane-s390x
+        dest: /usr/local/bin/butane
+        mode: '0755'
+
+    - name: Convert Butane YAML to Ignition for each role
+      shell: |
+        /usr/local/bin/butane "{{ output_dir }}/99-{{ item }}-s390x-cex-luks-config.bu" \
+          -o "{{ output_dir }}/99-{{ item }}-s390x-cex-luks-config.yaml"
+      loop:
+        - master
+        - worker
+
+    - name: Copy generated ignition files to final directory
+      copy:
+        src: "{{ output_dir }}/99-{{ item }}-s390x-cex-luks-config.yaml"
+        dest: "/root/ocpinst/openshift/99-{{ item }}-s390x-cex-luks-config.yaml"
+        remote_src: yes
+        mode: '0644'
+      loop:
+        - master
+        - worker
+  when:
+    - cex | bool
+
 - name: Set ownership of ocpinst directory contents to root
   tags: get_ocp
   become: true
