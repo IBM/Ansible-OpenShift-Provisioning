@@ -1,12 +1,12 @@
 # Warning: currently, the oc-mirror plugin is officially downloadable to amd64 only.
 disconnected:
-  enabled: False
+  enabled: false
   registry:
     url: 'registry url'
     ip: 'registry reachable ip'
     pull_secret: '' # this is similar to env.redhat.pull_secret but it will only contain secrets to be applied to the cluster in disconnected mode.
     mirror_pull_secret: '' # this should contain a pull secret that contains the combination of env.redhat.pull_secret and pull secret  with push access to mirror registry for mirroring
-    ca_trusted: False
+    ca_trusted: false
     ca_cert: |
       -----BEGIN CERTIFICATE-----
       if ca_trusted is False, then this ca will be added to mirror host anchors as well as to the install config of cluster
@@ -24,30 +24,30 @@ disconnected:
       ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/amd64/"
       ocp_client_tgz: 'openshift-client-linux.tar.gz' # name of the oc binary. Should be a tar.gz file
     legacy:
-      platform: False # if true then platform is mirrored in the old way and install config will be patched with the imagecontentsourcepolicy
+      platform: false # if true then platform is mirrored in the old way and install config will be patched with the imagecontentsourcepolicy
       ocp_quay_release_image_tag: '4.13.1-s390x'
       ocp_org: 'ocp4'
       ocp_repo: 'openshift4'
       ocp_tag: 'v4.13.1' #  platform images will be pushed to {tegistry_url}/{ocp_org}/{ocp_repo}:{ocp_tag}
     oc_mirror:
       oc_mirror_args:
-        continue_on_error: False
-        source_skip_tls: False
+        continue_on_error: false
+        source_skip_tls: false
       post_mirror:
         mapping:
           replace:
-            enabled: False
+            enabled: false
             list:
-            - regexp: what
-              replace: with
+              - regexp: what
+                replace: with
       release_image_tag: '4.13.1-multi'
       release_image_registry: 'brew.registry.redhat.io' # Update the release registry to use it as mirror registry for release operator images
       image_set: # this field is a standard image set from oc-mirror documentation. The only exception is the storageConfig which is altered to allow substitution of disconnected.registry.url
         apiVersion: mirror.openshift.io/v2alpha1 # update the version with v2alpha1 for oc-mirror v2 plugin and v1alpha2 for v1 plugin
         storageConfig:
-          enable: False # enable this flag if oc-mirror v1 plugin is used since storageConfig is removed for v2 plugin
+          enable: false # enable this flag if oc-mirror v1 plugin is used since storageConfig is removed for v2 plugin
           registry:
-            enabled: True # use registry storage backend. Currently only method supproted
+            enabled: true # use registry storage backend. Currently only method supproted
             imageURL: # the final value will be {imageURL: disconnected.registry.url/org/repo}
               org: mirror
               repo: oc-mirror-metadata
@@ -55,21 +55,21 @@ disconnected:
         mirror: # this field is also atandard from the oc-mirror schema. It will be substituted as is into the final image set.
           platform:
             architectures:
-            - multi # note: while image tags such as `multi-s390x` are also available on quay, we cannot mirror these, so list can only contain pure architecture names such as `s390x` or the multiarch `multi`
+              - multi # note: while image tags such as `multi-s390x` are also available on quay, we cannot mirror these, so list can only contain pure architecture names such as `s390x` or the multiarch `multi`
             channels:
-            - name: stable-4.13
-              full: false
-              minVersion: 4.13.1
-              maxVersion: 4.13.1
+              - name: stable-4.13
+                full: false
+                minVersion: 4.13.1
+                maxVersion: 4.13.1
           operators:
             - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.13
               full: false
               packages:
-              - name: serverless-operator
-                channels:
-                - name: stable
-                  #minVersion: '2.4.1-0'
-                  #maxVersion: '2.4.1-0'
+                - name: serverless-operator
+                  channels:
+                    - name: stable
+                      # minVersion: '2.4.1-0'
+                      # maxVersion: '2.4.1-0'
           additionalImages:
-          - name: registry.redhat.io/ubi8/ubi:latest
+            - name: registry.redhat.io/ubi8/ubi:latest
           helm: {}

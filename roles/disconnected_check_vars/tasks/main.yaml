@@ -3,7 +3,7 @@
 - name: 'Check mandatory variables are defined for disconnected'
   block:
     - name: "check mandatory variables for disconnected are set"
-      assert:
+      ansible.builtin.assert:
         that:
           - disconnected.registry.url is defined and disconnected.registry.url != None
           - disconnected.registry.pull_secret is defined and disconnected.registry.pull_secret != None

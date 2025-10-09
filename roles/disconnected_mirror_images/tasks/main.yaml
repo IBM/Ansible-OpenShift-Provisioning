@@ -1,6 +1,7 @@
 ---
 - name: mirror artifacts in disconnected mode
   tags: mirror_artifacts
+  when: disconnected.enabled
   block:
     - name: Setting Up nameserver on mirror host to resolve DNS
       ansible.builtin.template:
@@ -11,19 +12,19 @@
         mode: "644"
     - name: Get user home directory
       tags: mirror_artifacts
-      shell: >
+      ansible.builtin.shell: >
           getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
       changed_when: false
       register: user_home
     - name: Delete OCP download directory for idempotency.
       tags: mirror_artifacts
       become: true
-      file:
+      ansible.builtin.file:
         path: "{{ user_home.stdout }}/ocpinst_disconnected"
         state: absent
     - name: Create OCP download directory
       tags: mirror_artifacts
-      file:
+      ansible.builtin.file:
         path: "{{ user_home.stdout }}/ocpinst_disconnected"
         state: directory
     - name: Unzip OCP client and oc-mirror
@@ -56,7 +57,7 @@
       register: home_docker
     - name: Create directory {{ user_home.stdout }}/.docker
       tags: mirror_artifacts
-      file:
+      ansible.builtin.file:
         path: "{{ user_home.stdout }}/.docker"
         state: directory
       when: not home_docker.stat.exists
@@ -160,7 +161,7 @@
       when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v1alpha2"
     - name: perform post mirror actions if requested for oc-mirror v1 plugin
       tags: mirror_artifacts
-      when: 
+      when:
         - disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled
         - disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v1alpha2"
       block:
@@ -169,14 +170,14 @@
             src: "{{ user_home.stdout }}/ocpinst_disconnected/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/mapping.txt"
             dest: "{{ user_home.stdout }}/ocpinst_disconnected/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/post_mapping.txt"
             mode: preserve
-            remote_src: True
+            remote_src: true
         - name: replace provided values in the mappings
           ansible.builtin.replace:
             path: "{{ user_home.stdout }}/ocpinst_disconnected/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/post_mapping.txt"
             regexp: "{{ item.regexp }}"
             replace: "{{ item.replace }}"
           with_items: "{{ disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.list }}"
-          when:  disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled
+          when: disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled
         - name: manually mirror patched mappings to registry
           ansible.builtin.shell: |
             set -o pipefail
@@ -201,4 +202,3 @@
         src: "{{ user_home.stdout }}/ocpinst_disconnected/working-dir/cluster-resources/*"
         dest: "../.oc-mirror-results"
       when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v2alpha1"
-  when: disconnected.enabled
