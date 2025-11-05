@@ -188,3 +188,9 @@
   roles:
     - configure_storage
     - { role: macvtap, when: env.network_mode | upper != 'NAT' }
+
+- hosts: kvm_host
+  tags: setup, section_3
+  become: true
+  roles:
+    - { role: configure_cex, when: cex | bool and cex_uuid_map is defined }
