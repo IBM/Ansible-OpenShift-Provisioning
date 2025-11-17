@@ -250,3 +250,16 @@ abi:
 # (Optional) Proxy
 # Pls check the documentation which vars are present (include examples). If use_proxy is set to true,
 # than proxy_http, proxy_https and proxy_no must be set.
+
+
+# Section 15 - CEX based Luks Encryption ( Optional )
+cex: false
+# cex_device:  [dasd | fcp | virt]
+# The following variable is required only when CEX use as vfio_ap mediate device in KVM guest.
+# https://www.ibm.com/docs/en/linux-on-systems?topic=management-configuring-crypto-express-adapters-kvm-guests
+# cex_uuid_map:
+#   hostname:UUID:domain
+#   hostname:UUID:domain
+# Provide control and compute hostname with uuid and domain only for KVM based installation.
+# UUID can be generated from `uuidgen` command and domain from lszcrypt -V
+# eg upi-control-1:5c84eefb-cb45-4519-86d3-ba23e65e8896:12.0001
