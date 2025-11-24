@@ -3,7 +3,7 @@
 - name: 'Check mandatory variables are defined for disconnected'
   block:
     - name: "check mandatory variables for disconnected are set"
-      assert:
+      ansible.builtin.assert:
         that:
           - disconnected.registry.url is defined and disconnected.registry.url != None
           - disconnected.registry.pull_secret is defined and disconnected.registry.pull_secret != None
@@ -17,3 +17,5 @@
           - disconnected.mirroring.client_download.ocp_download_url is defined and disconnected.mirroring.client_download.ocp_download_url != None
           - disconnected.mirroring.client_download.ocp_client_tgz is defined and disconnected.mirroring.client_download.ocp_client_tgz != None
           - disconnected.mirroring.oc_mirror.image_set is defined and disconnected.mirroring.oc_mirror.image_set != None
+          - disconnected.mirroring.oc_mirror.image_set.apiVersion is defined and disconnected.mirroring.oc_mirror.image_set.apiVersion != None
+          - disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.enabled is defined and disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.enabled != None
