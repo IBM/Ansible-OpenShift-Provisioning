@@ -72,21 +72,21 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#6-cluster-networking">6 - Cluster Networking</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#7-optional-bootstrap-node">7 - (Optional) Bootstrap Node</a>
+    <li class="toctree-l2"><a class="reference internal" href="#7-bootstrap-node">7 - Bootstrap Node</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#8-control-nodes">8 - Control Nodes</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#9-compute-nodes">9 - Compute Nodes</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#10-optional-infra-nodes">10 - (Optional) Infra Nodes</a>
+    <li class="toctree-l2"><a class="reference internal" href="#10-infra-nodes">10 - Infra Nodes</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#11-misc">11 - Misc</a>
+    <li class="toctree-l2"><a class="reference internal" href="#11-optional-misc">11 - (Optional) Misc</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#12-optional-ocp-and-rhcos-coreos">12 - (Optional) OCP and RHCOS (CoreOS)</a>
+    <li class="toctree-l2"><a class="reference internal" href="#12-ocp-and-rhcos-coreos">12 - OCP and RHCOS (CoreOS)</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#13-optional-create-compute-node-in-a-day-2-operation">13 - (Optional) Create compute node in a day-2 operation</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#14-agent-based-installer">14 - Agent Based Installer</a>
+    <li class="toctree-l2"><a class="reference internal" href="#14-optional-agent-based-installer">14 - (Optional) Agent Based Installer</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#openshift-settings">OpenShift Settings</a>
     </li>
@@ -166,12 +166,12 @@
 <tr>
 <td style="text-align: left;"><strong>installation_type</strong></td>
 <td style="text-align: left;">Can be of type kvm or lpar. Some packages will be ignored for installation in case of non lpar based installation.</td>
-<td style="text-align: left;"><code>kvm</code></td>
+<td style="text-align: left;">kvm</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>controller_sudo_pass</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> The password to the machine running Ansible (localhost). This will only be used for two things. To ensure you've installed the pre-requisite packages if you're on Linux, and to add the login URL to your /etc/hosts file. Keep empty to use  default pass</td>
-<td style="text-align: left;"><code>'ch4ngeMe!'</code></td>
+<td style="text-align: left;">The password to the machine running Ansible (localhost). This will only be used for two things. To ensure you've installed the pre-requisite packages if you're on Linux, and to add the login URL to your /etc/hosts file.</td>
+<td style="text-align: left;">Pas$w0rd!</td>
 </tr>
 </tbody>
 </table>
@@ -188,87 +188,87 @@
 <tr>
 <td style="text-align: left;"><strong>env.z.high_availability</strong></td>
 <td style="text-align: left;">Is this cluster spread across three LPARs? If yes, mark True. If not (just in one LPAR), mark False</td>
-<td style="text-align: left;"><code>True</code> <em>(preferred: False)</em></td>
+<td style="text-align: left;">True</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.ip_forward</strong></td>
-<td style="text-align: left;">This variable specifies whether IP forwarding is enabled when a NAT network is used. If ip_forwarding is set to 0, the installed OCP cluster cannot access external services because NAT keeps the nodes isolated. This parameter is set using sysctl on the KVM host, and the change takes effect immediately. The 3_setup_kvm playbook configures this setting. If NAT is enabled after running the 3_setup_kvm playbook, you must set it manually before the bastion is created, configured, or reconfigured, or re-run the playbook with the parameter: --tags cfg_ip_forward.</td>
-<td style="text-align: left;"><code>1</code></td>
+<td style="text-align: left;">This variable specifies if ip forwarding is enabled or not if NAT network is selected. If ip_forwarding is set to 0, the installed OCP cluster will not be able to access external services because using NAT keep the nodes isolated. This parameter will be set via sysctl on the KVM host. The change of the value is instantly active. This setting will be configured during 3_setup_kvm playbook. If NAT will be configured after 3_setup_kvm playbook, the setup needs to be done manually before bastion is being created, configured or reconfigured by running the 3_setup_kvm playbook with parameter: --tags cfg_ip_forward</td>
+<td style="text-align: left;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar1.create</strong></td>
 <td style="text-align: left;">To have Ansible create an LPAR and install RHEL on it for the KVM host, mark True. If using a pre-existing LPAR with RHEL already installed, mark False.</td>
-<td style="text-align: left;"><code>True</code> <em>(preferred: False)</em></td>
+<td style="text-align: left;">True</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar1.hostname</strong></td>
-<td style="text-align: left;">The hostname of the KVM host. To get it, run: <code>hostname</code></td>
-<td style="text-align: left;"><code>'&lt;kvm-hostname-01&gt;'</code></td>
+<td style="text-align: left;">The hostname of the KVM host.</td>
+<td style="text-align: left;">kvm-host-01</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar1.ip</strong></td>
-<td style="text-align: left;">The IPv4 address of the KVM host. To get it, run: <code>hostname -i</code> or <code>ip addr show</code></td>
-<td style="text-align: left;"><code>'&lt;lpar_ip&gt;'</code></td>
+<td style="text-align: left;">The IPv4 address of the KVM host.</td>
+<td style="text-align: left;">192.168.10.1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar1.user</strong></td>
 <td style="text-align: left;">Username for Linux admin on KVM host 1. Recommended to run as a non-root user with sudo access.</td>
-<td style="text-align: left;"><code>'admin'</code></td>
+<td style="text-align: left;">admin</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar1.pass</strong></td>
 <td style="text-align: left;">The password for the user that will be created or exists on the KVM host.</td>
-<td style="text-align: left;"><code>'ch4ngeMe!'</code></td>
+<td style="text-align: left;">ch4ngeMe!</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar2.create</strong></td>
 <td style="text-align: left;">To create a second LPAR and install RHEL on it to act as another KVM host, mark True. If using pre-existing LPAR(s) with RHEL already installed, mark False.</td>
-<td style="text-align: left;"><code>True</code> <em>(preferred: False)</em></td>
+<td style="text-align: left;">True</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar2.hostname</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> The hostname of the second KVM host. To get it, run: <code>hostname</code></td>
-<td style="text-align: left;"><code>'&lt;kvm-hostname-02&gt;'</code></td>
+<td style="text-align: left;"><b>(Optional)</b> The hostname of the second KVM host.</td>
+<td style="text-align: left;">kvm-host-02</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar2.ip</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> The IPv4 address of the second KVM host. To get it, run: <code>hostname -i</code> or <code>ip addr show</code></td>
-<td style="text-align: left;"><code>'&lt;lpar_ip&gt;'</code></td>
+<td style="text-align: left;"><b>(Optional)</b> The IPv4 address of the second KVM host.</td>
+<td style="text-align: left;">192.168.10.2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar2.user</strong></td>
 <td style="text-align: left;">Username for Linux admin on KVM host 2. Recommended to run as a non-root user with sudo access.</td>
-<td style="text-align: left;"><code>'admin'</code></td>
+<td style="text-align: left;">admin</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar2.pass</strong></td>
 <td style="text-align: left;"><b>(Optional)</b> The password for the admin user on the second KVM host.</td>
-<td style="text-align: left;"><code>'ch4ngeMe!'</code></td>
+<td style="text-align: left;">ch4ngeMe!</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar3.create</strong></td>
 <td style="text-align: left;">To create a third LPAR and install RHEL on it to act as another KVM host, mark True. If using pre-existing LPAR(s) with RHEL already installed, mark False.</td>
-<td style="text-align: left;"><code>True</code> <em>(preferred: False)</em></td>
+<td style="text-align: left;">True</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar3.hostname</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> The hostname of the third KVM host. To get it, run: <code>hostname</code></td>
-<td style="text-align: left;"><code>'&lt;kvm-hostname-03&gt;'</code></td>
+<td style="text-align: left;"><b>(Optional)</b> The hostname of the third KVM host.</td>
+<td style="text-align: left;">kvm-host-03</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar3.ip</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> The IPv4 address of the third KVM host. To get it, run: <code>hostname -i</code> or <code>ip addr show</code></td>
-<td style="text-align: left;"><code>'&lt;lpar_ip&gt;'</code></td>
+<td style="text-align: left;"><b>(Optional)</b> The IPv4 address of the third KVM host.</td>
+<td style="text-align: left;">192.168.10.3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar3.user</strong></td>
 <td style="text-align: left;">Username for Linux admin on KVM host 3. Recommended to run as a non-root user with sudo access.</td>
-<td style="text-align: left;"><code>'admin'</code></td>
+<td style="text-align: left;">admin</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.z.lpar3.pass</strong></td>
 <td style="text-align: left;"><b>(Optional)</b> The password for the admin user on the third KVM host.</td>
-<td style="text-align: left;"><code>'ch4ngeMe!'</code></td>
+<td style="text-align: left;">ch4ngeMe!</td>
 </tr>
 </tbody>
 </table>
@@ -285,42 +285,42 @@
 <tr>
 <td style="text-align: left;"><strong>env.file_server.ip</strong></td>
 <td style="text-align: left;">IPv4 address for the file server that will be used to pass config files and iso to KVM host LPAR(s) and bastion VM during their first boot.</td>
-<td style="text-align: left;"><code>'172.23.10.1'</code></td>
+<td style="text-align: left;">192.168.10.201</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.file_server.port</strong></td>
 <td style="text-align: left;">The port on which the file server is listening. Will be embedded into all download urls. Defaults to protocol default port. Keep empty <code>''</code> to use  default port</td>
-<td style="text-align: left;"><code>10000</code></td>
+<td style="text-align: left;">10000</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.file_server.user</strong></td>
-<td style="text-align: left;">Username to connect to the file server. Must have sudo and SSH access. Keep empty <code>''</code> to use  default user</td>
-<td style="text-align: left;"><code>'user1'</code></td>
+<td style="text-align: left;">Username to connect to the file server. Must have sudo and SSH access.</td>
+<td style="text-align: left;">user1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.file_server.pass</strong></td>
-<td style="text-align: left;">Password to connect to the file server as above user. Keep empty <code>''</code> to use  default password</td>
-<td style="text-align: left;"><code>'user1pa$s!'</code></td>
+<td style="text-align: left;">Password to connect to the file server as above user.</td>
+<td style="text-align: left;">user1pa$s!</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.file_server.protocol</strong></td>
 <td style="text-align: left;">Protocol used to serve the files, either 'ftp' or 'http'</td>
-<td style="text-align: left;"><code>'http'</code></td>
+<td style="text-align: left;">http</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.file_server.iso_os_variant</strong></td>
 <td style="text-align: left;">The os variant for the bastion kvm to be created</td>
-<td style="text-align: left;"><code>'rhel9.4'</code></td>
+<td style="text-align: left;">rhel8.8</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.file_server.iso_mount_dir</strong></td>
-<td style="text-align: left;">Directory path relative to the HTTP/FTP accessible directory where RHEL ISO is mounted. For example, if the FTP root is at /home/user1 and the ISO is mounted at /home/user1/RHEL/9.4 then this variable would be RHEL/8.7 - no slash before or after.</td>
-<td style="text-align: left;"><code>'redhat/s390x/RHEL9.4/DVD'</code></td>
+<td style="text-align: left;">Directory path relative to the HTTP/FTP accessible directory where RHEL ISO is mounted. For example, if the FTP root is at /home/user1 and the ISO is mounted at /home/user1/RHEL/8.7 then this variable would be RHEL/8.7 - no slash before or after.</td>
+<td style="text-align: left;">RHEL/8.7</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.file_server.cfgs_dir</strong></td>
 <td style="text-align: left;">Directory path relative to to the HTTP/FTP accessible directory where configuration files can be stored. For example, if FTP root is /home/user1 and you would like to store the configs at /home/user1/ocpz-config then this variable would be ocpz-config. No slash before or after.</td>
-<td style="text-align: left;"><code>'ocpz-config'</code></td>
+<td style="text-align: left;">ocpz-config</td>
 </tr>
 </tbody>
 </table>
@@ -337,22 +337,22 @@
 <tr>
 <td style="text-align: left;"><strong>env.redhat.username</strong></td>
 <td style="text-align: left;">Red Hat username with a valid license or free trial to Red Hat OpenShift Container Platform (RHOCP), which comes with necessary licenses for Red Hat Enterprise Linux (RHEL) and Red Hat CoreOS (RHCOS).</td>
-<td style="text-align: left;"><code>'redhat.user'</code></td>
+<td style="text-align: left;">redhat.user</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.redhat.password</strong></td>
 <td style="text-align: left;">Password to Red Hat above user's account. Used to auto-attach necessary subscriptions to KVM Host, bastion VM, and pull live images for OpenShift.</td>
-<td style="text-align: left;"><code>'rEdHatPa$s!'</code></td>
+<td style="text-align: left;">rEdHatPa$s!</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.redhat.manage_subscription</strong></td>
 <td style="text-align: left;">True or False. Would you like to subscribe the server with Red Hat?</td>
-<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;">True</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.redhat.pull_secret</strong></td>
 <td style="text-align: left;">Pull secret for OpenShift, comes from Red Hat's <a href="https://console.redhat.com/openshift/install/ibmz/user-provisioned">Hybrid Cloud Console</a>. Make sure to enclose in 'single quotes'.</td>
-<td style="text-align: left;"><code>'{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com"}}}'</code></td>
+<td style="text-align: left;">'{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com"}}}'</td>
 </tr>
 </tbody>
 </table>
@@ -369,141 +369,141 @@
 <tr>
 <td style="text-align: left;"><strong>env.bastion.create</strong></td>
 <td style="text-align: left;">True or False. Would you like to create a bastion KVM guest to host essential infrastructure services like DNS, load balancer, firewall, etc? Can de-select certain services with the env.bastion.options variables below.</td>
-<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;">True</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.vm_name</strong></td>
 <td style="text-align: left;">Name of the bastion VM. Arbitrary value.</td>
-<td style="text-align: left;"><code>'bastion'</code></td>
+<td style="text-align: left;">bastion</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.resources.disk_size</strong></td>
 <td style="text-align: left;">How much of the storage pool would you like to allocate to the bastion (in Gigabytes)? Recommended 30 or more.</td>
-<td style="text-align: left;"><code>120</code></td>
+<td style="text-align: left;">30</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.resources.ram</strong></td>
 <td style="text-align: left;">How much memory would you like to allocate the bastion (in megabytes)? Recommended 4096 or more</td>
-<td style="text-align: left;"><code>4096</code></td>
+<td style="text-align: left;">4096</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.resources.swap</strong></td>
 <td style="text-align: left;">How much swap storage would you like to allocate the bastion (in megabytes)? Recommended 4096 or more.</td>
-<td style="text-align: left;"><code>4096</code></td>
+<td style="text-align: left;">4096</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.resources.vcpu</strong></td>
 <td style="text-align: left;">How many virtual CPUs would you like to allocate to the bastion? Recommended 4 or more.</td>
-<td style="text-align: left;"><code>4</code></td>
+<td style="text-align: left;">4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.resources.vcpu_model_option</strong></td>
 <td style="text-align: left;">Configure the CPU model and CPU features exposed to the guest</td>
-<td style="text-align: left;"><code>"--cpu host"</code></td>
+<td style="text-align: left;">--cpu host</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.ip</strong></td>
 <td style="text-align: left;">IPv4 address for the bastion.</td>
-<td style="text-align: left;"><code>192.168.122.20</code></td>
+<td style="text-align: left;">192.168.10.3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.internal_ip</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> Private IPv4 address for bastion required when installing LPAR cluster with HiperSocket. Currently supports only when bastion is on LPAR or on zVM host. Incase of zVM bastion enable the HiperSocket prior to the playbook run with vmcp commands on the bastion. Alternative Option would be setting up the bridge port on OSA or RoCE.</td>
-<td style="text-align: left;"><code>10.42.16.1</code></td>
+<td style="text-align: left;">Private IPv4 address for bastion required when installing LPAR cluster with HiperSocket. Currently supports only when bastion is on LPAR or on zVM host. Incase of zVM bastion enable the HiperSocket prior to the playbook run with vmcp commands on the bastion. Alternative Option would be setting up the bridge port on OSA or RoCE.</td>
+<td style="text-align: left;">10.42.16.1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.ipv6</strong></td>
-<td style="text-align: left;">IPv6 address for the bastion if use_ipv6 variable is 'True'. Keep empty <code>''</code> to use  default ipv6</td>
-<td style="text-align: left;"><code>'fd00::3'</code></td>
+<td style="text-align: left;">IPv6 address for the bastion if use_ipv6 variable is 'True'.</td>
+<td style="text-align: left;">fd00::3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.mac</strong></td>
-<td style="text-align: left;">MAC address for the bastion if use_dhcp variable is 'True'. (Generate using: <code>printf 'fa:1d:67:%02d:%02d:%02d\n' $((RANDOM%100)) $((RANDOM%100)) $((RANDOM%100))</code>)</td>
-<td style="text-align: left;"><code>'fa:1d:67:35:13:20'</code></td>
+<td style="text-align: left;">MAC address for the bastion if use_dhcp variable is 'True'.</td>
+<td style="text-align: left;">52:54:00:18:1A:2B</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.hostname</strong></td>
 <td style="text-align: left;">Hostname of the bastion. Will be combined with env.bastion.networking.base_domain to create a Fully Qualified Domain Name (FQDN).</td>
-<td style="text-align: left;"><code>'bastion'</code></td>
+<td style="text-align: left;">ocpz-bastion</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.base_domain</strong></td>
 <td style="text-align: left;">Base domain that, when combined with the hostname, creates a fully-qualified domain name (FQDN) for the bastion?</td>
-<td style="text-align: left;"><code>example.com</code></td>
+<td style="text-align: left;">ihost.com</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.subnetmask</strong></td>
 <td style="text-align: left;">Subnet of the bastion.</td>
-<td style="text-align: left;"><code>'255.255.255.0'</code></td>
+<td style="text-align: left;">255.255.255.0</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.gateway</strong></td>
-<td style="text-align: left;">IPv4 of he bastion's gateway server, (get it using ip a)</td>
-<td style="text-align: left;"><code>'192.168.122.1'</code></td>
+<td style="text-align: left;">IPv4 of he bastion's gateway server.</td>
+<td style="text-align: left;">192.168.10.0</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.ipv6_gateway</strong></td>
-<td style="text-align: left;">IPv6 of he bastion's gateway server. Keep empty <code>''</code> to use  default ipv6_gateway</td>
-<td style="text-align: left;"><code>'fd00::1'</code></td>
+<td style="text-align: left;">IPv6 of he bastion's gateway server.</td>
+<td style="text-align: left;">fd00::1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.ipv6_prefix</strong></td>
-<td style="text-align: left;">IPv6 prefix. Keep empty <code>''</code> to use  default ipv6_prefix</td>
-<td style="text-align: left;"><code>'64'</code></td>
+<td style="text-align: left;">IPv6 prefix.</td>
+<td style="text-align: left;">64</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.nameserver1</strong></td>
-<td style="text-align: left;">IPv4 address of the server that resolves the bastion's hostname. use the same IP as the bastion)</td>
-<td style="text-align: left;"><code>'192.168.122.20'</code></td>
+<td style="text-align: left;">IPv4 address of the server that resolves the bastion's hostname.</td>
+<td style="text-align: left;">192.168.10.200</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.nameserver2</strong></td>
 <td style="text-align: left;"><b>(Optional)</b> A second IPv4 address that resolves the bastion's hostname.</td>
-<td style="text-align: left;"><code>'192.168.10.201'</code></td>
+<td style="text-align: left;">192.168.10.201</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.forwarder</strong></td>
-<td style="text-align: left;">What IPv4 address will be used to make external DNS calls for the bastion? Can use 1.1.1.1 or 8.8.8.8 or 172.23.0.1 as defaults.</td>
-<td style="text-align: left;"><code>'172.23.0.1'</code></td>
+<td style="text-align: left;">What IPv4 address will be used to make external DNS calls for the bastion? Can use 1.1.1.1 or 8.8.8.8 as defaults.</td>
+<td style="text-align: left;">8.8.8.8</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.interface</strong></td>
 <td style="text-align: left;">Name of the networking interface on the bastion from Linux's perspective. Most likely enc1.</td>
-<td style="text-align: left;"><code>'enc1'</code></td>
+<td style="text-align: left;">enc1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.access.user</strong></td>
 <td style="text-align: left;">What would you like the admin's username to be on the bastion? If root, make pass and root_pass vars the same.</td>
-<td style="text-align: left;"><code>'admin'</code></td>
+<td style="text-align: left;">admin</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.access.pass</strong></td>
 <td style="text-align: left;">The password to the bastion's admin user. If using root, make pass and root_pass vars the same.</td>
-<td style="text-align: left;"><code>'cH4ngeM3!'</code></td>
+<td style="text-align: left;">cH4ngeM3!</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.access.root_pass</strong></td>
 <td style="text-align: left;">The root password for the bastion. If using root, make pass and root_pass vars the same.</td>
-<td style="text-align: left;"><code>'cH4ngeM3!'</code></td>
+<td style="text-align: left;">R0OtPa$s!</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.options.dns</strong></td>
 <td style="text-align: left;">Would you like the bastion to host the DNS information for the cluster? True or False. If false, resolution must come from elsewhere in your environment. Make sure to add IP addresses for KVM hosts, bastion, bootstrap, control, compute nodes, AND api, api-int and *.apps as described <a href="https://docs.openshift.com/container-platform/4.8/installing/installing_bare_metal/installing-bare-metal-network-customizations.html">here</a> in section "User-provisioned DNS Requirements" Table 5. If True this will be done for you in the dns and check_dns roles.</td>
-<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;">True</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.options.loadbalancer.on_bastion</strong></td>
 <td style="text-align: left;">Would you like the bastion to host the load balancer (HAProxy) for the cluster? True or False (boolean). If false, this service must be provided elsewhere in your environment, and public and private IP of the load balancer must be provided in the following two variables.</td>
-<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;">True</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.options.loadbalancer.public_ip</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> (Only required if env.bastion.options.loadbalancer.on_bastion is True). The public IPv4 address for your environment's loadbalancer. api, apps, *.apps must use this.</td>
+<td style="text-align: left;">(Only required if env.bastion.options.loadbalancer.on_bastion is True). The public IPv4 address for your environment's loadbalancer. api, apps, *.apps must use this.</td>
 <td style="text-align: left;">192.168.10.50</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.options.loadbalancer.private_ip</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> (Only required if env.bastion.options.loadbalancer.on_bastion is True). The private IPv4 address for your environment's loadbalancer. api-int must use this.</td>
+<td style="text-align: left;">(Only required if env.bastion.options.loadbalancer.on_bastion is True). The private IPv4 address for your environment's loadbalancer. api-int must use this.</td>
 <td style="text-align: left;">10.24.17.12</td>
 </tr>
 </tbody>
@@ -521,56 +521,46 @@
 <tr>
 <td style="text-align: left;"><strong>env.cluster.networking.metadata_name</strong></td>
 <td style="text-align: left;">Name to describe the cluster as a whole, can be anything if DNS will be hosted on the bastion. If DNS is not on the bastion, must match your DNS configuration. Will be combined with the base_domain and hostnames to create Fully Qualified Domain Names (FQDN).</td>
-<td style="text-align: left;"><code>agent</code></td>
+<td style="text-align: left;">ocpz</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.networking.base_domain</strong></td>
 <td style="text-align: left;">The site name, where is the cluster being hosted? This will be combined with the metadata_name and hostnames to create FQDNs.</td>
-<td style="text-align: left;"><code>example.com</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.cluster.networking.subnetmask</strong></td>
-<td style="text-align: left;">Subnet of the bastion.</td>
-<td style="text-align: left;"><code>'255.255.255.0'</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>env.cluster.networking.gateway</strong></td>
-<td style="text-align: left;">IPv4 of he bastion's gateway server, (get it using ip a)</td>
-<td style="text-align: left;"><code>'192.168.122.1'</code></td>
+<td style="text-align: left;">host.com</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.ipv6_gateway</strong></td>
-<td style="text-align: left;">IPv6 of he bastion's gateway server. Keep empty <code>''</code> to use  default ipv6_gateway</td>
-<td style="text-align: left;"><code>'fd00::1'</code></td>
+<td style="text-align: left;">IPv6 of he bastion's gateway server.</td>
+<td style="text-align: left;">fd00::1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.bastion.networking.ipv6_prefix</strong></td>
-<td style="text-align: left;">IPv6 prefix. Keep empty <code>''</code> to use  default ipv6_prefix</td>
-<td style="text-align: left;"><code>'64'</code></td>
+<td style="text-align: left;">IPv6 prefix.</td>
+<td style="text-align: left;">64</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.networking.nameserver1</strong></td>
 <td style="text-align: left;">IPv4 address that the cluster get its hostname resolution from. If env.bastion.options.dns is True, this should be the IP address of the bastion.</td>
-<td style="text-align: left;"><code>'192.168.122.20'</code></td>
+<td style="text-align: left;">192.168.10.200</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.networking.nameserver2</strong></td>
 <td style="text-align: left;"><b>(Optional)</b> A second IPv4 address will the cluster get its hostname resolution from? If env.bastion.options.dns is True, this should be left commented out.</td>
-<td style="text-align: left;"><code>'192.168.122.201'</code></td>
+<td style="text-align: left;">192.168.10.201</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.networking.forwarder</strong></td>
-<td style="text-align: left;">What IPv4 address will be used to make external DNS calls for the cluster? Can use 1.1.1.1 or 8.8.8.8 or 172.23.0.1 as defaults.</td>
-<td style="text-align: left;"><code>'172.23.0.1'</code></td>
+<td style="text-align: left;">What IPv4 address will be used to make external DNS calls for the cluster? Can use 1.1.1.1 or 8.8.8.8 as defaults.</td>
+<td style="text-align: left;">8.8.8.8</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.networking.interface</strong></td>
 <td style="text-align: left;">Name of the networking interface on the bastion from Linux's perspective. Most likely enc1.</td>
-<td style="text-align: left;"><code>'enc1'</code></td>
+<td style="text-align: left;">enc1</td>
 </tr>
 </tbody>
 </table>
-<h2 id="7-optional-bootstrap-node">7 - (Optional) Bootstrap Node<a class="headerlink" href="#7-optional-bootstrap-node" title="Permanent link">#</a></h2>
+<h2 id="7-bootstrap-node">7 - Bootstrap Node<a class="headerlink" href="#7-bootstrap-node" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -640,47 +630,47 @@
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.disk_size</strong></td>
 <td style="text-align: left;">How much disk space do you want to allocate to each control node (in Gigabytes)? 120 or more recommended.</td>
-<td style="text-align: left;"><code>120</code></td>
+<td style="text-align: left;">120</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.ram</strong></td>
 <td style="text-align: left;">How much memory would you like to allocate to the each control node (in megabytes)? Recommended 16384 or more.</td>
-<td style="text-align: left;"><code>16384</code></td>
+<td style="text-align: left;">16384</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.vcpu</strong></td>
 <td style="text-align: left;">How many virtual CPUs would you like to allocate to each control node? Recommended 4 or more.</td>
-<td style="text-align: left;"><code>4</code></td>
+<td style="text-align: left;">4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.vcpu_model_option</strong></td>
 <td style="text-align: left;">Configure the CPU model and CPU features exposed to the guest</td>
-<td style="text-align: left;"><code>"--cpu host"</code></td>
+<td style="text-align: left;">--cpu host</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.vm_name</strong></td>
 <td style="text-align: left;">Name of the control node VMs. Arbitrary values. Usually no more or less than 3 are used. Must match the total number of IP addresses and hostnames for control nodes. Use provided list format.</td>
-<td style="text-align: left;"><code>'control-1','control-2','control-3'</code></td>
+<td style="text-align: left;">control-1control-2control-3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.ip</strong></td>
 <td style="text-align: left;">IPv4 address of the control nodes. Use provided list formatting.</td>
-<td style="text-align: left;"><code>'192.168.122.21','192.168.122.22','192.168.122.23'</code></td>
+<td style="text-align: left;">192.168.10.5192.168.10.6192.168.10.7</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.ipv6</strong></td>
-<td style="text-align: left;">IPv6 address for the control nodes. Use iprovided list formatting (if use_ipv6 variable is 'True'). Keep empty <code>''</code> to use  default ipv6</td>
-<td style="text-align: left;"><code>'fd00::5','fd00::6','fd00::7'</code></td>
+<td style="text-align: left;">IPv6 address for the control nodes. Use iprovided list formatting (if use_ipv6 variable is 'True').</td>
+<td style="text-align: left;">fd00::5fd00::6fd00::7</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.mac</strong></td>
 <td style="text-align: left;">MAC address for the control node if use_dhcp variable is 'True'.</td>
-<td style="text-align: left;"><code>'fa:1d:67:35:13:31','fa:1d:67:35:13:32','fa:1d:67:35:13:33'</code></td>
+<td style="text-align: left;">52:54:00:18:1A:2B</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.hostname</strong></td>
 <td style="text-align: left;">Hostnames for control nodes. Must match the total number of IP addresses for control nodes (usually 3). If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN).</td>
-<td style="text-align: left;"><code>'control-1','control-2','control-3'</code></td>
+<td style="text-align: left;">control-01control-02control-03</td>
 </tr>
 </tbody>
 </table>
@@ -697,51 +687,51 @@
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.disk_size</strong></td>
 <td style="text-align: left;">How much disk space do you want to allocate to each compute node (in Gigabytes)? 120 or more recommended.</td>
-<td style="text-align: left;"><code>120</code></td>
+<td style="text-align: left;">120</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.ram</strong></td>
 <td style="text-align: left;">How much memory would you like to allocate to the each compute node (in megabytes)? Recommended 16384 or more.</td>
-<td style="text-align: left;"><code>16384</code></td>
+<td style="text-align: left;">16384</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.vcpu</strong></td>
 <td style="text-align: left;">How many virtual CPUs would you like to allocate to each compute node? Recommended 2 or more.</td>
-<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.vcpu_model_option</strong></td>
 <td style="text-align: left;">Configure the CPU model and CPU features exposed to the guest</td>
-<td style="text-align: left;"><code>"--cpu host"</code></td>
+<td style="text-align: left;">--cpu host</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.vm_name</strong></td>
 <td style="text-align: left;">Name of the compute node VMs. Arbitrary values. This list can be expanded to any number of nodes, minimum 2. Must match the total number of IP addresses and hostnames for compute nodes. Use provided list format.</td>
-<td style="text-align: left;"><code>'compute-1','compute-2'</code></td>
+<td style="text-align: left;">compute-1compute-2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.ip</strong></td>
 <td style="text-align: left;">IPv4 address of the compute nodes. Must match the total number of VM names and hostnames for compute nodes. Use provided list formatting.</td>
-<td style="text-align: left;"><code>'192.168.122.24','192.168.122.25'</code></td>
+<td style="text-align: left;">192.168.10.8192.168.10.9</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.ipv6</strong></td>
-<td style="text-align: left;">IPv6 address for the compute nodes. Use iprovided list formatting (if use_ipv6 variable is 'True'). Keep empty <code>''</code> to use  default ipv6</td>
-<td style="text-align: left;"><code>'fd00::8','fd00::9'</code></td>
+<td style="text-align: left;">IPv6 address for the compute nodes. Use iprovided list formatting (if use_ipv6 variable is 'True').</td>
+<td style="text-align: left;">fd00::8fd00::9</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.mac</strong></td>
 <td style="text-align: left;">MAC address for the compute node if use_dhcp variable is 'True'.</td>
-<td style="text-align: left;"><code>'fa:1d:67:35:13:34','fa:1d:67:35:13:35'</code></td>
+<td style="text-align: left;">52:54:00:18:1A:2B</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.hostname</strong></td>
 <td style="text-align: left;">Hostnames for compute nodes. Must match the total number of IP addresses and VM names for compute nodes. If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN).</td>
-<td style="text-align: left;"><code>'compute-1','compute-2'</code></td>
+<td style="text-align: left;">compute-01compute-02</td>
 </tr>
 </tbody>
 </table>
-<h2 id="10-optional-infra-nodes">10 - (Optional) Infra Nodes<a class="headerlink" href="#10-optional-infra-nodes" title="Permanent link">#</a></h2>
+<h2 id="10-infra-nodes">10 - Infra Nodes<a class="headerlink" href="#10-infra-nodes" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -793,7 +783,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="11-misc">11 - Misc<a class="headerlink" href="#11-misc" title="Permanent link">#</a></h2>
+<h2 id="11-optional-misc">11 - (Optional) Misc<a class="headerlink" href="#11-optional-misc" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -806,86 +796,81 @@
 <tr>
 <td style="text-align: left;"><strong>env.language</strong></td>
 <td style="text-align: left;">What language would you like Red Hat Enterprise Linux to use? In UTF-8 language code. Available languages and their corresponding codes can be found <a href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/5/html-single/international_language_support_guide/index">here</a>, in the "Locale" column of Table 2.1.</td>
-<td style="text-align: left;"><code>en_US.UTF-8</code></td>
+<td style="text-align: left;">en_US.UTF-8</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.timezone</strong></td>
 <td style="text-align: left;">Which timezone would you like Red Hat Enterprise Linux to use? A list of available timezone options can be found <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">here</a>.</td>
-<td style="text-align: left;"><code>America/New_York</code></td>
+<td style="text-align: left;">America/New_York</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.keyboard</strong></td>
 <td style="text-align: left;">Which keyboard layout would you like Red Hat Enterprise Linux to use?</td>
-<td style="text-align: left;"><code>us</code></td>
+<td style="text-align: left;">us</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.ansible_key_name</strong></td>
 <td style="text-align: left;">(Optional) Name of the SSH key that Ansible will use to connect to hosts.</td>
-<td style="text-align: left;"><code>ansible-ocpz</code></td>
+<td style="text-align: left;">ansible-ocpz</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.ocp_key_name</strong></td>
 <td style="text-align: left;">Comment to describe the SSH key used for OCP. Arbitrary value.</td>
-<td style="text-align: left;"><code>OpenShift key</code></td>
+<td style="text-align: left;">OCPZ-01 key</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.vnet_name</strong></td>
 <td style="text-align: left;">(Optional) Name of the bridged virtual network that will be created on the KVM host if network mode is not set to NAT. In case of NAT network mode the name of the NAT network definition used to create the nodes(usually it is 'default'). If NAT is being used and a jumphost is needed, the parameters network_mode, jumphost.name, jumphost.user and jumphost.pass must be specified, too. For default (NAT) network verify that the configured IP ranges does not interfere with the IPs defined for the controle and compute nodes. Modify the default network (dhcp range setting) to prevent issues with VMs using dhcp and OCP nodes having fixed IPs. Default is create a bridge network.</td>
-<td style="text-align: left;"><code>macvtap-net</code> <em>(preferred: default)</em></td>
+<td style="text-align: left;">macvtap-net</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.network_mode</strong></td>
-<td style="text-align: left;">In case the network mode will be NAT and the installation will be executed from remote (e.g. your laptop), a jumphost needs to be defined to let the installation access the bastion host. If macvtap for networking is being used this variable should be empty.</td>
-<td style="text-align: left;"><code>NAT</code></td>
+<td style="text-align: left;">(Optional) In case the network mode will be NAT and the installation will be executed from remote (e.g. your laptop), a jumphost needs to be defined to let the installation access the bastion host. If macvtap for networking is being used this variable should be empty.</td>
+<td style="text-align: left;">NAT</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.use_ipv6</strong></td>
 <td style="text-align: left;">If ipv6 addresses should be assigned to the controle and compute nodes, this variable should be true (default) and the matching ipv6 settings should be specified.</td>
-<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;">True</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.use_dhcp</strong></td>
 <td style="text-align: left;">If dhcp service should be used to get an IP address, this variable should be true and the matching mac address must be specified.</td>
-<td style="text-align: left;"><code>False</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>setup_openvpn</strong></td>
-<td style="text-align: left;">Enable or disable OpenVPN setup on the bastion. Set to True to configure OpenVPN, False to skip it.</td>
-<td style="text-align: left;"><code>False</code></td>
+<td style="text-align: left;">False</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.jumphost.name</strong></td>
-<td style="text-align: left;">If env.network.mode is set to 'NAT' the name of the jumphost (e.g. the name of KVM host if used as jumphost) should be specified. To get it, run: <code>hostname</code></td>
-<td style="text-align: left;"><code>'&lt;kvm-hostname-01&gt;'</code></td>
+<td style="text-align: left;">(Optional) If env.network.mode is set to 'NAT' the name of the jumphost (e.g. the name of KVM host if used as jumphost) should be specified.</td>
+<td style="text-align: left;">kvm-host-01</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.jumphost.ip</strong></td>
-<td style="text-align: left;">The ip of the jumphost.  To get it, run: <code>hostname -i</code> or <code>ip addr show</code></td>
-<td style="text-align: left;"><code>'&lt;lpar_ip&gt;'</code></td>
+<td style="text-align: left;">(Optional) The ip of the jumphost.</td>
+<td style="text-align: left;">192.168.10.1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.jumphost.user</strong></td>
-<td style="text-align: left;">The user name to login to the jumphost.</td>
-<td style="text-align: left;"><code>'admin'</code></td>
+<td style="text-align: left;">(Optional) The user name to login to the jumphost.</td>
+<td style="text-align: left;">admin</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.jumphost.pass</strong></td>
-<td style="text-align: left;">The password for user to login to the jumphost.</td>
-<td style="text-align: left;"><code>'ch4ngeMe!'</code></td>
+<td style="text-align: left;">(Optional) The password for user to login to the jumphost.</td>
+<td style="text-align: left;">ch4ngeMe!</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.jumphost.path_to_keypair</strong></td>
-<td style="text-align: left;">The absolute path to the public key file on the jumphost to be copied to the bastion.</td>
-<td style="text-align: left;"><code>'~/.ssh/id_rsa.pub'</code></td>
+<td style="text-align: left;">(Optional) The absolute path to the public key file on the jumphost to be copied to the bastion.</td>
+<td style="text-align: left;">/home/admin/.ssh/id_rsa.pub</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.ipsec_enabled</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> If IPSEC network configuration has to be enabled, this flag should be set to true</td>
+<td style="text-align: left;">(Optional) If IPSEC network configuration has to be enabled, this flag should be set to true</td>
 <td style="text-align: left;"></td>
 </tr>
 </tbody>
 </table>
-<h2 id="12-optional-ocp-and-rhcos-coreos">12 - (Optional) OCP and RHCOS (CoreOS)<a class="headerlink" href="#12-optional-ocp-and-rhcos-coreos" title="Permanent link">#</a></h2>
+<h2 id="12-ocp-and-rhcos-coreos">12 - OCP and RHCOS (CoreOS)<a class="headerlink" href="#12-ocp-and-rhcos-coreos" title="Permanent link">#</a></h2>
 <ul>
 <li>These parameters are responsible which version of OCP, RHCOS and os variant AOP is using. The default value is 'latest' for s390x architecture. I you want to install a different version or a different architecture you need to specify specify the following parameters in all.yaml file:</li>
 </ul>
@@ -997,7 +982,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="14-agent-based-installer">14 - Agent Based Installer<a class="headerlink" href="#14-agent-based-installer" title="Permanent link">#</a></h2>
+<h2 id="14-optional-agent-based-installer">14 - (Optional) Agent Based Installer<a class="headerlink" href="#14-optional-agent-based-installer" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -1010,32 +995,32 @@
 <tr>
 <td style="text-align: left;"><strong>abi.flag</strong></td>
 <td style="text-align: left;">This is the flag, Will be used to identify during execution. Few checks in the playbook will be depend on this (default value will be False)</td>
-<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;">True</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>abi.ansible_workdir</strong></td>
 <td style="text-align: left;">This will be work directory name, it will keep required data that need to be present during or after execution</td>
-<td style="text-align: left;"><code>'ansible_workdir'</code></td>
+<td style="text-align: left;">ansible_workdir</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>abi.ocp_installer_version</strong></td>
 <td style="text-align: left;">Version will contain value of openshift-installer binary version user desired to be used</td>
-<td style="text-align: left;"><code>'4.19.19'</code></td>
+<td style="text-align: left;">'4.15.8'</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>abi.ocp_installer_base_url</strong></td>
 <td style="text-align: left;">This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror</td>
-<td style="text-align: left;"><code>'https://mirror.openshift.com/pub/openshift-v4/'</code></td>
+<td style="text-align: left;">'https://mirror.openshift.com/pub/openshift-v4/'</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>abi.architecture</strong></td>
 <td style="text-align: left;">The installer binary supports two architecture options: multi and s390x. Users are required to specify the appropriate architecture value based on their deployment environment.</td>
-<td style="text-align: left;"><code>'multi/s390x'</code></td>
+<td style="text-align: left;">'multi/s390x'</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>abi.boot_method</strong></td>
 <td style="text-align: left;">Specifies the boot type for Agent-based Installation (ABI). Users must choose either iso or pxe based on the deployment method. Note: iso boot is supported only on KVM platforms.</td>
-<td style="text-align: left;"><code>'iso/pxe'</code></td>
+<td style="text-align: left;">'iso/pxe'</td>
 </tr>
 </tbody>
 </table>
