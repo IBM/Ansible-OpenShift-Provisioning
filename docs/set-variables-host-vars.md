@@ -13,20 +13,20 @@
 ## 1 - KVM Host
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**networking.hostname** | The hostname of the LPAR with RHEL installed natively (the KVM host). To get it, run: `hostname`| `<kvm-hostname-01>`
-**networking.ip** | The IPv4 address of the LPAR with RHEL installed natively (the KVM host). To get it, run: `hostname -i` or `ip addr show`  | `'<lpar_ip>'`
-**networking.internal_ip** | <b>(Optional)</b> The internal IPv4 address of the LPAR required when booting the LPAR with HiperSocket card. Currently supports only when bastion is on LPAR or on zVM host. Incase of zVM bastion enable the HiperSocket card prior to the playbook run with vmcp commands on the bastion. Alternative Option would be setting up the bridge port on OSA or RoCE.| 10.42.6.2
-**networking.mode** | <b>(Optional)</b> Type of network card | osa/roce/hipersocket 
-**networking.ipv6** | IPv6 address for the bastion if use_ipv6 variable is 'True'. Keep empty `''` to use  default ipv6 | `'fd00::3'`
-**networking.subnetmask** | The subnet that the LPAR resides in within your network. | `255.255.255.0`
-**networking.gateway** | The IPv4 address of the gateway to the network where the KVM host resides, (get it using ip a) | `192.168.122.1`
-**networking.ipv6_gateway** | IPv6 of he bastion's gateway server. Keep empty `''` to use  default ipv6 gateway | `'fd00::1'`
-**networking.ipv6_prefix** | IPv6 prefix. Keep empty `''` to use  default ipv6 gateway | `'64'`
-**networking.nameserver1** | The IPv4 address from which the KVM host gets its hostname resolved. | `192.168.122.20`
+**networking.hostname** | The hostname of the LPAR with RHEL installed natively (the KVM host). | kvm-host-01
+**networking.ip** | The IPv4 address of the LPAR with RHEL installed natively (the KVM host). | 192.168.10.2
+**networking.internal_ip** | The internal IPv4 address of the LPAR required when booting the LPAR with HiperSocket card. Currently supports only when bastion is on LPAR or on zVM host. Incase of zVM bastion enable the HiperSocket card prior to the playbook run with vmcp commands on the bastion. Alternative Option would be setting up the bridge port on OSA or RoCE.| 10.42.6.2
+**networking.mode** | Type of network card | osa/roce/hipersocket 
+**networking.ipv6** | IPv6 address for the bastion if use_ipv6 variable is 'True'. | fd00::3
+**networking.subnetmask** | The subnet that the LPAR resides in within your network. | 255.255.255.0
+**networking.gateway** | The IPv4 address of the gateway to the network where the KVM host resides. | 192.168.10.0
+**networking.ipv6_gateway** | IPv6 of he bastion's gateway server. | fd00::1
+**networking.ipv6_prefix** | IPv6 prefix. | 64
+**networking.nameserver1** | The IPv4 address from which the KVM host gets its hostname resolved. | 192.168.10.200
 **networking.nameserver2** | <b>(Optional)</b> A second IPv4 address from which the KVM host can get its hostname resolved. Used for high availability. | 192.168.10.201
-**networking.device1** | The network interface card from Linux's perspective. Usually enc and then a number that comes from the dev_num of the network adapter. | `enc100`
+**networking.device1** | The network interface card from Linux's perspective. Usually enc and then a number that comes from the dev_num of the network adapter. | enc100
 **networking.device2** | <b>(Optional)</b> Another Linux network interface card. Usually enc and then a number that comes from the dev_num of the second network adapter. | enc1
-**storage.pool_path** | The absolute path to a directory on your KVM host that will be used to store qcow2 images for the cluster and other installation artifacts. A sub-directory will be created here that matches your clsuter's metadata name that will act as the cluster's libvirt storage pool directory. Note: all directories present in this path will be made executable for the 'qemu' group, as is required. | `/home/kvm_admin/VirtualMachines`
+**storage.pool_path** | The absolute path to a directory on your KVM host that will be used to store qcow2 images for the cluster and other installation artifacts. A sub-directory will be created here that matches your clsuter's metadata name that will act as the cluster's libvirt storage pool directory. Note: all directories present in this path will be made executable for the 'qemu' group, as is required. | /home/kvm_admin/VirtualMachines
 
 ## Important Note
 * You can skip the rest of the variables on this page IF you are using existing LPAR(s) that has RHEL already installed.
@@ -100,4 +100,3 @@
 **lpar.livedisk.wwpn** | <b>(Required if livedisktype is scsi)</b> World-wide port number when livedisktype is SCSI. | 500507630a1b50a4
 **lpar.livedisk.devicenr** | <b>(Optional)</b> the device no of the live disk | c6h1
 **lpar.livedisk.livedisk_root_pass** | <b>(Optional)</b> root password for the livedisk | p@ssword
-
