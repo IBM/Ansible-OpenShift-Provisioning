@@ -1,5 +1,10 @@
 ---
 
+- name: 'Include matching lpar yml file'
+  tags: create_teuthology_node
+  ansible.builtin.include_vars:
+    file: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yaml"
+
 - name: Install CoreOS on compute nodes
   tags: create_compute_nodes
   shell: |
@@ -77,7 +82,7 @@
     compute_name: "{{ env.cluster.nodes.compute.vm_name[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
     compute_hostname: "{{ env.cluster.nodes.compute.hostname[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
     compute_ip: "{{ env.cluster.nodes.compute.ip[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
-    compute_ipv6: "{{ env.cluster.nodes.compute.ipv6[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
+    compute_ipv6: "{{ env.cluster.nodes.compute.ipv6[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] if env.use_ipv6 == True else '' }}"
   when: env.z.high_availability == True
 
 - name: Split information for infra nodes into groups. The number of groups being equal to the number of KVM hosts there are.
@@ -86,7 +91,7 @@
     infra_name: "{{ env.cluster.nodes.infra.vm_name[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
     infra_hostname: "{{ env.cluster.nodes.infra.hostname[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
     infra_ip: "{{ env.cluster.nodes.infra.ip[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
-    infra_ipv6: "{{ env.cluster.nodes.infra.ipv6[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
+    infra_ipv6: "{{ env.cluster.nodes.infra.ipv6[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] if env.use_ipv6 == True else '' }}"
   when: env.z.high_availability == True and env.cluster.nodes.infra.hostname is defined
 
 - name: Create CoreOS compute nodes on KVM hosts, if cluster is to be highly available.
