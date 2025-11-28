@@ -18,23 +18,23 @@
 * Once a RHEL server is installed natively on the LPAR, pre-existing or configured by this automation, (i.e. the KVM host), you can use that as the file server. 
 * If you are not using a pre-existing KVM host(s) and need to create them using this automation, you must use an FTP server because the HMC does not support HTTP.
 * A user with sudo and SSH access on that server.
-* A DVD ISO file of Red Hat Enterprise Linux (RHEL) 8 for s390x architecture mounted in an accessible folder (e.g. /home/<user>/rhel/ for FTP or /var/www/html/rhel for HTTP)
+* A DVD ISO file of Red Hat Enterprise Linux (RHEL) 9 for s390x architecture mounted in an accessible folder (e.g. /home/<user>/rhel/ for FTP or /var/www/html/rhel for HTTP)
     * If you do not have RHEL for s390x yet, go to the Red Hat [Customer Portal](https://access.redhat.com/downloads/content) and download it.
     * Under 'Product Variant' use the drop-down menu to select 'Red Hat Enterprise Linux for IBM z Systems' 
-    * Double-check it's for version 8 and for s390x architecture
-    * Then scroll down to Red Hat Enterprise Linux 8.x Binary DVD and click on the 'Download Now' button.
+    * Double-check it's for version 9 and for s390x architecture
+    * Then scroll down to Red Hat Enterprise Linux 9.x Binary DVD and click on the 'Download Now' button.
     * To pull the image directly from the command-line of your file server, copy the link for the 'Download Now' button and use `wget` to pull it down.
         ```
-        wget "https://access.cdn.redhat.com/content/origin/files/sha256/13/13[...]40/rhel-8.7-s390x-dvd.iso?user=6[...]e"
+        wget "https://access.cdn.redhat.com/content/origin/files/sha256/13/13[...]40/rhel-9.4-s390x-dvd.iso?user=6[...]e"
         ```
     * Don't forget to mount it too:
         * FTP:
             ```
-            mount <rhel-8.7-s390x-dvd.iso> /home/<user>/rhel
+            mount <rhel-9.4-s390x-dvd.iso> /home/<user>/rhel
             ```
         * or HTTP:
             ```
-            mount <rhel-8.7-s390x-dvd.iso> /var/www/html/rhel
+            mount <rhel-9.4-s390x-dvd.iso> /var/www/html/rhel
             ```
 * A folder created to store config files (e.g. /home/user/ocp-config for FTP or /var/www/html/ocp-config for http)
     * For FTP:
@@ -92,3 +92,4 @@ In addition make sure that python3 is installed on the jumphost otherwise ansibl
 ```
 yum install python3 
 ```
+
