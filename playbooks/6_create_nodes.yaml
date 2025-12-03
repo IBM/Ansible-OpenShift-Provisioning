@@ -33,7 +33,7 @@
   roles:
     - { role: prep_kvm_guests, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
     # Delete control, compute and infra nodes, if exists
-    - { role: delete_nodes, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
+    - { role: delete_nodes, when: (hosts_with_host_vars|length == 0) or env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
 
 - name: 6 create nodes - create bootstrap
   hosts: kvm_host[0]
@@ -42,7 +42,7 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
   roles:
     - { role: common,  when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
-    - { role: create_bootstrap, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
+    - { role: create_bootstrap, when: (hosts_with_host_vars|length == 0) or env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
 
 - name: 6 create nodes - bootstrap and control ( if in lpar )
   hosts: bastion
