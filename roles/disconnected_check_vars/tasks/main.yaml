@@ -3,9 +3,10 @@
 - name: 'Check mandatory variables are defined for disconnected'
   block:
     - name: "check mandatory variables for disconnected are set"
-      assert:
+      ansible.builtin.assert:
         that:
           - disconnected.registry.url is defined and disconnected.registry.url != None
+          - disconnected.registry.ip is defined and disconnected.registry.ip != None
           - disconnected.registry.pull_secret is defined and disconnected.registry.pull_secret != None
           - disconnected.registry.mirror_pull_secret is defined and disconnected.registry.mirror_pull_secret != None
           - disconnected.mirroring.host.name is defined and disconnected.mirroring.host.name != None
@@ -16,4 +17,8 @@
           - disconnected.mirroring.file_server.oc_mirror_tgz is defined and disconnected.mirroring.file_server.oc_mirror_tgz != None
           - disconnected.mirroring.client_download.ocp_download_url is defined and disconnected.mirroring.client_download.ocp_download_url != None
           - disconnected.mirroring.client_download.ocp_client_tgz is defined and disconnected.mirroring.client_download.ocp_client_tgz != None
+          - disconnected.mirroring.oc_mirror.release_image_registry is defined and disconnected.mirroring.oc_mirror.release_image_registry != None
           - disconnected.mirroring.oc_mirror.image_set is defined and disconnected.mirroring.oc_mirror.image_set != None
+          - disconnected.mirroring.oc_mirror.image_set.apiVersion is defined and disconnected.mirroring.oc_mirror.image_set.apiVersion != None
+          - disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.enabled is defined
+          - disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.enabled != None
