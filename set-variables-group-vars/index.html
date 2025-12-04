@@ -1193,12 +1193,17 @@
 <td style="text-align: left;">registry.tt.testing:5000</td>
 </tr>
 <tr>
+<td style="text-align: left;"><strong>disconnected.registry.ip</strong></td>
+<td style="text-align: left;">String containing ip of the registry, which will be used for resolving dns</td>
+<td style="text-align: left;"><code>192.168.151.1</code></td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>disconnected.registry.pull_secret</strong></td>
 <td style="text-align: left;">String containing pull secret of the disconnected registry to be applied on the <em>cluster</em>.  Make sure to enclose pull_secret in 'single quotes' and it has appropriate pull access.</td>
 <td style="text-align: left;">'{"auths":{"registry.tt..testing:5000":{"auth":"b3Blb...4yQQ==","email":"test.user@example.com"}}}'</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>disconnected.registry.mirror_pull_ecret</strong></td>
+<td style="text-align: left;"><strong>disconnected.registry.mirror_pull_secret</strong></td>
 <td style="text-align: left;">String containing pull secret to use for mirroring. Contains Red Hat secret and registry pull  secret. Make sure to enclose pull_secret in 'single quotes' and must be able to push to mirror registry.</td>
 <td style="text-align: left;">'{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com", "registry.tt..testing:5000":...user@example.com"}}}'</td>
 </tr>
@@ -1239,13 +1244,23 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.file_server.oc_mirror_tgz</strong></td>
-<td style="text-align: left;">Name of oc-mirror tarball on <strong>env.file_server</strong> in <strong>disconnected.mirroring.file_server.clients_dir</strong></td>
+<td style="text-align: left;">Name of oc-mirror tarball on <strong>env.file_server</strong> in <strong>disconnected.mirroring.file_server.clients_dir</strong>. This must be placed in your ftp server after downloading it yourself from https://console.redhat.com/openshift/downloads.</td>
 <td style="text-align: left;">oc-mirror.tar.gz</td>
 </tr>
 <tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.client_download.ocp_download_url</strong></td>
+<td style="text-align: left;">url to download the oc client</td>
+<td style="text-align: left;">https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/amd64/</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.client_download.ocp_client_tgz</strong></td>
+<td style="text-align: left;">Name of oc-client tarball on <strong>env.file_server</strong>. This should match the binary name available in <strong>disconnected.mirroring.client_download.ocp_download_url</strong></td>
+<td style="text-align: left;">openshift-client-linux.tar.gz</td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.legacy.platform</strong></td>
-<td style="text-align: left;">True or False if the platform should be mirrored using <code>oc adm release mirror</code>.</td>
-<td style="text-align: left;">False</td>
+<td style="text-align: left;">True or False if the platform should be mirrored using <code>oc adm release mirror</code>. If <strong>True</strong> then platform is mirrored in the old way and install config will be patched with the imagecontentsourcepolicy</td>
+<td style="text-align: left;">False (default)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.legacy.ocp_quay_release_image_tag</strong></td>
@@ -1268,11 +1283,6 @@
 <td style="text-align: left;">v4.13.1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.release_image_tag</strong></td>
-<td style="text-align: left;">The ocp release image tag you want to install the cluster with. Used when legacy platform  mirroring is disabled and <strong>disconnected.mirroring.oc_mirror.image_set</strong> contains platform  entries.</td>
-<td style="text-align: left;">4.13.1-multi</td>
-</tr>
-<tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error</strong></td>
 <td style="text-align: left;">True or False to give <code>--continue-on-error</code> flag to <code>oc-mirror</code></td>
 <td style="text-align: left;">False</td>
@@ -1293,9 +1303,29 @@
 <td style="text-align: left;">regexp: interal-url.com replace: external-url.com</td>
 </tr>
 <tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.release_image_tag</strong></td>
+<td style="text-align: left;">The ocp release image tag you want to install the cluster with. Used when legacy platform  mirroring is disabled and <strong>disconnected.mirroring.oc_mirror.image_set</strong> contains platform  entries.</td>
+<td style="text-align: left;">4.13.1-multi</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.release_image_registry</strong></td>
+<td style="text-align: left;">The Release Image registry like Brew Registry which stores the release images as mirror to <strong>registry.redhat.io</strong>. This will be mirror registry for release operator images</td>
+<td style="text-align: left;"><code>brew.registry.redhat.io</code></td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set</strong></td>
 <td style="text-align: left;">YAML fields containing a standard <code>oc-mirror</code> <a href="https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-creating-image-set-config_installing-mirroring-disconnected">image set</a> with some minor changes to schema.  Differences are documented as needed. Used to generate final image set.</td>
 <td style="text-align: left;">see template</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set.apiVersion</strong></td>
+<td style="text-align: left;">The API version of the <code>ImageSetConfiguration</code> content.</td>
+<td style="text-align: left;"><code>mirror.openshift.io/v1alpha2</code>, <code>mirror.openshift.io/v2alpha1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set.storageConfig.enabled</strong></td>
+<td style="text-align: left;">True or False to set whether oc-mirror is v1 or v2. As for v2 storageConfig flag is removed completely</td>
+<td style="text-align: left;"><code>True</code> or <code>False</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.enabled</strong></td>

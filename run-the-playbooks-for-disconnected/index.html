@@ -181,14 +181,14 @@ configurations are mentioned over here.</p>
 <h2 id="disconnected-mirror-artifacts-playbook">Disconnected Mirror Artifacts Playbook<a class="headerlink" href="#disconnected-mirror-artifacts-playbook" title="Permanent link">#</a></h2>
 <h3 id="overview_1">Overview<a class="headerlink" href="#overview_1" title="Permanent link">#</a></h3>
 <p>Mirror the ocp platform and other necessary images to the mirror registry. Please run this playbook before you run <strong>6 Create Nodes Playbook</strong> and after
-<strong>0 Setup Playbook</strong>.</p>
+<strong>5 Setup Bastion</strong>.</p>
 <h3 id="outcomes">Outcomes<a class="headerlink" href="#outcomes" title="Permanent link">#</a></h3>
 <ul>
 <li>Download <code>oc</code> and <code>oc-mirror</code> to the mirror host.</li>
 <li>Template the mirror pull secret to the mirror host.</li>
 <li>Add the ca cert to the mirror host anchors if ca is not trusted.</li>
 <li>Mirror the platform images using <code>oc adm release mirror</code> if legacy mirroring is enabled.</li>
-<li>Template the image set to mirror host and then mirror it using <code>oc-mirror</code> plogin.</li>
+<li>Template the image set to mirror host and then mirror it using <code>oc-mirror</code> plugin.</li>
 <li>Copy the results on the <code>oc-mirror</code> to ansible controller to apply to cluster in future steps.</li>
 </ul>
 <h3 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">#</a></h3>
