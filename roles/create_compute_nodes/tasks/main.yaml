@@ -1,4 +1,23 @@
 ---
+- name: Load cex_hostdev_map from JSON
+  set_fact:
+    cex_hostdev_map: "{{ lookup('file', '/root/.cex_hostdev_map.json') | from_json }}"
+  when: cex_uuid_map is defined
+
+- name: Debug rendered cex_hostdev per compute node
+  debug:
+    msg: "VM: {{ vm_name }}, Hostdev: {{ cex_hostdev }}"
+  vars:
+    vm_name: "{{ env.cluster.nodes.compute.vm_name[i] }}"
+    cex_hostdev: >-
+      {% if cex and cex_device is defined and cex_hostdev_map is defined and vm_name in cex_hostdev_map %}
+      --hostdev={{ cex_hostdev_map[vm_name] }}
+      {% else %}
+      ""
+      {% endif %}
+  with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }}
+  loop_control:
+    index_var: i
 
 - name: 'Include matching lpar yml file'
   tags: create_teuthology_node
@@ -7,6 +26,12 @@
 
 - name: Install CoreOS on compute nodes
   tags: create_compute_nodes
+  vars:
+    vm_name: "{{ env.cluster.nodes.compute.vm_name[i] }}"
+    cex_hostdev: >-
+      {% if cex and cex_device is defined and cex_hostdev_map is defined and vm_name in cex_hostdev_map %}
+      --hostdev={{ cex_hostdev_map[vm_name] }}
+      {% endif %}
   shell: |
     virsh destroy {{ env.cluster.nodes.compute.vm_name[i] }} || true
     virsh undefine {{ env.cluster.nodes.compute.vm_name[i] }} --remove-all-storage --nvram || true
@@ -35,7 +60,8 @@
     --memballoon none \
     --graphics none \
     --wait=-1 \
-    --noautoconsole
+    --noautoconsole \
+    {{ cex_hostdev }}
   timeout: 360
   with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
   loop_control:
