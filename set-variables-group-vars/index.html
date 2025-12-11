@@ -100,6 +100,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#zvm-optional">ZVM ( Optional )</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#crypto-express-card-based-luks-encryption-specific-for-zkvm-optional">Crypto Express Card based LUKS encryption specific for zKVM ( Optional )</a>
+    </li>
     </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
@@ -172,6 +174,11 @@
 <td style="text-align: left;"><strong>controller_sudo_pass</strong></td>
 <td style="text-align: left;">The password to the machine running Ansible (localhost). This will only be used for two things. To ensure you've installed the pre-requisite packages if you're on Linux, and to add the login URL to your /etc/hosts file.</td>
 <td style="text-align: left;">Pas$w0rd!</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>cex_device</strong></td>
+<td style="text-align: left;">Specify the storage device type used for LUKS encryption. This setting determines enable cex MCO Ignition configuration will be applied. Use in combination with the cex parameter.  [dasd, fcp, virt]</td>
+<td style="text-align: left;"></td>
 </tr>
 </tbody>
 </table>
@@ -1953,6 +1960,11 @@
 </tr>
 </tbody>
 </table>
+<h2 id="crypto-express-card-based-luks-encryption-specific-for-zkvm-optional">Crypto Express Card based LUKS encryption specific for zKVM ( Optional )<a class="headerlink" href="#crypto-express-card-based-luks-encryption-specific-for-zkvm-optional" title="Permanent link">#</a></h2>
+<p><strong>Variable Name</strong> | <strong>Description</strong> | <strong>Example</strong>
+<strong>cex</strong> | Whether to enable cex based luks encryption, default to False
+<strong>cex_device</strong> | Specify the storage device type used for LUKS encryption. This setting determines which MCO Ignition configuration will be applied from the defaults. Do not override the default value. Use in combination with the cex parameter. | [dasd, fcp, virt]
+<strong>cex_uuid_map</strong> | This var is required only for KVM installations using vfio_ap mediated device. Omit it when deploying on LPAR installation. Use in combination with cex and cex_device. Specify guest hostname: "UUID:domain" UUID can be generated from uuidgen command and domain can be retrieved from lszcrypt | upi-cex-control-1: "68cd2d83-3eef-4e45-b22c-534f90b16cb9:00.0035"</p>
               
             </div>
           </div><footer>
