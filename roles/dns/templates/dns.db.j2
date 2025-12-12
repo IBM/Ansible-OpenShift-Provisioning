@@ -8,7 +8,10 @@ $TTL 86400
 )
 
 ;Name Server / Bastion Information
-@ IN NS {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}.
+{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN NS {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}.
+{% if env.cluster.networking.nameserver2 is defined %}
+{{ env.cluster.networking.base_domain }}. IN NS {{ env.cluster.networking.nameserver2 }}
+{% endif %}
 
 ;IP Address for Name Server
 {{ env.bastion.networking.hostname }} IN A {% if env.bastion.networking.internal_ip is defined and env.bastion.networking.internal_ip!=None %}{{ env.bastion.networking.internal_ip }}{% else %}{{ env.bastion.networking.ip }}{% endif %}
@@ -23,12 +26,12 @@ $TTL 86400
 ;entries for the compute nodes
 
 ;The api identifies the IP of your load balancer.
-api.{{ env.cluster.networking.metadata_name }}     IN    CNAME {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}.
-api-int.{{ env.cluster.networking.metadata_name }} IN    CNAME {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}.
+api.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.     IN    A {{ env.bastion.networking.ip }}
+api-int.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN    A {{ env.bastion.networking.ip }}
 
 ;The wildcard also identifies the load balancer.
-apps.{{ env.cluster.networking.metadata_name }}  IN    CNAME {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}.
-*.apps.{{ env.cluster.networking.metadata_name }}  IN    CNAME {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}.
+apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.     IN    A {{ env.bastion.networking.ip }}
+*.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.   IN    A {{ env.bastion.networking.ip }}
 
 {% if disconnected.enabled %}
 ;entry for mirror host.
