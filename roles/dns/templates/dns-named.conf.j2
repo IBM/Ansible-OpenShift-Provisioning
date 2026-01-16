@@ -69,6 +69,14 @@ zone "{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_
      allow-query { any; };
 };
 
+{% if env.bastion.networking.nameserver2 is defined %}
+// forwared zone
+zone "{{ env.cluster.networking.base_domain }}" IN {
+     type forward;
+     forwarders { {{ env.bastion.networking.nameserver2}} };
+};
+{% endif %}
+
 //backward zone
 zone "{{ bastion_split_ip.2 }}.{{ bastion_split_ip.1 }}.{{ bastion_split_ip.0 }}.in-addr.arpa" IN {
      type master;

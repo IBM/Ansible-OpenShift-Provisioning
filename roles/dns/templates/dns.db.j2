@@ -9,9 +9,6 @@ $TTL 86400
 
 ;Name Server / Bastion Information
 {{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN NS {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}.
-{% if env.cluster.networking.nameserver2 is defined %}
-{{ env.cluster.networking.base_domain }}. IN NS {{ env.cluster.networking.nameserver2 }}
-{% endif %}
 
 ;IP Address for Name Server
 {{ env.bastion.networking.hostname }} IN A {% if env.bastion.networking.internal_ip is defined and env.bastion.networking.internal_ip!=None %}{{ env.bastion.networking.internal_ip }}{% else %}{{ env.bastion.networking.ip }}{% endif %}
