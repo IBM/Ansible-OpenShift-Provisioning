@@ -1,6 +1,6 @@
 ---
 
-- name: Register server with Red Hat
+- name: "Register server with Red Hat using user and pwd"
   tags: attach_subscription
   community.general.redhat_subscription:
     state: present
@@ -11,3 +11,29 @@
   retries: 2
   delay: 30
   until: registration is not failed
+  when:
+    - env.redhat.password is defined
+    - env.redhat.username is defined
+
+- name: 'Activate RHEL account if software need to be installed to'
+  tags: setup, teuthology_node, setup_nodes
+  ansible.builtin.command:
+    argv:
+      - rhc
+      - connect
+      - --activation-key
+      - "{{ thlgy_ceph_nodes.rhel_activation_key }}"
+      - --organization
+      - "{{ thlgy_ceph_nodes.rhel_organization }}"
+  when:
+    - env.redhat.activation_key is defined
+    - env.redhat.organization is defined
+
+- name: 'Install the rhc-worker-playbook'
+  tags: setup, teuthology_node, setup_nodes
+  ansible.builtin.command:
+    argv:
+      - dnf
+      - install
+      - -y
+      - rhc-worker-playbook

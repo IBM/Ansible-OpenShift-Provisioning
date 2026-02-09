@@ -1,10 +1,12 @@
 ---
-#Create logical partition
-- hosts: localhost
+
+- name: Create logical partition
+  hosts: localhost
   tags: create_lpar, create, kvm_host_1
   connection: local
-  vars_files: 
+  vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   tasks:
     - name: Install required python packages.
       ansible.builtin.pip:
@@ -13,46 +15,45 @@
         - requests
         - zhmcclient
         - cryptography
-        - packaging 
+        - packaging
         - PyYAML
 
     - name: Include vars for first LPAR if it is to be created.
-      include_vars:
+      ansible.builtin.include_vars:
         file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
-      when: env.z.lpar1.create == True
+      when: env.z.lpar1.create
 
     - name: Create an LPAR for the first KVM host.
-      import_role:
+      ansible.builtin.import_role:
         name: create_lpar
-      when: env.z.lpar1.create == True
-          
+      when: env.z.lpar1.create
+
 - hosts: localhost
   tags: create_lpar, create, kvm_host_2
   connection: local
   tasks:
     - name: Include vars for second LPAR if it is to be created.
-      include_vars:
+      ansible.builtin.include_vars:
         file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar2.hostname }}.yaml"
-      when: env.z.lpar2.create == True
+      when: env.z.lpar2.create
 
     - name: Create an LPAR for the second KVM host.
-      import_role:
+      ansible.builtin.import_role:
         name: create_lpar
-      when: env.z.lpar2.create == True
+      when: env.z.lpar2.create
 
 - hosts: localhost
   tags: create_lpar, create, kvm_host_3
   connection: local
   tasks:
     - name: Include vars for third LPAR if it is to be created.
-      include_vars:
+      ansible.builtin.include_vars:
         file: "{{ inventory_dir }}/host_vars/{{ env.z.lpar3.hostname }}.yaml"
-      when: env.z.lpar3.create == True
-      
+      when: env.z.lpar3.create
+
     - name: Create an LPAR for a third KVM host.
-      import_role:
+      ansible.builtin.import_role:
         name: create_lpar
-      when: env.z.lpar3.create == True
+      when: env.z.lpar3.create
 
-
-#TODO: create all lpars defined in the host vars section
+# TODO: create all lpars defined in the host vars section
