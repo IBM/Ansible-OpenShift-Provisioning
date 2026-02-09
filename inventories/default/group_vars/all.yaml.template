@@ -5,7 +5,7 @@
 
 # Section 1 - Ansible Controller
 installation_type: kvm
-controller_sudo_pass: #X
+controller_sudo_pass: "{{ vault_ctl_host_sudo_pass }}"
 
 env:
 
@@ -18,26 +18,26 @@ env:
       hostname: #X
       ip: #X
       user: #X
-      pass: #X
+      pass: "{{ vault_lpar1_pass }}"
     lpar2:
       create: False
 #      hostname:
 #      ip:
 #      user:
-#      pass:
+#      pass: "{{ vault_lpar2_pass }}"
     lpar3:
       create: False
 #      hostname:
 #      ip:
 #      user:
-#      pass:
+#      pass: "{{ vault_lpar3_pass }}"
 
 # Section 3 - File Server
   file_server:
     ip: #X
     port: '' # please keep empty string to use default port
     user: #X
-    pass: #X
+    pass: "{{ vault_file_server_pass }}"
     protocol: #X
     iso_mount_dir: #X
     iso_os_variant: #X
@@ -46,7 +46,9 @@ env:
 # Section 4 - Red Hat
   redhat:
     username: #X
-    password: #X
+    password: "{{ vault_rh_pass }}"
+    rhel_activation_key: #X
+    rhel_organization: #X
     manage_subscription: True
     # Make sure to enclose pull_secret in 'single quotes'
     pull_secret: #'X'
@@ -78,8 +80,8 @@ env:
       interface: #X
     access:
       user: #X
-      pass: #X
-      root_pass: #X
+      pass: "{{ vault_bastion_pass }}"
+      root_pass: "{{ vault_bastion_pass }}"
     options:
       dns: True
       loadbalancer:
@@ -209,7 +211,7 @@ env:
     name:
     ip:
     user:
-    pass:
+    pass: "{{ vault_jumphost_pass }}"
     path_to_keypair:
 
 # Section 12 - OCP and RHCOS (CoreOS)
