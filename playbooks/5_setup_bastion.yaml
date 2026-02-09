@@ -7,6 +7,7 @@
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   vars:
     ssh_target: ["{{ env.jumphost.ip }}", "{{ env.jumphost.user }}", "{{ env.jumphost.pass }}", "{{ path_to_key_pair }}"]
   roles:
@@ -19,6 +20,7 @@
   gather_facts: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   vars:
     ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}", "{{ env.jumphost.path_to_keypair }}"]
   pre_tasks:
@@ -61,6 +63,7 @@
   gather_facts: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   vars:
     ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}","{{ path_to_key_pair }}"]
   roles:
@@ -68,24 +71,27 @@
 
 - name: 5 Setting up of HiperSocket card on bastion when booting LPAR nodes with HiperSocket card (if in lpar)
   hosts: bastion
-  become: True
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   tasks:
   - name: Enabliling the HiperSocket card on bastion if installation_type is lpar else will be skipped.
     block:
     - name: Getting the Hipervisor Details
-      command: lscpu
+      ansible.builtin.command: lscpu
       register: hipervisor_info
     - name: Fail the play if bastion is on the KVM guest
-      fail:
+      ansible.builtin.fail:
         msg: Currently not supported for LPAR clsuter with this particular mode when bastion is on KVM host.
       when: "'KVM' in hipervisor_info.stdout"
     - name: Check if vars file exists
-      stat:
+      ansible.builtin.stat:
         path: "{{ inventory_dir }}/host_vars/{{ env.cluster.nodes.bootstrap.vm_name }}.yaml"
       register: vars_file
       delegate_to: localhost
     - name: Include the vars
-      include_vars:
+      ansible.builtin.include_vars:
         file: "{{ inventory_dir }}/host_vars/{{ env.cluster.nodes.bootstrap.vm_name }}.yaml"
       when: vars_file.stat.exists
     - name: Attaching HiperSocket card to bastion
@@ -103,6 +109,7 @@
     control_node_count: "{{ env.cluster.nodes.control.ip | length }}"
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
     - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   pre_tasks:
     - name: Import initial-resolv.yaml
@@ -124,6 +131,9 @@
 - hosts: bastion
   tags: services, section_2, openvpn
   become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   vars:
     openvpn_role: "server"
   roles:
@@ -134,10 +144,13 @@
 - hosts: localhost
   tags: services, section_2, openvpn
   gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   tasks:
     - name: Create landing directories on controller for certificates and keys.
       tags: openvpn
-      file:
+      ansible.builtin.file:
         state: directory
         path: tmp
       when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"
@@ -145,10 +158,13 @@
 - hosts: bastion
   tags: services, section_2, openvpn
   become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   tasks:
     - name: Fetch certificates and keys from bastion.
       tags: openvpn
-      fetch:
+      ansible.builtin.fetch:
         src: /etc/openvpn/easy-rsa/pki/{{ item }}
         dest: tmp/
         flat: yes
@@ -164,17 +180,20 @@
   tags: services, section_3, openvpn
   become: true
   gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   vars:
     openvpn_role: "client"
     openvpn_client_server: "{{ env.bastion.networking.ip }}"
   pre_tasks:
     - name: Gather facts.
-      setup:
+      ansible.builtin.setup:
       when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"
 
     - name: Create landing directories for certificates and keys on KVM hosts.
       tags: openvpn
-      file:
+      ansible.builtin.file:
         state: directory
         path: /etc/openvpn/client/{{ item }}
         mode: '700'
@@ -185,7 +204,7 @@
 
     - name: Copy certificates and keys from controller to KVM hosts.
       tags: openvpn
-      copy:
+      ansible.builtin.copy:
         src: tmp/{{ item }}
         dest: /etc/openvpn/client/{{ item }}
         mode: '600'
@@ -202,10 +221,13 @@
 - hosts: localhost
   tags: services, section_2, openvpn
   gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   tasks:
     - name: Clean up tmp directories on controller for certificates and keys.
       tags: openvpn
-      file:
+      ansible.builtin.file:
         state: absent
         path: tmp
       when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"
@@ -215,6 +237,7 @@
   become: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
     - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   roles:
     - common

@@ -4,10 +4,11 @@
   hosts: localhost
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   tasks:
     - block:
       - name: Loop over node types and include role
-        include_role:
+        ansible.builtin.include_role:
           name: check_for_lpar_nodes
         loop:
           - bootstrap
@@ -19,7 +20,7 @@
       ignore_errors: true
 
     - name: fail the play if the previous command did not succeed
-      fail: msg="Check for lpar nodes failed for bootstrap or control node"
+      ansible.builtin.fail: msg="Check for lpar nodes failed for bootstrap or control node"
       when:
         - "'bootstrap' in result.msg"
         - "'control' in result.msg"
@@ -30,6 +31,7 @@
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   roles:
     - { role: prep_kvm_guests, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
     # Delete control, compute and infra nodes, if exists
@@ -40,6 +42,7 @@
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   roles:
     - { role: common,  when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
     - { role: create_bootstrap, when: (hosts_with_host_vars|length == 0) or env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
@@ -47,6 +50,9 @@
 - name: 6 create nodes - bootstrap and control ( if in lpar )
   hosts: bastion
   become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   tasks:
     - name: boot bootstrap
       vars:
@@ -54,7 +60,7 @@
         node_name: "{{ item }}"
         ignition: "bootstrap"
         node_mac: "{% if env.use_dhcp and env.cluster.nodes[node_type].mac is defined and env.cluster.nodes[node_type].mac != None %}{{ env.cluster.nodes[node_type].mac }}{% else %}null{% endif %}"
-      include_tasks:
+      ansible.builtin.include_tasks:
         file: ../roles/boot_LPAR/tasks/main.yaml
       loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
       when: item in hosts_with_host_vars
@@ -65,7 +71,7 @@
         node_name: "{{ item }}"
         ignition: "master"
         node_mac: "{% if env.use_dhcp and env.cluster.nodes[node_type].mac is defined and env.cluster.nodes[node_type].mac != None %}{{ env.cluster.nodes[node_type].mac[env.cluster.nodes[node_type].vm_name.index(item)] }}{% else %}null{% endif %}"
-      include_tasks:
+      ansible.builtin.include_tasks:
         file: ../roles/boot_LPAR/tasks/main.yaml
       loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
       when: item in hosts_with_host_vars
@@ -75,6 +81,7 @@
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   roles:
     - common
     - create_control_nodes
@@ -87,6 +94,7 @@
   gather_facts: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   roles:
     - wait_for_bootstrap
 
@@ -96,6 +104,7 @@
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   tasks:
     - name: Destroy bootstrap. Expect ignored errors if bootstrap is already destroyed.
       tags: create_nodes, teardown_bootstrap
@@ -118,6 +127,7 @@
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   roles:
     - { role: common, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
     - { role: create_compute_nodes, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
@@ -132,7 +142,7 @@
         node_name: "{{ item }}"
         ignition: "worker"
         node_mac: "{% if env.use_dhcp and env.cluster.nodes[node_type].mac is defined and env.cluster.nodes[node_type].mac != None %}{{ env.cluster.nodes[node_type].mac[env.cluster.nodes[node_type].vm_name.index(item)] }}{% else %}null{% endif %}"
-      include_tasks:
+      ansible.builtin.include_tasks:
         file: ../roles/boot_LPAR/tasks/main.yaml
       loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
       when:

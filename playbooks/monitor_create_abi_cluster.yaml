@@ -6,5 +6,6 @@
   become: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   roles:
     - abi_install_complete

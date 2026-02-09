@@ -1,15 +1,21 @@
 [localhost]
-127.0.0.1 ansible_connection=local ansible_become_password={{ controller_sudo_pass }}
+127.0.0.1 ansible_connection=local ansible_become_password='{{ '{{' }} controller_sudo_pass {{ '}}' }}'
 
 [file_server]
-{{ env.file_server.ip }} ansible_user={{ env.file_server.user }} ansible_become_password={{ env.file_server.pass }}
+{{ env.file_server.ip }} ansible_user={{ env.file_server.user }} ansible_become_password='{{ '{{' }} env.file_server.pass {{ '}}' }}'
 
-{% if ( installation_type | upper != 'ZVM' ) %}
-{{ '[kvm_host]' }}
-{{ ( env.z.lpar1.hostname | string + ' ansible_host=' + env.z.lpar1.ip | string + ' ansible_user=' + env.z.lpar1.user | string + ' ansible_become_password=' + env.z.lpar1.pass | string ) if  env.z.lpar1.hostname is defined else '' }}
-{{ ( env.z.lpar2.hostname + ' ansible_host=' + env.z.lpar2.ip + ' ansible_user=' + env.z.lpar2.user + ' ansible_become_password=' + env.z.lpar2.pass ) if env.z.lpar2.hostname is defined else '' }}
-{{ ( env.z.lpar3.hostname + ' ansible_host=' + env.z.lpar3.ip + ' ansible_user=' + env.z.lpar3.user + ' ansible_become_password=' + env.z.lpar3.pass ) if env.z.lpar3.hostname is defined else '' }}
-{% else %}
+[kvm_host]
+{% if ( env.z.lpar1.hostname is defined ) %}
+{{ env.z.lpar1.hostname }} ansible_host={{ env.z.lpar1.ip }} ansible_user={{ env.z.lpar1.user }} ansible_become_password='{{ '{{' }} env.z.lpar1.pass {{ '}}' }}'
+{% endif %}
+{% if  env.z.lpar2.hostname is defined %}
+{{ env.z.lpar2.hostname }} ansible_host={{ env.z.lpar2.ip }} ansible_user={{ env.z.lpar2.user }} ansible_become_password='{{ '{{' }} env.z.lpar2.pass {{ '}}' }}'
+{% endif %}
+{% if  env.z.lpar3.hostname is defined %}
+{{ env.z.lpar3.hostname }} ansible_host={{ env.z.lpar3.ip }} ansible_user={{ env.z.lpar3.user }} ansible_become_password='{{ '{{' }} env.z.lpar3.pass {{ '}}' }}'
+{% endif %}
+
+{% if ( installation_type | lower == 'zvm' ) %}
 {{ '[zvm_host]' }}
 {% for item in range( zvm.nodes | length ) %}
 {{ zvm.nodes[item].name | string + ' ansible_host=' + zvm.nodes[item].interface.ip | string + ' ansible_user=' +  zvm.nodes[item].user | string + ' ansible_become_password=' +  zvm.nodes[item].password | string }}
@@ -17,7 +23,7 @@
 {% endif %}
 
 [bastion]
-{{ env.bastion.networking.hostname }} ansible_host={{ env.bastion.networking.ip }} ansible_user={{ env.bastion.access.user }} ansible_become_password={{ env.bastion.access.pass }}
+{{ env.bastion.networking.hostname }} ansible_host={{ env.bastion.networking.ip }} ansible_user={{ env.bastion.access.user }} ansible_become_password='{{ '{{' }} env.bastion.access.pass {{ '}}' }}'
 
 {% if ( env.network_mode | upper == 'NAT' ) and ( env.jumphost.name is not none ) and ( env.jumphost.ip is not none ) and ( env.jumphost.user is not none ) and ( env.jumphost.pass is not none ) -%}
 {{ '[jumphost]' }}
