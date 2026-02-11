@@ -102,7 +102,7 @@
 
   when: env.z.high_availability == True and inventory_hostname == env.z.lpar1.hostname and env.cluster.nodes.control.vm_name[0] not in hosts_with_host_vars
 
-- name: Create the second CoreOS control node on the first KVM host, if cluster is to be highly available.
+- name: Create the second CoreOS control node on the second KVM host, if cluster is to be highly available.
   tags: create_control_nodes
   shell: |
     virt-install \
@@ -133,7 +133,7 @@
     --noautoconsole
   when: env.z.high_availability == True and inventory_hostname == env.z.lpar2.hostname and env.cluster.nodes.control.vm_name[1] not in hosts_with_host_vars
 
-- name: Create the third CoreOS control node on the first KVM host, if cluster is to be highly available.
+- name: Create the third CoreOS control node on the third KVM host, if cluster is to be highly available.
   tags: create_control_nodes
   shell: |
     virt-install \
