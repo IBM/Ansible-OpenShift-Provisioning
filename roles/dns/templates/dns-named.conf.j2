@@ -73,7 +73,7 @@ zone "{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_
 // forwared zone
 zone "{{ env.cluster.networking.base_domain }}" IN {
      type forward;
-     forwarders { {{ env.bastion.networking.nameserver2}} };
+     forwarders { {{ env.bastion.networking.nameserver2}} ;};
 };
 {% endif %}
 
