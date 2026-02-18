@@ -1,0 +1,49 @@
+---
+
+- name: Check if oc command is available
+  shell: which oc
+  register: oc_check
+  failed_when: false
+  changed_when: false
+
+- name: Fail if oc is not installed
+  fail:
+    msg: "oc CLI is not installed. Please install OpenShift CLI tools first."
+  when: oc_check.rc != 0
+
+- name: Copy Python login script to host
+  template:
+    src: login_mgmt_cluster.py
+    dest: /tmp/login_mgmt_cluster.py
+    mode: '0755'
+
+- name: Login to Management Cluster
+  shell: |
+    python3 /tmp/login_mgmt_cluster.py \
+      --api-server "{{ api_server }}" \
+      --username "{{ user_name }}" \
+      --password "{{ password }}" \
+
+  environment:
+    HOME: "{{ ansible_env.HOME }}"
+  register: login_result
+
+- name: Display login and cluster info
+  debug:
+    msg: "{{ login_result.stdout_lines
+     }}"
+
+- name: Fail if login unsuccessful
+  fail:
+    msg: "{{ login_result.stderr }}"
+  when: login_result.rc != 0
+
+- name: Set login facts for other roles
+  set_fact:
+    mgmt_cluster_logged_in: true
+    mgmt_kubeconfig: "{{ kubeconfig_path | default(ansible_env.HOME + '/.kube/config') }}"
+
+- name: Clean up Python script
+  file:
+    path: /tmp/login_mgmt_cluster.py
+    state: absent

@@ -1,0 +1,25 @@
+---
+# Login to OCP Management Cluster
+- name: Login to OCP Management Cluster
+  hosts: localhost
+  vars_files:
+    - "{{playbook_dir}}/secrets.yaml"
+  roles:
+    - login_to_mgmt_cluster
+  vars:
+    api_server: "{{ api_server }}"
+    user_name: "{{ user_name }}"
+    password: "{{ password }}"
+    context_name: "mgmt-cluster"
+    kubeconfig_path: "{{ ansible_env.HOME }}/.kube/config"
+
+# Check Node Resources
+- name: Check OCP Node Resource Usage
+  hosts: localhost
+  vars_files:
+    - "{{playbook_dir}}/secrets.yaml"
+  vars:
+    resource_threshold: 75
+    debug_mode: true
+  roles:
+    - check_node_resources

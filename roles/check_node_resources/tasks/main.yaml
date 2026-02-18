@@ -1,0 +1,52 @@
+---
+
+- name: Get OCP node resource usage
+  shell: oc adm top nodes
+  register: node_top_output
+  failed_when: false
+  changed_when: false
+
+- name: Debug - Show raw output
+  debug:
+    var: node_top_output.stdout_lines
+  when: debug_mode | default(false)
+
+- name: Copy Python script to bastion
+  template:
+    src: check_node_resources.py
+    dest: /tmp/check_node_resources.py
+    mode: '0755'
+
+- name: Run Python script to parse and validate node resources
+  shell: python3 /tmp/check_node_resources.py "{{ node_top_output.stdout_lines | quote }}" "{{ resource_threshold | default(75) }}"
+  register: validation_result
+  failed_when: false
+  changed_when: false
+
+- name: Show validation results
+  debug:
+    msg: "{{ validation_result.stdout_lines }}"
+
+- name: Fail if nodes exceed threshold
+  fail:
+    msg: |
+      ERROR: One or more nodes exceed the {{ threshold }}% threshold!
+      Details:
+      {{ validation_result.stdout | default('[]') }}
+  when: (validation_result.stdout | default('[]') | length > 0) and
+        ((validation_result.stdout | default('[]')) | trim != "") and
+        ((validation_result.stdout | default('[]')) | from_json | length > 0)
+
+        
+
+- name: Success message
+  debug:
+    msg: |
+      SUCCESS: All nodes are within acceptable resource limits
+      Threshold: {{ resource_threshold | default(75) }}%
+  when: validation_result.rc == 0
+
+- name: Clean up Python script
+  file:
+    path: /tmp/check_node_resources.py
+    state: absent
