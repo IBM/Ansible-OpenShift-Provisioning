@@ -16,3 +16,5 @@
       approve_certs_cleanup: true
     - wait_for_cluster_operators
     - wait_for_install_complete
+    - label_infra_nodes
+

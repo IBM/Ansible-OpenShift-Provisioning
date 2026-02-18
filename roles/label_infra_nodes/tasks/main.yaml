@@ -1,0 +1,11 @@
+---
+
+- name: 'Label infra nodes as infra'
+  tags: check_nodes
+  ansible.builtin.shell: |
+    set -o pipefail
+     oc label node $(oc get nodes | grep "^{{ node | lower }}" | awk '{print $1}') node-role.kubernetes.io/infra= --overwrite
+  loop: "{{ (env.cluster.nodes.infra.hostname | default([])) }}"
+  loop_control:
+    loop_var: node
+
