@@ -4,6 +4,7 @@
   hosts: localhost
   vars_files:
     - "{{playbook_dir}}/secrets.yaml"
+    - "{{playbook_dir}}/../inventories/default/group_vars/hcp.yaml"
   roles:
     - login_to_mgmt_cluster
   vars:
@@ -13,13 +14,79 @@
     context_name: "mgmt-cluster"
     kubeconfig_path: "{{ ansible_env.HOME }}/.kube/config"
 
+# Ensure Python Dependencies on localhost
+- name: Install required Python packages on localhost
+  hosts: localhost
+  become: false
+  gather_facts: yes
+  tasks:
+    - name: Ensure kubernetes and openshift Python libs are installed
+      pip:
+        name:
+          - kubernetes
+          - openshift
+        state: present
+        executable: python3
+
 # Check Node Resources
 - name: Check OCP Node Resource Usage
   hosts: localhost
   vars_files:
     - "{{playbook_dir}}/secrets.yaml"
+    - "{{playbook_dir}}/../inventories/default/group_vars/hcp.yaml"
   vars:
     resource_threshold: 75
     debug_mode: true
   roles:
     - check_node_resources
+
+# Dynamically Add Bastion Host
+- name: Add Bastion Host to Inventory
+  hosts: localhost
+  vars_files:
+    - "{{playbook_dir}}/secrets.yaml"
+    - "{{playbook_dir}}/../inventories/default/group_vars/hcp.yaml"
+  tasks:
+    - name: Add bastion dynamically
+      add_host:
+        name: "{{ hcp.mgmt_cluster_bastion.ip }}"
+        groups: mgmt_bastion
+        ansible_user: "{{ hcp.mgmt_cluster_bastion.user }}"
+        ansible_ssh_pass: "{{ hcp.mgmt_cluster_bastion.password }}"
+        ansible_connection: ssh
+
+# Ensure Python Dependencies on mgmt_bastion
+- name: Install required Python packages on mgmt_bastion
+  hosts: mgmt_bastion
+  become: true
+  gather_facts: yes
+  vars_files:
+    - "{{playbook_dir}}/secrets.yaml"
+    - "{{playbook_dir}}/../inventories/default/group_vars/hcp.yaml"
+  tasks:
+    - name: Ensure pip is installed
+      package:
+        name: python3-pip
+        state: present
+      become: true
+
+    - name: Install kubernetes and openshift Python packages
+      pip:
+        name:
+          - kubernetes
+          - openshift
+        state: present
+        executable: python3
+
+# Install MCE Operator on Bastion
+- name: Install MultiClusterEngine Operator
+  hosts: mgmt_bastion
+  vars_files:
+    - "{{playbook_dir}}/secrets.yaml"
+    - "{{playbook_dir}}/../inventories/default/group_vars/hcp.yaml"
+  become: true
+  gather_facts: no
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  roles:
+    - install_mce_operator
