@@ -21,12 +21,12 @@ compute:
 - hyperthreading: {{ install_config_vars.compute.hyperthreading }}
   name: worker
   replicas: {{ (env.cluster.nodes.compute.hostname | default('') | length) }}
-  architecture: {{ install_config_vars.compute.architecture }}
+  architecture: {{ env.install_config.compute.architecture }}
 controlPlane:
   hyperthreading: {{ install_config_vars.control.hyperthreading }}
   name: master
   replicas: {{(env.cluster.nodes.control.hostname | length)}}
-  architecture: {{ install_config_vars.control.architecture }}
+  architecture: {{ env.install_config.control.architecture }}
 metadata:
   name: {{ env.cluster.networking.metadata_name }}
 networking:
