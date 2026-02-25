@@ -122,7 +122,7 @@
   tags: check_dns, dns
   register: external_dns_check
   failed_when: '"server can" in external_dns_check.stdout'
-  command: "nslookup {{ item }}"
+  ansible.builtin.command: "nslookup {{ item }}"
   loop:
     - www.google.com
     - www.ibm.com
