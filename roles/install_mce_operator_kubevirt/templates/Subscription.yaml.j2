@@ -1,0 +1,14 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: multicluster-engine
+  namespace: "{{ hcp.mce.mce_namespace }}"
+spec:
+  sourceNamespace: openshift-marketplace
+  source: redhat-operators
+{% set mce_channel = hcp.mce.version | default('', true) %}
+{% if mce_channel | length > 0 %}
+  channel: "{{ mce_channel if (mce_channel is string and ('.' not in mce_channel or mce_channel.startswith('stable-'))) else 'stable-' ~ mce_channel }}"
+{% endif %}
+  installPlanApproval: Automatic
+  name: multicluster-engine

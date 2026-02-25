@@ -1,0 +1,14 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: "{{ hcp.metallb.ipAddressPool_name }}"
+  namespace: "{{ hcp.metallb.namespace }}"
+spec:
+  addresses:
+{% if hcp.metallb.ip_pool is sequence and hcp.metallb.ip_pool is not string %}
+{% for address in hcp.metallb.ip_pool if address is not none and (address | string | trim | length > 0) %}
+  - "{{ address }}"
+{% endfor %}
+{% else %}
+  - "{{ hcp.metallb.ip_pool }}"
+{% endif %}

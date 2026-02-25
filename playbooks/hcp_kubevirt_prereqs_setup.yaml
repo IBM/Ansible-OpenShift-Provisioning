@@ -26,7 +26,8 @@
           - kubernetes
           - openshift
         state: present
-        executable: python3
+        virtualenv: "{{ ansible_env.HOME }}/.ansible-venvs/hcp-kubevirt-prereqs"
+        virtualenv_command: "{{ ansible_playbook_python }} -m venv"
 
 # Check Node Resources
 - name: Check OCP Node Resource Usage
@@ -49,10 +50,11 @@
   tasks:
     - name: Add bastion dynamically
       add_host:
-        name: "{{ hcp-kubevirt.mgmt_cluster_bastion.ip }}"
+        name: "{{ hcp.mgmt_cluster_bastion.ip }}"
         groups: mgmt_bastion
-        ansible_user: "{{ hcp-kubevirt.mgmt_cluster_bastion.user }}"
-        ansible_ssh_pass: "{{ hcp-kubevirt.mgmt_cluster_bastion.password }}"
+        ansible_user: "{{ hcp.mgmt_cluster_bastion.user }}"
+        ansible_password: "{{ bastion_root_pw }}"
+        ansible_ssh_pass: "{{ bastion_root_pw }}"
         ansible_connection: ssh
 
 # Ensure Python Dependencies on mgmt_bastion
@@ -76,9 +78,8 @@
           - kubernetes
           - openshift
         state: present
-        executable: python3
 
-# Install MCE Operator on Bastion
+# Install Operators on Mgmt Cluster Bastion
 - name: Install MultiClusterEngine Operator
   hosts: mgmt_bastion
   vars_files:
@@ -86,7 +87,9 @@
     - "{{playbook_dir}}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   become: true
   gather_facts: no
-  vars:
-    ansible_python_interpreter: /usr/bin/python3
   roles:
-    - install_mce_operator
+    - install_mce_operator_kubevirt
+    - install_metallb_operator
+    - install_lso_operator
+    - install_odf_operator
+    - install_ocpvirt_operator

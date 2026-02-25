@@ -1,0 +1,83 @@
+---
+- name: Validate MetalLB address pool input
+  ansible.builtin.fail:
+    msg: "Set hcp.metallb.ip_pool (string range or list of ranges), for example 172.23.232.141-172.23.232.142."
+  when: >
+    hcp.metallb.ip_pool is not defined or
+    (
+      (hcp.metallb.ip_pool is string and hcp.metallb.ip_pool | trim | length == 0) or
+      (
+        hcp.metallb.ip_pool is sequence and hcp.metallb.ip_pool is not string and
+        (
+          hcp.metallb.ip_pool | reject('equalto', None) | map('string') | map('trim') | reject('equalto', '') | list | length == 0
+        )
+      )
+    )
+
+- name: Ensure ansible work directory exists
+  ansible.builtin.file:
+    path: /root/ansible_workdir
+    state: directory
+    mode: '0755'
+
+- name: Ensure MetalLB namespace exists
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ hcp.metallb.namespace }}"
+    state: present
+
+- name: Create OperatorGroup.yaml
+  ansible.builtin.template:
+    src: OperatorGroup.yaml.j2
+    dest: /root/ansible_workdir/metallb-OperatorGroup.yaml
+    mode: '0644'
+
+- name: Deploy OperatorGroup
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-OperatorGroup.yaml
+
+- name: Create Subscription.yaml
+  ansible.builtin.template:
+    src: Subscription.yaml.j2
+    dest: /root/ansible_workdir/metallb-Subscription.yaml
+    mode: '0644'
+
+- name: Deploy Subscription for MetalLB
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-Subscription.yaml
+
+- name: Wait for MetalLB operator CSV to be Succeeded
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get csv -n {{ hcp.metallb.namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep metallb-operator | grep Succeeded | wc -l
+  register: metallb_csv
+  until: metallb_csv.stdout | int >= 1
+  retries: 30
+  delay: 10
+  changed_when: false
+
+- name: Create MetalLB CR yaml
+  ansible.builtin.template:
+    src: MetalLB.yaml.j2
+    dest: /root/ansible_workdir/metallb-MetalLB.yaml
+    mode: '0644'
+
+- name: Deploy MetalLB CR
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-MetalLB.yaml
+
+- name: Create IPAddressPool yaml
+  ansible.builtin.template:
+    src: IPAddressPool.yaml.j2
+    dest: /root/ansible_workdir/metallb-IPAddressPool.yaml
+    mode: '0644'
+
+- name: Deploy IPAddressPool
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-IPAddressPool.yaml
+
+- name: Create L2Advertisement yaml
+  ansible.builtin.template:
+    src: L2Advertisement.yaml.j2
+    dest: /root/ansible_workdir/metallb-L2Advertisement.yaml
+    mode: '0644'
+
+- name: Deploy L2Advertisement
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-L2Advertisement.yaml

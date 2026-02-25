@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ocpvirt-catalogsource
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  publisher: redhat
+  displayName: OpenShift Virtualization CatalogSource
+  image: "{{ hcp.ocpvirt.catalogsource_image }}"

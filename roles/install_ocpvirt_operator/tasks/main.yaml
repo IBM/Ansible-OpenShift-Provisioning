@@ -1,0 +1,61 @@
+---
+- name: Ensure ansible work directory exists
+  ansible.builtin.file:
+    path: /root/ansible_workdir
+    state: directory
+    mode: '0755'
+
+- name: Create CatalogSource.yaml from template
+  ansible.builtin.template:
+    src: CatalogSource.yaml.j2
+    dest: /root/ansible_workdir/ocpvirt-CatalogSource.yaml
+    mode: '0644'
+  when: hcp.ocpvirt.catalogsource_image | length > 0
+
+- name: Deploy CatalogSource
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/ocpvirt-CatalogSource.yaml
+  when: hcp.ocpvirt.catalogsource_image | length > 0
+
+- name: Ensure OpenShift Virtualization namespace exists
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ hcp.ocpvirt.namespace }}"
+    state: present
+
+- name: Create OperatorGroup.yaml
+  ansible.builtin.template:
+    src: OperatorGroup.yaml.j2
+    dest: /root/ansible_workdir/ocpvirt-OperatorGroup.yaml
+    mode: '0644'
+
+- name: Deploy OperatorGroup
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/ocpvirt-OperatorGroup.yaml
+
+- name: Create Subscription.yaml
+  ansible.builtin.template:
+    src: Subscription.yaml.j2
+    dest: /root/ansible_workdir/ocpvirt-Subscription.yaml
+    mode: '0644'
+
+- name: Deploy Subscription for OpenShift Virtualization
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/ocpvirt-Subscription.yaml
+
+- name: Wait for OpenShift Virtualization operator CSV to be Succeeded
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get csv -n {{ hcp.ocpvirt.namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep kubevirt-hyperconverged | grep Succeeded | wc -l
+  register: ocpvirt_csv
+  until: ocpvirt_csv.stdout | int >= 1
+  retries: 30
+  delay: 10
+  changed_when: false
+
+- name: Create HyperConverged.yaml
+  ansible.builtin.template:
+    src: HyperConverged.yaml.j2
+    dest: /root/ansible_workdir/ocpvirt-HyperConverged.yaml
+    mode: '0644'
+
+- name: Deploy HyperConverged CR
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/ocpvirt-HyperConverged.yaml

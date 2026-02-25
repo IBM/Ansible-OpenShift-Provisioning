@@ -1,0 +1,8 @@
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: "{{ hcp.metallb.l2adv_instance_name }}"
+  namespace: "{{ hcp.metallb.namespace }}"
+spec:
+  ipAddressPools:
+  - "{{ hcp.metallb.ipAddressPool_name }}"

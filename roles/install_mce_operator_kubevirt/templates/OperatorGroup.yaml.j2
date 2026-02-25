@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: multicluster-engine
+  namespace: "{{ hcp.mce.mce_namespace }}"
+spec:
+  targetNamespaces:
+  - "{{ hcp.mce.mce_namespace }}"

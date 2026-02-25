@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: "{{ metallb_operator_name }}"
+  namespace: "{{ metallb_namespace }}"
+spec:
+  targetNamespaces:
+  - "{{ metallb_namespace }}"
