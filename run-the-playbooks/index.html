@@ -186,6 +186,13 @@
                 <h1 id="step-4-run-the-playbooks">Step 4: Run the Playbooks<a class="headerlink" href="#step-4-run-the-playbooks" title="Permanent link">#</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
 <ul>
+<li>To ensure the passwords there is a secrets.yaml.template (inside the inventories/default/group_vars directory) file to be copied to secrets.yaml and put the necessary passwords to. After that you need to encrypt the secrets.yaml by running the command:</li>
+</ul>
+<pre class="codehilite"><code>ansible-vault encrypt secrets.yaml  
+</code></pre>
+
+<ul>
+<li>To use the encrypted secrets.yaml you need to add --ask-vault-pass (you need to enter the decryption key) or --vault-password-file path_to/vault_secret.sh (this file contains the decryption key) to the ansible-playbook calls.</li>
 <li>Navigate to the <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning">root folder of the cloned Git repository</a> in your terminal (<code>ls</code> should show <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg">ansible.cfg</a>).</li>
 <li>Run this shell command:</li>
 </ul>
