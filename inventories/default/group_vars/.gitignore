@@ -1,6 +1,7 @@
 /*
 !.gitignore
 !all.yaml.template
+!secrets.yaml.template
 !hcp.yaml.template
 !disconnected.yaml
 !zvm.yaml

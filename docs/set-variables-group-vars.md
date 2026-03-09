@@ -52,6 +52,8 @@
 :--- | :--- | :---
 **env.redhat.username** | Red Hat username with a valid license or free trial to Red Hat OpenShift Container Platform (RHOCP), which comes with necessary licenses for Red Hat Enterprise Linux (RHEL) and Red Hat CoreOS (RHCOS). | redhat.user
 **env.redhat.password** | Password to Red Hat above user's account. Used to auto-attach necessary subscriptions to KVM Host, bastion VM, and pull live images for OpenShift. | rEdHatPa$s!
+**env.redhat.rhel_activation_key** | In case that an activation key and organization instead of user and password exists, specify here the key. | `'RH_OCP_activation'`
+**env.redaht.rhel_organization** | In case that an activation key and organization instead of user and password exists, specify here the organization. | `'an_organization_key'` 
 **env.redhat.manage_subscription** | True or False. Would you like to subscribe the server with Red Hat? | True 
 **env.redhat.pull_secret** | Pull secret for OpenShift, comes from Red Hat's [Hybrid Cloud Console](https://console.redhat.com/openshift/install/ibmz/user-provisioned). Make sure to enclose in 'single quotes'.  | '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com"}}}'
 

@@ -2,4 +2,4 @@
 !group_vars
 !host_vars
 !.gitignore
-!hosts
+hosts
