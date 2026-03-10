@@ -1,6 +1,6 @@
 ---
 - name: Check whether MCE instance already exists
-  ansible.builtin.command: oc get mce {{ hcp.mce.instance_name }}
+  ansible.builtin.command: oc get mce {{ hcp.mce.instance_name | default('engine', true) }}
   register: mce_check
   changed_when: false
   failed_when: false
@@ -11,7 +11,7 @@
 
 - name: Skip MCE install when already present
   ansible.builtin.debug:
-    msg: "MCE {{ hcp.mce.instance_name }} already exists, skipping install_mce_operator_kubevirt role."
+    msg: "MCE {{ hcp.mce.instance_name | default('engine', true) }} already exists, skipping install_mce_operator_kubevirt role."
   when: mce_already_present
 
 - name: Install and configure MCE
@@ -38,7 +38,7 @@
       kubernetes.core.k8s:
         api_version: v1
         kind: Namespace
-        name: "{{ hcp.mce.mce_namespace }}"
+        name: "{{ hcp.mce.mce_namespace | default('multicluster-engine', true) }}"
       register: namespace_check
       ignore_errors: true
 
@@ -46,7 +46,7 @@
       kubernetes.core.k8s:
         api_version: v1
         kind: Namespace
-        name: "{{ hcp.mce.mce_namespace }}"
+        name: "{{ hcp.mce.mce_namespace | default('multicluster-engine', true) }}"
         state: present
       when: namespace_check.resources is not defined or namespace_check.resources | length == 0
 
@@ -71,7 +71,7 @@
     - name: Wait for MCE deployment to be created
       ansible.builtin.shell: |
         set -o pipefail
-        oc get all -n {{ hcp.mce.mce_namespace }} | grep -i deployment | grep -i multicluster-engine | wc -l
+        oc get all -n {{ hcp.mce.mce_namespace | default('multicluster-engine', true) }} | grep -i deployment | grep -i multicluster-engine | wc -l
       register: mce_deploy
       until: mce_deploy.stdout == '1'
       retries: 20
@@ -79,7 +79,7 @@
 
     - name: Wait for MCE deployment to be available
       ansible.builtin.shell: >
-        oc get deployment multicluster-engine-operator -n {{ hcp.mce.mce_namespace }}
+        oc get deployment multicluster-engine-operator -n {{ hcp.mce.mce_namespace | default('multicluster-engine', true) }}
         -o=jsonpath='{.status.replicas}{" "}{.status.availableReplicas}'
       register: mce_pod_status
       until: mce_pod_status.stdout.split(' ')[0] == mce_pod_status.stdout.split(' ')[1]
@@ -119,7 +119,7 @@
 
     - name: Enable hypershift-preview component in MCE
       ansible.builtin.command: >
-        oc patch mce {{ hcp.mce.instance_name }}
+        oc patch mce {{ hcp.mce.instance_name | default('engine', true) }}
         -p '{"spec":{"overrides":{"components":[{"name":"hypershift-preview","enabled":true}]}}}'
         --type merge
 

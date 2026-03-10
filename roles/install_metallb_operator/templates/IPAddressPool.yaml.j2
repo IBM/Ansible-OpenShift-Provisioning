@@ -1,8 +1,8 @@
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
-  name: "{{ hcp.metallb.ipAddressPool_name }}"
-  namespace: "{{ hcp.metallb.namespace }}"
+  name: "{{ hcp.metallb.ipAddressPool_name | default('metallb', true) }}"
+  namespace: "{{ hcp.metallb.namespace | default('metallb-system', true) }}"
 spec:
   addresses:
 {% if hcp.metallb.ip_pool is sequence and hcp.metallb.ip_pool is not string %}

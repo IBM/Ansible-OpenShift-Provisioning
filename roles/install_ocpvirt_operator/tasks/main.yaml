@@ -1,6 +1,6 @@
 ---
 - name: Check whether OpenShift Virtualization HyperConverged already exists
-  ansible.builtin.command: oc get hyperconverged {{ hcp.ocpvirt.instance_name }} -n {{ hcp.ocpvirt.namespace }}
+  ansible.builtin.command: oc get hyperconverged {{ hcp.ocpvirt.instance_name | default('kubevirt-hyperconverged', true) }} -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }}
   register: ocpvirt_check
   changed_when: false
   failed_when: false
@@ -11,7 +11,7 @@
 
 - name: Skip OpenShift Virtualization install when already present
   ansible.builtin.debug:
-    msg: "HyperConverged {{ hcp.ocpvirt.instance_name }} already exists, skipping install_ocpvirt_operator role."
+    msg: "HyperConverged {{ hcp.ocpvirt.instance_name | default('kubevirt-hyperconverged', true) }} already exists, skipping install_ocpvirt_operator role."
   when: ocpvirt_already_present
 
 - name: Install and configure OpenShift Virtualization
@@ -28,17 +28,17 @@
         src: CatalogSource.yaml.j2
         dest: /root/ansible_workdir/ocpvirt-CatalogSource.yaml
         mode: '0644'
-      when: hcp.ocpvirt.catalogsource_image | length > 0
+      when: hcp.ocpvirt.catalogsource_image | default('', true) | length > 0
 
     - name: Deploy CatalogSource
       ansible.builtin.command: oc apply -f /root/ansible_workdir/ocpvirt-CatalogSource.yaml
-      when: hcp.ocpvirt.catalogsource_image | length > 0
+      when: hcp.ocpvirt.catalogsource_image | default('', true) | length > 0
 
     - name: Ensure OpenShift Virtualization namespace exists
       kubernetes.core.k8s:
         api_version: v1
         kind: Namespace
-        name: "{{ hcp.ocpvirt.namespace }}"
+        name: "{{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }}"
         state: present
 
     - name: Create OperatorGroup.yaml
@@ -62,7 +62,7 @@
     - name: Wait for OpenShift Virtualization operator CSV to be Succeeded
       ansible.builtin.shell: |
         set -o pipefail
-        oc get csv -n {{ hcp.ocpvirt.namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep kubevirt-hyperconverged | grep Succeeded | wc -l
+        oc get csv -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep kubevirt-hyperconverged | grep Succeeded | wc -l
       register: ocpvirt_csv
       until: ocpvirt_csv.stdout | int >= 1
       retries: 30
@@ -81,8 +81,8 @@
     - name: Wait for OpenShift Virtualization pods to be Running
       ansible.builtin.shell: |
         set -o pipefail
-        total=$(oc get po -n {{ hcp.ocpvirt.namespace }} --no-headers 2>/dev/null | wc -l)
-        not_running=$(oc get po -n {{ hcp.ocpvirt.namespace }} --no-headers 2>/dev/null | awk '{print $3}' | grep -v '^Running$' | wc -l)
+        total=$(oc get po -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }} --no-headers 2>/dev/null | wc -l)
+        not_running=$(oc get po -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }} --no-headers 2>/dev/null | awk '{print $3}' | grep -v '^Running$' | wc -l)
         echo "${total} ${not_running}"
       register: ocpvirt_pods_status
       until: (ocpvirt_pods_status.stdout.split(' ')[0] | int) > 0 and (ocpvirt_pods_status.stdout.split(' ')[1] | int) == 0
@@ -91,7 +91,7 @@
       changed_when: false
 
     - name: Show OpenShift Virtualization pods
-      ansible.builtin.command: oc get po -n {{ hcp.ocpvirt.namespace }} -o wide
+      ansible.builtin.command: oc get po -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }} -o wide
       register: ocpvirt_pods_output
       changed_when: false
 

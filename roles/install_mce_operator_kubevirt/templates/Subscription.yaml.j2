@@ -2,7 +2,7 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: multicluster-engine
-  namespace: "{{ hcp.mce.mce_namespace }}"
+  namespace: "{{ hcp.mce.mce_namespace | default('multicluster-engine', true) }}"
 spec:
   sourceNamespace: openshift-marketplace
   source: redhat-operators

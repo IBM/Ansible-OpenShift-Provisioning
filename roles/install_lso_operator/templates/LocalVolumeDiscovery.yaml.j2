@@ -1,11 +1,11 @@
 kind: LocalVolumeDiscovery
 apiVersion: local.storage.openshift.io/v1alpha1
 metadata:
-  name: "{{ hcp.lso.localvolumediscovery.name }}"
-  namespace: "{{ hcp.lso.namespace }}"
+  name: "{{ hcp.lso.localvolumediscovery.name | default('auto-discover-devices', true) }}"
+  namespace: "{{ hcp.lso.namespace | default('openshift-local-storage', true) }}"
 spec:
   nodeSelector:
     nodeSelectorTerms:
-      - matchExpressions:
-          - key: "{{ hcp.lso.localvolumediscovery.node_selector_key }}"
-            operator: "{{ hcp.lso.localvolumediscovery.node_selector_operator }}"
+    - matchExpressions:
+      - key: "{{ hcp.lso.localvolumediscovery.node_selector_key | default('node-role.kubernetes.io/worker', true) }}"
+        operator: "{{ hcp.lso.localvolumediscovery.node_selector_operator | default('Exists', true) }}"

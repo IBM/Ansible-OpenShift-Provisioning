@@ -1,18 +1,18 @@
 kind: LocalVolume
 apiVersion: local.storage.openshift.io/v1
 metadata:
-  name: "{{ hcp.lso.localvolume.name }}"
-  namespace: "{{ hcp.lso.namespace }}"
+  name: "{{ hcp.lso.localvolume.name | default('local-block-ocs', true) }}"
+  namespace: "{{ hcp.lso.namespace | default('openshift-local-storage', true) }}"
 spec:
   nodeSelector:
     nodeSelectorTerms:
-      - matchExpressions:
-          - key: "{{ hcp.lso.localvolume.node_selector_key }}"
-            operator: "{{ hcp.lso.localvolume.node_selector_operator }}"
+    - matchExpressions:
+      - key: "{{ hcp.lso.localvolume.node_selector_key | default('cluster.ocs.openshift.io/openshift-storage', true) }}"
+        operator: "{{ hcp.lso.localvolume.node_selector_operator | default('Exists', true) }}"
   storageClassDevices:
-    - storageClassName: "{{ hcp.lso.localvolume.storage_class_name }}"
-      volumeMode: "{{ hcp.lso.localvolume.volume_mode }}"
+    - storageClassName: "{{ hcp.lso.localvolume.storage_class_name | default('local-block-ocs', true) }}"
+      volumeMode: "{{ hcp.lso.localvolume.volume_mode | default('Block', true) }}"
       devicePaths:
-{% for p in hcp.lso.localvolume.device_paths %}
-        - "{{ p }}"
+{% for p in hcp.lso.localvolume.device_paths | default([], true) %}
+      - "{{ p }}"
 {% endfor %}

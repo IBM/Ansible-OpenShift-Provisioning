@@ -1,6 +1,6 @@
 ---
 - name: Check whether MetalLB subscription already exists
-  ansible.builtin.command: oc get subscription metallb-operator -n {{ hcp.metallb.namespace }}
+  ansible.builtin.command: oc get subscription metallb-operator -n {{ hcp.metallb.namespace | default('metallb-system', true) }}
   register: metallb_check
   changed_when: false
   failed_when: false
@@ -14,7 +14,7 @@
   failed_when: false
 
 - name: Check whether MetalLB CR already exists
-  ansible.builtin.command: oc get metallb {{ hcp.metallb.instance_name }} -n {{ hcp.metallb.namespace }}
+  ansible.builtin.command: oc get metallb {{ hcp.metallb.instance_name | default('metallb', true) }} -n {{ hcp.metallb.namespace | default('metallb-system', true) }}
   register: metallb_cr_check
   changed_when: false
   failed_when: false
@@ -25,7 +25,7 @@
 
 - name: Skip MetalLB install when already present
   ansible.builtin.debug:
-    msg: "MetalLB subscription already exists in {{ hcp.metallb.namespace }}, skipping install_metallb_operator role."
+    msg: "MetalLB subscription already exists in {{ hcp.metallb.namespace | default('metallb-system', true) }}, skipping install_metallb_operator role."
   when: metallb_already_present
 
 - name: Install and configure MetalLB
@@ -67,7 +67,7 @@
       kubernetes.core.k8s:
         api_version: v1
         kind: Namespace
-        name: "{{ hcp.metallb.namespace }}"
+        name: "{{ hcp.metallb.namespace | default('metallb-system', true) }}"
         state: present
 
     - name: Create OperatorGroup.yaml
@@ -90,7 +90,7 @@
 
     - name: Wait for MetalLB operator CSV to be Succeeded
       ansible.builtin.shell: |
-        oc get csv -n {{ hcp.metallb.namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | awk -F'|' '/metallb-operator/ && /Succeeded/ {count++} END {print count+0}'
+        oc get csv -n {{ hcp.metallb.namespace | default('metallb-system', true) }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | awk -F'|' '/metallb-operator/ && /Succeeded/ {count++} END {print count+0}'
       register: metallb_csv
       until: metallb_csv.stdout | int >= 1
       retries: 30
@@ -101,7 +101,7 @@
     - name: Get MetalLB subscription status on timeout
       ansible.builtin.command: >
         oc get subscription metallb-operator
-        -n {{ hcp.metallb.namespace }}
+        -n {{ hcp.metallb.namespace | default('metallb-system', true) }}
         -o jsonpath='{range .status.conditions[*]}{.type}={.status}: {.reason} - {.message}{"\n"}{end}'
       register: metallb_subscription_status
       changed_when: false
@@ -111,7 +111,7 @@
     - name: Get MetalLB CSV phases on timeout
       ansible.builtin.command: >
         oc get csv
-        -n {{ hcp.metallb.namespace }}
+        -n {{ hcp.metallb.namespace | default('metallb-system', true) }}
         -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}'
       register: metallb_csv_phases
       changed_when: false
@@ -121,7 +121,7 @@
     - name: Fail with MetalLB operator diagnostics when CSV is not Succeeded
       ansible.builtin.fail:
         msg: |
-          MetalLB operator CSV did not reach Succeeded in {{ hcp.metallb.namespace }}.
+          MetalLB operator CSV did not reach Succeeded in {{ hcp.metallb.namespace | default('metallb-system', true) }}.
           Subscription conditions:
           {{ metallb_subscription_status.stdout | default('No subscription conditions returned') }}
           CSV phases:
@@ -158,8 +158,8 @@
     - name: Wait for MetalLB pods to be Running
       ansible.builtin.shell: |
         set -o pipefail
-        total=$(oc get po -n {{ hcp.metallb.namespace }} --no-headers 2>/dev/null | wc -l)
-        not_running=$(oc get po -n {{ hcp.metallb.namespace }} --no-headers 2>/dev/null | awk '{print $3}' | grep -v '^Running$' | wc -l)
+        total=$(oc get po -n {{ hcp.metallb.namespace | default('metallb-system', true) }} --no-headers 2>/dev/null | wc -l)
+        not_running=$(oc get po -n {{ hcp.metallb.namespace | default('metallb-system', true) }} --no-headers 2>/dev/null | awk '{print $3}' | grep -v '^Running$' | wc -l)
         echo "${total} ${not_running}"
       register: metallb_pods_status
       until: (metallb_pods_status.stdout.split(' ')[0] | int) > 0 and (metallb_pods_status.stdout.split(' ')[1] | int) == 0
@@ -168,7 +168,7 @@
       changed_when: false
 
     - name: Show MetalLB pods
-      ansible.builtin.command: oc get po -n {{ hcp.metallb.namespace }} -o wide
+      ansible.builtin.command: oc get po -n {{ hcp.metallb.namespace | default('metallb-system', true) }} -o wide
       register: metallb_pods_output
       changed_when: false
 

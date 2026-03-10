@@ -1,8 +1,8 @@
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
-  name: "{{ hcp.metallb.l2adv_instance_name }}"
-  namespace: "{{ hcp.metallb.namespace }}"
+  name: "{{ hcp.metallb.l2adv_instance_name | default('l2advertisement', true) }}"
+  namespace: "{{ hcp.metallb.namespace | default('metallb-system', true) }}"
 spec:
   ipAddressPools:
-  - "{{ hcp.metallb.ipAddressPool_name }}"
+  - "{{ hcp.metallb.ipAddressPool_name | default('metallb', true) }}"

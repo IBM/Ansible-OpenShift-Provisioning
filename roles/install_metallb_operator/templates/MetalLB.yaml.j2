@@ -1,5 +1,5 @@
 apiVersion: metallb.io/v1beta1
 kind: MetalLB
 metadata:
-  name: "{{ hcp.metallb.instance_name }}"
-  namespace: "{{ hcp.metallb.namespace }}"
+  name: "{{ hcp.metallb.instance_name | default('metallb', true) }}"
+  namespace: "{{ hcp.metallb.namespace | default('metallb-system', true) }}"

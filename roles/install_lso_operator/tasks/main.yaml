@@ -1,6 +1,6 @@
 ---
 - name: Check whether LSO subscription already exists
-  ansible.builtin.command: oc get subscription local-storage-operator -n {{ hcp.lso.namespace }}
+  ansible.builtin.command: oc get subscription local-storage-operator -n {{ hcp.lso.namespace | default('openshift-local-storage', true) }}
   register: lso_check
   changed_when: false
   failed_when: false
@@ -11,7 +11,7 @@
 
 - name: Skip LSO install when already present
   ansible.builtin.debug:
-    msg: "LSO subscription already exists in {{ hcp.lso.namespace }}, skipping install_lso_operator role."
+    msg: "LSO subscription already exists in {{ hcp.lso.namespace | default('openshift-local-storage', true) }}, skipping install_lso_operator role."
   when: lso_already_present
 
 - name: Install and configure LSO
@@ -28,17 +28,17 @@
         src: CatalogSource.yaml.j2
         dest: /root/ansible_workdir/lso-CatalogSource.yaml
         mode: '0644'
-      when: hcp.lso.catalogsource_image | length > 0
+      when: hcp.lso.catalogsource_image | default('', true) | length > 0
 
     - name: Deploy CatalogSource
       ansible.builtin.command: oc apply -f /root/ansible_workdir/lso-CatalogSource.yaml
-      when: hcp.lso.catalogsource_image | length > 0
+      when: hcp.lso.catalogsource_image | default('', true) | length > 0
 
     - name: Ensure LSO namespace exists
       kubernetes.core.k8s:
         api_version: v1
         kind: Namespace
-        name: "{{ hcp.lso.namespace }}"
+        name: "{{ hcp.lso.namespace | default('openshift-local-storage', true) }}"
         state: present
 
     - name: Create OperatorGroup.yaml
@@ -62,7 +62,7 @@
     - name: Wait for LSO operator CSV to be Succeeded
       ansible.builtin.shell: |
         set -o pipefail
-        oc get csv -n {{ hcp.lso.namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep local-storage-operator | grep Succeeded | wc -l
+        oc get csv -n {{ hcp.lso.namespace | default('openshift-local-storage', true) }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep local-storage-operator | grep Succeeded | wc -l
       register: lso_csv
       until: lso_csv.stdout | int >= 1
       retries: 30
@@ -90,13 +90,13 @@
     - name: Label ODF storage nodes for LocalVolume selector
       ansible.builtin.command: >
         oc label node {{ item }}
-        {{ hcp.lso.storage_node_label.key }}={{ hcp.lso.storage_node_label.value }}
+        {{ hcp.lso.storage_node_label.key | default('cluster.ocs.openshift.io/openshift-storage', true) }}={{ hcp.lso.storage_node_label.value | default('', true) }}
         --overwrite
-      loop: "{{ hcp.lso.storage_nodes }}"
-      when: hcp.lso.storage_nodes | length > 0
+      loop: "{{ hcp.lso.storage_nodes | default([], true) }}"
+      when: hcp.lso.storage_nodes | default([], true) | length > 0
 
     - name: Show LSO resources
-      ansible.builtin.command: oc get all -n {{ hcp.lso.namespace }}
+      ansible.builtin.command: oc get all -n {{ hcp.lso.namespace | default('openshift-local-storage', true) }}
       register: lso_resources_output
       changed_when: false
 

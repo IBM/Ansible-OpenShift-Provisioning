@@ -2,10 +2,12 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: kubevirt-hyperconverged
-  namespace: "{{ hcp.ocpvirt.namespace }}"
+  namespace: "{{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }}"
 spec:
   sourceNamespace: openshift-marketplace
   source: redhat-operators
+{% if hcp.ocpvirt.version | default('', true) | length > 0 %}
   channel: "{{ hcp.ocpvirt.version }}"
+{% endif %}
   installPlanApproval: Automatic
   name: kubevirt-hyperconverged

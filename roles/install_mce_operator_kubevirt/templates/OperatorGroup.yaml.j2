@@ -2,7 +2,7 @@ apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   name: multicluster-engine
-  namespace: "{{ hcp.mce.mce_namespace }}"
+  namespace: "{{ hcp.mce.mce_namespace | default('multicluster-engine', true) }}"
 spec:
   targetNamespaces:
-  - "{{ hcp.mce.mce_namespace }}"
+  - "{{ hcp.mce.mce_namespace | default('multicluster-engine', true) }}"

@@ -1,6 +1,6 @@
 apiVersion: multicluster.openshift.io/v1
 kind: MultiClusterEngine
 metadata:
-  name: {{ hcp.mce.instance_name }}
-  namespace: "{{ hcp.mce.mce_namespace }}"
+  name: {{ hcp.mce.instance_name | default('engine', true) }}
+  namespace: "{{ hcp.mce.mce_namespace | default('multicluster-engine', true) }}"
 spec: {}

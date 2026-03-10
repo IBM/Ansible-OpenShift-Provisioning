@@ -7,4 +7,4 @@ spec:
   sourceType: grpc
   publisher: redhat
   displayName: Local Storage Operator CatalogSource
-  image: "{{ hcp.lso.catalogsource_image }}"
+  image: "{{ hcp.lso.catalogsource_image | default('', true) }}"
