@@ -4,8 +4,10 @@ metadata:
   name: metallb-operator
   namespace: "{{ hcp.metallb.namespace }}"
 spec:
-  sourceNamespace: openshift-marketplace
-  source: redhat-operators
-  channel: "{{ hcp.metallb.version | default('stable') }}"
+  sourceNamespace: "{{ hcp.metallb.source_namespace | default('openshift-marketplace', true) }}"
+  source: "{{ hcp.metallb.source | default('redhat-operators', true) }}"
+{% if hcp.metallb.version | default('', true) | length > 0 %}
+  channel: "{{ hcp.metallb.version }}"
+{% endif %}
   installPlanApproval: Automatic
   name: metallb-operator

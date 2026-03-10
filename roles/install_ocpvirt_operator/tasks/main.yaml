@@ -1,61 +1,104 @@
 ---
-- name: Ensure ansible work directory exists
-  ansible.builtin.file:
-    path: /root/ansible_workdir
-    state: directory
-    mode: '0755'
-
-- name: Create CatalogSource.yaml from template
-  ansible.builtin.template:
-    src: CatalogSource.yaml.j2
-    dest: /root/ansible_workdir/ocpvirt-CatalogSource.yaml
-    mode: '0644'
-  when: hcp.ocpvirt.catalogsource_image | length > 0
-
-- name: Deploy CatalogSource
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/ocpvirt-CatalogSource.yaml
-  when: hcp.ocpvirt.catalogsource_image | length > 0
-
-- name: Ensure OpenShift Virtualization namespace exists
-  kubernetes.core.k8s:
-    api_version: v1
-    kind: Namespace
-    name: "{{ hcp.ocpvirt.namespace }}"
-    state: present
-
-- name: Create OperatorGroup.yaml
-  ansible.builtin.template:
-    src: OperatorGroup.yaml.j2
-    dest: /root/ansible_workdir/ocpvirt-OperatorGroup.yaml
-    mode: '0644'
-
-- name: Deploy OperatorGroup
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/ocpvirt-OperatorGroup.yaml
-
-- name: Create Subscription.yaml
-  ansible.builtin.template:
-    src: Subscription.yaml.j2
-    dest: /root/ansible_workdir/ocpvirt-Subscription.yaml
-    mode: '0644'
-
-- name: Deploy Subscription for OpenShift Virtualization
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/ocpvirt-Subscription.yaml
-
-- name: Wait for OpenShift Virtualization operator CSV to be Succeeded
-  ansible.builtin.shell: |
-    set -o pipefail
-    oc get csv -n {{ hcp.ocpvirt.namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep kubevirt-hyperconverged | grep Succeeded | wc -l
-  register: ocpvirt_csv
-  until: ocpvirt_csv.stdout | int >= 1
-  retries: 30
-  delay: 10
+- name: Check whether OpenShift Virtualization HyperConverged already exists
+  ansible.builtin.command: oc get hyperconverged {{ hcp.ocpvirt.instance_name }} -n {{ hcp.ocpvirt.namespace }}
+  register: ocpvirt_check
   changed_when: false
+  failed_when: false
 
-- name: Create HyperConverged.yaml
-  ansible.builtin.template:
-    src: HyperConverged.yaml.j2
-    dest: /root/ansible_workdir/ocpvirt-HyperConverged.yaml
-    mode: '0644'
+- name: Mark OpenShift Virtualization present flag
+  ansible.builtin.set_fact:
+    ocpvirt_already_present: "{{ ocpvirt_check.rc == 0 }}"
 
-- name: Deploy HyperConverged CR
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/ocpvirt-HyperConverged.yaml
+- name: Skip OpenShift Virtualization install when already present
+  ansible.builtin.debug:
+    msg: "HyperConverged {{ hcp.ocpvirt.instance_name }} already exists, skipping install_ocpvirt_operator role."
+  when: ocpvirt_already_present
+
+- name: Install and configure OpenShift Virtualization
+  when: not ocpvirt_already_present
+  block:
+    - name: Ensure ansible work directory exists
+      ansible.builtin.file:
+        path: /root/ansible_workdir
+        state: directory
+        mode: '0755'
+
+    - name: Create CatalogSource.yaml from template
+      ansible.builtin.template:
+        src: CatalogSource.yaml.j2
+        dest: /root/ansible_workdir/ocpvirt-CatalogSource.yaml
+        mode: '0644'
+      when: hcp.ocpvirt.catalogsource_image | length > 0
+
+    - name: Deploy CatalogSource
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/ocpvirt-CatalogSource.yaml
+      when: hcp.ocpvirt.catalogsource_image | length > 0
+
+    - name: Ensure OpenShift Virtualization namespace exists
+      kubernetes.core.k8s:
+        api_version: v1
+        kind: Namespace
+        name: "{{ hcp.ocpvirt.namespace }}"
+        state: present
+
+    - name: Create OperatorGroup.yaml
+      ansible.builtin.template:
+        src: OperatorGroup.yaml.j2
+        dest: /root/ansible_workdir/ocpvirt-OperatorGroup.yaml
+        mode: '0644'
+
+    - name: Deploy OperatorGroup
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/ocpvirt-OperatorGroup.yaml
+
+    - name: Create Subscription.yaml
+      ansible.builtin.template:
+        src: Subscription.yaml.j2
+        dest: /root/ansible_workdir/ocpvirt-Subscription.yaml
+        mode: '0644'
+
+    - name: Deploy Subscription for OpenShift Virtualization
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/ocpvirt-Subscription.yaml
+
+    - name: Wait for OpenShift Virtualization operator CSV to be Succeeded
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc get csv -n {{ hcp.ocpvirt.namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep kubevirt-hyperconverged | grep Succeeded | wc -l
+      register: ocpvirt_csv
+      until: ocpvirt_csv.stdout | int >= 1
+      retries: 30
+      delay: 10
+      changed_when: false
+
+    - name: Create HyperConverged.yaml
+      ansible.builtin.template:
+        src: HyperConverged.yaml.j2
+        dest: /root/ansible_workdir/ocpvirt-HyperConverged.yaml
+        mode: '0644'
+
+    - name: Deploy HyperConverged CR
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/ocpvirt-HyperConverged.yaml
+
+    - name: Wait for OpenShift Virtualization pods to be Running
+      ansible.builtin.shell: |
+        set -o pipefail
+        total=$(oc get po -n {{ hcp.ocpvirt.namespace }} --no-headers 2>/dev/null | wc -l)
+        not_running=$(oc get po -n {{ hcp.ocpvirt.namespace }} --no-headers 2>/dev/null | awk '{print $3}' | grep -v '^Running$' | wc -l)
+        echo "${total} ${not_running}"
+      register: ocpvirt_pods_status
+      until: (ocpvirt_pods_status.stdout.split(' ')[0] | int) > 0 and (ocpvirt_pods_status.stdout.split(' ')[1] | int) == 0
+      retries: 40
+      delay: 15
+      changed_when: false
+
+    - name: Show OpenShift Virtualization pods
+      ansible.builtin.command: oc get po -n {{ hcp.ocpvirt.namespace }} -o wide
+      register: ocpvirt_pods_output
+      changed_when: false
+
+    - name: Print OpenShift Virtualization pods
+      ansible.builtin.debug:
+        var: ocpvirt_pods_output.stdout_lines
+
+    - name: OpenShift Virtualization installation successful
+      ansible.builtin.debug:
+        msg: "OpenShift Virtualization operator installation successful."

@@ -1,92 +1,130 @@
 ---
-- name: Set MetalLB role variables
-  ansible.builtin.set_fact:
-    metallb_cfg: "{{ hcp.metallb | default({}) }}"
-    metallb_namespace: "{{ (hcp.metallb | default({})).namespace | default('metallb-system') }}"
-    metallb_operator_name: "{{ (hcp.metallb | default({})).operator_name | default('metallb-operator') }}"
-    metallb_channel: "{{ (hcp.metallb | default({})).channel | default('stable') }}"
-    metallb_source: "{{ (hcp.metallb | default({})).source | default('redhat-operators') }}"
-    metallb_source_namespace: "{{ (hcp.metallb | default({})).source_namespace | default('openshift-marketplace') }}"
-    metallb_instance_name: "{{ (hcp.metallb | default({})).instance_name | default('metallb') }}"
-    metallb_address_pool_name: "{{ (hcp.metallb | default({})).address_pool_name | default('metallb') }}"
-    metallb_l2adv_name: "{{ (hcp.metallb | default({})).l2advertisement_name | default('l2advertisement') }}"
-
-- name: Validate MetalLB address pool input
-  ansible.builtin.fail:
-    msg: "Set hcp.metallb.ip_pool (string range or list of ranges), for example 172.23.232.141-172.23.232.142."
-  when:
-    - metallb_cfg.ip_pool is not defined or
-      ((metallb_cfg.ip_pool is string and metallb_cfg.ip_pool | trim | length == 0) or
-      (metallb_cfg.ip_pool is sequence and metallb_cfg.ip_pool is not string and metallb_cfg.ip_pool | length == 0))
-
-- name: Normalize MetalLB IP pool addresses
-  ansible.builtin.set_fact:
-    metallb_addresses: "{{ metallb_cfg.ip_pool if (metallb_cfg.ip_pool is sequence and metallb_cfg.ip_pool is not string) else [metallb_cfg.ip_pool] }}"
-
-- name: Ensure ansible work directory exists
-  ansible.builtin.file:
-    path: /root/ansible_workdir
-    state: directory
-    mode: '0755'
-
-- name: Ensure MetalLB namespace exists
-  kubernetes.core.k8s:
-    api_version: v1
-    kind: Namespace
-    name: "{{ metallb_namespace }}"
-    state: present
-
-- name: Create OperatorGroup.yaml
-  ansible.builtin.template:
-    src: OperatorGroup.yaml.j2
-    dest: /root/ansible_workdir/metallb-OperatorGroup.yaml
-    mode: '0644'
-
-- name: Deploy OperatorGroup
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-OperatorGroup.yaml
-
-- name: Create Subscription.yaml
-  ansible.builtin.template:
-    src: Subscription.yaml.j2
-    dest: /root/ansible_workdir/metallb-Subscription.yaml
-    mode: '0644'
-
-- name: Deploy Subscription for MetalLB
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-Subscription.yaml
-
-- name: Wait for MetalLB operator CSV to be Succeeded
-  ansible.builtin.shell: |
-    set -o pipefail
-    oc get csv -n {{ metallb_namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep {{ metallb_operator_name }} | grep Succeeded | wc -l
-  register: metallb_csv
-  until: metallb_csv.stdout | int >= 1
-  retries: 30
-  delay: 10
+- name: Check whether LSO subscription already exists
+  ansible.builtin.command: oc get subscription local-storage-operator -n {{ hcp.lso.namespace }}
+  register: lso_check
   changed_when: false
+  failed_when: false
 
-- name: Create MetalLB CR yaml
-  ansible.builtin.template:
-    src: MetalLB.yaml.j2
-    dest: /root/ansible_workdir/metallb-MetalLB.yaml
-    mode: '0644'
+- name: Mark LSO present flag
+  ansible.builtin.set_fact:
+    lso_already_present: "{{ lso_check.rc == 0 }}"
 
-- name: Deploy MetalLB CR
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-MetalLB.yaml
+- name: Skip LSO install when already present
+  ansible.builtin.debug:
+    msg: "LSO subscription already exists in {{ hcp.lso.namespace }}, skipping install_lso_operator role."
+  when: lso_already_present
 
-- name: Create IPAddressPool yaml
-  ansible.builtin.template:
-    src: IPAddressPool.yaml.j2
-    dest: /root/ansible_workdir/metallb-IPAddressPool.yaml
-    mode: '0644'
+- name: Install and configure LSO
+  when: not lso_already_present
+  block:
+    - name: Ensure ansible work directory exists
+      ansible.builtin.file:
+        path: /root/ansible_workdir
+        state: directory
+        mode: '0755'
 
-- name: Deploy IPAddressPool
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-IPAddressPool.yaml
+    - name: Create CatalogSource.yaml from template
+      ansible.builtin.template:
+        src: CatalogSource.yaml.j2
+        dest: /root/ansible_workdir/lso-CatalogSource.yaml
+        mode: '0644'
+      when: hcp.lso.catalogsource_image | length > 0
 
-- name: Create L2Advertisement yaml
-  ansible.builtin.template:
-    src: L2Advertisement.yaml.j2
-    dest: /root/ansible_workdir/metallb-L2Advertisement.yaml
-    mode: '0644'
+    - name: Deploy CatalogSource
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/lso-CatalogSource.yaml
+      when: hcp.lso.catalogsource_image | length > 0
 
-- name: Deploy L2Advertisement
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-L2Advertisement.yaml
+    - name: Ensure LSO namespace exists
+      kubernetes.core.k8s:
+        api_version: v1
+        kind: Namespace
+        name: "{{ hcp.lso.namespace }}"
+        state: present
+
+    - name: Create OperatorGroup.yaml
+      ansible.builtin.template:
+        src: OperatorGroup.yaml.j2
+        dest: /root/ansible_workdir/lso-OperatorGroup.yaml
+        mode: '0644'
+
+    - name: Deploy OperatorGroup
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/lso-OperatorGroup.yaml
+
+    - name: Create Subscription.yaml
+      ansible.builtin.template:
+        src: Subscription.yaml.j2
+        dest: /root/ansible_workdir/lso-Subscription.yaml
+        mode: '0644'
+
+    - name: Deploy Subscription for LSO
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/lso-Subscription.yaml
+
+    - name: Wait for LSO operator CSV to be Succeeded
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc get csv -n {{ hcp.lso.namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep local-storage-operator | grep Succeeded | wc -l
+      register: lso_csv
+      until: lso_csv.stdout | int >= 1
+      retries: 30
+      delay: 10
+      changed_when: false
+
+    - name: Create LocalVolumeDiscovery.yaml
+      ansible.builtin.template:
+        src: LocalVolumeDiscovery.yaml.j2
+        dest: /root/ansible_workdir/lso-LocalVolumeDiscovery.yaml
+        mode: '0644'
+
+    - name: Deploy LocalVolumeDiscovery
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/lso-LocalVolumeDiscovery.yaml
+
+    - name: Create LocalVolume.yaml
+      ansible.builtin.template:
+        src: LocalVolume.yaml.j2
+        dest: /root/ansible_workdir/lso-LocalVolume.yaml
+        mode: '0644'
+
+    - name: Deploy LocalVolume
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/lso-LocalVolume.yaml
+
+    - name: Label ODF storage nodes for LocalVolume selector
+      ansible.builtin.command: >
+        oc label node {{ item }}
+        {{ hcp.lso.storage_node_label.key }}={{ hcp.lso.storage_node_label.value }}
+        --overwrite
+      loop: "{{ hcp.lso.storage_nodes }}"
+      when: hcp.lso.storage_nodes | length > 0
+
+    - name: Show LSO resources
+      ansible.builtin.command: oc get all -n {{ hcp.lso.namespace }}
+      register: lso_resources_output
+      changed_when: false
+
+    - name: Print LSO resources
+      ansible.builtin.debug:
+        var: lso_resources_output.stdout_lines
+
+    - name: Wait for local PVs to be created
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc get pv -A --no-headers | awk '$1 ~ /^local-pv-/ {count++} END {print count+0}'
+      register: lso_local_pv_count
+      until: lso_local_pv_count.stdout | int >= 3
+      retries: 30
+      delay: 10
+      changed_when: false
+
+    - name: Show local PVs
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc get pv -A --no-headers | awk '$1 ~ /^local-pv-/ {print $0}'
+      register: lso_local_pv_output
+      changed_when: false
+
+    - name: Print local PVs
+      ansible.builtin.debug:
+        var: lso_local_pv_output.stdout_lines
+
+    - name: LSO installation successful
+      ansible.builtin.debug:
+        msg: "LSO operator installation successful."

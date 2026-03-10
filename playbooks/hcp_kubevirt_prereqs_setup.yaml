@@ -12,7 +12,7 @@
     user_name: "{{ user_name }}"
     password: "{{ password }}"
     context_name: "mgmt-cluster"
-    kubeconfig_path: "{{ ansible_env.HOME }}/.kube/config"
+    kubeconfig_path: "/root/shwe-lpar-hub-roce/auth/kubeconfig"
 
 # Ensure Python Dependencies on localhost
 - name: Install required Python packages on localhost
@@ -80,16 +80,39 @@
         state: present
 
 # Install Operators on Mgmt Cluster Bastion
-- name: Install MultiClusterEngine Operator
+- name: Install Operators on the management cluster
   hosts: mgmt_bastion
   vars_files:
     - "{{playbook_dir}}/secrets.yaml"
     - "{{playbook_dir}}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   become: true
   gather_facts: no
+  pre_tasks:
+    - name: Ensure ansible work directory exists
+      ansible.builtin.file:
+        path: /root/ansible_workdir
+        state: directory
+        mode: '0755'
+
+    - name: Ensure root kube directory exists
+      ansible.builtin.file:
+        path: /root/.kube
+        state: directory
+        mode: '0700'
+
+    - name: Login to management cluster from bastion
+      ansible.builtin.command: >
+        oc login {{ hcp.oc_url }}
+        -u {{ user_name }}
+        -p {{ password }}
+        --insecure-skip-tls-verify=true
+        --kubeconfig=/root/.kube/config
+      no_log: true
+
   roles:
     - install_mce_operator_kubevirt
     - install_metallb_operator
+    - install_ocpvirt_operator
     - install_lso_operator
     - install_odf_operator
-    - install_ocpvirt_operator
+    

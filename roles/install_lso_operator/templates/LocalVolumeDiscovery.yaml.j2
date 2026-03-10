@@ -1,0 +1,11 @@
+kind: LocalVolumeDiscovery
+apiVersion: local.storage.openshift.io/v1alpha1
+metadata:
+  name: "{{ hcp.lso.localvolumediscovery.name }}"
+  namespace: "{{ hcp.lso.namespace }}"
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: "{{ hcp.lso.localvolumediscovery.node_selector_key }}"
+            operator: "{{ hcp.lso.localvolumediscovery.node_selector_operator }}"

@@ -1,11 +1,13 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: "{{ metallb_operator_name }}"
-  namespace: "{{ metallb_namespace }}"
+  name: local-storage-operator
+  namespace: "{{ hcp.lso.namespace }}"
 spec:
-  sourceNamespace: "{{ metallb_source_namespace }}"
-  source: "{{ metallb_source }}"
-  channel: "{{ metallb_channel }}"
+  sourceNamespace: openshift-marketplace
+  source: redhat-operators
+{% if hcp.lso.version | length > 0 %}
+  channel: "{{ hcp.lso.version }}"
+{% endif %}
   installPlanApproval: Automatic
-  name: "{{ metallb_operator_name }}"
+  name: local-storage-operator

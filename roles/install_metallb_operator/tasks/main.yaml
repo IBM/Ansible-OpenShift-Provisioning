@@ -1,83 +1,181 @@
 ---
-- name: Validate MetalLB address pool input
-  ansible.builtin.fail:
-    msg: "Set hcp.metallb.ip_pool (string range or list of ranges), for example 172.23.232.141-172.23.232.142."
-  when: >
-    hcp.metallb.ip_pool is not defined or
-    (
-      (hcp.metallb.ip_pool is string and hcp.metallb.ip_pool | trim | length == 0) or
-      (
-        hcp.metallb.ip_pool is sequence and hcp.metallb.ip_pool is not string and
-        (
-          hcp.metallb.ip_pool | reject('equalto', None) | map('string') | map('trim') | reject('equalto', '') | list | length == 0
-        )
-      )
-    )
+- name: Check whether MetalLB subscription already exists
+  ansible.builtin.command: oc get subscription metallb-operator -n {{ hcp.metallb.namespace }}
+  register: metallb_check
+  changed_when: false
+  failed_when: false
 
-- name: Ensure ansible work directory exists
-  ansible.builtin.file:
-    path: /root/ansible_workdir
-    state: directory
-    mode: '0755'
-
-- name: Ensure MetalLB namespace exists
-  kubernetes.core.k8s:
-    api_version: v1
-    kind: Namespace
-    name: "{{ hcp.metallb.namespace }}"
-    state: present
-
-- name: Create OperatorGroup.yaml
-  ansible.builtin.template:
-    src: OperatorGroup.yaml.j2
-    dest: /root/ansible_workdir/metallb-OperatorGroup.yaml
-    mode: '0644'
-
-- name: Deploy OperatorGroup
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-OperatorGroup.yaml
-
-- name: Create Subscription.yaml
-  ansible.builtin.template:
-    src: Subscription.yaml.j2
-    dest: /root/ansible_workdir/metallb-Subscription.yaml
-    mode: '0644'
-
-- name: Deploy Subscription for MetalLB
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-Subscription.yaml
-
-- name: Wait for MetalLB operator CSV to be Succeeded
+- name: Check whether MetalLB subscription exists in any namespace
   ansible.builtin.shell: |
     set -o pipefail
-    oc get csv -n {{ hcp.metallb.namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep metallb-operator | grep Succeeded | wc -l
-  register: metallb_csv
-  until: metallb_csv.stdout | int >= 1
-  retries: 30
-  delay: 10
+    oc get subscription -A --no-headers | awk '{print $2}' | grep -x metallb-operator | wc -l
+  register: metallb_sub_any_ns
   changed_when: false
+  failed_when: false
 
-- name: Create MetalLB CR yaml
-  ansible.builtin.template:
-    src: MetalLB.yaml.j2
-    dest: /root/ansible_workdir/metallb-MetalLB.yaml
-    mode: '0644'
+- name: Check whether MetalLB CR already exists
+  ansible.builtin.command: oc get metallb {{ hcp.metallb.instance_name }} -n {{ hcp.metallb.namespace }}
+  register: metallb_cr_check
+  changed_when: false
+  failed_when: false
 
-- name: Deploy MetalLB CR
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-MetalLB.yaml
+- name: Mark MetalLB present flag
+  ansible.builtin.set_fact:
+    metallb_already_present: "{{ metallb_check.rc == 0 or (metallb_sub_any_ns.stdout | int > 0) or metallb_cr_check.rc == 0 }}"
 
-- name: Create IPAddressPool yaml
-  ansible.builtin.template:
-    src: IPAddressPool.yaml.j2
-    dest: /root/ansible_workdir/metallb-IPAddressPool.yaml
-    mode: '0644'
+- name: Skip MetalLB install when already present
+  ansible.builtin.debug:
+    msg: "MetalLB subscription already exists in {{ hcp.metallb.namespace }}, skipping install_metallb_operator role."
+  when: metallb_already_present
 
-- name: Deploy IPAddressPool
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-IPAddressPool.yaml
+- name: Install and configure MetalLB
+  when: not metallb_already_present
+  block:
+    - name: Validate MetalLB address pool input
+      ansible.builtin.fail:
+        msg: "Set hcp.metallb.ip_pool (string range or list of ranges), for example 172.23.232.141-172.23.232.142."
+      when: >
+        hcp.metallb.ip_pool is not defined or
+        (
+          (hcp.metallb.ip_pool is string and hcp.metallb.ip_pool | trim | length == 0) or
+          (
+            hcp.metallb.ip_pool is sequence and hcp.metallb.ip_pool is not string and
+            (
+              hcp.metallb.ip_pool | reject('equalto', None) | map('string') | map('trim') | reject('equalto', '') | list | length == 0
+            )
+          )
+        )
 
-- name: Create L2Advertisement yaml
-  ansible.builtin.template:
-    src: L2Advertisement.yaml.j2
-    dest: /root/ansible_workdir/metallb-L2Advertisement.yaml
-    mode: '0644'
+    - name: Ensure ansible work directory exists
+      ansible.builtin.file:
+        path: /root/ansible_workdir
+        state: directory
+        mode: '0755'
 
-- name: Deploy L2Advertisement
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-L2Advertisement.yaml
+    - name: Create CatalogSource.yaml from template
+      ansible.builtin.template:
+        src: CatalogSource.yaml.j2
+        dest: /root/ansible_workdir/metallb-CatalogSource.yaml
+        mode: '0644'
+      when: hcp.metallb.catalogsource_image | default('', true) | length > 0
+
+    - name: Deploy CatalogSource
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-CatalogSource.yaml
+      when: hcp.metallb.catalogsource_image | default('', true) | length > 0
+
+    - name: Ensure MetalLB namespace exists
+      kubernetes.core.k8s:
+        api_version: v1
+        kind: Namespace
+        name: "{{ hcp.metallb.namespace }}"
+        state: present
+
+    - name: Create OperatorGroup.yaml
+      ansible.builtin.template:
+        src: OperatorGroup.yaml.j2
+        dest: /root/ansible_workdir/metallb-OperatorGroup.yaml
+        mode: '0644'
+
+    - name: Deploy OperatorGroup
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-OperatorGroup.yaml
+
+    - name: Create Subscription.yaml
+      ansible.builtin.template:
+        src: Subscription.yaml.j2
+        dest: /root/ansible_workdir/metallb-Subscription.yaml
+        mode: '0644'
+
+    - name: Deploy Subscription for MetalLB
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-Subscription.yaml
+
+    - name: Wait for MetalLB operator CSV to be Succeeded
+      ansible.builtin.shell: |
+        oc get csv -n {{ hcp.metallb.namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | awk -F'|' '/metallb-operator/ && /Succeeded/ {count++} END {print count+0}'
+      register: metallb_csv
+      until: metallb_csv.stdout | int >= 1
+      retries: 30
+      delay: 10
+      changed_when: false
+      failed_when: false
+
+    - name: Get MetalLB subscription status on timeout
+      ansible.builtin.command: >
+        oc get subscription metallb-operator
+        -n {{ hcp.metallb.namespace }}
+        -o jsonpath='{range .status.conditions[*]}{.type}={.status}: {.reason} - {.message}{"\n"}{end}'
+      register: metallb_subscription_status
+      changed_when: false
+      failed_when: false
+      when: metallb_csv.stdout | int < 1
+
+    - name: Get MetalLB CSV phases on timeout
+      ansible.builtin.command: >
+        oc get csv
+        -n {{ hcp.metallb.namespace }}
+        -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}'
+      register: metallb_csv_phases
+      changed_when: false
+      failed_when: false
+      when: metallb_csv.stdout | int < 1
+
+    - name: Fail with MetalLB operator diagnostics when CSV is not Succeeded
+      ansible.builtin.fail:
+        msg: |
+          MetalLB operator CSV did not reach Succeeded in {{ hcp.metallb.namespace }}.
+          Subscription conditions:
+          {{ metallb_subscription_status.stdout | default('No subscription conditions returned') }}
+          CSV phases:
+          {{ metallb_csv_phases.stdout | default('No CSVs found in namespace') }}
+      when: metallb_csv.stdout | int < 1
+
+    - name: Create MetalLB CR yaml
+      ansible.builtin.template:
+        src: MetalLB.yaml.j2
+        dest: /root/ansible_workdir/metallb-MetalLB.yaml
+        mode: '0644'
+
+    - name: Deploy MetalLB CR
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-MetalLB.yaml
+
+    - name: Create IPAddressPool yaml
+      ansible.builtin.template:
+        src: IPAddressPool.yaml.j2
+        dest: /root/ansible_workdir/metallb-IPAddressPool.yaml
+        mode: '0644'
+
+    - name: Deploy IPAddressPool
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-IPAddressPool.yaml
+
+    - name: Create L2Advertisement yaml
+      ansible.builtin.template:
+        src: L2Advertisement.yaml.j2
+        dest: /root/ansible_workdir/metallb-L2Advertisement.yaml
+        mode: '0644'
+
+    - name: Deploy L2Advertisement
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-L2Advertisement.yaml
+
+    - name: Wait for MetalLB pods to be Running
+      ansible.builtin.shell: |
+        set -o pipefail
+        total=$(oc get po -n {{ hcp.metallb.namespace }} --no-headers 2>/dev/null | wc -l)
+        not_running=$(oc get po -n {{ hcp.metallb.namespace }} --no-headers 2>/dev/null | awk '{print $3}' | grep -v '^Running$' | wc -l)
+        echo "${total} ${not_running}"
+      register: metallb_pods_status
+      until: (metallb_pods_status.stdout.split(' ')[0] | int) > 0 and (metallb_pods_status.stdout.split(' ')[1] | int) == 0
+      retries: 30
+      delay: 10
+      changed_when: false
+
+    - name: Show MetalLB pods
+      ansible.builtin.command: oc get po -n {{ hcp.metallb.namespace }} -o wide
+      register: metallb_pods_output
+      changed_when: false
+
+    - name: Print MetalLB pods
+      ansible.builtin.debug:
+        var: metallb_pods_output.stdout_lines
+
+    - name: MetalLB installation successful
+      ansible.builtin.debug:
+        msg: "MetalLB operator installation successful."

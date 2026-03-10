@@ -1,105 +1,135 @@
 ---
-- name: Create CatalogSource.yaml from template
-  ansible.builtin.template:
-    src: CatalogSource.yaml.j2
-    dest: /root/ansible_workdir/CatalogSource.yaml
-    mode: '0644'
-  when: hcp.mce.catalogsource_image is defined and hcp.mce.catalogsource_image | length > 0
+- name: Check whether MCE instance already exists
+  ansible.builtin.command: oc get mce {{ hcp.mce.instance_name }}
+  register: mce_check
+  changed_when: false
+  failed_when: false
 
-- name: Deploy CatalogSource
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/CatalogSource.yaml
-  when: hcp.mce.catalogsource_image is defined and hcp.mce.catalogsource_image | length > 0
+- name: Mark MCE present flag
+  ansible.builtin.set_fact:
+    mce_already_present: "{{ mce_check.rc == 0 }}"
 
-- name: Check if multicluster-engine Namespace exists
-  kubernetes.core.k8s:
-    api_version: v1
-    kind: Namespace
-    name: "{{ hcp.mce.mce_namespace }}"
-  register: namespace_check
-  ignore_errors: true
+- name: Skip MCE install when already present
+  ansible.builtin.debug:
+    msg: "MCE {{ hcp.mce.instance_name }} already exists, skipping install_mce_operator_kubevirt role."
+  when: mce_already_present
 
-- name: Create multicluster-engine Namespace
-  kubernetes.core.k8s:
-    api_version: v1
-    kind: Namespace
-    name: "{{ hcp.mce.mce_namespace }}"
-    state: present
-  when: namespace_check.resources is not defined or namespace_check.resources | length == 0
+- name: Install and configure MCE
+  when: not mce_already_present
+  block:
+    - name: Ensure ansible work directory exists
+      ansible.builtin.file:
+        path: /root/ansible_workdir
+        state: directory
+        mode: '0755'
 
-- name: Create OperatorGroup.yaml
-  ansible.builtin.template:
-    src: OperatorGroup.yaml.j2
-    dest: /root/ansible_workdir/OperatorGroup.yaml
-    mode: '0644'
+    - name: Create CatalogSource.yaml from template
+      ansible.builtin.template:
+        src: CatalogSource.yaml.j2
+        dest: /root/ansible_workdir/CatalogSource.yaml
+        mode: '0644'
+      when: hcp.mce.catalogsource_image is defined and hcp.mce.catalogsource_image | length > 0
 
-- name: Deploy OperatorGroup
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/OperatorGroup.yaml
+    - name: Deploy CatalogSource
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/CatalogSource.yaml
+      when: hcp.mce.catalogsource_image is defined and hcp.mce.catalogsource_image | length > 0
 
-- name: Create Subscription.yaml
-  ansible.builtin.template:
-    src: Subscription.yaml.j2
-    dest: /root/ansible_workdir/Subscription.yaml
-    mode: '0644'
+    - name: Check if multicluster-engine Namespace exists
+      kubernetes.core.k8s:
+        api_version: v1
+        kind: Namespace
+        name: "{{ hcp.mce.mce_namespace }}"
+      register: namespace_check
+      ignore_errors: true
 
-- name: Deploy Subscription for MCE
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/Subscription.yaml
+    - name: Create multicluster-engine Namespace
+      kubernetes.core.k8s:
+        api_version: v1
+        kind: Namespace
+        name: "{{ hcp.mce.mce_namespace }}"
+        state: present
+      when: namespace_check.resources is not defined or namespace_check.resources | length == 0
 
-- name: Wait for MCE deployment to be created
-  ansible.builtin.shell: |
-    set -o pipefail
-    oc get all -n {{ hcp.mce.mce_namespace }} | grep -i deployment | grep -i multicluster-engine | wc -l
-  register: mce_deploy
-  until: mce_deploy.stdout == '1'
-  retries: 20
-  delay: 5
+    - name: Create OperatorGroup.yaml
+      ansible.builtin.template:
+        src: OperatorGroup.yaml.j2
+        dest: /root/ansible_workdir/OperatorGroup.yaml
+        mode: '0644'
 
-- name: Wait for MCE deployment to be available
-  ansible.builtin.shell: >
-    oc get deployment multicluster-engine-operator -n {{ hcp.mce.mce_namespace }}
-    -o=jsonpath='{.status.replicas}{" "}{.status.availableReplicas}'
-  register: mce_pod_status
-  until: mce_pod_status.stdout.split(' ')[0] == mce_pod_status.stdout.split(' ')[1]
-  retries: 20
-  delay: 5
+    - name: Deploy OperatorGroup
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/OperatorGroup.yaml
 
-- name: Create MultiClusterEngine.yaml
-  ansible.builtin.template:
-    src: MultiClusterEngine.yaml.j2
-    dest: /root/ansible_workdir/MultiClusterEngine.yaml
-    mode: '0644'
+    - name: Create Subscription.yaml
+      ansible.builtin.template:
+        src: Subscription.yaml.j2
+        dest: /root/ansible_workdir/Subscription.yaml
+        mode: '0644'
 
-- name: Deploy MCE Instance
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/MultiClusterEngine.yaml
+    - name: Deploy Subscription for MCE
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/Subscription.yaml
 
-- name: Wait for MCE to be Available
-  ansible.builtin.shell: |
-    set -o pipefail
-    oc get mce --no-headers | awk '{print $2}'
-  register: mce_status
-  until: mce_status.stdout == "Available"
-  retries: 40
-  delay: 10
+    - name: Wait for MCE deployment to be created
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc get all -n {{ hcp.mce.mce_namespace }} | grep -i deployment | grep -i multicluster-engine | wc -l
+      register: mce_deploy
+      until: mce_deploy.stdout == '1'
+      retries: 20
+      delay: 5
 
-- name: Enable hypershift-preview component in MCE
-  ansible.builtin.command: >
-    oc patch mce {{ hcp.mce.instance_name }}
-    -p '{"spec":{"overrides":{"components":[{"name":"hypershift-preview","enabled":true}]}}}'
-    --type merge
+    - name: Wait for MCE deployment to be available
+      ansible.builtin.shell: >
+        oc get deployment multicluster-engine-operator -n {{ hcp.mce.mce_namespace }}
+        -o=jsonpath='{.status.replicas}{" "}{.status.availableReplicas}'
+      register: mce_pod_status
+      until: mce_pod_status.stdout.split(' ')[0] == mce_pod_status.stdout.split(' ')[1]
+      retries: 20
+      delay: 5
 
-- name: Create ClusterImageSet.yaml
-  ansible.builtin.template:
-    src: ClusterImageSet.yaml.j2
-    dest: /root/ansible_workdir/ClusterImageSet.yaml
-    mode: '0644'
+    - name: Create MultiClusterEngine.yaml
+      ansible.builtin.template:
+        src: MultiClusterEngine.yaml.j2
+        dest: /root/ansible_workdir/MultiClusterEngine.yaml
+        mode: '0644'
 
-- name: Deploy ClusterImageSet
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/ClusterImageSet.yaml
+    - name: Deploy MCE Instance
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/MultiClusterEngine.yaml
 
-- name: Create Provisioning.yaml
-  ansible.builtin.template:
-    src: Provisioning.yaml.j2
-    dest: /root/ansible_workdir/Provisioning.yaml
-    mode: '0644'
+    - name: Wait for MCE to be Available
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc get mce --no-headers | awk '{print $2}'
+      register: mce_status
+      until: mce_status.stdout == "Available"
+      retries: 40
+      delay: 10
 
-- name: Deploy Provisioning
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/Provisioning.yaml
+    - name: Verify MCE status
+      ansible.builtin.command: oc get mce -o wide
+      register: mce_status_output
+      changed_when: false
+
+    - name: Show MCE status
+      ansible.builtin.debug:
+        var: mce_status_output.stdout_lines
+
+    - name: MCE installation successful
+      ansible.builtin.debug:
+        msg: "MCE operator installation successful."
+
+    - name: Enable hypershift-preview component in MCE
+      ansible.builtin.command: >
+        oc patch mce {{ hcp.mce.instance_name }}
+        -p '{"spec":{"overrides":{"components":[{"name":"hypershift-preview","enabled":true}]}}}'
+        --type merge
+
+    #- name: Create ClusterImageSet.yaml
+      #ansible.builtin.template:
+        #src: ClusterImageSet.yaml.j2
+        #dest: /root/ansible_workdir/ClusterImageSet.yaml
+        #mode: '0644'
+
+    #- name: Deploy ClusterImageSet
+      #ansible.builtin.command: oc apply -f /root/ansible_workdir/ClusterImageSet.yaml
+
+    

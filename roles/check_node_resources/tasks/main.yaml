@@ -1,5 +1,4 @@
 ---
-
 - name: Get OCP node resource usage
   shell: oc adm top nodes
   register: node_top_output

@@ -1,92 +1,173 @@
 ---
-- name: Set MetalLB role variables
-  ansible.builtin.set_fact:
-    metallb_cfg: "{{ hcp.metallb | default({}) }}"
-    metallb_namespace: "{{ (hcp.metallb | default({})).namespace | default('metallb-system') }}"
-    metallb_operator_name: "{{ (hcp.metallb | default({})).operator_name | default('metallb-operator') }}"
-    metallb_channel: "{{ (hcp.metallb | default({})).channel | default('stable') }}"
-    metallb_source: "{{ (hcp.metallb | default({})).source | default('redhat-operators') }}"
-    metallb_source_namespace: "{{ (hcp.metallb | default({})).source_namespace | default('openshift-marketplace') }}"
-    metallb_instance_name: "{{ (hcp.metallb | default({})).instance_name | default('metallb') }}"
-    metallb_address_pool_name: "{{ (hcp.metallb | default({})).address_pool_name | default('metallb') }}"
-    metallb_l2adv_name: "{{ (hcp.metallb | default({})).l2advertisement_name | default('l2advertisement') }}"
-
-- name: Validate MetalLB address pool input
-  ansible.builtin.fail:
-    msg: "Set hcp.metallb.ip_pool (string range or list of ranges), for example 172.23.232.141-172.23.232.142."
-  when:
-    - metallb_cfg.ip_pool is not defined or
-      ((metallb_cfg.ip_pool is string and metallb_cfg.ip_pool | trim | length == 0) or
-      (metallb_cfg.ip_pool is sequence and metallb_cfg.ip_pool is not string and metallb_cfg.ip_pool | length == 0))
-
-- name: Normalize MetalLB IP pool addresses
-  ansible.builtin.set_fact:
-    metallb_addresses: "{{ metallb_cfg.ip_pool if (metallb_cfg.ip_pool is sequence and metallb_cfg.ip_pool is not string) else [metallb_cfg.ip_pool] }}"
-
-- name: Ensure ansible work directory exists
-  ansible.builtin.file:
-    path: /root/ansible_workdir
-    state: directory
-    mode: '0755'
-
-- name: Ensure MetalLB namespace exists
-  kubernetes.core.k8s:
-    api_version: v1
-    kind: Namespace
-    name: "{{ metallb_namespace }}"
-    state: present
-
-- name: Create OperatorGroup.yaml
-  ansible.builtin.template:
-    src: OperatorGroup.yaml.j2
-    dest: /root/ansible_workdir/metallb-OperatorGroup.yaml
-    mode: '0644'
-
-- name: Deploy OperatorGroup
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-OperatorGroup.yaml
-
-- name: Create Subscription.yaml
-  ansible.builtin.template:
-    src: Subscription.yaml.j2
-    dest: /root/ansible_workdir/metallb-Subscription.yaml
-    mode: '0644'
-
-- name: Deploy Subscription for MetalLB
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-Subscription.yaml
-
-- name: Wait for MetalLB operator CSV to be Succeeded
-  ansible.builtin.shell: |
-    set -o pipefail
-    oc get csv -n {{ metallb_namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep {{ metallb_operator_name }} | grep Succeeded | wc -l
-  register: metallb_csv
-  until: metallb_csv.stdout | int >= 1
-  retries: 30
-  delay: 10
+- name: Check whether ODF StorageCluster already exists
+  ansible.builtin.command: >
+    oc get storagecluster {{ ((hcp.odf | default({})).storagecluster | default({})).name | default('ocs-storagecluster', true) }}
+    -n {{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }}
+  register: odf_check
   changed_when: false
+  failed_when: false
 
-- name: Create MetalLB CR yaml
-  ansible.builtin.template:
-    src: MetalLB.yaml.j2
-    dest: /root/ansible_workdir/metallb-MetalLB.yaml
-    mode: '0644'
+- name: Mark ODF present flag
+  ansible.builtin.set_fact:
+    odf_already_present: "{{ odf_check.rc == 0 }}"
 
-- name: Deploy MetalLB CR
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-MetalLB.yaml
+- name: Skip ODF install when already present
+  ansible.builtin.debug:
+    msg: "StorageCluster already exists, skipping install_odf_operator role."
+  when: odf_already_present
 
-- name: Create IPAddressPool yaml
-  ansible.builtin.template:
-    src: IPAddressPool.yaml.j2
-    dest: /root/ansible_workdir/metallb-IPAddressPool.yaml
-    mode: '0644'
+- name: Install and configure ODF
+  when: not odf_already_present
+  block:
+    - name: Ensure ansible work directory exists
+      ansible.builtin.file:
+        path: /root/ansible_workdir
+        state: directory
+        mode: '0755'
 
-- name: Deploy IPAddressPool
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-IPAddressPool.yaml
+    - name: Create CatalogSource.yaml from template
+      ansible.builtin.template:
+        src: CatalogSource.yaml.j2
+        dest: /root/ansible_workdir/odf-CatalogSource.yaml
+        mode: '0644'
+      when: (hcp.odf | default({})).catalogsource_image | default('', true) | length > 0
 
-- name: Create L2Advertisement yaml
-  ansible.builtin.template:
-    src: L2Advertisement.yaml.j2
-    dest: /root/ansible_workdir/metallb-L2Advertisement.yaml
-    mode: '0644'
+    - name: Deploy CatalogSource
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/odf-CatalogSource.yaml
+      when: (hcp.odf | default({})).catalogsource_image | default('', true) | length > 0
 
-- name: Deploy L2Advertisement
-  ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-L2Advertisement.yaml
+    - name: Ensure ODF namespace exists
+      kubernetes.core.k8s:
+        api_version: v1
+        kind: Namespace
+        name: "{{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }}"
+        state: present
+
+    - name: Create OperatorGroup.yaml
+      ansible.builtin.template:
+        src: OperatorGroup.yaml.j2
+        dest: /root/ansible_workdir/odf-OperatorGroup.yaml
+        mode: '0644'
+
+    - name: Deploy OperatorGroup
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/odf-OperatorGroup.yaml
+
+    - name: Create Subscription.yaml
+      ansible.builtin.template:
+        src: Subscription.yaml.j2
+        dest: /root/ansible_workdir/odf-Subscription.yaml
+        mode: '0644'
+
+    - name: Deploy Subscription for ODF
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/odf-Subscription.yaml
+
+    - name: Wait for ODF operator CSV to be Succeeded
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc get csv -n {{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep odf-operator | grep Succeeded | wc -l
+      register: odf_csv
+      until: odf_csv.stdout | int >= 1
+      retries: 30
+      delay: 10
+      changed_when: false
+
+    - name: Create StorageCluster.yaml
+      ansible.builtin.template:
+        src: StorageCluster.yaml.j2
+        dest: /root/ansible_workdir/odf-StorageCluster.yaml
+        mode: '0644'
+
+    - name: Wait for StorageCluster CRD to be available
+      ansible.builtin.command: oc get crd storageclusters.ocs.openshift.io
+      register: odf_storagecluster_crd
+      until: odf_storagecluster_crd.rc == 0
+      retries: 30
+      delay: 10
+      changed_when: false
+      failed_when: false
+
+    - name: Wait for ocs.openshift.io API discovery
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc api-resources --api-group=ocs.openshift.io --no-headers | awk '{print $1}' | grep -x storageclusters | wc -l
+      register: odf_storagecluster_api
+      until: odf_storagecluster_api.stdout | int >= 1
+      retries: 30
+      delay: 10
+      changed_when: false
+      failed_when: false
+
+    - name: Deploy StorageCluster
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/odf-StorageCluster.yaml
+
+    - name: Wait for StorageCluster to be Ready
+      ansible.builtin.shell: >
+        oc get storagecluster {{ ((hcp.odf | default({})).storagecluster | default({})).name | default('ocs-storagecluster', true) }} -n {{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }}
+        -o jsonpath='{.status.phase}'
+      register: storagecluster_phase
+      until: storagecluster_phase.stdout == "Ready"
+      retries: 60
+      delay: 15
+      changed_when: false
+
+    - name: Wait for ODF default storageclass to be created
+      ansible.builtin.command: >
+        oc get storageclass {{ (hcp.odf | default({})).default_storageclass_name | default('ocs-storagecluster-ceph-rbd', true) }}
+      register: odf_default_sc
+      until: odf_default_sc.rc == 0
+      retries: 20
+      delay: 15
+      changed_when: false
+      failed_when: false
+
+    - name: Get storage classes for diagnostics when expected class is missing
+      ansible.builtin.command: oc get sc --no-headers
+      register: odf_sc_list
+      changed_when: false
+      failed_when: false
+      when: odf_default_sc.rc != 0
+
+    - name: Fail when expected ODF storageclass is not found
+      ansible.builtin.fail:
+        msg: |
+          Expected storageclass {{ (hcp.odf | default({})).default_storageclass_name | default('ocs-storagecluster-ceph-rbd', true) }} was not created.
+          Available storageclasses:
+          {{ odf_sc_list.stdout | default('No storageclasses returned') }}
+      when: odf_default_sc.rc != 0
+
+    - name: Patch ceph-rbd as default storageclass
+      ansible.builtin.command: >
+        oc patch storageclass {{ (hcp.odf | default({})).default_storageclass_name | default('ocs-storagecluster-ceph-rbd', true) }}
+        -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'
+
+    - name: Wait for default storageclass annotation
+      ansible.builtin.command: >
+        oc get storageclass {{ (hcp.odf | default({})).default_storageclass_name | default('ocs-storagecluster-ceph-rbd', true) }}
+        -o jsonpath='{.metadata.annotations.storageclass\\.kubernetes\\.io/is-default-class}'
+      register: odf_default_sc_annotation
+      until: odf_default_sc_annotation.stdout == "true"
+      retries: 10
+      delay: 6
+      changed_when: false
+
+    - name: Show StorageCluster status
+      ansible.builtin.command: oc get storagecluster -A
+      register: odf_storagecluster_output
+      changed_when: false
+
+    - name: Print StorageCluster status
+      ansible.builtin.debug:
+        var: odf_storagecluster_output.stdout_lines
+
+    - name: Get storage classes
+      ansible.builtin.command: oc get sc
+      register: storageclasses_output
+      changed_when: false
+
+    - name: Show storage classes
+      ansible.builtin.debug:
+        var: storageclasses_output.stdout_lines
+
+    - name: ODF installation successful
+      ansible.builtin.debug:
+        msg: "ODF operator installation successful."
