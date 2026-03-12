@@ -102,20 +102,7 @@
       register: mce_status
       until: mce_status.stdout == "Available"
       retries: 40
-      delay: 10
-
-    - name: Verify MCE status
-      ansible.builtin.command: oc get mce -o wide
-      register: mce_status_output
-      changed_when: false
-
-    - name: Show MCE status
-      ansible.builtin.debug:
-        var: mce_status_output.stdout_lines
-
-    - name: MCE installation successful
-      ansible.builtin.debug:
-        msg: "MCE operator installation successful."
+      delay: 30
 
     - name: Enable hypershift-preview component in MCE
       ansible.builtin.command: >

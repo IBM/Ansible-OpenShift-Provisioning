@@ -11,39 +11,24 @@
     msg: "oc CLI is not installed. Please install OpenShift CLI tools first."
   when: oc_check.rc != 0
 
-- name: Copy Python login script to host
-  template:
-    src: login_mgmt_cluster.py
-    dest: /tmp/login_mgmt_cluster.py
-    mode: '0755'
+- name: Ensure kube directory exists
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    mode: '0700'
 
 - name: Login to Management Cluster
-  shell: |
-    python3 /tmp/login_mgmt_cluster.py \
-      --api-server "{{ api_server }}" \
-      --username "{{ user_name }}" \
-      --password "{{ password }}" \
-
-  environment:
-    HOME: "{{ ansible_env.HOME }}"
+  ansible.builtin.command: >
+    oc login {{ api_server }}
+    -u {{ user_name }}
+    -p {{ password }}
+    --insecure-skip-tls-verify=true
+    --kubeconfig=/root/.kube/config
+  no_log: true
   register: login_result
-
-- name: Display login and cluster info
-  debug:
-    msg: "{{ login_result.stdout_lines
-     }}"
-
-- name: Fail if login unsuccessful
-  fail:
-    msg: "{{ login_result.stderr }}"
-  when: login_result.rc != 0
+  changed_when: false
 
 - name: Set login facts for other roles
-  set_fact:
+  ansible.builtin.set_fact:
     mgmt_cluster_logged_in: true
-    mgmt_kubeconfig: "{{ kubeconfig_path | default(ansible_env.HOME + '/.kube/config') }}"
-
-- name: Clean up Python script
-  file:
-    path: /tmp/login_mgmt_cluster.py
-    state: absent
+    mgmt_kubeconfig: "/root/.kube/config"

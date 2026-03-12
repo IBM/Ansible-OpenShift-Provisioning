@@ -154,28 +154,3 @@
 
     - name: Deploy L2Advertisement
       ansible.builtin.command: oc apply -f /root/ansible_workdir/metallb-L2Advertisement.yaml
-
-    - name: Wait for MetalLB pods to be Running
-      ansible.builtin.shell: |
-        set -o pipefail
-        total=$(oc get po -n {{ hcp.metallb.namespace | default('metallb-system', true) }} --no-headers 2>/dev/null | wc -l)
-        not_running=$(oc get po -n {{ hcp.metallb.namespace | default('metallb-system', true) }} --no-headers 2>/dev/null | awk '{print $3}' | grep -v '^Running$' | wc -l)
-        echo "${total} ${not_running}"
-      register: metallb_pods_status
-      until: (metallb_pods_status.stdout.split(' ')[0] | int) > 0 and (metallb_pods_status.stdout.split(' ')[1] | int) == 0
-      retries: 30
-      delay: 10
-      changed_when: false
-
-    - name: Show MetalLB pods
-      ansible.builtin.command: oc get po -n {{ hcp.metallb.namespace | default('metallb-system', true) }} -o wide
-      register: metallb_pods_output
-      changed_when: false
-
-    - name: Print MetalLB pods
-      ansible.builtin.debug:
-        var: metallb_pods_output.stdout_lines
-
-    - name: MetalLB installation successful
-      ansible.builtin.debug:
-        msg: "MetalLB operator installation successful."

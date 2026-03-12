@@ -1,19 +1,4 @@
 ---
-# Login to OCP Management Cluster
-- name: Login to OCP Management Cluster
-  hosts: localhost
-  vars_files:
-    - "{{playbook_dir}}/secrets.yaml"
-    - "{{playbook_dir}}/../inventories/default/group_vars/hcp-kubevirt.yaml"
-  roles:
-    - login_to_mgmt_cluster
-  vars:
-    api_server: "{{ api_server }}"
-    user_name: "{{ user_name }}"
-    password: "{{ password }}"
-    context_name: "mgmt-cluster"
-    kubeconfig_path: "/root/shwe-lpar-hub-roce/auth/kubeconfig"
-
 # Ensure Python Dependencies on localhost
 - name: Install required Python packages on localhost
   hosts: localhost
@@ -29,17 +14,14 @@
         virtualenv: "{{ ansible_env.HOME }}/.ansible-venvs/hcp-kubevirt-prereqs"
         virtualenv_command: "{{ ansible_playbook_python }} -m venv"
 
-# Check Node Resources
-- name: Check OCP Node Resource Usage
+# Setup inventory and passwordless SSH for bastion
+- name: Setup inventory and passwordless SSH
   hosts: localhost
   vars_files:
     - "{{playbook_dir}}/secrets.yaml"
     - "{{playbook_dir}}/../inventories/default/group_vars/hcp-kubevirt.yaml"
-  vars:
-    resource_threshold: 75
-    debug_mode: true
   roles:
-    - check_node_resources
+    - create_inventory_setup_hcp_kubevirt
 
 # Dynamically Add Bastion Host
 - name: Add Bastion Host to Inventory
@@ -53,9 +35,33 @@
         name: "{{ hcp.mgmt_cluster_bastion.ip }}"
         groups: mgmt_bastion
         ansible_user: "{{ hcp.mgmt_cluster_bastion.user }}"
-        ansible_password: "{{ bastion_root_pw }}"
-        ansible_ssh_pass: "{{ bastion_root_pw }}"
+        ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + hcp.ansible_key_name }}"
         ansible_connection: ssh
+
+# Login to OCP Management Cluster (from bastion)
+- name: Login to OCP Management Cluster
+  hosts: mgmt_bastion
+  vars_files:
+    - "{{playbook_dir}}/secrets.yaml"
+    - "{{playbook_dir}}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+  roles:
+    - login_to_mgmt_cluster
+  vars:
+    api_server: "{{ api_server }}"
+    user_name: "{{ user_name }}"
+    password: "{{ password }}"
+
+# Check Node Resources
+- name: Check OCP Node Resource Usage
+  hosts: mgmt_bastion
+  vars_files:
+    - "{{playbook_dir}}/secrets.yaml"
+    - "{{playbook_dir}}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+  vars:
+    resource_threshold: 75
+    debug_mode: true
+  roles:
+    - check_node_resources
 
 # Ensure Python Dependencies on mgmt_bastion
 - name: Install required Python packages on mgmt_bastion
@@ -100,19 +106,11 @@
         state: directory
         mode: '0700'
 
-    - name: Login to management cluster from bastion
-      ansible.builtin.command: >
-        oc login {{ hcp.oc_url }}
-        -u {{ user_name }}
-        -p {{ password }}
-        --insecure-skip-tls-verify=true
-        --kubeconfig=/root/.kube/config
-      no_log: true
-
   roles:
     - install_mce_operator_kubevirt
     - install_metallb_operator
     - install_ocpvirt_operator
     - install_lso_operator
     - install_odf_operator
+    - monitor_hcp_preq_installation
     

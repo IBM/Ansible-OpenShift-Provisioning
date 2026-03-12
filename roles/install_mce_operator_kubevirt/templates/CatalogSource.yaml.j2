@@ -1,10 +1,10 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: redhat-operators
+  name: custom-redhat-operators
   namespace: openshift-marketplace
 spec:
   sourceType: grpc
   publisher: redhat
-  displayName: Red Hat Operators v4.21 Stage
+  displayName: Custom Red Hat Operators
   image: {{ hcp.mce.catalogsource_image }}

@@ -12,7 +12,7 @@ hcp:
 
   # MultiClusterEngine Parameters
   mce:
-    version:  # Mention if specific version is needed, otherwise the latest stable version will be installed
+    version: stable-2.11 # Mention if specific version is needed, otherwise the latest stable version will be installed
     delete: false
     catalogsource_image: "quay.io:443/acm-d/mce-dev-catalog:v2.11.0-162"   # Required only if we need to create the Catalogsource for installing MCE
 

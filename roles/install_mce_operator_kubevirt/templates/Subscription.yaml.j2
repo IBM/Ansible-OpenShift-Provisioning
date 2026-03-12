@@ -5,7 +5,7 @@ metadata:
   namespace: "{{ hcp.mce.mce_namespace | default('multicluster-engine', true) }}"
 spec:
   sourceNamespace: openshift-marketplace
-  source: redhat-operators
+  source: custom-redhat-operators
 {% set mce_channel = hcp.mce.version | default('', true) %}
 {% if mce_channel | length > 0 %}
   channel: "{{ mce_channel if (mce_channel is string and ('.' not in mce_channel or mce_channel.startswith('stable-'))) else 'stable-' ~ mce_channel }}"

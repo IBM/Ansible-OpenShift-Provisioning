@@ -1,0 +1,4 @@
+[hcp]
+{% set bastion_ip = (hcp.bastion_params.ip | default(hcp.mgmt_cluster_bastion.ip, true)) %}
+{% set bastion_user = (hcp.bastion_params.user | default(hcp.mgmt_cluster_bastion.user, true)) %}
+bastion_hcp ansible_host={{ bastion_ip }} ansible_user={{ bastion_user }}
