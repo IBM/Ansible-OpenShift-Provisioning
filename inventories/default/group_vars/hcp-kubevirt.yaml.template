@@ -1,0 +1,66 @@
+hcp:
+  # Parameters for oc login
+  mgmt_cluster_nameserver: 
+  oc_url: 
+
+  mgmt_cluster_bastion:
+    ip:              # Your bastion IP
+    user:                       # SSH user
+    password: "{{ bastion_root_pw }}"
+
+  ansible_key_name: 
+
+  # MultiClusterEngine Parameters
+  mce:
+    version:  # Mention if specific version is needed, otherwise the latest stable version will be installed
+    delete: false
+    catalogsource_image: ""   # Required only if we need to create the Catalogsource for installing MCE
+
+  #MetalLB Parameters
+  metallb:
+    version: stable
+    delete: false
+    ip_pool: #minimum 2 free IPs are required in the subnet for MetalLB to work properly. You can provide a single IP or IP ranges. For example:
+    #- x.x.x.x-x.x.x.x
+    #- x.x.x.x-x.x.x.y
+
+  # OpenShift Virtualization Parameters
+  ocpvirt:
+    version: stable #Default - latest stable version will be installed
+    delete: false
+
+  # Local Storage Operator Parameters
+  lso:
+    version: stable #Default - latest stable version will be installed
+    delete: false
+    storage_nodes:
+      - #node1
+      - #node2
+      - #node3
+    localvolume:
+      device_paths:
+        - #disk1
+        - #disk2
+        - #disk3
+
+  #ODF Parameters
+  odf:
+    version: stable-4.20 #Default - latest stable version will be installed
+    storage: 
+
+  # Hosted Control Plane Parameters
+  control_plane:
+    high_availability: true
+    clusters_namespace:
+    hosted_cluster_name:
+    basedomain:
+    ocp_release_image:
+    arch: s390x
+    additional_flags:
+    # Make sure to enclose pull_secret in 'single quotes'
+    pull_secret:
+
+  data_plane:
+    compute_count:
+    vcpus: 4
+    memory: 16384
