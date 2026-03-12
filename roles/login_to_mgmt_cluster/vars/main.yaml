@@ -1,4 +1,0 @@
----
-# These are set dynamically - no manual configuration needed
-ansible_env:
-  HOME: "{{ lookup('env', 'HOME') }}"
