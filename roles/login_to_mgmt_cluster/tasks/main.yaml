@@ -1,5 +1,4 @@
 ---
-
 - name: Check if oc command is available
   shell: which oc
   register: oc_check
@@ -19,12 +18,10 @@
 
 - name: Login to Management Cluster
   ansible.builtin.command: >
-    oc login {{ api_server }}
-    -u {{ user_name }}
-    -p {{ password }}
-    --insecure-skip-tls-verify=true
-    --kubeconfig=/root/.kube/config
-  no_log: true
+    oc login {{ vault_api_server }}
+    -u {{ vault_user_name }}
+    -p {{ vault_password }}
+  no_log: false
   register: login_result
   changed_when: false
 

@@ -12,6 +12,10 @@
     echo "${ansible_config%/*}/"
   register: find_project
 
+- name: Resolve SSH key name
+  set_fact:
+    hcp_ansible_key_name: "{{ hcp.ansible_key_name | default('ansible-ocpz', true) }}"
+
 - name: Create inventory
   template:
     src: inventory_template.j2
@@ -19,11 +23,11 @@
 
 - name: Check if SSH key exists
   stat:
-    path: "~/.ssh/{{ hcp.ansible_key_name }}.pub"
+    path: "~/.ssh/{{ hcp_ansible_key_name }}.pub"
   register: ssh_key
 
 - name: Generate SSH key
-  command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ hcp.ansible_key_name }}"
+  command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ hcp_ansible_key_name }}"
   when: ssh_key.stat.exists == false
 
 - name: Create expect file

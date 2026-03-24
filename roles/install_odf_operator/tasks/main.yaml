@@ -25,17 +25,6 @@
         state: directory
         mode: '0755'
 
-    - name: Create CatalogSource.yaml from template
-      ansible.builtin.template:
-        src: CatalogSource.yaml.j2
-        dest: /root/ansible_workdir/odf-CatalogSource.yaml
-        mode: '0644'
-      when: (hcp.odf | default({})).catalogsource_image | default('', true) | length > 0
-
-    - name: Deploy CatalogSource
-      ansible.builtin.command: oc apply -f /root/ansible_workdir/odf-CatalogSource.yaml
-      when: (hcp.odf | default({})).catalogsource_image | default('', true) | length > 0
-
     - name: Ensure ODF namespace exists
       kubernetes.core.k8s:
         api_version: v1

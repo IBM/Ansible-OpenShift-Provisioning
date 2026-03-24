@@ -4,9 +4,8 @@ hcp:
   oc_url: 
 
   mgmt_cluster_bastion:
-    ip:              # Your bastion IP
-    user:                       # SSH user
-    password: "{{ bastion_root_pw }}"
+    ip:               # Your bastion IP
+    root_password: "{{ vault_bastion_root_pass }}"
 
   ansible_key_name: 
 

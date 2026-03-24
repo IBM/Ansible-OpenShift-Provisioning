@@ -1,25 +1,10 @@
 ---
-# Ensure Python Dependencies on localhost
-- name: Install required Python packages on localhost
-  hosts: localhost
-  become: false
-  gather_facts: yes
-  tasks:
-    - name: Ensure kubernetes and openshift Python libs are installed
-      pip:
-        name:
-          - kubernetes
-          - openshift
-        state: present
-        virtualenv: "{{ ansible_env.HOME }}/.ansible-venvs/hcp-kubevirt-prereqs"
-        virtualenv_command: "{{ ansible_playbook_python }} -m venv"
-
 # Setup inventory and passwordless SSH for bastion
 - name: Setup inventory and passwordless SSH
   hosts: localhost
   vars_files:
-    - "{{playbook_dir}}/secrets.yaml"
-    - "{{playbook_dir}}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
   roles:
     - create_inventory_setup_hcp_kubevirt
 
@@ -27,70 +12,50 @@
 - name: Add Bastion Host to Inventory
   hosts: localhost
   vars_files:
-    - "{{playbook_dir}}/secrets.yaml"
-    - "{{playbook_dir}}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
   tasks:
     - name: Add bastion dynamically
       add_host:
         name: "{{ hcp.mgmt_cluster_bastion.ip }}"
         groups: mgmt_bastion
-        ansible_user: "{{ hcp.mgmt_cluster_bastion.user }}"
-        ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + hcp.ansible_key_name }}"
+        ansible_user: root
+        ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}"
         ansible_connection: ssh
+        inventory_dir: "{{ inventory_dir }}"
+        
 
 # Login to OCP Management Cluster (from bastion)
 - name: Login to OCP Management Cluster
   hosts: mgmt_bastion
   vars_files:
-    - "{{playbook_dir}}/secrets.yaml"
-    - "{{playbook_dir}}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  vars:
+    vault_api_server: "{{ hcp.oc_url }}"
+    vault_user_name: "{{ vault_ocp_user }}"
+    vault_password: "{{ vault_ocp_password }}"
   roles:
     - login_to_mgmt_cluster
-  vars:
-    api_server: "{{ api_server }}"
-    user_name: "{{ user_name }}"
-    password: "{{ password }}"
 
 # Check Node Resources
 - name: Check OCP Node Resource Usage
   hosts: mgmt_bastion
   vars_files:
-    - "{{playbook_dir}}/secrets.yaml"
-    - "{{playbook_dir}}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
   vars:
     resource_threshold: 75
     debug_mode: true
   roles:
     - check_node_resources
 
-# Ensure Python Dependencies on mgmt_bastion
-- name: Install required Python packages on mgmt_bastion
-  hosts: mgmt_bastion
-  become: true
-  gather_facts: yes
-  vars_files:
-    - "{{playbook_dir}}/secrets.yaml"
-    - "{{playbook_dir}}/../inventories/default/group_vars/hcp-kubevirt.yaml"
-  tasks:
-    - name: Ensure pip is installed
-      package:
-        name: python3-pip
-        state: present
-      become: true
-
-    - name: Install kubernetes and openshift Python packages
-      pip:
-        name:
-          - kubernetes
-          - openshift
-        state: present
-
 # Install Operators on Mgmt Cluster Bastion
 - name: Install Operators on the management cluster
   hosts: mgmt_bastion
   vars_files:
-    - "{{playbook_dir}}/secrets.yaml"
-    - "{{playbook_dir}}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
   become: true
   gather_facts: no
   pre_tasks:
