@@ -1,33 +1,33 @@
 ---
 - name: Get OCP node resource usage
-  shell: oc adm top nodes
+  ansible.builtin.command: oc adm top nodes
   register: node_top_output
   failed_when: false
   changed_when: false
 
 - name: Debug - Show raw output
-  debug:
+  ansible.builtin.debug:
     var: node_top_output.stdout_lines
   when: debug_mode | default(false)
 
 - name: Copy Python script to bastion
-  template:
+  ansible.builtin.template:
     src: check_node_resources.py
     dest: /tmp/check_node_resources.py
     mode: '0755'
 
 - name: Run Python script to parse and validate node resources
-  shell: python3 /tmp/check_node_resources.py "{{ node_top_output.stdout_lines | quote }}" "{{ resource_threshold | default(75) }}"
+  ansible.builtin.command: python3 /tmp/check_node_resources.py "{{ node_top_output.stdout_lines | quote }}" "{{ resource_threshold | default(75) }}"
   register: validation_result
   failed_when: false
   changed_when: false
 
 - name: Show validation results
-  debug:
+  ansible.builtin.debug:
     msg: "{{ validation_result.stdout_lines }}"
 
 - name: Fail if nodes exceed threshold
-  fail:
+  ansible.builtin.fail:
     msg: |
       ERROR: One or more nodes exceed the {{ threshold }}% threshold!
       Details:
@@ -39,13 +39,13 @@
         
 
 - name: Success message
-  debug:
+  ansible.builtin.debug:
     msg: |
       SUCCESS: All nodes are within acceptable resource limits
       Threshold: {{ resource_threshold | default(75) }}%
   when: validation_result.rc == 0
 
 - name: Clean up Python script
-  file:
+  ansible.builtin.file:
     path: /tmp/check_node_resources.py
     state: absent
