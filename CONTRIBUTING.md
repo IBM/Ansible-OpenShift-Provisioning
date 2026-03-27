@@ -57,4 +57,4 @@ Submitting code
 The preferred way is to create GitHub pull requests for your code contributions.
 Please create separate pull requests for each logical enhancement, new feature,
 or fix.
-
+If AI was involved it should be mentioned in the matching files by adding a comment starting with "Made by AI:" or "Assisted by AI:". Furthermore every PR should answer the question "If and how AI was involved?".
