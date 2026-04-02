@@ -1,0 +1,90 @@
+name: Stale PR Management
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  stale-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark stale PRs (1 month old)
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          only-pr-labels: ''
+          stale-pr-message: |
+            ## 🔔 Stale PR Notice
+
+            This pull request has been automatically marked as **stale** because it has not had any activity for **30 days**.
+
+            ### To remove the stale label, do any of the following:
+            - 💬 **Comment** on this PR with an update
+            - 📝 **Push new commits** to the branch
+            - 🏷️ **Add a protective label** (right sidebar → Labels → select one): `keep-open`, `in-progress`, or `blocked`
+
+            ⚠️ If no activity occurs, this PR may be marked for closure after **6 months** of total inactivity.
+          stale-pr-label: 'stale'
+          days-before-stale: 30
+          days-before-close: -1
+          exempt-pr-labels: 'keep-open,in-progress,blocked'
+          operations-per-run: 100
+          remove-stale-when-updated: true
+          only-labels: ''
+          exempt-all-milestones: true
+
+  close-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark old PRs for closure (6 months old)
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          only-pr-labels: ''
+          stale-pr-message: |
+            ## ⚠️ PR Scheduled for Closure
+
+            This pull request has been inactive for **6 months** and is scheduled for automatic closure.
+
+            ### 🚨 Action Required: You have **7 days** to respond
+
+            **To keep this PR open**, do **any** of the following:
+            - 💬 **Leave a comment** explaining the status or next steps
+            - 📝 **Push new commits** to the branch
+            - 🏷️ **Add a protective label** (right sidebar → Labels → select one): `keep-open`, `in-progress`, or `blocked`
+              - _If these labels don't exist yet, simply leave a comment instead_
+
+            ### If this PR is still relevant, please also:
+            - ✅ Rebase on the latest `main` branch
+            - ✅ Resolve any merge conflicts
+            - ✅ Address reviewer comments (if any)
+            - ✅ Provide a status update on when this will be ready
+
+            ---
+            **If no action is taken within 7 days, this PR will be automatically closed.**
+          close-pr-message: |
+            ## 🔒 PR Automatically Closed
+
+            This pull request has been automatically closed due to **6 months of inactivity** with no response to the closure warning.
+
+            ### Want to continue this work?
+            You have several options:
+            - 🔄 **Reopen this PR** if you're ready to continue
+            - 🆕 **Create a new PR** with updated changes
+            - 💬 **Comment here** to discuss the best path forward
+
+            Thank you for your contribution to this project!
+          stale-pr-label: 'pending-closure'
+          days-before-stale: 180
+          days-before-close: 7
+          exempt-pr-labels: 'keep-open,in-progress,blocked'
+          operations-per-run: 100
+          remove-stale-when-updated: true
+          only-labels: ''
+          exempt-all-milestones: true

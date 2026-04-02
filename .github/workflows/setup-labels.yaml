@@ -1,0 +1,65 @@
+name: Setup Protective Labels
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/setup-labels.yaml'
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  create-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create protective labels for stale PR management
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const labels = [
+              {
+                name: 'keep-open',
+                description: 'Prevents this PR from being marked as stale or closed automatically',
+                color: '0E8A16'  // green
+              },
+              {
+                name: 'in-progress',
+                description: 'Work is actively in progress on this PR',
+                color: 'FBCA04'  // yellow
+              },
+              {
+                name: 'blocked',
+                description: 'This PR is blocked and should not be closed automatically',
+                color: 'D93F0B'  // red
+              }
+            ];
+
+            for (const label of labels) {
+              try {
+                // Try to get the label first
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label.name
+                });
+                console.log(`Label "${label.name}" already exists`);
+              } catch (error) {
+                if (error.status === 404) {
+                  // Label doesn't exist, create it
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: label.name,
+                    description: label.description,
+                    color: label.color
+                  });
+                  console.log(`Created label "${label.name}"`);
+                } else {
+                  throw error;
+                }
+              }
+            }
