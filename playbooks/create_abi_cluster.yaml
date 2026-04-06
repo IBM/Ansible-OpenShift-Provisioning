@@ -1,5 +1,4 @@
 ---
-
 # ABI Installation Proccess.
 - name: ABI Installation Proccess
   hosts: bastion
@@ -10,11 +9,13 @@
     - "{{ inventory_dir }}/group_vars/zvm.yaml"
     - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   roles:
-    - common # Common Variable the will be used by all the inwalked roles.
-    - { role: offline_artifacts, when: disconnected.enabled } # Update CA Certificates & Download OCP Packages
-    - { role: download_ocp_installer, when: not disconnected.enabled } # Download Openshift Installer.
-    - prepare_configs # Prepare AgentConfig & InstallConfig.
-    - create_agent # Create Agents || Build initrd.img, rootfs.img & kernelfs.img.
+    - common  # Common Variable the will be used by all the inwalked roles.
+    - role: offline_artifacts
+      when: disconnected.enabled  # Update CA Certificates & Download OCP Packages
+    - role: download_ocp_installer
+      when: not disconnected.enabled  # Download Openshift Installer.
+    - prepare_configs  # Prepare AgentConfig & InstallConfig.
+    - create_agent  # Create Agents || Build initrd.img, rootfs.img & kernelfs.img.
 
 - name: Start z/VM Nodes
   hosts: bastion
@@ -42,7 +43,30 @@
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   roles:
     - common
-    - { role: boot_abi_agents, when: installation_type | lower == 'kvm' }
+    - role: boot_abi_agents
+      when: installation_type | lower == 'kvm'
+
+# Boot ABI LPAR Agents.
+- name: Boot ABI LPAR Agents
+  hosts: bastion
+  become: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  tasks:
+    - name: Support for LPAR ABI
+      when: installation_type | lower == 'lpar' and abi.flag is defined and abi.flag is true
+      block:
+        - name: Install tessia-baselib on bastion
+          ansible.builtin.include_role:
+            name: install_tessia_baselib
+
+        - name: Boot LPAR nodes with ABI agent
+          ansible.builtin.include_role:
+            name: boot_LPAR
+          loop: "{{ env.cluster.nodes.control.vm_name }}"
+          loop_control:
+            loop_var: item
 
 - name: Setup SSH agent
   tags: ssh_to_nodes
