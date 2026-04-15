@@ -9,7 +9,7 @@ installation_type: lpar
 
 abi:
   flag: True
-  boot_method: pxe  # or iso
+  boot_method: pxe
 ```
 
 ### Step 2: Configure Storage for Each Node
