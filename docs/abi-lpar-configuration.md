@@ -46,7 +46,7 @@ When `installation_type: lpar` is set, the automation will:
 │ installation_type: lpar                                     │
 │ abi:                                                        │
 │   flag: True                                                │
-│   boot_method: pxe  # or iso                                │
+│   boot_method: pxe                           │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -77,7 +77,7 @@ abi:
   ocp_installer_version: '4.18.8'
   ocp_installer_base_url: 'https://mirror.openshift.com/pub/openshift-v4'
   architecture: multi  # or s390x
-  boot_method: pxe     # or iso
+  boot_method: pxe
 ```
 
 ### 2. Configure LPAR Storage in Host Vars
@@ -152,7 +152,7 @@ apiVersion: v1alpha1
 kind: AgentConfig
 metadata:
   name: ocp-cluster
-rendezvousIP: 192.168.1.10
+rendezvousIP: 
 
 hosts:
   - hostname: "control-1"
@@ -161,7 +161,7 @@ hosts:
       deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4000000000000000
     interfaces:
       - name: eth0
-        macAddress: "02:00:00:00:00:01"
+        macAddress: ""
     networkConfig:
       # ... network configuration ...
 
@@ -171,7 +171,7 @@ hosts:
       deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4001000000000000
     interfaces:
       - name: eth0
-        macAddress: "02:00:00:00:00:02"
+        macAddress: ""
     networkConfig:
       # ... network configuration ...
 
@@ -181,7 +181,7 @@ hosts:
       deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4002000000000000
     interfaces:
       - name: eth0
-        macAddress: "02:00:00:00:00:03"
+        macAddress: ""
     networkConfig:
       # ... network configuration ...
 ```
@@ -193,7 +193,7 @@ apiVersion: v1alpha1
 kind: AgentConfig
 metadata:
   name: ocp-cluster
-rendezvousIP: 192.168.1.10
+rendezvousIP: 
 
 hosts:
   - hostname: "control-1"
@@ -201,7 +201,7 @@ hosts:
     # No rootDeviceHints for KVM
     interfaces:
       - name: eth0
-        macAddress: "02:00:00:00:00:01"
+        macAddress: ""
     networkConfig:
       # ... network configuration ...
 ```
