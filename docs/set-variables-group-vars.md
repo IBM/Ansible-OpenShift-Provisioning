@@ -13,6 +13,8 @@
 **installation_type** | Can be of type kvm or lpar. Some packages will be ignored for installation in case of non lpar based installation. | kvm 
 **controller_sudo_pass** | The password to the machine running Ansible (localhost). This will only be used for two things. To ensure you've installed the pre-requisite packages if you're on Linux, and to add the login URL to your /etc/hosts file. | Pas$w0rd!
 **cex_device** | Specify the storage device type used for LUKS encryption. This setting determines enable cex MCO Ignition configuration will be applied. Use in combination with the cex parameter.  [dasd, fcp, virt]
+**regenerate_private_key** | <b>(Optional)</b> Controls whether to regenerate SSH private keys during the setup process. Default value is 'full_idempotence'. For usage inside of pipelines where SSH keys already exist, this value should be set to 'never' to preserve existing keys. See detailed description [here:](https://docs.ansible.com/projects/ansible/latest/collections/community/crypto/openssh_keypair_module.html) | full_idempotence
+
 
 ## 2 - LPAR(s)
 **Variable Name** | **Description** | **Example**
