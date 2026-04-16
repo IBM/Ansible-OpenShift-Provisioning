@@ -22,9 +22,9 @@
       - rhc
       - connect
       - --activation-key
-      - "{{ thlgy_ceph_nodes.rhel_activation_key }}"
+      - "{{ env.redhat.rhel_activation_key }}"
       - --organization
-      - "{{ thlgy_ceph_nodes.rhel_organization }}"
+      - "{{ env.redhat.rhel_organization }}"
   when:
     - env.redhat.activation_key is defined
     - env.redhat.organization is defined
