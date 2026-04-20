@@ -1,0 +1,11 @@
+---
+# Default destination directory for downloaded kubeconfig files
+kubeconfig_dest_dir: /tmp
+
+# Source paths on bastion host
+kubeconfig_source_dir: ~/ocpinst/auth
+kubeconfig_files:
+  - kubeconfig
+  - kubeadmin-password
+
+# Made with Bob
