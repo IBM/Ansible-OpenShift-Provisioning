@@ -180,6 +180,11 @@
 <td style="text-align: left;">Specify the storage device type used for LUKS encryption. This setting determines enable cex MCO Ignition configuration will be applied. Use in combination with the cex parameter.  [dasd, fcp, virt]</td>
 <td style="text-align: left;"></td>
 </tr>
+<tr>
+<td style="text-align: left;"><strong>regenerate_private_key</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Controls whether to regenerate SSH private keys during the setup process. Default value is 'full_idempotence'. For usage inside of pipelines where SSH keys already exist, this value should be set to 'never' to preserve existing keys. See detailed description <a href="https://docs.ansible.com/projects/ansible/latest/collections/community/crypto/openssh_keypair_module.html">here:</a></td>
+<td style="text-align: left;">full_idempotence</td>
+</tr>
 </tbody>
 </table>
 <h2 id="2-lpars">2 - LPAR(s)<a class="headerlink" href="#2-lpars" title="Permanent link">#</a></h2>
