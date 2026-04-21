@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/download-kubeconfig-playbook/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Download Kubeconfig Playbook - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../stylesheets/extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Download Kubeconfig Playbook";
+        var mkdocs_page_input_path = "download-kubeconfig-playbook.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/download-kubeconfig-playbook/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/ansible-logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Read Me</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../before-you-begin/">Before You Begin</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../prerequisites/">Prerequisites</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation Instructions</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hcp/">Run the Playbooks (HostedControlPlane)</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Misc</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgements/">Acknowledgements</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Download Kubeconfig Playbook</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/download-kubeconfig-playbook.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="download-kubeconfig-playbook">Download Kubeconfig Playbook<a class="headerlink" href="#download-kubeconfig-playbook" title="Permanent link">#</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<p>The <code>download_kubeconfig.yaml</code> playbook downloads the OpenShift authentication files (<code>kubeconfig</code> and <code>kubepassw</code>) from the bastion host to the local Ansible controller.</p>
+<h2 id="playbook-file">Playbook File<a class="headerlink" href="#playbook-file" title="Permanent link">#</a></h2>
+<p><strong>Path:</strong> <code>playbooks/download_kubeconfig.yaml</code></p>
+<h2 id="purpose">Purpose<a class="headerlink" href="#purpose" title="Permanent link">#</a></h2>
+<p>This playbook is used to download authentication files from the bastion host after a successful OpenShift installation. These files are needed to:</p>
+<ul>
+<li>Interact with the OpenShift cluster via <code>oc</code> or <code>kubectl</code></li>
+<li>Access the OpenShift web console</li>
+<li>Perform administrative tasks</li>
+</ul>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h2>
+<ol>
+<li><strong>Bastion host must be configured:</strong></li>
+<li>SSH access to the bastion host must be working</li>
+<li>The bastion host must be defined in the Ansible inventory under the <code>bastion</code> group</li>
+<li>
+<p>The 0_setup.yaml playbook must have been executed successfully</p>
+</li>
+<li>
+<p><strong>OpenShift installation must be complete:</strong></p>
+</li>
+<li>
+<p>The files <code>~/ocpinst/auth/kubeconfig</code> and <code>~/ocpinst/auth/kubepassw</code> must exist on the bastion host</p>
+</li>
+<li>
+<p><strong>Ansible configuration:</strong></p>
+</li>
+<li>Inventory file must be correctly configured</li>
+<li><code>group_vars/all.yaml</code> must be present</li>
+<li><code>group_vars/secrets.yaml</code> must be present</li>
+</ol>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
+<h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-bash">ansible-playbook playbooks/download_kubeconfig.yaml --ask-vault-pass
+</code></pre>
+
+<h3 id="with-custom-destination-directory">With Custom Destination Directory<a class="headerlink" href="#with-custom-destination-directory" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-bash">ansible-playbook playbooks/download_kubeconfig.yaml \
+  --ask-vault-pass \
+  -e &quot;kubeconfig_dest_dir=/home/user/openshift-configs&quot;
+</code></pre>
+
+<h3 id="with-specific-inventory">With Specific Inventory<a class="headerlink" href="#with-specific-inventory" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-bash">ansible-playbook playbooks/download_kubeconfig.yaml \
+  -i inventories/production/hosts \
+  --ask-vault-pass \
+  -e &quot;kubeconfig_dest_dir=/opt/openshift/production&quot;
+</code></pre>
+
+<h3 id="execute-only-download-tasks-with-tags">Execute Only Download Tasks (with Tags)<a class="headerlink" href="#execute-only-download-tasks-with-tags" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-bash">ansible-playbook playbooks/download_kubeconfig.yaml \
+  --ask-vault-pass \
+  --tags download_kubeconfig
+</code></pre>
+
+<h2 id="configurable-variables">Configurable Variables<a class="headerlink" href="#configurable-variables" title="Permanent link">#</a></h2>
+<h3 id="main-variables">Main Variables<a class="headerlink" href="#main-variables" title="Permanent link">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default Value</th>
+<th>Description</th>
+<th>Overridable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kubeconfig_dest_dir</code></td>
+<td><code>/tmp</code></td>
+<td>Destination directory on the local controller</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>kubeconfig_source_dir</code></td>
+<td><code>~/ocpinst/auth</code></td>
+<td>Source directory on the bastion host</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>kubeconfig_files</code></td>
+<td><code>['kubeconfig', 'kubeadmin-password']</code></td>
+<td>List of files to download</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="overriding-variables">Overriding Variables<a class="headerlink" href="#overriding-variables" title="Permanent link">#</a></h3>
+<h4 id="method-1-command-line-recommended-for-one-time-changes">Method 1: Command Line (recommended for one-time changes)<a class="headerlink" href="#method-1-command-line-recommended-for-one-time-changes" title="Permanent link">#</a></h4>
+<pre class="codehilite"><code class="language-bash">ansible-playbook playbooks/download_kubeconfig.yaml \
+  --ask-vault-pass \
+  -e &quot;kubeconfig_dest_dir=/custom/path&quot;
+</code></pre>
+
+<h4 id="method-2-in-group_varsallyaml-recommended-for-permanent-changes">Method 2: In group_vars/all.yaml (recommended for permanent changes)<a class="headerlink" href="#method-2-in-group_varsallyaml-recommended-for-permanent-changes" title="Permanent link">#</a></h4>
+<pre class="codehilite"><code class="language-yaml"># inventories/default/group_vars/all.yaml
+kubeconfig_dest_dir: /opt/openshift/configs
+</code></pre>
+
+<h4 id="method-3-in-a-separate-variables-file">Method 3: In a separate variables file<a class="headerlink" href="#method-3-in-a-separate-variables-file" title="Permanent link">#</a></h4>
+<pre class="codehilite"><code class="language-bash"># Create a file vars/kubeconfig_vars.yaml
+cat &gt; vars/kubeconfig_vars.yaml &lt;&lt;EOF
+kubeconfig_dest_dir: /opt/openshift/configs
+kubeconfig_source_dir: ~/ocpinst/auth
+EOF
+
+# Use the file when executing
+ansible-playbook playbooks/download_kubeconfig.yaml \
+  --ask-vault-pass \
+  -e @vars/kubeconfig_vars.yaml
+</code></pre>
+
+<h2 id="output">Output<a class="headerlink" href="#output" title="Permanent link">#</a></h2>
+<h3 id="file-structure">File Structure<a class="headerlink" href="#file-structure" title="Permanent link">#</a></h3>
+<p>The downloaded files are stored in the following structure:</p>
+<pre class="codehilite"><code>&lt;kubeconfig_dest_dir&gt;/
+└── kubeconfig/
+    ├── kubeconfig
+    └── kubeadmin-password
+</code></pre>
+
+<p><strong>Important:</strong> Files are stored in the <code>kubeconfig/</code> subdirectory, <strong>not</strong> in <code>auth/kubeconfig/</code>.</p>
+<h3 id="example-with-default-values">Example with Default Values<a class="headerlink" href="#example-with-default-values" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code>/tmp/
+└── kubeconfig/
+    ├── kubeconfig
+    └── kubeadmin-password
+</code></pre>
+
+<h3 id="example-with-custom-path">Example with Custom Path<a class="headerlink" href="#example-with-custom-path" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-bash">ansible-playbook playbooks/download_kubeconfig.yaml \
+  --ask-vault-pass \
+  -e &quot;kubeconfig_dest_dir=/home/user/ocp-cluster1&quot;
+</code></pre>
+
+<p>Result:</p>
+<pre class="codehilite"><code>/home/user/ocp-cluster1/
+└── kubeconfig/
+    ├── kubeconfig
+    └── kubeadmin-password
+</code></pre>
+
+<h2 id="using-the-downloaded-files">Using the Downloaded Files<a class="headerlink" href="#using-the-downloaded-files" title="Permanent link">#</a></h2>
+<h3 id="using-kubeconfig">Using Kubeconfig<a class="headerlink" href="#using-kubeconfig" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-bash"># Export the kubeconfig file
+export KUBECONFIG=/tmp/kubeconfig/kubeconfig
+
+# Test the connection
+oc whoami
+oc get nodes
+
+# Or use it directly
+oc --kubeconfig=/tmp/kubeconfig/kubeconfig get nodes
+</code></pre>
+
+<h3 id="display-kubeadmin-password">Display Kubeadmin Password<a class="headerlink" href="#display-kubeadmin-password" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-bash">cat /tmp/kubeconfig/kubeadmin-password
+</code></pre>
+
+<h2 id="integration-in-workflows">Integration in Workflows<a class="headerlink" href="#integration-in-workflows" title="Permanent link">#</a></h2>
+<h3 id="after-openshift-installation">After OpenShift Installation<a class="headerlink" href="#after-openshift-installation" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-bash"># 1. Install OpenShift
+ansible-playbook playbooks/&lt;0_xxx to 7_xxx&gt;.yaml --ask-vault-password
+or
+ansible-playbook playbooks/reinstall_cluster.yaml --ask-vault-password
+
+
+# 2. Download kubeconfig
+ansible-playbook playbooks/download_kubeconfig.yaml --ask-vault-password
+
+# 3. Use cluster
+export KUBECONFIG=/tmp/kubeconfig/kubeconfig
+oc get nodes
+</code></pre>
+
+<h3 id="in-a-master-playbook-if-bastion-already-exists-and-0_setupyaml-was-executed-successfully">In a Master Playbook if bastion already exists and 0_setup.yaml was executed successfully<a class="headerlink" href="#in-a-master-playbook-if-bastion-already-exists-and-0_setupyaml-was-executed-successfully" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-yaml">---
+- name: Complete OpenShift Setup
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Install OpenShift
+      ansible.builtin.import_playbook: reinstall_cluster.yaml --ask-vault-password
+
+    - name: Download kubeconfig
+      ansible.builtin.import_playbook: download_kubeconfig.yaml --ask-vault-password
+</code></pre>
+
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
+<h3 id="problem-files-not-found">Problem: Files Not Found<a class="headerlink" href="#problem-files-not-found" title="Permanent link">#</a></h3>
+<p><strong>Error:</strong></p>
+<pre class="codehilite"><code>fatal: [bastion]: FAILED! =&gt; {&quot;msg&quot;: &quot;file not found: ~/ocpinst/auth/kubeconfig&quot;}
+</code></pre>
+
+<p><strong>Solution:</strong>
+- Verify that the OpenShift installation is complete
+- Ensure the files exist on the bastion host:
+  <code>bash
+  ssh bastion "ls -la ~/ocpinst/auth/"</code></p>
+<h3 id="problem-ssh-connection-failed">Problem: SSH Connection Failed<a class="headerlink" href="#problem-ssh-connection-failed" title="Permanent link">#</a></h3>
+<p><strong>Error:</strong></p>
+<pre class="codehilite"><code>fatal: [bastion]: UNREACHABLE! =&gt; {&quot;msg&quot;: &quot;Failed to connect to the host via ssh&quot;}
+</code></pre>
+
+<p><strong>Solution:</strong>
+- Check SSH configuration
+- Ensure the SSH key is correct
+- Test the connection manually:
+  <code>bash
+  ssh bastion "echo 'Connection successful'"</code></p>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">#</a></h2>
+<ol>
+<li><strong>Secure Storage:</strong></li>
+<li>Store kubeconfig files in a secure location</li>
+<li>
+<p>Set restrictive file permissions:
+     <code>bash
+     chmod 600 /tmp/kubeconfig/kubeconfig
+     chmod 600 /tmp/kubeconfig/kubepassw</code></p>
+</li>
+<li>
+<p><strong>Backup:</strong></p>
+</li>
+<li>Create backups of authentication files</li>
+<li>
+<p>Store them in multiple secure locations</p>
+</li>
+<li>
+<p><strong>Versioning:</strong></p>
+</li>
+<li>
+<p>Use different directories for different clusters:
+     <code>bash
+     ansible-playbook playbooks/download_kubeconfig.yaml \
+       -e "kubeconfig_dest_dir=/opt/openshift/cluster-prod"</code></p>
+</li>
+<li>
+<p><strong>Automation:</strong></p>
+</li>
+<li>Integrate the playbook into CI/CD pipelines</li>
+</ol>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>
+<ul>
+<li><a href="../roles/download_kubeconfig/README.md">Role Documentation</a></li>
+<li><a href="https://docs.openshift.com/">OpenShift Documentation</a></li>
+<li><a href="https://docs.ansible.com/">Ansible Documentation</a></li>
+</ul>
+<h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">#</a></h2>
+<p>For problems or questions:
+1. Check the logs
+2. Consult the documentation
+3. Create an issue in the project repository</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright © 2022 IBM zSystems Washington Systems Center</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

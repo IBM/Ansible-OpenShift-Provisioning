@@ -102,6 +102,12 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#crypto-express-card-based-luks-encryption-specific-for-zkvm-optional">Crypto Express Card based LUKS encryption specific for zKVM ( Optional )</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#additional-parameters-optional">Additional Parameters (optional)</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#download-kubeconfig">Download Kubeconfig</a>
+    </li>
+        </ul>
+    </li>
     </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
@@ -1980,6 +1986,35 @@
 <strong>cex</strong> | Whether to enable cex based luks encryption, default to False
 <strong>cex_device</strong> | Specify the storage device type used for LUKS encryption. This setting determines which MCO Ignition configuration will be applied from the defaults. Do not override the default value. Use in combination with the cex parameter. | [dasd, fcp, virt]
 <strong>cex_uuid_map</strong> | This var is required only for KVM installations using vfio_ap mediated device. Omit it when deploying on LPAR installation. Use in combination with cex and cex_device. Specify guest hostname: "UUID:domain" UUID can be generated from uuidgen command and domain can be retrieved from lszcrypt | upi-cex-control-1: "68cd2d83-3eef-4e45-b22c-534f90b16cb9:00.0035"</p>
+<h2 id="additional-parameters-optional">Additional Parameters (optional)<a class="headerlink" href="#additional-parameters-optional" title="Permanent link">#</a></h2>
+<h3 id="download-kubeconfig">Download Kubeconfig<a class="headerlink" href="#download-kubeconfig" title="Permanent link">#</a></h3>
+<p>These parameters control the download of kubeconfig and kubepassw files from the bastion host. See the <a href="../roles/download_kubeconfig/README.md"><code>download_kubeconfig</code></a> role for more details.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example/Default</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>kubeconfig_dest_dir</strong></td>
+<td style="text-align: left;">Destination directory on the local controller where downloaded files will be stored. Files are stored in a <code>kubeconfig/</code> subdirectory within this path.</td>
+<td style="text-align: left;">/tmp</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>kubeconfig_source_dir</strong></td>
+<td style="text-align: left;">Source directory on the bastion host from which files will be downloaded.</td>
+<td style="text-align: left;">~/ocpinst/auth</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>kubeconfig_files</strong></td>
+<td style="text-align: left;">List of files to download from the bastion host.</td>
+<td style="text-align: left;">['kubeconfig', 'kubeadmin-password']</td>
+</tr>
+</tbody>
+</table>
               
             </div>
           </div><footer>
