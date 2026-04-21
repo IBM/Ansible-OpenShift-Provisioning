@@ -175,6 +175,11 @@ ansible-playbook playbooks/add_compute_node.yaml --extra-vars "@compute-node.yam
 ### Outcomes
 * The defind compute node will be added or deleted, depends which playbook you have executed.
 
+## Download Kubeconfig Playbook (download_kubeconfig.yaml)
+### Overview
+* Use this playbook to download the kubeconfig file from the bastion to your local machine.
+* For detailed information, see the [Download Kubeconfig Playbook documentation](download-kubeconfig-playbook.md).
+
 ## Master Playbook (site.yaml)
 ### Overview
 * Use this playbook to run all required playbooks (0-7) all at once.

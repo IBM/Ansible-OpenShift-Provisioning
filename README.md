@@ -11,6 +11,7 @@ This release was tested with OpenShift v4.19 and below.
 * Added support for zVM Converged Hipersockets for HCP
 * HCP - Support for booting DPM LPAR ans attaching as compute node
 * Support for LPAR as compute nodes for HCP
+* New [`download_kubeconfig`](roles/download_kubeconfig/README.md) role for downloading kubeconfig and kubepassw files from bastion host
 
 ### Bug Fixes
 * Added installation_disk_id to agents for LPAR HCP
