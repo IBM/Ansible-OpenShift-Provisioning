@@ -1,0 +1,13 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: local-storage-operator
+  namespace: "{{ hcp.lso.namespace | default('openshift-local-storage', true) }}"
+spec:
+  sourceNamespace: openshift-marketplace
+  source: redhat-operators
+{% if hcp.lso.version | length > 0 %}
+  channel: "{{ hcp.lso.version }}"
+{% endif %}
+  installPlanApproval: Automatic
+  name: local-storage-operator

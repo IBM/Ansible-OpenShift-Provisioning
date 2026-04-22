@@ -1,0 +1,17 @@
+#!/usr/bin/expect
+log_user 1
+set password "{{ hcp.mgmt_cluster_bastion.root_password }}"
+{% set bastion_ip = hcp.mgmt_cluster_bastion.ip %}
+spawn ssh-copy-id -i {{ lookup('env', 'HOME') }}/.ssh/{{ hcp.ansible_key_name }} root@{{ bastion_ip }}
+expect {
+  -re "(?i)password:" {
+    send "$password\r"
+    exp_continue
+  }
+  -re "All keys were skipped because they already exist" {
+    exit 0
+  }
+  eof {
+    exit 0
+  }
+}

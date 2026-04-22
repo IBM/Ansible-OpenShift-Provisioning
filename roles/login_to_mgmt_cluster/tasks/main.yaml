@@ -1,0 +1,31 @@
+---
+- name: Check if oc command is available
+  shell: which oc
+  register: oc_check
+  failed_when: false
+  changed_when: false
+
+- name: Fail if oc is not installed
+  fail:
+    msg: "oc CLI is not installed. Please install OpenShift CLI tools first."
+  when: oc_check.rc != 0
+
+- name: Ensure kube directory exists
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    mode: '0700'
+
+- name: Login to Management Cluster
+  ansible.builtin.command: >
+    oc login {{ vault_api_server }}
+    -u {{ vault_user_name }}
+    -p {{ vault_password }}
+  no_log: false
+  register: login_result
+  changed_when: false
+
+- name: Set login facts for other roles
+  ansible.builtin.set_fact:
+    mgmt_cluster_logged_in: true
+    mgmt_kubeconfig: "/root/.kube/config"

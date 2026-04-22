@@ -1,0 +1,90 @@
+---
+- name: Check whether ODF StorageCluster already exists
+  ansible.builtin.command: >
+    oc get storagecluster {{ ((hcp.odf | default({})).storagecluster | default({})).name | default('ocs-storagecluster', true) }}
+    -n {{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }}
+  register: odf_check
+  changed_when: false
+  failed_when: false
+
+- name: Mark ODF present flag
+  ansible.builtin.set_fact:
+    odf_already_present: "{{ odf_check.rc == 0 }}"
+
+- name: Skip ODF install when already present
+  ansible.builtin.debug:
+    msg: "StorageCluster already exists, skipping install_odf_operator role."
+  when: odf_already_present
+
+- name: Install and configure ODF
+  when: not odf_already_present
+  block:
+    - name: Ensure ansible work directory exists
+      ansible.builtin.file:
+        path: /root/ansible_workdir
+        state: directory
+        mode: '0755'
+
+    - name: Ensure ODF namespace exists
+      kubernetes.core.k8s:
+        api_version: v1
+        kind: Namespace
+        name: "{{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }}"
+        state: present
+
+    - name: Create OperatorGroup.yaml
+      ansible.builtin.template:
+        src: OperatorGroup.yaml.j2
+        dest: /root/ansible_workdir/odf-OperatorGroup.yaml
+        mode: '0644'
+
+    - name: Deploy OperatorGroup
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/odf-OperatorGroup.yaml
+
+    - name: Create Subscription.yaml
+      ansible.builtin.template:
+        src: Subscription.yaml.j2
+        dest: /root/ansible_workdir/odf-Subscription.yaml
+        mode: '0644'
+
+    - name: Deploy Subscription for ODF
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/odf-Subscription.yaml
+
+    - name: Wait for ODF operator CSV to be Succeeded
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc get csv -n {{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep odf-operator | grep Succeeded | wc -l
+      register: odf_csv
+      until: odf_csv.stdout | int >= 1
+      retries: 30
+      delay: 10
+      changed_when: false
+
+    - name: Create StorageCluster.yaml
+      ansible.builtin.template:
+        src: StorageCluster.yaml.j2
+        dest: /root/ansible_workdir/odf-StorageCluster.yaml
+        mode: '0644'
+
+    - name: Wait for StorageCluster CRD to be available
+      ansible.builtin.command: oc get crd storageclusters.ocs.openshift.io
+      register: odf_storagecluster_crd
+      until: odf_storagecluster_crd.rc == 0
+      retries: 30
+      delay: 10
+      changed_when: false
+      failed_when: false
+
+    - name: Wait for ocs.openshift.io API discovery
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc api-resources --api-group=ocs.openshift.io --no-headers | awk '{print $1}' | grep -x storageclusters | wc -l
+      register: odf_storagecluster_api
+      until: odf_storagecluster_api.stdout | int >= 1
+      retries: 30
+      delay: 10
+      changed_when: false
+      failed_when: false
+
+    - name: Deploy StorageCluster
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/odf-StorageCluster.yaml

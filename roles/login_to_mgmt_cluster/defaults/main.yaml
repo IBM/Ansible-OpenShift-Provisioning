@@ -1,0 +1,12 @@
+---
+# Kubeconfig path (can be overridden)
+kubeconfig_path: "{{ ansible_env.HOME }}/.kube/config"
+
+# Context name to create/use
+context_name: "mgmt-cluster"
+
+# Skip SSL verification (NOT recommended for production)
+skip_ssl_verification: false
+
+# Timeout for login attempt (seconds)
+login_timeout: 30

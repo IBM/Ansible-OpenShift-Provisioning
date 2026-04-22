@@ -1,0 +1,79 @@
+---
+# Setup inventory and passwordless SSH for bastion
+- name: Setup inventory and passwordless SSH
+  hosts: localhost
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  roles:
+    - create_inventory_setup_hcp_kubevirt
+
+# Dynamically Add Bastion Host
+- name: Add Bastion Host to Inventory
+  hosts: localhost
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  tasks:
+    - name: Add bastion dynamically
+      ansible.builtin.add_host:
+        name: "{{ hcp.mgmt_cluster_bastion.ip }}"
+        groups: mgmt_bastion
+        ansible_user: root
+        ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}"
+        ansible_connection: ssh
+        inventory_dir: "{{ inventory_dir }}"     
+
+# Login to OCP Management Cluster (from bastion)
+- name: Login to OCP Management Cluster
+  hosts: mgmt_bastion
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  vars:
+    vault_api_server: "{{ hcp.oc_url }}"
+    vault_user_name: "{{ vault_ocp_user }}"
+    vault_password: "{{ vault_ocp_password }}"
+  roles:
+    - login_to_mgmt_cluster
+
+# Check Node Resources
+- name: Check OCP Node Resource Usage
+  hosts: mgmt_bastion
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  vars:
+    resource_threshold: 75
+    debug_mode: true
+  roles:
+    - check_node_resources
+
+# Install Operators on Mgmt Cluster Bastion
+- name: Install Operators on the management cluster
+  hosts: mgmt_bastion
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  become: true
+  gather_facts: false
+  pre_tasks:
+    - name: Ensure ansible work directory exists
+      ansible.builtin.file:
+        path: /root/ansible_workdir
+        state: directory
+        mode: '0755'
+
+    - name: Ensure root kube directory exists
+      ansible.builtin.file:
+        path: /root/.kube
+        state: directory
+        mode: '0700'
+
+  roles:
+    - install_mce_operator_kubevirt
+    - install_metallb_operator
+    - install_ocpvirt_operator
+    - install_lso_operator
+    - install_odf_operator
+    - monitor_hcp_preq_installation

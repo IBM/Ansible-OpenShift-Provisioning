@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: odf-operatorgroup
+  namespace: "{{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }}"
+spec:
+  targetNamespaces:
+  - "{{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }}"

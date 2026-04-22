@@ -1,0 +1,9 @@
+---
+# Resource threshold in percentage (0-100)
+resource_threshold: 75
+
+# Enable debug output
+debug_mode: false
+
+# OC binary path (in case it's not in PATH)
+oc_binary_path: "oc"

@@ -1,0 +1,44 @@
+kind: StorageCluster
+apiVersion: ocs.openshift.io/v1
+metadata:
+  name: "{{ ((hcp.odf | default({})).storagecluster | default({})).name | default('ocs-storagecluster', true) }}"
+  namespace: "{{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }}"
+spec:
+  resources:
+    mon:
+      requests:
+        cpu: "{{ ((((hcp.odf | default({})).resources | default({})).mon | default({})).requests | default({})).cpu | default('0', true) }}"
+        memory: "{{ ((((hcp.odf | default({})).resources | default({})).mon | default({})).requests | default({})).memory | default('0', true) }}"
+    mds:
+      requests:
+        cpu: "{{ ((((hcp.odf | default({})).resources | default({})).mds | default({})).requests | default({})).cpu | default('0', true) }}"
+        memory: "{{ ((((hcp.odf | default({})).resources | default({})).mds | default({})).requests | default({})).memory | default('0', true) }}"
+    mgr:
+      requests:
+        cpu: "{{ ((((hcp.odf | default({})).resources | default({})).mgr | default({})).requests | default({})).cpu | default('0', true) }}"
+        memory: "{{ ((((hcp.odf | default({})).resources | default({})).mgr | default({})).requests | default({})).memory | default('0', true) }}"
+  monDataDirHostPath: "{{ (hcp.odf | default({})).mon_data_dir_host_path | default('/var/lib/rook', true) }}"
+  managedResources:
+    cephObjectStores:
+      reconcileStrategy: "{{ ((hcp.odf | default({})).managed_resources | default({})).ceph_object_stores_reconcile_strategy | default('ignore', true) }}"
+  multiCloudGateway:
+    reconcileStrategy: "{{ (hcp.odf | default({})).multi_cloud_gateway_reconcile_strategy | default('ignore', true) }}"
+  storageDeviceSets:
+    - name: "{{ ((hcp.odf | default({})).storage_device_set | default({})).name | default('ocs-deviceset', true) }}"
+      count: {{ ((hcp.odf | default({})).storage_device_set | default({})).count | default(3, true) }}
+      dataPVCTemplate:
+        spec:
+          storageClassName: "{{ ((hcp.odf | default({})).storage_device_set | default({})).storage_class_name | default('local-block-ocs', true) }}"
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: "{{ (hcp.odf | default({})).storage | default(((hcp.odf | default({})).storage_device_set | default({})).storage | default('500Gi', true), true) }}"
+          volumeMode: "{{ ((hcp.odf | default({})).storage_device_set | default({})).volume_mode | default('Block', true) }}"
+      placement: {}
+      portable: {{ ((hcp.odf | default({})).storage_device_set | default({})).portable | default(false, true) | bool | lower }}
+      replica: {{ ((hcp.odf | default({})).storage_device_set | default({})).replica | default(1, true) }}
+      resources:
+        requests:
+          cpu: "{{ ((((hcp.odf | default({})).storage_device_set | default({})).resources | default({})).requests | default({})).cpu | default('0', true) }}"
+          memory: "{{ ((((hcp.odf | default({})).storage_device_set | default({})).resources | default({})).requests | default({})).memory | default('0', true) }}"

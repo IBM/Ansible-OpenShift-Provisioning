@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: local-storage-operator
+  namespace: "{{ hcp.lso.namespace | default('openshift-local-storage', true) }}"
+spec:
+  targetNamespaces:
+  - "{{ hcp.lso.namespace | default('openshift-local-storage', true) }}"

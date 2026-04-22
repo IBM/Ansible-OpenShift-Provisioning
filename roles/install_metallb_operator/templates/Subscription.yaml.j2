@@ -1,0 +1,13 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: metallb-operator
+  namespace: "{{ hcp.metallb.namespace | default('metallb-system', true) }}"
+spec:
+  sourceNamespace: "{{ hcp.metallb.source_namespace | default('openshift-marketplace', true) }}"
+  source: "{{ hcp.metallb.source | default('redhat-operators', true) }}"
+{% if hcp.metallb.version | default('', true) | length > 0 %}
+  channel: "{{ hcp.metallb.version }}"
+{% endif %}
+  installPlanApproval: Automatic
+  name: metallb-operator
