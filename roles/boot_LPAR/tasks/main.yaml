@@ -1,89 +1,76 @@
 ---
-- name: Boot LPAR with corresponding ignition
+- name: Boot LPAR with corresponding ignition (RHCOS)
+  when: not (abi.flag is defined and abi.flag is true)
   block:
-    - name: set fcp fact to empty
-      set_fact: rd_zfcp_string='' ipv6_string=''
+    - name: Set fcp fact to empty
+      ansible.builtin.set_fact:
+        rd_zfcp_string: ''
+        ipv6_string: ''
 
-    - name: inlude host vars for given lpar
-      include_vars: 
+    - name: Include host vars for given lpar
+      ansible.builtin.include_vars:
         file: "{{ inventory_dir }}/host_vars/{{ item }}.yaml"
         name: node
 
     - name: Getting script for booting
-      template:
-        src: ../templates/boot_lpar.py
+      ansible.builtin.template:
+        src: boot_lpar.py
         dest: /root/ansible_workdir/boot_lpar.py
-    
+        mode: '0755'
+
     - name: Build rd.zfcp string
-      set_fact:
-        rd_zfcp_string: "{{ rd_zfcp_string | default('') }} rd.zfcp=0.0.{{ node.lpar.storage_group_1.dev_num }},{{ wwpn }},{{ node.lpar.storage_group_1.lun_name }}"
+      ansible.builtin.set_fact:
+        rd_zfcp_string: >-
+          {{ rd_zfcp_string | default('') }}
+          rd.zfcp=0.0.{{ node.lpar.storage_group_1.dev_num }},{{ wwpn }},{{ node.lpar.storage_group_1.lun_name }}
       loop: "{{ node.lpar.storage_group_1.storage_wwpn }}"
       loop_control:
         loop_var: wwpn
       when: node.lpar.storage_group_1.type | lower == "fcp"
 
     - name: Build rd.dasd string
-      set_fact:
+      ansible.builtin.set_fact:
         rd_dasd_string: "rd.dasd=0.0.{{ node.lpar.storage_group_1.dev_num }}"
       when: node.lpar.storage_group_1.type | lower == "dasd"
 
-    - name: set ipv6 string
-      set_fact:
-        ipv6_string: "ip=[{{ node.networking.ipv6 }}]::[{{ node.networking.ipv6_gateway }}]:{{ node.networking.ipv6_prefix }}::{{ env.cluster.networking.interface }}:none"
-      when: env.use_ipv6  == true
+    - name: Set ipv6 string
+      ansible.builtin.set_fact:
+        ipv6_string: >-
+          ip=[{{ node.networking.ipv6 }}]::[{{ node.networking.ipv6_gateway }}]:{{ node.networking.ipv6_prefix }}::{{ env.cluster.networking.interface }}:none
+      when: env.use_ipv6 is true
 
-    - name: set live disk lun
-      set_fact:
-        live_disk_lun: "{{ node.lpar.livedisk.lun if (node.lpar.livedisk.lun is defined and node.lpar.livedisk.lun is not none) else 'na' }}"
+    - name: Set live disk lun
+      ansible.builtin.set_fact:
+        live_disk_lun: >-
+          {{ node.lpar.livedisk.lun
+          if (node.lpar.livedisk.lun is defined and node.lpar.livedisk.lun is not none)
+          else 'na' }}
 
-    - name: set live disk wwpn
-      set_fact:
-        live_disk_wwpn: "{{ node.lpar.livedisk.wwpn if (node.lpar.livedisk.wwpn is defined and node.lpar.livedisk.wwpn is not none) else 'na' }}"
+    - name: Set live disk wwpn
+      ansible.builtin.set_fact:
+        live_disk_wwpn: >-
+          {{ node.lpar.livedisk.wwpn
+          if (node.lpar.livedisk.wwpn is defined and node.lpar.livedisk.wwpn is not none)
+          else 'na' }}
 
     - name: Debug selected MAC address (if available)
-      debug:
+      ansible.builtin.debug:
         msg: "MAC address for this node is {{ node_mac }}"
       when: env.use_dhcp and node_mac != 'null'
 
-    - name: Debug 
-      debug: 
-        msg: 
-          python3 /root/ansible_workdir/boot_lpar.py \
-          --cpcname {{ node.cpc_name }} \
-          --lparname {{ node.lpar.name }} \
-          --hmchost {{ node.hmc.host }} \
-          --hmcuser {{ node.hmc.auth.user }} \
-          --hmcpass {{ node.hmc.auth.pass }} \
-          --cpu {{ node.lpar.ifl.count }} \
-          --memory {{ node.lpar.ifl.initial_memory }} \
-          --kernel {{ rhcos_download_url }}{{ rhcos_live_kernel }} \
-          --initrd {{ rhcos_download_url }}{{ rhcos_live_initrd }} \
-          --livedisktype {{ node.lpar.livedisk.livedisktype }} \
-          {% if node.lpar.dpm_enabled == 'True' %}
-          --dpm_enabled {{ node.lpar.dpm_enabled }} \
-          --livediskuuid {{ node.lpar.livedisk.livediskuuid }} \
-          {% elif node.lpar.dpm_enabled == 'False' %}
-          --devicenr {{ node.lpar.livedisk.devicenr }} \
-          --livedisklun {{ live_disk_lun }} \
-          --livediskwwpn {{ live_disk_wwpn }} \
-          {% endif %}
-          --netset_ip {{ node.networking.ip }} \ 
-          --netset_gateway {{ node.networking.gateway }} \
-          --netset_network_type osa \
-          --netset_network_device "{{ node.lpar.networking.nic.osa_card.dev_num if node.networking.mode | lower == 'hipersocket' and node.lpar.networking.nic.osa_card is defined and node.lpar.networking.nic.osa_card.dev_num is defined and node.lpar.networking.nic.osa_card.dev_num else node.lpar.networking.nic.card1.dev_num }}" \
-          --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
-          --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
-          --log_level DEBUG \
-          --cmdline 'rd.neednet=1 console=ttysclp0 {% if node.lpar.storage_group_1.type | lower == "fcp" %}{% if node.lpar.dpm_enabled == "True" %}coreos.inst.install_dev=/dev/disk/by-path/ccw-0.0.{{ node.lpar.storage_group_1.dev_num }}-fc-{{ node.lpar.storage_group_1.storage_wwpn[0] }}-lun-{{ node.lpar.storage_group_1.lun_name }}{% elif node.lpar.dpm_enabled == "False" %}coreos.inst.install_dev=sda{% endif %}{% endif %}{% if node.lpar.storage_group_1.type | lower == "dasd" %}coreos.inst.install_dev=/dev/dasda{% endif %} coreos.live.rootfs_url=http://{% if node.networking.mode | lower == "hipersocket" %}{{ env.bastion.networking.internal_ip }}{% else %}{{ env.bastion.networking.ip }}{% endif %}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{% if node.networking.mode | lower == "hipersocket" %}{{ env.bastion.networking.internal_ip }}{% else %}{{ env.bastion.networking.ip }}{% endif %}:8080/ignition/{{ ignition }}.ign ip={% if not env.use_dhcp %}{% if node.networking.mode | lower == "hipersocket" %}{{ node.networking.internal_ip }}{% else %}{{ node.networking.ip }}{% endif %}::{% if node.networking.mode | lower == "hipersocket" %}{{ env.bastion.networking.internal_ip }}{% else %}{{ node.networking.gateway }}{% endif %}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ node.networking.device1 }}:none{% elif env.use_dhcp %}{{ node.networking.device1 }}:dhcp::{{ node_mac }}{% endif %} nameserver={% if node.networking.mode | lower == "hipersocket" %}{{ env.bastion.networking.internal_ip }}{% else %}{{ env.cluster.networking.nameserver1 }}{% endif %} cio_ignore=all,!condev zfcp.allow_lun_scan=0 {% if node.networking.mode | lower != "roce" %}rd.znet=qeth,{{ node.lpar.networking.nic.card1.dev_num }},layer2=1{% endif %} {{ ipv6_string }} {% if node.lpar.storage_group_1.type | lower == "fcp" %}{{ rd_zfcp_string }}{% endif %}{% if node.lpar.storage_group_1.type | lower == "dasd" %}{{ rd_dasd_string }}{% endif %}'
+    - name: Debug boot command
+      ansible.builtin.debug:
+        msg: "Booting LPAR {{ node.lpar.name }} with RHCOS"
 
     - name: Booting lpar node
-      shell: |
+      ansible.builtin.shell: |
+          set -o pipefail
           python3 /root/ansible_workdir/boot_lpar.py \
           --cpcname {{ node.cpc_name }} \
           --lparname {{ node.lpar.name }} \
-          --hmchost {{ node.hmc.host }} \
-          --hmcuser {{ node.hmc.auth.user }} \
-          --hmcpass {{ node.hmc.auth.pass }} \
+          --hmchost {{ hmc.host }} \
+          --hmcuser {{ hmc.auth.user }} \
+          --hmcpass {{ hmc.auth.pass }} \
           --cpu {{ node.lpar.ifl.count }} \
           --memory {{ node.lpar.ifl.initial_memory }} \
           --kernel {{ rhcos_download_url }}{{ rhcos_live_kernel }} \
@@ -97,11 +84,108 @@
           --livedisklun {{ live_disk_lun }} \
           --livediskwwpn {{ live_disk_wwpn }} \
           {% endif %}
-          --netset_ip {{ node.networking.ip }} \ 
+          --netset_ip {{ node.networking.ip }} \
           --netset_gateway {{ node.networking.gateway }} \
           --netset_network_type osa \
-          --netset_network_device "{{ node.lpar.networking.nic.osa_card.dev_num if node.networking.mode | lower == 'hipersocket' and node.lpar.networking.nic.osa_card is defined and node.lpar.networking.nic.osa_card.dev_num is defined and node.lpar.networking.nic.osa_card.dev_num else node.lpar.networking.nic.card1.dev_num }}" \ 
+          --netset_network_device "{{ node.lpar.networking.nic.card1.dev_num }}" \
           --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
           --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
           --log_level DEBUG \
-          --cmdline 'rd.neednet=1 console=ttysclp0 {% if node.lpar.storage_group_1.type | lower == "fcp" %}{% if node.lpar.dpm_enabled == "True" %}coreos.inst.install_dev=/dev/disk/by-path/ccw-0.0.{{ node.lpar.storage_group_1.dev_num }}-fc-{{ node.lpar.storage_group_1.storage_wwpn[0] }}-lun-{{ node.lpar.storage_group_1.lun_name }}{% elif node.lpar.dpm_enabled == "False" %}coreos.inst.install_dev=sda{% endif %}{% endif %}{% if node.lpar.storage_group_1.type | lower == "dasd" %}coreos.inst.install_dev=/dev/dasda{% endif %} coreos.live.rootfs_url=http://{% if node.networking.mode | lower == "hipersocket" %}{{ env.bastion.networking.internal_ip }}{% else %}{{ env.bastion.networking.ip }}{% endif %}:8080/bin/{{ rhcos_live_rootfs }} coreos.inst.ignition_url=http://{% if node.networking.mode | lower == "hipersocket" %}{{ env.bastion.networking.internal_ip }}{% else %}{{ env.bastion.networking.ip }}{% endif %}:8080/ignition/{{ ignition }}.ign ip={% if not env.use_dhcp %}{% if node.networking.mode | lower == "hipersocket" %}{{ node.networking.internal_ip }}{% else %}{{ node.networking.ip }}{% endif %}::{% if node.networking.mode | lower == "hipersocket" %}{{ env.bastion.networking.internal_ip }}{% else %}{{ node.networking.gateway }}{% endif %}:{{ node.networking.subnetmask }}:{{ node.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{ node.networking.device1 }}:none{% elif env.use_dhcp %}{{ node.networking.device1 }}:dhcp::{{ node_mac }}{% endif %} nameserver={% if node.networking.mode | lower == "hipersocket" %}{{ env.bastion.networking.internal_ip }}{% else %}{{ env.cluster.networking.nameserver1 }}{% endif %} cio_ignore=all,!condev zfcp.allow_lun_scan=0 {% if node.networking.mode | lower != "roce" %}rd.znet=qeth,{{ node.lpar.networking.nic.card1.dev_num }},layer2=1{% endif %} {{ ipv6_string }} {% if node.lpar.storage_group_1.type | lower == "fcp" %}{{ rd_zfcp_string }}{% endif %}{% if node.lpar.storage_group_1.type | lower == "dasd" %}{{ rd_dasd_string }}{% endif %}'
+          --cmdline 'rd.neednet=1 console=ttysclp0'
+
+
+# ABI-specific LPAR boot tasks
+- name: Boot LPAR with ABI Agent images
+  when: abi.flag is defined and abi.flag is true
+  block:
+    - name: Set fcp fact to empty for ABI
+      ansible.builtin.set_fact:
+        rd_zfcp_string: ''
+
+    - name: Include host vars for given lpar
+      ansible.builtin.include_vars:
+        file: "{{ inventory_dir }}/host_vars/{{ item }}.yaml"
+        name: node
+
+    - name: Getting boot script for ABI
+      ansible.builtin.template:
+        src: boot_lpar.py
+        dest: /root/ansible_workdir/boot_lpar_abi.py
+        mode: '0755'
+
+    - name: Generate genericdvd.prm file for ABI
+      ansible.builtin.template:
+        src: genericdvd.prm.j2
+        dest: /root/ansible_workdir/genericdvd.prm
+        mode: '0644'
+
+    - name: Read genericdvd.prm content
+      ansible.builtin.slurp:
+        src: /root/ansible_workdir/genericdvd.prm
+      register: prm_content
+
+    - name: Set cmdline from genericdvd.prm
+      ansible.builtin.set_fact:
+        abi_cmdline: "{{ prm_content['content'] | b64decode | trim }}"
+
+    - name: Set live disk lun for ABI
+      ansible.builtin.set_fact:
+        live_disk_lun: >-
+          {{ node.lpar.livedisk.lun
+          if (node.lpar.livedisk.lun is defined and node.lpar.livedisk.lun is not none)
+          else 'na' }}
+
+    - name: Set live disk wwpn for ABI
+      ansible.builtin.set_fact:
+        live_disk_wwpn: >-
+          {{ node.lpar.livedisk.wwpn
+          if (node.lpar.livedisk.wwpn is defined and node.lpar.livedisk.wwpn is not none)
+          else 'na' }}
+
+    - name: Set live disk UUID for ABI
+      ansible.builtin.set_fact:
+        live_disk_uuid: >-
+          {{ node.lpar.livedisk.livediskuuid
+          if (node.lpar.livedisk.livediskuuid is defined and node.lpar.livedisk.livediskuuid is not none)
+          else '' }}
+
+    - name: Debug ABI boot command
+      ansible.builtin.debug:
+        msg: "Booting LPAR {{ node.lpar.name }} with ABI agent"
+
+    - name: Booting LPAR node with ABI agent
+      ansible.builtin.shell: |
+          set -o pipefail
+          python3 /root/ansible_workdir/boot_lpar_abi.py \
+          --cpcname {{ node.cpc_name }} \
+          --lparname {{ node.lpar.name }} \
+          --hmchost {{ hmc.host }} \
+          --hmcuser {{ hmc.auth.user }} \
+          --hmcpass {{ hmc.auth.pass }} \
+          --cpu {{ node.lpar.ifl.count }} \
+          --memory {{ node.lpar.ifl.initial_memory }} \
+          --kernel http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}-vmlinuz \
+          --initrd http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}-initrd.img \
+          --livedisktype {{ node.lpar.livedisk.livedisktype }} \
+          --devicenr {{ node.lpar.livedisk.devicenr }} \
+          {% if node.lpar.dpm_enabled == 'True' %}
+          --dpm_enabled {{ node.lpar.dpm_enabled }} \
+          --livediskuuid {{ live_disk_uuid }} \
+          {% endif %}
+          {% if node.lpar.livedisk.livedisktype | lower == 'scsi' %}
+          --livedisklun {{ live_disk_lun }} \
+          --livediskwwpn {{ live_disk_wwpn }} \
+          {% endif %}
+          --netset_ip {{ node.networking.ip }} \
+          --netset_gateway {{ node.networking.gateway }} \
+          --netset_network_type osa \
+          --netset_network_device "{{ node.lpar.networking.nic.card1.dev_num }}" \
+          --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
+          --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
+          --log_level DEBUG \
+          --cmdline "{{ abi_cmdline }}"
+      register: boot_result
+
+    - name: Display boot result
+      ansible.builtin.debug:
+        var: boot_result

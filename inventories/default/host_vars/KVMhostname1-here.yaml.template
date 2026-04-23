@@ -71,6 +71,19 @@ lpar:
 #        dev_num: 
 
 # Section 6 - Storage
+# For LPAR installations, this storage configuration is used for:
+# 1. Booting the LPAR nodes (boot_LPAR role)
+# 2. Agent-Based Installer (ABI) rootDeviceHints in agent-config.yaml
+#
+# When using ABI with installation_type: lpar, the rootDeviceHints will be
+# automatically generated as:
+# deviceName: /dev/disk/by-path/ccw-0.0.{dev_num}-fc-{storage_wwpn[0]}-lun-{lun_name}
+#
+# Example values:
+#   dev_num: 1a00
+#   storage_wwpn[0]: 0x500507680b2a5f7e
+#   lun_name: 0x4000000000000000
+# Results in: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4000000000000000
   storage_group_1:
     name: #X
     type: fcp
