@@ -191,6 +191,11 @@
 <td style="text-align: left;"><b>(Optional)</b> Controls whether to regenerate SSH private keys during the setup process. Default value is 'full_idempotence'. For usage inside of pipelines where SSH keys already exist, this value should be set to 'never' to preserve existing keys. See detailed description <a href="https://docs.ansible.com/projects/ansible/latest/collections/community/crypto/openssh_keypair_module.html">here:</a></td>
 <td style="text-align: left;">full_idempotence</td>
 </tr>
+<tr>
+<td style="text-align: left;"><strong>check_nodes_delay</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Delay in seconds between retries when checking if control and compute nodes are in 'Ready' state. Used during the check_nodes role execution. Default value is 30 seconds.</td>
+<td style="text-align: left;">30</td>
+</tr>
 </tbody>
 </table>
 <h2 id="2-lpars">2 - LPAR(s)<a class="headerlink" href="#2-lpars" title="Permanent link">#</a></h2>
