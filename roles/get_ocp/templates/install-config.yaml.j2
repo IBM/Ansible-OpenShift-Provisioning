@@ -8,8 +8,8 @@ baseDomain: {{ env.cluster.networking.base_domain }}
 env.bastion.networking.ip + ',' +
 env.cluster.nodes.bootstrap.ip + ',' +
 env.cluster.nodes.control.ip|join(',') + ',' +
-env.cluster.nodes.compute.ip|join(',') + ',' +
-env.cluster.nodes.infra.ip|join(',')+ ',' +
+(env.cluster.nodes.compute.ip|default([])|join(',') + ',' if env.cluster.nodes.compute is defined and env.cluster.nodes.compute.ip is defined else '') +
+(env.cluster.nodes.infra.ip|default([])|join(',') + ',' if env.cluster.nodes.infra is defined and env.cluster.nodes.infra.ip is defined else '') +
 'etcd-0.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' +
 ('etcd-1.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' if env.cluster.nodes.control.ip[1] is defined else '' ) +
 ('etcd-2.' + env.cluster.networking.metadata_name + '.' + env.cluster.networking.base_domain + ',' if env.cluster.nodes.control.ip[2] is defined else '' ) +
