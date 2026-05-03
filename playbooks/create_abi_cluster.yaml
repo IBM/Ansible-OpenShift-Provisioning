@@ -57,13 +57,9 @@
     - name: Support for LPAR ABI
       when: installation_type | lower == 'lpar' and abi.flag is defined and abi.flag is true
       block:
-        - name: Install tessia-baselib on bastion
-          ansible.builtin.include_role:
-            name: install_tessia_baselib
-
         - name: Boot LPAR nodes with ABI agent
           ansible.builtin.include_role:
-            name: boot_LPAR
+            name: boot_LPAR_abi
           loop: "{{ env.cluster.nodes.control.vm_name }}"
           loop_control:
             loop_var: item

@@ -34,7 +34,7 @@
       ansible.builtin.pip:
         requirements: "{{ zhmc_path.stdout }}/ibm/ibm_zhmc/requirements.txt"
         executable: pip3
-        extra_args: --upgrade
+        extra_args: --upgrade --break-system-packages
       when: env.z.lpar1.create == True or env.z.lpar2.create == True or env.z.lpar3.create == True
 
     - name: Check to make sure that the KVM host has a corresponding inventory host_vars file named with matching hostname and .yaml extension.
