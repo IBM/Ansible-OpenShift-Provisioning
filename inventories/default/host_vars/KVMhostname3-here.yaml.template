@@ -29,19 +29,19 @@ storage:
 # Section 2 - CPC & HMC
 cpc_name: #X
 hmc:
-  host: #X
+  host: #X  # HMC hostname or IP (not a secret)
   auth:
-    user: #X
-    pass: #X
+    user: #X  # HMC username (not a secret)
+    pass: "{{ vault_hmc_pass }}"  # HMC password (secret)
 
 # Section 3 - LPAR
 lpar:
   name: #X
   description: #X
   access:
-    user: #X
-    pass: #X
-    root_pass: #X
+    user: #X  # LPAR username (not a secret)
+    pass: "{{ vault_lpar3_user_pass }}"  # LPAR user password (secret)
+    root_pass: "{{ vault_lpar3_root_pass }}"  # LPAR root password (secret)
 
 # Section 4 - IFL & Memory
   ifl:
@@ -93,14 +93,14 @@ lpar:
 #    dev_num: 
 #    lun_name: 
 
-# Section 7 -live disk info
+# Section 7 - Live disk info
   livedisk:
-    livedisktype: #X 
+    livedisktype: #X
     lun: #X
     wwpn: #X
     devicenr: #X
     livediskuuid: #X Required when 'dpm_enabled' is true
-    livedisk_root_pass: #X
+    livedisk_root_pass: "{{ vault_livedisk_root_pass }}"  # Live disk root password (secret)
 
 # Type of LPAR(dpm or pr/sm), True if dpm. Allowed values ['True', 'False']
   dpm_enabled: 'False'

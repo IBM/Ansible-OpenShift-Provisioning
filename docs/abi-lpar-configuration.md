@@ -2,6 +2,12 @@
 
 ## Overview
 
+> **⚠️ Important Note**: This guide focuses specifically on the LPAR-specific `rootDeviceHints` configuration. For a complete setup, you must also configure all other required variables. See:
+> - **Complete Variable Reference**: [set-variables-group-vars.md](set-variables-group-vars.md) and [set-variables-host-vars.md](set-variables-host-vars.md)
+> - **Quick Start Guide**: [ABI_LPAR_QUICK_REFERENCE.md](ABI_LPAR_QUICK_REFERENCE.md)
+> - **Full Setup Instructions**: [run-the-playbooks-for-abi.md](run-the-playbooks-for-abi.md)
+
+
 This guide explains how to use Agent-Based Installer (ABI) for LPAR-based OpenShift installations on IBM Z/LinuxONE. The key difference between KVM and LPAR installations is the requirement for `rootDeviceHints` in the agent-config.yaml file.
 
 ## Key Differences: KVM vs LPAR
