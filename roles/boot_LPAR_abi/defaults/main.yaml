@@ -1,0 +1,5 @@
+---
+# ABI agent images are served from bastion httpd server
+# No specific defaults needed as URLs are constructed dynamically
+
+# Made with Bob

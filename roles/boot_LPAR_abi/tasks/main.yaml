@@ -1,0 +1,95 @@
+---
+# ABI-specific LPAR boot tasks
+- name: Set fcp fact to empty for ABI
+  ansible.builtin.set_fact:
+    rd_zfcp_string: ''
+
+- name: Include host vars for given lpar
+  ansible.builtin.include_vars:
+    file: "{{ inventory_dir }}/host_vars/{{ item }}.yaml"
+    name: node
+
+- name: Getting boot script for ABI
+  ansible.builtin.template:
+    src: boot_lpar.py
+    dest: /root/ansible_workdir/boot_lpar_abi.py
+    mode: '0755'
+
+- name: Generate genericdvd.prm file for ABI
+  ansible.builtin.template:
+    src: genericdvd.prm.j2
+    dest: /root/ansible_workdir/genericdvd.prm
+    mode: '0644'
+
+- name: Read genericdvd.prm content
+  ansible.builtin.slurp:
+    src: /root/ansible_workdir/genericdvd.prm
+  register: prm_content
+
+- name: Set cmdline from genericdvd.prm
+  ansible.builtin.set_fact:
+    abi_cmdline: "{{ prm_content['content'] | b64decode | trim }}"
+
+- name: Set live disk lun for ABI
+  ansible.builtin.set_fact:
+    live_disk_lun: >-
+      {{ node.lpar.livedisk.lun
+      if (node.lpar.livedisk.lun is defined and node.lpar.livedisk.lun is not none)
+      else 'na' }}
+
+- name: Set live disk wwpn for ABI
+  ansible.builtin.set_fact:
+    live_disk_wwpn: >-
+      {{ node.lpar.livedisk.wwpn
+      if (node.lpar.livedisk.wwpn is defined and node.lpar.livedisk.wwpn is not none)
+      else 'na' }}
+
+- name: Set live disk UUID for ABI
+  ansible.builtin.set_fact:
+    live_disk_uuid: >-
+      {{ node.lpar.livedisk.livediskuuid
+      if (node.lpar.livedisk.livediskuuid is defined and node.lpar.livedisk.livediskuuid is not none)
+      else '' }}
+
+- name: Debug ABI boot command
+  ansible.builtin.debug:
+    msg: "Booting LPAR {{ node.lpar.name }} with ABI agent"
+
+- name: Booting LPAR node with ABI agent
+  ansible.builtin.shell: |
+      set -o pipefail
+      python3 /root/ansible_workdir/boot_lpar_abi.py \
+      --cpcname {{ node.cpc_name }} \
+      --lparname {{ node.lpar.name }} \
+      --hmchost {{ hmc.host }} \
+      --hmcuser {{ hmc.auth.user }} \
+      --hmcpass {{ hmc.auth.pass }} \
+      --cpu {{ node.lpar.ifl.count }} \
+      --memory {{ node.lpar.ifl.initial_memory }} \
+      --kernel http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}-vmlinuz \
+      --initrd http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}-initrd.img \
+      --livedisktype {{ node.lpar.livedisk.livedisktype }} \
+      --devicenr {{ node.lpar.livedisk.devicenr }} \
+      {% if node.lpar.dpm_enabled == 'True' %}
+      --dpm_enabled {{ node.lpar.dpm_enabled }} \
+      --livediskuuid {{ live_disk_uuid }} \
+      {% endif %}
+      {% if node.lpar.livedisk.livedisktype | lower == 'scsi' %}
+      --livedisklun {{ live_disk_lun }} \
+      --livediskwwpn {{ live_disk_wwpn }} \
+      {% endif %}
+      --netset_ip {{ node.networking.ip }} \
+      --netset_gateway {{ node.networking.gateway }} \
+      --netset_network_type osa \
+      --netset_network_device "{{ node.lpar.networking.nic.card1.dev_num }}" \
+      --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
+      --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
+      --log_level DEBUG \
+      --cmdline "{{ abi_cmdline }}"
+  register: boot_result
+
+- name: Display boot result
+  ansible.builtin.debug:
+    var: boot_result
+
+# Made with Bob

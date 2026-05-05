@@ -231,12 +231,23 @@ day2_compute_node:
 
 
 # Section 14 - Agent Based Installer ( Optional )
+# For LPAR installations with ABI, the rootDeviceHints in agent-config.yaml will be
+# automatically generated from the lpar.storage_group_1 configuration in each node's
+# host_vars file. The deviceName will be constructed as:
+# /dev/disk/by-path/ccw-0.0.{dev_num}-fc-{storage_wwpn[0]}-lun-{lun_name}
+#
+# Example for LPAR node:
+#   - Ensure each LPAR node's host_vars file has lpar.storage_group_1 configured
+#   - Set installation_type: lpar
+#   - The template will automatically add rootDeviceHints for FCP storage
+#
+# For KVM installations, rootDeviceHints are not needed and will not be added.
 abi:
   flag: False
   ansible_workdir: 'ansible_workdir'
   ocp_installer_version: '4.18.8'
   ocp_installer_base_url: 'https://mirror.openshift.com/pub/openshift-v4'
-  architecture: <multi|s390x>  
+  architecture: <multi|s390x>
   boot_method: <pxe|iso>
 
 # Openshift Settings  
