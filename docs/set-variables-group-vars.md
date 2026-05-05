@@ -10,9 +10,12 @@
 ## 1 - Controller
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**installation_type** | Can be of type kvm or lpar. Some packages will be ignored for installation in case of non lpar based installation. | kvm 
+**installation_type** | Can be of type kvm or lpar. Some packages will be ignored for installation in case of non lpar based installation. | kvm
 **controller_sudo_pass** | The password to the machine running Ansible (localhost). This will only be used for two things. To ensure you've installed the pre-requisite packages if you're on Linux, and to add the login URL to your /etc/hosts file. | Pas$w0rd!
 **cex_device** | Specify the storage device type used for LUKS encryption. This setting determines enable cex MCO Ignition configuration will be applied. Use in combination with the cex parameter.  [dasd, fcp, virt]
+**regenerate_private_key** | <b>(Optional)</b> Controls whether to regenerate SSH private keys during the setup process. Default value is 'full_idempotence'. For usage inside of pipelines where SSH keys already exist, this value should be set to 'never' to preserve existing keys. See detailed description [here:](https://docs.ansible.com/projects/ansible/latest/collections/community/crypto/openssh_keypair_module.html) | full_idempotence
+**check_nodes_delay** | <b>(Optional)</b> Delay in seconds between retries when checking if control and compute nodes are in 'Ready' state. Used during the check_nodes role execution. Default value is 30 seconds. | 30
+
 
 ## 2 - LPAR(s)
 **Variable Name** | **Description** | **Example**
@@ -418,3 +421,14 @@
 **cex** | Whether to enable cex based luks encryption, default to False
 **cex_device** | Specify the storage device type used for LUKS encryption. This setting determines which MCO Ignition configuration will be applied from the defaults. Do not override the default value. Use in combination with the cex parameter. | [dasd, fcp, virt]
 **cex_uuid_map** | This var is required only for KVM installations using vfio_ap mediated device. Omit it when deploying on LPAR installation. Use in combination with cex and cex_device. Specify guest hostname: "UUID:domain" UUID can be generated from uuidgen command and domain can be retrieved from lszcrypt | upi-cex-control-1: "68cd2d83-3eef-4e45-b22c-534f90b16cb9:00.0035"
+
+## Additional Parameters (optional)
+
+### Download Kubeconfig
+These parameters control the download of kubeconfig and kubepassw files from the bastion host. See the [`download_kubeconfig`](../roles/download_kubeconfig/README.md) role for more details.
+
+**Variable Name** | **Description** | **Example/Default**
+:--- | :--- | :---
+**kubeconfig_dest_dir** | Destination directory on the local controller where downloaded files will be stored. Files are stored in a `kubeconfig/` subdirectory within this path. | /tmp
+**kubeconfig_source_dir** | Source directory on the bastion host from which files will be downloaded. | ~/ocpinst/auth
+**kubeconfig_files** | List of files to download from the bastion host. | ['kubeconfig', 'kubeadmin-password']
