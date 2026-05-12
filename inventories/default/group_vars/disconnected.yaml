@@ -1,7 +1,7 @@
 # Warning: currently, the oc-mirror plugin is officially downloadable to amd64 only.
 # Please refer to docs set-variables-group-vars.md for instructions on how to create this configuration file for disconnected.
 disconnected:
-  enabled: true
+  enabled: false
   registry:
     url: 'registry url'  # Will be auto-set to bastion IP:port if using bastion registry
     ip: 'registry reachable ip'  # Will be auto-set to bastion IP if using bastion registry
