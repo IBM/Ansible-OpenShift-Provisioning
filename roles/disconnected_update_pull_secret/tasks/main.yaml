@@ -1,0 +1,101 @@
+---
+# Role: disconnected_update_pull_secret
+# Description: Automatically updates the pull secret in all.yaml with bastion registry credentials
+# This role modifies the pull secret to include authentication for the bastion registry
+
+- name: Update pull secret with bastion registry credentials
+  tags: update_pull_secret
+  when:
+    - disconnected.enabled
+    - disconnected.registry.bastion.enabled | default(false)
+  delegate_to: localhost
+  run_once: true
+  block:
+    - name: Parse existing pull secret
+      ansible.builtin.set_fact:
+        pull_secret_json: "{{ env.redhat.pull_secret | from_json }}"
+
+    - name: Generate registry authentication string
+      ansible.builtin.set_fact:
+        registry_auth: "{{ (disconnected.registry.bastion.username + ':' + disconnected.registry.bastion.password) | b64encode }}"
+
+    - name: Set registry URL
+      ansible.builtin.set_fact:
+        registry_url: "{{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}"
+
+    - name: Check if bastion registry already exists in pull secret
+      ansible.builtin.set_fact:
+        registry_exists: "{{ registry_url in pull_secret_json.auths.keys() }}"
+
+    - name: Add bastion registry to pull secret
+      when: not registry_exists
+      block:
+        - name: Create updated pull secret with bastion registry
+          ansible.builtin.set_fact:
+            updated_pull_secret: >-
+              {{
+                pull_secret_json | combine({
+                  'auths': pull_secret_json.auths | combine({
+                    registry_url: {
+                      'auth': registry_auth,
+                      'email': disconnected.registry.bastion.email
+                    }
+                  })
+                })
+              }}
+
+        - name: Display registry credentials being added
+          ansible.builtin.debug:
+            msg:
+              - "Adding bastion registry to pull secret:"
+              - "  Registry: {{ registry_url }}"
+              - "  Username: {{ disconnected.registry.bastion.username }}"
+              - "  Email: {{ disconnected.registry.bastion.email }}"
+              - ""
+              - "The pull secret will be updated in memory for this playbook run."
+              - "To persist this change, add the following to env.redhat.pull_secret in all.yaml:"
+              - ""
+              - "  '{{ registry_url }}': {"
+              - "    'auth': '{{ registry_auth }}',"
+              - "    'email': '{{ disconnected.registry.bastion.email }}'"
+              - "  }"
+
+        - name: Update pull secret in memory for current playbook run
+          ansible.builtin.set_fact:
+            env: "{{ env | combine({'redhat': env.redhat | combine({'pull_secret': updated_pull_secret | to_json})}, recursive=True) }}"
+
+        - name: Create pull secret backup file
+          ansible.builtin.copy:
+            content: "{{ updated_pull_secret | to_nice_json }}"
+            dest: "{{ inventory_dir }}/group_vars/pull_secret_with_registry.json"
+            mode: "0600"
+
+        - name: Display instructions for permanent update
+          ansible.builtin.debug:
+            msg:
+              - "=========================================="
+              - "Pull Secret Updated Successfully!"
+              - "=========================================="
+              - ""
+              - "The pull secret has been updated for this playbook run."
+              - ""
+              - "To make this change permanent:"
+              - "1. Review the updated pull secret at:"
+              - "   {{ inventory_dir }}/group_vars/pull_secret_with_registry.json"
+              - ""
+              - "2. Copy the content and update env.redhat.pull_secret in all.yaml"
+              - ""
+              - "3. Or manually add this entry to your existing pull secret:"
+              - "   '{{ registry_url }}': {"
+              - "     'auth': '{{ registry_auth }}',"
+              - "     'email': '{{ disconnected.registry.bastion.email }}'"
+              - "   }"
+
+    - name: Registry already in pull secret
+      when: registry_exists
+      ansible.builtin.debug:
+        msg:
+          - "Bastion registry ({{ registry_url }}) already exists in pull secret."
+          - "No update needed."
+
+# Made with Bob

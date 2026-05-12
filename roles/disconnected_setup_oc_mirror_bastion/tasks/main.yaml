@@ -1,0 +1,156 @@
+---
+# Role: disconnected_setup_oc_mirror_bastion
+# Description: Installs and configures oc-mirror on the bastion for mirroring operations
+# This role runs on the bastion to set up the mirroring environment
+
+- name: Setup oc-mirror on bastion for mirroring
+  tags: setup_oc_mirror_bastion
+  when: disconnected.enabled
+  block:
+    - name: Get user home directory
+      ansible.builtin.shell: |
+        set -o pipefail
+        getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
+      changed_when: false
+      register: user_home
+
+    - name: Create oc-mirror working directory on bastion
+      ansible.builtin.file:
+        path: "{{ disconnected.mirroring.bastion.working_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+
+    - name: Create mirror output directory on bastion
+      ansible.builtin.file:
+        path: "{{ disconnected.mirroring.bastion.mirror_output_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+
+    - name: Download oc-mirror from file server
+      ansible.builtin.get_url:
+        url: >-
+          {{ env.file_server.protocol }}://{{
+             (env.file_server.user ~ ':' ~ env.file_server.pass ~ '@' if env.file_server.protocol == 'ftp' else '') ~
+             env.file_server.ip ~ (':' ~ env.file_server.port if env.file_server.port | default('') | length > 0 else '') ~
+             '/' ~ disconnected.mirroring.file_server.clients_dir ~ '/' ~ disconnected.mirroring.file_server.oc_mirror_tgz }}
+        dest: "{{ disconnected.mirroring.bastion.working_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
+        mode: "0644"
+        timeout: 300
+      register: oc_mirror_download
+      retries: 3
+      delay: 10
+      until: oc_mirror_download is succeeded
+
+    - name: Download OCP client from file server
+      ansible.builtin.get_url:
+        url: >-
+          {{ env.file_server.protocol }}://{{
+             (env.file_server.user ~ ':' ~ env.file_server.pass ~ '@' if env.file_server.protocol == 'ftp' else '') ~
+             env.file_server.ip ~ (':' ~ env.file_server.port if env.file_server.port | default('') | length > 0 else '') ~
+             '/' ~ disconnected.mirroring.file_server.clients_dir ~ '/' ~ disconnected.mirroring.client_download.ocp_client_tgz }}
+        dest: "{{ disconnected.mirroring.bastion.working_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+        mode: "0644"
+        timeout: 300
+      register: ocp_client_download
+      retries: 3
+      delay: 10
+      until: ocp_client_download is succeeded
+
+    - name: Extract oc-mirror binary
+      ansible.builtin.unarchive:
+        src: "{{ disconnected.mirroring.bastion.working_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
+        dest: "{{ disconnected.mirroring.bastion.working_dir }}"
+        remote_src: true
+        mode: "0755"
+
+    - name: Extract OCP client binaries
+      ansible.builtin.unarchive:
+        src: "{{ disconnected.mirroring.bastion.working_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+        dest: "{{ disconnected.mirroring.bastion.working_dir }}"
+        remote_src: true
+        mode: "0755"
+
+    - name: Install oc-mirror to system path
+      become: true
+      ansible.builtin.copy:
+        src: "{{ disconnected.mirroring.bastion.working_dir }}/oc-mirror"
+        dest: /usr/local/bin/oc-mirror
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+
+    - name: Install oc to system path
+      become: true
+      ansible.builtin.copy:
+        src: "{{ disconnected.mirroring.bastion.working_dir }}/oc"
+        dest: /usr/local/bin/oc
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+
+    - name: Install kubectl to system path
+      become: true
+      ansible.builtin.copy:
+        src: "{{ disconnected.mirroring.bastion.working_dir }}/kubectl"
+        dest: /usr/local/bin/kubectl
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+
+    - name: Create .docker directory for pull secrets
+      ansible.builtin.file:
+        path: "{{ user_home.stdout }}/.docker"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0700"
+
+    - name: Create pull secret file for mirroring
+      ansible.builtin.copy:
+        content: "{{ env.redhat.pull_secret }}"
+        dest: "{{ user_home.stdout }}/.docker/config.json"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0600"
+
+    - name: Create CA certificate file when registry CA is not trusted
+      become: true
+      when: not disconnected.registry.ca_trusted
+      block:
+        - name: Copy CA certificate to trust anchors
+          ansible.builtin.copy:
+            content: "{{ disconnected.registry.ca_cert }}"
+            dest: /etc/pki/ca-trust/source/anchors/registry.crt
+            owner: root
+            group: root
+            mode: "0644"
+
+        - name: Update CA trust
+          ansible.builtin.command: update-ca-trust
+          changed_when: true
+
+    - name: Verify oc-mirror installation
+      ansible.builtin.command: oc-mirror version
+      register: oc_mirror_version
+      changed_when: false
+
+    - name: Display oc-mirror version
+      ansible.builtin.debug:
+        msg: "oc-mirror installed successfully: {{ oc_mirror_version.stdout }}"
+
+    - name: Display setup summary
+      ansible.builtin.debug:
+        msg:
+          - "oc-mirror working directory: {{ disconnected.mirroring.bastion.working_dir }}"
+          - "Mirror output directory: {{ disconnected.mirroring.bastion.mirror_output_dir }}"
+          - "oc-mirror binary: /usr/local/bin/oc-mirror"
+          - "Pull secret configured: {{ user_home.stdout }}/.docker/config.json"
+
+# Made with Bob

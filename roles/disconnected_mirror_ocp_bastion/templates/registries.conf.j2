@@ -1,0 +1,22 @@
+[[registry]]
+  prefix = ""
+  location = "{{ registry_url }}"
+  insecure = false
+  blocked = false
+  mirror-by-digest-only = true
+
+{% if disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled %}
+{% for item in disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.list %}
+[[registry]]
+  prefix = ""
+  location = "{{ item.regexp }}"
+  insecure = false
+  blocked = false
+  mirror-by-digest-only = true
+
+  [[registry.mirror]]
+    location = "{{ item.replace }}"
+    insecure = false
+
+{% endfor %}
+{% endif %}
