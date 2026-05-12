@@ -65,13 +65,6 @@ ansible-playbook -i inventories/default playbooks/5_setup_bastion.yaml
   - Source registries (Red Hat registries) during mirroring
   - Target disconnected registry (localhost if on bastion)
 
-### Required Collections
-
-Install Ansible collections:
-```bash
-ansible-galaxy collection install community.crypto community.general
-```
-
 ### Required Files
 
 Ensure you have:
@@ -180,15 +173,15 @@ Ensure these values are set in `inventories/default/group_vars/all.yaml`:
 ```yaml
 env:
   file_server:
-    ip: 172.23.236.34
+    ip: 192.168.1.10
     protocol: http
     cfgs_dir: /pub
   
   bastion:
     networking:
-      ip: 172.23.238.65
-      hostname: bastion-a311lp23
-      base_domain: lnxero1.boe
+      ip: 192.168.1.20
+      hostname: bastion
+      base_domain: example.com
   
   redhat:
     pull_secret: '{"auths":{...}}'  # Your Red Hat pull secret
@@ -212,7 +205,7 @@ Or manually add the bastion registry entry:
     "cloud.openshift.com": {...},
     "quay.io": {...},
     "registry.redhat.io": {...},
-    "172.23.238.65:5000": {
+    "192.168.1.20:5000": {
       "auth": "base64-encoded-username:password",
       "email": "registry@example.com"
     }
@@ -412,10 +405,10 @@ Update `install-config.yaml`:
 ```yaml
 imageContentSources:
   - mirrors:
-      - 172.23.238.65:5000/openshift/release-images
+      - 192.168.1.20:5000/openshift/release-images
     source: quay.io/openshift-release-dev/ocp-release
   - mirrors:
-      - 172.23.238.65:5000/openshift/release
+      - 192.168.1.20:5000/openshift/release
     source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 
 additionalTrustBundle: |
