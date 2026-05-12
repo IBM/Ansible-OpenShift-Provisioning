@@ -1,0 +1,79 @@
+---
+# Role: disconnected_download_oc_mirror
+# Description: Downloads oc-mirror plugin and OCP client tools to the file server
+# This role runs on the bastion/file server to download necessary files for disconnected installation
+
+- name: Download oc-mirror and client tools to file server
+  tags: download_oc_mirror
+  when: disconnected.enabled
+  block:
+    - name: Get user home directory
+      ansible.builtin.shell: |
+        set -o pipefail
+        getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
+      changed_when: false
+      register: user_home
+
+    - name: Create download directory on file server
+      ansible.builtin.file:
+        path: "{{ disconnected.mirroring.file_server.download_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+
+    - name: Create clients directory on file server
+      ansible.builtin.file:
+        path: "{{ env.file_server.cfgs_dir }}/{{ disconnected.mirroring.file_server.clients_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+
+    - name: Download oc-mirror plugin
+      ansible.builtin.get_url:
+        url: "{{ disconnected.mirroring.oc_mirror_download.base_url }}/{{ disconnected.mirroring.oc_mirror_download.oc_mirror_tgz }}"
+        dest: "{{ disconnected.mirroring.file_server.download_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
+        mode: "0644"
+        timeout: 300
+      register: oc_mirror_download
+      retries: 3
+      delay: 10
+      until: oc_mirror_download is succeeded
+
+    - name: Download OCP client tools
+      ansible.builtin.get_url:
+        url: "{{ disconnected.mirroring.client_download.ocp_download_url }}{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+        dest: "{{ disconnected.mirroring.file_server.download_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+        mode: "0644"
+        timeout: 300
+      register: ocp_client_download
+      retries: 3
+      delay: 10
+      until: ocp_client_download is succeeded
+
+    - name: Copy oc-mirror to clients directory for distribution
+      ansible.builtin.copy:
+        src: "{{ disconnected.mirroring.file_server.download_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
+        dest: "{{ env.file_server.cfgs_dir }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0644"
+        remote_src: true
+
+    - name: Copy OCP client to clients directory for distribution
+      ansible.builtin.copy:
+        src: "{{ disconnected.mirroring.file_server.download_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+        dest: "{{ env.file_server.cfgs_dir }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0644"
+        remote_src: true
+
+    - name: Display download summary
+      ansible.builtin.debug:
+        msg:
+          - "oc-mirror downloaded to: {{ env.file_server.cfgs_dir }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
+          - "OCP client downloaded to: {{ env.file_server.cfgs_dir }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+
+# Made with Bob

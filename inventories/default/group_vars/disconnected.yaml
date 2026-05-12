@@ -1,18 +1,36 @@
 # Warning: currently, the oc-mirror plugin is officially downloadable to amd64 only.
 # Please refer to docs set-variables-group-vars.md for instructions on how to create this configuration file for disconnected.
 disconnected:
-  enabled: false
+  enabled: true
   registry:
-    url: 'registry url'
-    ip: 'registry reachable ip'
+    url: 'registry url'  # Will be auto-set to bastion IP:port if using bastion registry
+    ip: 'registry reachable ip'  # Will be auto-set to bastion IP if using bastion registry
     pull_secret: ''
-    mirror_pull_secret: ''
-    ca_trusted: false
+    ca_trusted: true
     ca_cert: |
       -----BEGIN CERTIFICATE-----
       if ca_trusted is False, then this ca will be added to mirror host anchors
       as well as to the install config of cluster
       -----END CERTIFICATE-----
+    # Configuration for container registry on bastion (if no external registry available)
+    bastion:
+      enabled: true  # Set to true to create registry on bastion
+      port: 5000  # Registry port
+      username: 'admin'  # Registry username
+      password: "{{ vault_registry_password }}"  # Registry password from secrets.yaml
+      email: 'registry@example.com'  # Email for registry authentication in pull secret
+      data_dir: '/opt/registry/data'  # Registry data storage
+      auth_dir: '/opt/registry/auth'  # Registry authentication files
+      certs_dir: '/opt/registry/certs'  # Registry certificates
+      # Package installation configuration
+      use_local_repo: true  # Set to false to install from downloaded RPMs
+      rpm_dir: '/tmp/registry-rpms'  # Directory for downloaded RPMs (if use_local_repo=false)
+      rpm_path: 'rpms/registry'  # Path on file server for RPMs (if use_local_repo=false)
+      required_rpms:  # List of RPM files to download (if use_local_repo=false)
+        - 'podman-*.rpm'
+        - 'httpd-tools-*.rpm'
+        - 'openssl-*.rpm'
+        # Add all dependency RPMs as needed
   mirroring:
     # this is the host that can access the internet as well as the registry
     host:
@@ -26,16 +44,25 @@ disconnected:
     file_server:
       clients_dir: 'clients'
       oc_mirror_tgz: 'oc-mirror.tar.gz'
+      download_dir: '/tmp/oc-mirror-downloads'  # Directory on file server to download files before distribution
+    # Configuration for bastion host where oc-mirror will run
+    bastion:
+      working_dir: '/opt/oc-mirror'  # Working directory for oc-mirror operations on bastion
+      mirror_output_dir: '/opt/oc-mirror/mirror-output'  # Directory to store mirroring results and manifests
+    # Download URLs for oc-mirror plugin and OCP client tools
+    oc_mirror_download:
+      base_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/"  # Base URL for oc-mirror download
+      oc_mirror_tgz: 'oc-mirror.tar.gz'  # oc-mirror plugin archive name
     # this will download oc binary to the mirror host for use on the mirror host for mirroring
     client_download:
-      ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/amd64/"
+      ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/stable-4.21/s390x/"
       ocp_client_tgz: 'openshift-client-linux.tar.gz'
     legacy:
       platform: false
-      ocp_quay_release_image_tag: '4.13.1-s390x'
+      ocp_quay_release_image_tag: '4.21.14-s390x'
       ocp_org: 'ocp4'
       ocp_repo: 'openshift4'
-      ocp_tag: 'v4.13.1' # platform images will be pushed to {registry_url}/{ocp_org}/{ocp_repo}:{ocp_tag}
+      ocp_tag: 'v4.21.14' # platform images will be pushed to {registry_url}/{ocp_org}/{ocp_repo}:{ocp_tag}
     oc_mirror:
       oc_mirror_args:
         continue_on_error: false
@@ -47,7 +74,7 @@ disconnected:
             list:
               - regexp: what
                 replace: with
-      release_image_tag: '4.13.1-multi'
+      release_image_tag: '4.14.14-multi'
       release_image_registry: 'brew.registry.redhat.io'
       image_set:
       # this field is a standard image set from oc-mirror documentation.
@@ -68,10 +95,10 @@ disconnected:
               # Note: cannot mirror tags like multi-s390x; list must contain pure
               # architecture names (e.g. s390x) or the multiarch token 'multi'.
             channels:
-              - name: stable-4.13
+              - name: stable-4.21
                 full: false
-                minVersion: 4.13.1
-                maxVersion: 4.13.1
+                minVersion: 4.21.14
+                maxVersion: 4.21.14
           operators:
             - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.13
               full: false

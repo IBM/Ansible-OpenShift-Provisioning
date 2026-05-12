@@ -1,0 +1,147 @@
+---
+# Playbook: disconnected_setup_oc_mirror.yaml
+# Description: Downloads oc-mirror plugin, sets it up on bastion, and performs OCP mirroring
+# This playbook orchestrates the complete oc-mirror setup and mirroring process for disconnected installations
+#
+# Usage:
+#   ansible-playbook -i inventories/default playbooks/disconnected_setup_oc_mirror.yaml
+#
+# Prerequisites:
+#   - File server must be accessible (can be same as bastion)
+#   - Bastion must have internet access or access to file server
+#   - disconnected.yaml must be properly configured
+#   - Pull secret must be configured in disconnected.registry.mirror_pull_secret
+
+- name: Setup container registry on bastion
+  hosts: bastion
+  gather_facts: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
+  tasks:
+    - name: Download registry RPMs to file server (if needed)
+      hosts: "{{ 'bastion' if env.bastion.ip == env.file_server.ip else 'file_server' }}"
+      gather_facts: true
+      vars_files:
+        - "{{ inventory_dir }}/group_vars/all.yaml"
+        - "{{ inventory_dir }}/group_vars/secrets.yaml"
+        - "{{ inventory_dir }}/group_vars/disconnected.yaml"
+      tasks:
+        - name: Download registry RPM packages
+          ansible.builtin.include_role:
+            name: disconnected_download_registry_rpms
+          when:
+            - disconnected.enabled
+            - disconnected.registry.bastion.enabled | default(false)
+            - not (disconnected.registry.bastion.use_local_repo | default(true))
+          tags:
+            - download
+            - download_rpms
+    
+    - name: Setup container registry on bastion
+      ansible.builtin.include_role:
+        name: disconnected_setup_registry_bastion
+      when:
+        - disconnected.enabled
+        - disconnected.registry.bastion.enabled | default(false)
+      tags:
+        - registry
+        - setup_registry
+
+- name: Update pull secret with bastion registry credentials
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
+  tasks:
+    - name: Update pull secret with registry credentials
+      ansible.builtin.include_role:
+        name: disconnected_update_pull_secret
+      when:
+        - disconnected.enabled
+        - disconnected.registry.bastion.enabled | default(false)
+      tags:
+        - registry
+        - update_pull_secret
+
+- name: Download oc-mirror to file server
+  hosts: "{{ 'bastion' if env.bastion.ip == env.file_server.ip else 'file_server' }}"
+  gather_facts: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
+  tasks:
+    - name: Download oc-mirror and client tools to file server
+      ansible.builtin.include_role:
+        name: disconnected_download_oc_mirror
+      when: disconnected.enabled
+      tags:
+        - download
+        - oc_mirror_download
+
+- name: Setup oc-mirror on bastion
+  hosts: bastion
+  gather_facts: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
+  tasks:
+    - name: Install and configure oc-mirror on bastion
+      ansible.builtin.include_role:
+        name: disconnected_setup_oc_mirror_bastion
+      when: disconnected.enabled
+      tags:
+        - setup
+        - oc_mirror_setup
+
+- name: Mirror OCP images using oc-mirror
+  hosts: bastion
+  gather_facts: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
+  tasks:
+    - name: Perform OCP mirroring operations
+      ansible.builtin.include_role:
+        name: disconnected_mirror_ocp_bastion
+      when: disconnected.enabled
+      tags:
+        - mirror
+        - oc_mirror_mirror
+
+    - name: Display next steps
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "OCP Mirroring completed successfully!"
+          - "=========================================="
+          - ""
+          - "Registry Information:"
+          - "{% if disconnected.registry.bastion.enabled | default(false) %}"
+          - "  - Registry URL: {{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}"
+          - "  - Registry Hostname: {{ env.bastion.networking.hostname }}:{{ disconnected.registry.bastion.port }}"
+          - "  - Username: {{ disconnected.registry.bastion.username }}"
+          - "{% else %}"
+          - "  - Using external registry: {{ disconnected.registry.url }}"
+          - "{% endif %}"
+          - ""
+          - "Next steps:"
+          - "1. Review the mirrored content in: {{ disconnected.mirroring.bastion.mirror_output_dir }}"
+          - "2. Apply the generated YAML files to your cluster:"
+          - "   - ImageContentSourcePolicy (ICSP) or ImageDigestMirrorSet (IDMS)"
+          - "   - CatalogSource for operators"
+          - "3. Update your install-config.yaml with the imageContentSources"
+          - "4. Proceed with cluster installation"
+          - ""
+          - "For more information, see:"
+          - "https://docs.redhat.com/en/documentation/openshift_container_platform/4.14/html/disconnected_installation_mirroring/"
+      tags:
+        - always
+
+# Made with Bob

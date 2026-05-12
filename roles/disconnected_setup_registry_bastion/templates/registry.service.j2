@@ -1,0 +1,33 @@
+[Unit]
+Description=Container Registry for Disconnected OpenShift
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+TimeoutStartSec=5m
+ExecStartPre=-/usr/bin/podman rm -f registry
+ExecStart=/usr/bin/podman run \
+  --name registry \
+  --net host \
+  --privileged \
+  -v {{ disconnected.registry.bastion.data_dir }}:/var/lib/registry:z \
+  -v {{ disconnected.registry.bastion.auth_dir }}:/auth:z \
+  -v {{ disconnected.registry.bastion.certs_dir }}:/certs:z \
+  -e REGISTRY_AUTH=htpasswd \
+  -e REGISTRY_AUTH_HTPASSWD_REALM="Registry Realm" \
+  -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/registry.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/registry.key \
+  -e REGISTRY_HTTP_ADDR=0.0.0.0:{{ disconnected.registry.bastion.port }} \
+  -e REGISTRY_STORAGE_DELETE_ENABLED=true \
+  docker.io/library/registry:2
+
+ExecStop=/usr/bin/podman stop registry
+ExecStopPost=/usr/bin/podman rm -f registry
+
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
