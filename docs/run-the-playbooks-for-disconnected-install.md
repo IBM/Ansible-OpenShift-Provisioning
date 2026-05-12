@@ -22,6 +22,24 @@ In disconnected environments, OpenShift clusters cannot directly access Red Hat'
 3. Mirroring OCP platform images, operators, and additional images
 4. Generating necessary manifests for cluster installation
 
+### Installation Methods Comparison
+
+This mirroring solution supports both standard and Agent-Based Installer (ABI) installation methods:
+
+| Aspect | Standard Installation | Agent-Based Installer (ABI) |
+|--------|----------------------|----------------------------|
+| **Playbook** | `6_create_nodes.yaml` | `create_abi_cluster.yaml` |
+| **Bootstrap Node** | Required | Not required |
+| **Installation Method** | Ignition files | Agent ISO/PXE |
+| **Configuration** | Multiple files (install-config, ignition) | Single install-config + agent-config |
+| **Disconnected Support** | ✅ Full support | ✅ Full support |
+| **Registry Integration** | Via ignition files | Via agent artifacts |
+| **Node Discovery** | Manual configuration | Automated discovery |
+| **Complexity** | Higher | Lower |
+| **Best For** | Traditional deployments | Simplified deployments, edge locations |
+
+Both methods use the same mirrored registry and are fully compatible with `disconnected_setup_oc_mirror.yaml`.
+
 ## Architecture
 
 ```

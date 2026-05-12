@@ -41,7 +41,10 @@
       tags: lpar_check
       ansible.builtin.stat:
         path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
-      when: env.z.lpar1.hostname is defined
+      when:
+        - env.z.lpar1.hostname is defined
+        - env.z.lpar1.hostname is not none
+        - env.z.lpar1.hostname | string | trim != ''
       register: lpar_host_vars
       failed_when: lpar_host_vars.stat.exists == False
 
@@ -49,17 +52,29 @@
       tags: lpar_check
       ansible.builtin.stat:
         path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar2.hostname }}.yaml"
-      when: env.z.lpar2.hostname is defined
+      when:
+        - env.z.lpar2.hostname is defined
+        - env.z.lpar2.hostname is not none
+        - env.z.lpar2.hostname | string | trim != ''
       register: lpar_host_vars
-      failed_when: lpar_host_vars.stat.exists == False
+      failed_when:
+        - lpar_host_vars is defined
+        - lpar_host_vars.stat is defined
+        - lpar_host_vars.stat.exists == False
 
     - name: Check to make sure the third KVM hosts have a corresponding inventory host_vars file named with matching hostname and .yaml extension, if defined.
       tags: lpar_check
       ansible.builtin.stat:
         path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar3.hostname }}.yaml"
-      when: env.z.lpar3.hostname is defined
+      when:
+        - env.z.lpar3.hostname is defined
+        - env.z.lpar3.hostname is not none
+        - env.z.lpar3.hostname | string | trim != ''
       register: lpar_host_vars
-      failed_when: lpar_host_vars.stat.exists == False
+      failed_when:
+        - lpar_host_vars is defined
+        - lpar_host_vars.stat is defined
+        - lpar_host_vars.stat.exists == False
 
 - name: "Install packages and cfg ssh"
   hosts: localhost
