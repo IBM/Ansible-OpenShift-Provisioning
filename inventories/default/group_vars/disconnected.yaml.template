@@ -1,7 +1,7 @@
 # Warning: currently, the oc-mirror plugin is officially downloadable to amd64 only.
 # Please refer to docs set-variables-group-vars.md for instructions on how to create this configuration file for disconnected.
+# Note: The 'disconnected_enabled' parameter has been moved to all.yaml under Section 1 - Ansible Controller
 disconnected:
-  enabled: true
   registry:
     url: 'registry url'  # Will be auto-set to bastion IP:port if using bastion registry
     ip: 'registry reachable ip'  # Will be auto-set to bastion IP if using bastion registry
@@ -9,10 +9,14 @@ disconnected:
     mirror_pull_secret: "{{ env.redhat.pull_secret }}"  # Same as pull_secret, used for mirroring operations
     ca_trusted: false  # Set to false to auto-generate self-signed certificate, true if using provided cert
     ca_cert: |
-      -----BEGIN CERTIFICATE-----
-      if ca_trusted is False, then this ca will be added to mirror host anchors
-      as well as to the install config of cluster
-      -----END CERTIFICATE-----
+      # -----BEGIN CERTIFICATE-----
+      # Your registry certificate will be auto-generated if ca_trusted is false
+      # Or paste your existing certificate here if ca_trusted is true
+      # This certificate will be added to:
+      # - System trust store: /etc/pki/ca-trust/source/anchors/
+      # - Container runtime: /etc/containers/certs.d/<registry>/
+      # - Bootstrap ignition for disconnected installation
+      # -----END CERTIFICATE-----
     # Configuration for container registry on bastion (if no external registry available)
     bastion:
       enabled: true  # Set to true to create registry on bastion
@@ -35,10 +39,10 @@ disconnected:
   mirroring:
     # this is the host that can access the internet as well as the registry
     host:
-      name: a3e06001
-      ip: 172.23.236.156
-      user: root # with become access
-      pass: pass4root
+      name: mirror-host-name  # Hostname of the mirror host (must have internet access)
+      ip: 192.168.1.100  # IP address of the mirror host
+      user: root  # User with become/sudo access
+      pass: "{{ vault_mirror_pass }}" # Password for the mirror host user
     # In disconnected mode client binaries and RHCOS will be placed on the
     # file server (env.file_server) and then downloaded to the final
     # destination from there. Currently only oc-mirror is handled this way.
@@ -59,6 +63,10 @@ disconnected:
     client_download:
       ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/stable-4.21/s390x"
       ocp_client_tgz: 'openshift-client-linux.tar.gz'
+    # RHCOS downloads from dependencies directory
+    rhcos_download:
+      rhcos_download_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.21/latest"
+      rhcos_live_rootfs: 'rhcos-live-rootfs.s390x.img'
     legacy:
       platform: false
       ocp_quay_release_image_tag: '4.21.14-multi'
@@ -69,6 +77,15 @@ disconnected:
       oc_mirror_args:
         continue_on_error: false
         source_skip_tls: false
+        # Timeout for mirroring operations in seconds
+        # Recommendations based on content size:
+        # - Small (single version, few operators): 7200 (2 hours)
+        # - Medium (multiple versions, several operators): 14400 (4 hours)
+        # - Large (full channel, many operators): 28800 (8 hours)
+        # - Very Large (multiple channels, full operators): 43200 (12 hours)
+        # Increase if you see "async task did not complete within the requested time"
+        async_timeout: 14400
+        async_poll: 30  # Check status every N seconds (default: 30)
       post_mirror:
         mapping:
           replace:
@@ -76,7 +93,7 @@ disconnected:
             list:
               - regexp: what
                 replace: with
-      release_image_tag: '4.14.14-multi'
+      release_image_tag: '4.21.14-multi'
       release_image_registry: 'brew.registry.redhat.io'
       image_set:
       # this field is a standard image set from oc-mirror documentation.
@@ -111,5 +128,5 @@ disconnected:
                       # minVersion: '2.4.1-0'
                       # maxVersion: '2.4.1-0'
           additionalImages:
-            - name: registry.redhat.io/ubi8/ubi:latest
+            - name: registry.redhat.io/ubi9/ubi:latest
           helm: {}

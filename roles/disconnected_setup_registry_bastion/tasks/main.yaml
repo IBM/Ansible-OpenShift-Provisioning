@@ -5,7 +5,7 @@
 
 - name: Setup container registry on bastion
   tags: setup_registry_bastion
-  when: disconnected.enabled
+  when: disconnected_enabled
   block:
     - name: Check if packages need to be downloaded
       ansible.builtin.set_fact:
@@ -100,6 +100,15 @@
             path: "{{ disconnected.registry.bastion.certs_dir }}/registry.csr"
             privatekey_path: "{{ disconnected.registry.bastion.certs_dir }}/registry.key"
             common_name: "{{ env.bastion.networking.hostname }}"
+            basic_constraints:
+              - "CA:TRUE"
+            basic_constraints_critical: true
+            key_usage:
+              - digitalSignature
+              - keyEncipherment
+              - keyCertSign
+              - cRLSign
+            key_usage_critical: true
             subject_alt_name:
               - "DNS:{{ env.bastion.networking.hostname }}"
               - "DNS:{{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}"
@@ -112,6 +121,7 @@
             csr_path: "{{ disconnected.registry.bastion.certs_dir }}/registry.csr"
             provider: selfsigned
             selfsigned_not_after: "+3650d"
+            selfsigned_create_subject_key_identifier: always_create
             mode: "0644"
 
         - name: Copy certificate to system trust anchors
@@ -123,9 +133,51 @@
             mode: "0644"
             remote_src: true
 
+        - name: Read generated certificate
+          ansible.builtin.slurp:
+            src: "{{ disconnected.registry.bastion.certs_dir }}/registry.crt"
+          register: registry_cert_content
+
         - name: Update CA trust
           ansible.builtin.command: update-ca-trust
           changed_when: true
+
+        - name: Create container registry certificate directory
+          become: true
+          ansible.builtin.file:
+            path: "/etc/containers/certs.d/{{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}"
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+
+        - name: Trust generated registry certificate for containers
+          become: true
+          ansible.builtin.copy:
+            src: "{{ disconnected.registry.bastion.certs_dir }}/registry.crt"
+            dest: "/etc/containers/certs.d/{{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}/ca.crt"
+            owner: root
+            group: root
+            mode: "0644"
+            remote_src: true
+
+        - name: Update disconnected.registry.ca_cert with generated certificate
+          ansible.builtin.set_fact:
+            disconnected:
+              "{{ disconnected | combine({
+                'registry': disconnected.registry | combine({
+                  'ca_cert': registry_cert_content.content | b64decode
+                }, recursive=True)
+              }, recursive=True) }}"
+
+        - name: Replace ca_cert block in disconnected.yaml with generated certificate
+          ansible.builtin.lineinfile:
+            path: "{{ inventory_dir }}/group_vars/disconnected.yaml"
+            insertafter: "    ca_cert"
+            backup: true
+            line: "{{ (registry_cert_content.content | b64decode).split('\n') | reject('equalto', '') | map('regex_replace', '^(.*)$', '      \\1') | join('\n') ~ '\n' }}"
+          delegate_to: localhost
+          run_once: true
 
     - name: Use provided certificate if CA is trusted
       become: true
@@ -149,14 +201,13 @@
 
     - name: Create htpasswd file for registry authentication
       become: true
-      community.general.htpasswd:
-        path: "{{ disconnected.registry.bastion.auth_dir }}/htpasswd"
-        name: "{{ disconnected.registry.bastion.username }}"
-        password: "{{ disconnected.registry.bastion.password }}"
-        owner: root
-        group: root
-        mode: "0640"
-        crypt_scheme: bcrypt  # Use bcrypt which is supported by Docker registry
+      ansible.builtin.shell: |
+        htpasswd -nbB {{ disconnected.registry.bastion.username }} {{ disconnected.registry.bastion.password }} > {{ disconnected.registry.bastion.auth_dir }}/htpasswd
+        chown root:root {{ disconnected.registry.bastion.auth_dir }}/htpasswd
+        chmod 0640 {{ disconnected.registry.bastion.auth_dir }}/htpasswd
+      args:
+        creates: "{{ disconnected.registry.bastion.auth_dir }}/htpasswd"
+      no_log: true  # Don't log password
 
     - name: Create registry systemd service file
       become: true
@@ -269,4 +320,4 @@
           - "    'email': 'registry@example.com'"
           - "  }"
 
-# Made with Bob
+# Assisted with Bob

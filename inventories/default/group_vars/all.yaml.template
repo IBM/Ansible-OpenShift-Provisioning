@@ -6,6 +6,7 @@
 # Section 1 - Ansible Controller
 installation_type: kvm
 controller_sudo_pass: "{{ vault_ctl_host_sudo_pass }}"
+disconnected_enabled: false  # Set to true for disconnected/air-gapped installations
 
 env:
 

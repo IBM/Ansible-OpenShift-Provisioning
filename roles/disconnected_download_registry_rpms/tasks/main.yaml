@@ -6,7 +6,7 @@
 - name: Download registry RPMs to file server
   tags: download_registry_rpms
   when:
-    - disconnected.enabled
+    - disconnected_enabled
     - disconnected.registry.bastion.enabled | default(false)
     - not (disconnected.registry.bastion.use_local_repo | default(true))
   block:

@@ -1,0 +1,30 @@
+---
+# Handlers for disconnected_mirror_ocp_bastion role
+
+- name: Display progress update
+  ansible.builtin.shell: |
+    set -o pipefail
+    if [ -f {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log ]; then
+      echo "=========================================="
+      echo "Progress Update - $(date)"
+      echo "=========================================="
+      tail -20 {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log | \
+        grep -E "mirroring|copying|Pulling|sha256|INFO|ERROR" | tail -10 || \
+        echo "Mirroring in progress..."
+      echo ""
+      echo "Images mirrored so far:"
+      grep -c "sha256" {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log 2>/dev/null || echo "0"
+      echo "=========================================="
+    fi
+  args:
+    executable: /bin/bash
+  register: progress_output
+  changed_when: false
+  delegate_to: "{{ groups['bastion'][0] }}"
+
+- name: Show progress
+  ansible.builtin.debug:
+    var: progress_output.stdout_lines
+  when: progress_output is defined
+
+# Made with Bob

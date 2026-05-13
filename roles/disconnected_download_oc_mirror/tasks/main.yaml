@@ -5,7 +5,7 @@
 
 - name: Download oc-mirror and client tools to file server
   tags: download_oc_mirror
-  when: disconnected.enabled
+  when: disconnected_enabled
   block:
     - name: Get user home directory
       ansible.builtin.shell: |
@@ -14,9 +14,105 @@
       changed_when: false
       register: user_home
 
+    - name: Set oc-mirror role variables from existing disconnected structure
+      ansible.builtin.set_fact:
+        oc_mirror_file_server:
+          download_dir: >-
+            {{
+              (
+                disconnected.get('mirroring', {})
+                .get('file_server', {})
+                .get('download_dir')
+              ) | default('/var/tmp/oc-mirror', true)
+            }}
+          document_root: >-
+            {{
+              (
+                disconnected.get('mirroring', {})
+                .get('file_server', {})
+                .get('document_root')
+              ) | default('/var/www/html', true)
+            }}
+          clients_dir: >-
+            {{
+              (
+                disconnected.get('mirroring', {})
+                .get('file_server', {})
+                .get('clients_dir')
+              ) | default('clients', true)
+            }}
+          oc_mirror_tgz: >-
+            {{
+              (
+                disconnected.get('mirroring', {})
+                .get('file_server', {})
+                .get('oc_mirror_tgz')
+              ) | default('oc-mirror.tar.gz', true)
+            }}
+        oc_mirror_host:
+          ip: >-
+            {{
+              (
+                disconnected.get('mirroring', {})
+                .get('host', {})
+                .get('ip')
+              ) | default('', true)
+            }}
+        oc_mirror_download_cfg:
+          base_url: >-
+            {{
+              (
+                disconnected.get('mirroring', {})
+                .get('oc_mirror_download', {})
+                .get('base_url')
+              ) | default(ocp_download_url | regex_replace('/+$', ''), true)
+            }}
+          oc_mirror_tgz: >-
+            {{
+              (
+                disconnected.get('mirroring', {})
+                .get('oc_mirror_download', {})
+                .get('oc_mirror_tgz')
+              ) | default('oc-mirror.tar.gz', true)
+            }}
+        oc_mirror_client_download:
+          ocp_download_url: >-
+            {{
+              (
+                disconnected.get('mirroring', {})
+                .get('client_download', {})
+                .get('ocp_download_url')
+              )
+            }}
+          ocp_client_tgz: >-
+            {{
+              (
+                disconnected.get('mirroring', {})
+                .get('client_download', {})
+                .get('ocp_client_tgz')
+              ) | default(ocp_client_tgz | default('openshift-client-linux.tar.gz'), true)
+            }}
+        oc_mirror_rhcos_download:
+          rhcos_download_url: >-
+            {{
+              (
+                disconnected.get('mirroring', {})
+                .get('rhcos_download', {})
+                .get('rhcos_download_url')
+              )
+            }}
+          rhcos_live_rootfs: >-
+            {{
+              (
+                disconnected.get('mirroring', {})
+                .get('rhcos_download', {})
+                .get('rhcos_live_rootfs')
+              ) | default(rhcos_live_rootfs | default('rhcos-live-rootfs.s390x.img'), true)
+            }}
+
     - name: Create download directory on file server
       ansible.builtin.file:
-        path: "{{ disconnected.mirroring.file_server.download_dir }}"
+        path: "{{ oc_mirror_file_server.download_dir }}"
         state: directory
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
@@ -24,16 +120,67 @@
 
     - name: Create clients directory on file server
       ansible.builtin.file:
-        path: "{{ disconnected.mirroring.file_server.document_root }}/{{ disconnected.mirroring.file_server.clients_dir }}"
+        path: "{{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}"
         state: directory
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: "0755"
+      ignore_errors: true
+
+    - name: Create bin directory on file server
+      ansible.builtin.file:
+        path: "{{ oc_mirror_file_server.document_root }}/bin"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+      ignore_errors: true
+
+    - name: Determine whether mirroring host and file server are the same host
+      ansible.builtin.set_fact:
+        mirror_and_file_server_same_host: "{{ (oc_mirror_host.ip | default('')) == (env.file_server.ip | default('')) }}"
+
+    - name: Test internet connectivity from bastion
+      ansible.builtin.uri:
+        url: "https://mirror.openshift.com"
+        method: HEAD
+        timeout: 10
+        validate_certs: true
+      register: internet_test
+      failed_when: false
+      changed_when: false
+
+    - name: Display connectivity test result
+      ansible.builtin.debug:
+        msg: |
+          Internet connectivity test: {{ 'SUCCESS' if internet_test.status is defined and internet_test.status == 200 else 'FAILED' }}
+          {% if internet_test.status is not defined %}
+          Error: {{ internet_test.msg | default('Unable to reach mirror.openshift.com') }}
+
+          Troubleshooting steps:
+          1. Verify DNS is configured on bastion: cat /etc/resolv.conf
+          2. Test DNS resolution: nslookup mirror.openshift.com
+          3. Test connectivity: curl -I https://mirror.openshift.com
+          4. Check if proxy is needed: echo $http_proxy $https_proxy
+          5. Verify KVM host IP forwarding: sysctl net.ipv4.ip_forward
+          6. Check bastion default gateway: ip route show default
+          {% endif %}
+
+    - name: Fail if internet is not accessible
+      ansible.builtin.fail:
+        msg: |
+          Cannot reach mirror.openshift.com from bastion.
+          Please ensure:
+          - DNS is properly configured (/etc/resolv.conf)
+          - Default gateway is set correctly
+          - KVM host has IP forwarding enabled
+          - Firewall rules allow outbound HTTPS traffic
+      when: internet_test.status is not defined or internet_test.status != 200
 
     - name: Download oc-mirror plugin
       ansible.builtin.get_url:
-        url: "{{ disconnected.mirroring.oc_mirror_download.base_url }}/{{ disconnected.mirroring.oc_mirror_download.oc_mirror_tgz }}"
-        dest: "{{ disconnected.mirroring.file_server.download_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
+        url: "{{ oc_mirror_download_cfg.base_url }}/{{ oc_mirror_download_cfg.oc_mirror_tgz }}"
+        dest: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_file_server.oc_mirror_tgz }}"
         mode: "0644"
         timeout: 300
       register: oc_mirror_download
@@ -43,8 +190,8 @@
 
     - name: Download OCP client tools
       ansible.builtin.get_url:
-        url: "{{ disconnected.mirroring.client_download.ocp_download_url }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
-        dest: "{{ disconnected.mirroring.file_server.download_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+        url: "{{ oc_mirror_client_download.ocp_download_url }}/{{ oc_mirror_client_download.ocp_client_tgz }}"
+        dest: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_client_download.ocp_client_tgz }}"
         mode: "0644"
         timeout: 300
       register: ocp_client_download
@@ -52,29 +199,144 @@
       delay: 10
       until: ocp_client_download is succeeded
 
-    - name: Copy oc-mirror to clients directory for distribution
-      ansible.builtin.copy:
-        src: "{{ disconnected.mirroring.file_server.download_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
-        dest: "{{ disconnected.mirroring.file_server.document_root }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: "0644"
-        remote_src: true
+    - name: Verify OCP client tools file exists
+      ansible.builtin.stat:
+        path: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_client_download.ocp_client_tgz }}"
+      register: ocp_client_file_stat
+      failed_when: not ocp_client_file_stat.stat.exists
 
-    - name: Copy OCP client to clients directory for distribution
-      ansible.builtin.copy:
-        src: "{{ disconnected.mirroring.file_server.download_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
-        dest: "{{ disconnected.mirroring.file_server.document_root }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
+    - name: Download OCP installer
+      ansible.builtin.get_url:
+        url: "{{ oc_mirror_client_download.ocp_download_url }}/openshift-install-linux.tar.gz"
+        dest: "{{ oc_mirror_file_server.download_dir }}/openshift-install-linux.tar.gz"
         mode: "0644"
-        remote_src: true
+        timeout: 300
+      register: ocp_installer_download
+      retries: 3
+      delay: 10
+      until: ocp_installer_download is succeeded
+
+    - name: Download RHCOS rootfs
+      ansible.builtin.get_url:
+        url: "{{ oc_mirror_rhcos_download.rhcos_download_url }}/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}"
+        dest: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}"
+        mode: "0644"
+        timeout: 600
+      register: rhcos_rootfs_download
+      retries: 3
+      delay: 10
+      until: rhcos_rootfs_download is succeeded
+
+    - name: Verify all downloaded files exist before copying
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: download_files_stat
+      failed_when: not download_files_stat.stat.exists
+      loop:
+        - "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_file_server.oc_mirror_tgz }}"
+        - "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_client_download.ocp_client_tgz }}"
+        - "{{ oc_mirror_file_server.download_dir }}/openshift-install-linux.tar.gz"
+        - "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}"
+
+    - name: Copy artifacts locally when mirroring host is the file server
+      when: mirror_and_file_server_same_host
+      block:
+        - name: Copy oc-mirror to clients directory for distribution
+          ansible.builtin.copy:
+            src: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_file_server.oc_mirror_tgz }}"
+            dest: "{{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}/{{ oc_mirror_file_server.oc_mirror_tgz }}"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+            remote_src: true
+
+        - name: Copy OCP client to clients directory for distribution
+          ansible.builtin.copy:
+            src: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_client_download.ocp_client_tgz }}"
+            dest: "{{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}/{{ oc_mirror_client_download.ocp_client_tgz }}"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+            remote_src: true
+
+        - name: Copy OCP installer to clients directory for distribution
+          ansible.builtin.copy:
+            src: "{{ oc_mirror_file_server.download_dir }}/openshift-install-linux.tar.gz"
+            dest: "{{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}/openshift-install-linux.tar.gz"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+            remote_src: true
+
+        - name: Copy RHCOS rootfs to bin directory for node installation
+          ansible.builtin.copy:
+            src: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}"
+            dest: "{{ oc_mirror_file_server.document_root }}/bin/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+            remote_src: true
+
+    - name: Copy artifacts to separate file server when mirroring host differs
+      when: not mirror_and_file_server_same_host
+      block:
+        - name: Copy oc-mirror to separate file server clients directory
+          ansible.builtin.copy:
+            src: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_file_server.oc_mirror_tgz }}"
+            dest: "{{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}/{{ oc_mirror_file_server.oc_mirror_tgz }}"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+            remote_src: true
+          delegate_to: "{{ env.file_server.ip }}"
+
+        - name: Copy OCP client to separate file server clients directory
+          ansible.builtin.copy:
+            src: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_client_download.ocp_client_tgz }}"
+            dest: "{{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}/{{ oc_mirror_client_download.ocp_client_tgz }}"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+            remote_src: true
+          delegate_to: "{{ env.file_server.ip }}"
+
+        - name: Copy OCP installer to separate file server clients directory
+          ansible.builtin.copy:
+            src: "{{ oc_mirror_file_server.download_dir }}/openshift-install-linux.tar.gz"
+            dest: "{{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}/openshift-install-linux.tar.gz"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+            remote_src: true
+          delegate_to: "{{ env.file_server.ip }}"
+
+        - name: Copy RHCOS rootfs to separate file server bin directory
+          ansible.builtin.copy:
+            src: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}"
+            dest: "{{ oc_mirror_file_server.document_root }}/bin/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+            remote_src: true
+          delegate_to: "{{ env.file_server.ip }}"
 
     - name: Display download summary
       ansible.builtin.debug:
         msg:
-          - "oc-mirror available at: {{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{ env.file_server.port }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
-          - "OCP client available at: {{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{ env.file_server.port }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
-          - "Files copied to: {{ disconnected.mirroring.file_server.document_root }}/{{ disconnected.mirroring.file_server.clients_dir }}/"
+          - >-
+            oc-mirror available at: {{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{
+            env.file_server.port }}/{{ oc_mirror_file_server.clients_dir }}/{{
+            oc_mirror_file_server.oc_mirror_tgz }}
+          - >-
+            OCP client available at: {{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{
+            env.file_server.port }}/{{ oc_mirror_file_server.clients_dir }}/{{
+            oc_mirror_client_download.ocp_client_tgz }}
+          - >-
+            OCP installer available at: {{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{
+            env.file_server.port }}/{{ oc_mirror_file_server.clients_dir }}/openshift-install-linux.tar.gz
+          - >-
+            RHCOS rootfs available at: {{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{
+            env.file_server.port }}/bin/rhcos-live-rootfs.s390x.img
+          - "Files copied to: {{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}/"
 
-# Made with Bob
+# Assisted by Bob

@@ -9,25 +9,108 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
     - "{{ inventory_dir }}/group_vars/zvm.yaml"
+  pre_tasks:
+    - name: Include disconnected vars file if disconnected cluster will be installed
+      ansible.builtin.include_vars:
+        file: "{{ inventory_dir }}/group_vars/disconnected.yaml"
+      when: disconnected_enabled | default(false)
+
+    - name: Fail when inventory contains a host named bastion
+      ansible.builtin.fail:
+        msg: >-
+          Inventory host name 'bastion' is reserved and must not be defined as a host.
+          A host named 'bastion' conflicts with the [bastion] group and can cause Ansible
+          to ignore the expected ansible_user, falling back to the controller user instead.
+          Rename the host entry to a unique inventory hostname such as
+          '{{ env.bastion.networking.hostname | default("bastion-host") }}' and, if needed,
+          place that host in the [bastion] and/or [mirrorhost] groups.
+      when:
+        - "'bastion' in hostvars"
+        - "'bastion' not in groups.get('bastion', [])"
+
+    - name: Report incomplete static IPv6 configuration for cluster nodes
+      block:
+        - name: Fail message when static IPv6 configuration is incomplete for cluster nodes
+          ansible.builtin.fail:
+            msg:
+              - "Static IPv6 is enabled because use_ipv6=true and use_dhcp=false."
+              - "Ensure Section 8 control nodes define env.cluster.nodes.control.ipv6."
+              - "Ensure Section 9 compute nodes define env.cluster.nodes.compute.ipv6 for all defined nodes."
+              - "Ensure Section 10 infra nodes define env.cluster.nodes.infra.ipv6 for all defined nodes when infra nodes are configured."
+      rescue:
+        - name: Continue after reporting incomplete static IPv6 configuration
+          ansible.builtin.debug:
+            msg: "Continuing execution after IPv6 configuration warning."
+      vars:
+        control_hostnames: "{{ env.cluster.nodes.control.hostname | default([]) }}"
+        control_ipv6: "{{ env.cluster.nodes.control.ipv6 | default([]) }}"
+        compute_hostnames: "{{ env.cluster.nodes.compute.hostname | default([]) }}"
+        compute_ipv6: "{{ env.cluster.nodes.compute.ipv6 | default([]) }}"
+        infra_hostnames: "{{ env.cluster.nodes.infra.hostname | default([]) }}"
+        infra_ipv6: "{{ env.cluster.nodes.infra.ipv6 | default([]) }}"
+        infra_defined: >-
+          {{
+            env.cluster.nodes.infra is defined and
+            env.cluster.nodes.infra.hostname is defined and
+            env.cluster.nodes.infra.hostname is not none and
+            (
+              (
+                env.cluster.nodes.infra.hostname is string and
+                env.cluster.nodes.infra.hostname | trim != ''
+              ) or
+              (
+                env.cluster.nodes.infra.hostname is sequence and
+                env.cluster.nodes.infra.hostname is not string and
+                (env.cluster.nodes.infra.hostname | length > 0)
+              )
+            )
+          }}
+      when:
+        - env.use_ipv6 | default(use_ipv6 | default(false)) | bool
+        - not (env.use_dhcp | default(use_dhcp | default(false)) | bool)
+        - >-
+          (control_ipv6 | length) < (control_hostnames | length) or
+          (compute_ipv6 | length) < (compute_hostnames | length) or
+          (infra_defined and ((infra_ipv6 | length) < (infra_hostnames | length)))
+
   roles:
     - set_inventory
     - install_galaxy
 
-  pre_tasks:
+  tasks:
     - name: Check disconnected variables if disconnected cluster will be installed.
       tags: disconnected
       ansible.builtin.include_role:
         name: disconnected_check_vars
-      when: disconnected.enabled
+      when: disconnected_enabled
 
   post_tasks:
     - name: Find ibm_zhmc collection install location, if automated LPAR creation is to be used.
       tags: galaxy
-      ansible.builtin.shell: ansible-galaxy collection list ibm.ibm_zhmc | grep -i ansible | cut -c 3-
-      register: zhmc_path
-      when: env.z.lpar1.create == True or env.z.lpar2.create == True or env.z.lpar3.create == True
+      ansible.builtin.command:
+        argv:
+          - ansible-galaxy
+          - collection
+          - list
+          - ibm.ibm_zhmc
+      register: zhmc_collection_list
+      when: env.z.lpar1.create or env.z.lpar2.create or env.z.lpar3.create
+
+    - name: Extract ibm_zhmc collection install location
+      tags: galaxy
+      ansible.builtin.set_fact:
+        zhmc_path:
+          stdout: >-
+            {{
+              (
+                zhmc_collection_list.stdout_lines
+                | select('search', 'ansible')
+                | first
+                | regex_replace('^..', '')
+              )
+            }}
+      when: env.z.lpar1.create or env.z.lpar2.create or env.z.lpar3.create
 
     - name: Ensure zhmcclient requirements are installed.
       tags: galaxy
@@ -35,7 +118,7 @@
         requirements: "{{ zhmc_path.stdout }}/ibm/ibm_zhmc/requirements.txt"
         executable: pip3
         extra_args: --upgrade
-      when: env.z.lpar1.create == True or env.z.lpar2.create == True or env.z.lpar3.create == True
+      when: env.z.lpar1.create or env.z.lpar2.create or env.z.lpar3.create
 
     - name: Check to make sure that the KVM host has a corresponding inventory host_vars file named with matching hostname and .yaml extension.
       tags: lpar_check

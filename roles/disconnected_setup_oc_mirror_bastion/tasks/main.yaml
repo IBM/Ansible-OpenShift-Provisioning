@@ -5,7 +5,7 @@
 
 - name: Setup oc-mirror on bastion for mirroring
   tags: setup_oc_mirror_bastion
-  when: disconnected.enabled
+  when: disconnected_enabled
   block:
     - name: Get user home directory
       ansible.builtin.shell: |
@@ -122,16 +122,39 @@
 
     - name: Setup CA certificate for registry access
       become: true
-      when: not disconnected.registry.ca_trusted
       block:
-        - name: Read generated certificate from bastion registry
+        - name: Check if certificate exists in disconnected config
+          ansible.builtin.set_fact:
+            has_ca_cert: "{{ (disconnected.registry.ca_cert | default('') | trim | length > 0) }}"
+
+        - name: Debug certificate availability
+          ansible.builtin.debug:
+            msg:
+              - "Certificate in config: {{ has_ca_cert }}"
+              - "Certificate length: {{ disconnected.registry.ca_cert | default('') | length }}"
+              - "Bastion registry enabled: {{ disconnected.registry.bastion.enabled | default(false) }}"
+
+        - name: Read certificate from bastion registry if not in config
           ansible.builtin.slurp:
             src: "{{ disconnected.registry.bastion.certs_dir }}/registry.crt"
-          register: registry_cert_content
+          register: registry_cert_from_file
+          when:
+            - not has_ca_cert
+            - disconnected.registry.bastion.enabled | default(false)
+
+        - name: Set certificate content from config or file
+          ansible.builtin.set_fact:
+            registry_cert_content: "{{ disconnected.registry.ca_cert if has_ca_cert else (registry_cert_from_file.content | b64decode) }}"
+          when: has_ca_cert or (registry_cert_from_file is defined and registry_cert_from_file.content is defined)
+
+        - name: Fail if no certificate available
+          ansible.builtin.fail:
+            msg: "No certificate available - neither in config nor in registry certs directory"
+          when: registry_cert_content is not defined
 
         - name: Copy CA certificate to trust anchors
           ansible.builtin.copy:
-            content: "{{ registry_cert_content.content | b64decode }}"
+            content: "{{ registry_cert_content }}"
             dest: /etc/pki/ca-trust/source/anchors/registry.crt
             owner: root
             group: root
@@ -140,6 +163,58 @@
         - name: Update CA trust
           ansible.builtin.command: update-ca-trust
           changed_when: true
+
+        - name: Get registry URL for certificate directory
+          ansible.builtin.set_fact:
+            registry_host: "{{ env.bastion.networking.ip if disconnected.registry.bastion.enabled | default(false) else disconnected.registry.ip }}"
+            registry_port: "{{ disconnected.registry.bastion.port if disconnected.registry.bastion.enabled | default(false) else disconnected.registry.url.split(':')[-1] }}"
+
+        - name: Create containers certs.d directory for registry
+          ansible.builtin.file:
+            path: "/etc/containers/certs.d/{{ registry_host }}:{{ registry_port }}"
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+
+        - name: Copy certificate to containers certs.d
+          ansible.builtin.copy:
+            content: "{{ registry_cert_content }}"
+            dest: "/etc/containers/certs.d/{{ registry_host }}:{{ registry_port }}/ca.crt"
+            owner: root
+            group: root
+            mode: "0644"
+
+        - name: Verify certificate installation
+          ansible.builtin.debug:
+            msg:
+              - "Certificate installed to: /etc/pki/ca-trust/source/anchors/registry.crt"
+              - "Certificate installed to: /etc/containers/certs.d/{{ registry_host }}:{{ registry_port }}/ca.crt"
+              - "CA trust updated"
+
+        - name: Test certificate with curl
+          ansible.builtin.command: >
+            curl -v https://{{ registry_host }}:{{ registry_port }}/v2/
+          register: curl_test
+          failed_when: false
+          changed_when: false
+
+        - name: Display curl test result
+          ansible.builtin.debug:
+            msg:
+              - "Curl test result: {{ curl_test.rc }}"
+              - "Curl stderr: {{ curl_test.stderr }}"
+
+        - name: Test registry with podman
+          ansible.builtin.command: >
+            podman login --get-login {{ registry_host }}:{{ registry_port }}
+          register: podman_test
+          failed_when: false
+          changed_when: false
+
+        - name: Display podman test result
+          ansible.builtin.debug:
+            var: podman_test
 
     - name: Verify oc-mirror installation
       ansible.builtin.command: oc-mirror version
@@ -158,4 +233,4 @@
           - "oc-mirror binary: /usr/local/bin/oc-mirror"
           - "Pull secret configured: {{ user_home.stdout }}/.docker/config.json"
 
-# Made with Bob
+# Assisted by Bob

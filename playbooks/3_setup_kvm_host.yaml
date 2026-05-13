@@ -124,7 +124,7 @@
         line: 'group = "libvirt"'
         backup: true
 
-    - name: Get user home directory 
+    - name: Get user home directory
       tags: libvirt
       ansible.builtin.shell: >
              getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
@@ -134,12 +134,12 @@
     - name: Check if directory {{ user_home.stdout }}/.config/libvirt exists
       tags: libvirt
       ansible.builtin.stat:
-        path: "{{ user_home.stdout }}/.config/libvirt" 
+        path: "{{ user_home.stdout }}/.config/libvirt"
       register: home_config_libvirt
 
     - name: Create directory {{ user_home.stdout }}/.config/libvirt
       tags: libvirt
-      ansible.builtin.file: 
+      ansible.builtin.file:
         path: "{{ user_home.stdout }}/.config/libvirt"
         state: directory
       when: home_config_libvirt.stat.exists == false

@@ -36,8 +36,8 @@ platform:
   none: {}
 sshKey: >
   {{ ssh_key.stdout }}
-pullSecret: '{{ env.redhat.pull_secret if not disconnected.enabled else disconnected.registry.pull_secret }}'
-{% if disconnected.enabled %}
+pullSecret: '{{ env.redhat.pull_secret if not disconnected_enabled else disconnected.registry.pull_secret }}'
+{% if disconnected_enabled %}
 {{ 'imageContentSources: ' }}
 {{ '- mirrors:'}}
 {{ '  - ' + disconnected.registry.url + '/' }}{{ disconnected.mirroring.legacy.ocp_org if disconnected.mirroring.legacy.platform else 'openshift' }}{{ '/' }}{{ disconnected.mirroring.legacy.ocp_repo if disconnected.mirroring.legacy.platform else 'release-images' }}
@@ -46,6 +46,6 @@ pullSecret: '{{ env.redhat.pull_secret if not disconnected.enabled else disconne
 {{ '  - ' + disconnected.registry.url + '/' }}{{ disconnected.mirroring.legacy.ocp_org if disconnected.mirroring.legacy.platform else 'openshift' }}{{ '/' }}{{ disconnected.mirroring.legacy.ocp_repo if disconnected.mirroring.legacy.platform else 'release' }}
 {{ '  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev' }}
 {% endif %}
-{% if disconnected.enabled and not disconnected.registry.ca_trusted %}
+{% if disconnected_enabled and not disconnected.registry.ca_trusted %}
 {{ 'additionalTrustBundle: |' }}{% for line in disconnected.registry.ca_cert.split('\n') %}{{ '\n  ' + line }}{% endfor %}
 {% endif %}

@@ -56,8 +56,8 @@
           --hmcpass {{ node.hmc.auth.pass }} \
           --cpu {{ node.lpar.ifl.count }} \
           --memory {{ node.lpar.ifl.initial_memory }} \
-          --kernel {{ rhcos_download_url }}{{ rhcos_live_kernel }} \
-          --initrd {{ rhcos_download_url }}{{ rhcos_live_initrd }} \
+          --kernel {% if disconnected is defined and disconnected_enabled %}{{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{ env.file_server.port }}/{{ disconnected.mirroring.file_server.clients_dir }}/{% else %}{{ rhcos_download_url }}{% endif %}{{ rhcos_live_kernel }} \
+          --initrd {% if disconnected is defined and disconnected_enabled %}{{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{ env.file_server.port }}/{{ disconnected.mirroring.file_server.clients_dir }}/{% else %}{{ rhcos_download_url }}{% endif %}{{ rhcos_live_initrd }} \
           --livedisktype {{ node.lpar.livedisk.livedisktype }} \
           {% if node.lpar.dpm_enabled == 'True' %}
           --dpm_enabled {{ node.lpar.dpm_enabled }} \
@@ -86,8 +86,8 @@
           --hmcpass {{ node.hmc.auth.pass }} \
           --cpu {{ node.lpar.ifl.count }} \
           --memory {{ node.lpar.ifl.initial_memory }} \
-          --kernel {{ rhcos_download_url }}{{ rhcos_live_kernel }} \
-          --initrd {{ rhcos_download_url }}{{ rhcos_live_initrd }} \
+          --kernel {% if disconnected is defined and disconnected_enabled %}{{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{ env.file_server.port }}/{{ disconnected.mirroring.file_server.clients_dir }}/{% else %}{{ rhcos_download_url }}{% endif %}{{ rhcos_live_kernel }} \
+          --initrd {% if disconnected is defined and disconnected_enabled %}{{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{ env.file_server.port }}/{{ disconnected.mirroring.file_server.clients_dir }}/{% else %}{{ rhcos_download_url }}{% endif %}{{ rhcos_live_initrd }} \
           --livedisktype {{ node.lpar.livedisk.livedisktype }} \
           {% if node.lpar.dpm_enabled == 'True' %}
           --dpm_enabled {{ node.lpar.dpm_enabled }} \
