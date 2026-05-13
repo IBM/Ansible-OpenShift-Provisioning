@@ -19,6 +19,7 @@
           - podman
           - httpd-tools
           - openssl
+          - python3-cryptography  # Required for community.crypto Ansible modules
         state: present
 
     - name: Install packages from downloaded RPMs (if not using repo)
@@ -196,13 +197,5 @@
           - "    'auth': '{{ registry_auth }}',"
           - "    'email': 'registry@example.com'"
           - "  }"
-
-  handlers:
-    - name: Restart container registry
-      become: true
-      ansible.builtin.systemd:
-        name: container-registry
-        state: restarted
-        daemon_reload: true
 
 # Made with Bob

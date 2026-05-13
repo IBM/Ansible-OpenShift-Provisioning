@@ -1,12 +1,13 @@
 # Warning: currently, the oc-mirror plugin is officially downloadable to amd64 only.
 # Please refer to docs set-variables-group-vars.md for instructions on how to create this configuration file for disconnected.
 disconnected:
-  enabled: false
+  enabled: true
   registry:
     url: 'registry url'  # Will be auto-set to bastion IP:port if using bastion registry
     ip: 'registry reachable ip'  # Will be auto-set to bastion IP if using bastion registry
-    pull_secret: ''
-    ca_trusted: true
+    pull_secret: "{{ env.redhat.pull_secret }}"  # References pull_secret from all.yaml (will be auto-updated with registry credentials)
+    mirror_pull_secret: "{{ env.redhat.pull_secret }}"  # Same as pull_secret, used for mirroring operations
+    ca_trusted: false  # Set to false to auto-generate self-signed certificate, true if using provided cert
     ca_cert: |
       -----BEGIN CERTIFICATE-----
       if ca_trusted is False, then this ca will be added to mirror host anchors
@@ -34,10 +35,10 @@ disconnected:
   mirroring:
     # this is the host that can access the internet as well as the registry
     host:
-      name: hosname
-      ip: x.x.x.x
-      user: mirroruser # with become access
-      pass: mirrorpassword
+      name: bastion-lp23
+      ip: 172.23.238.65
+      user: root # with become access
+      pass: pass4root
     # In disconnected mode client binaries and RHCOS will be placed on the
     # file server (env.file_server) and then downloaded to the final
     # destination from there. Currently only oc-mirror is handled this way.
@@ -59,7 +60,7 @@ disconnected:
       ocp_client_tgz: 'openshift-client-linux.tar.gz'
     legacy:
       platform: false
-      ocp_quay_release_image_tag: '4.21.14-s390x'
+      ocp_quay_release_image_tag: '4.21.14-multi'
       ocp_org: 'ocp4'
       ocp_repo: 'openshift4'
       ocp_tag: 'v4.21.14' # platform images will be pushed to {registry_url}/{ocp_org}/{ocp_repo}:{ocp_tag}
@@ -100,7 +101,7 @@ disconnected:
                 minVersion: 4.21.14
                 maxVersion: 4.21.14
           operators:
-            - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.13
+            - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.21
               full: false
               packages:
                 - name: serverless-operator

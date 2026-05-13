@@ -12,6 +12,25 @@
 #   - disconnected.yaml must be properly configured
 #   - Pull secret must be configured in disconnected.registry.mirror_pull_secret
 
+- name: Download registry RPMs to file server (if needed)
+  hosts: "{{ 'bastion' if (env.bastion.networking.ip | default('') == env.file_server.ip | default('')) else 'file_server' }}"
+  gather_facts: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
+  tasks:
+    - name: Download registry RPM packages
+      ansible.builtin.include_role:
+        name: disconnected_download_registry_rpms
+      when:
+        - disconnected.enabled
+        - disconnected.registry.bastion.enabled | default(false)
+        - not (disconnected.registry.bastion.use_local_repo | default(true))
+      tags:
+        - download
+        - download_rpms
+
 - name: Setup container registry on bastion
   hosts: bastion
   gather_facts: true
@@ -20,25 +39,6 @@
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
     - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   tasks:
-    - name: Download registry RPMs to file server (if needed)
-      hosts: "{{ 'bastion' if env.bastion.ip == env.file_server.ip else 'file_server' }}"
-      gather_facts: true
-      vars_files:
-        - "{{ inventory_dir }}/group_vars/all.yaml"
-        - "{{ inventory_dir }}/group_vars/secrets.yaml"
-        - "{{ inventory_dir }}/group_vars/disconnected.yaml"
-      tasks:
-        - name: Download registry RPM packages
-          ansible.builtin.include_role:
-            name: disconnected_download_registry_rpms
-          when:
-            - disconnected.enabled
-            - disconnected.registry.bastion.enabled | default(false)
-            - not (disconnected.registry.bastion.use_local_repo | default(true))
-          tags:
-            - download
-            - download_rpms
-    
     - name: Setup container registry on bastion
       ansible.builtin.include_role:
         name: disconnected_setup_registry_bastion
@@ -68,7 +68,7 @@
         - update_pull_secret
 
 - name: Download oc-mirror to file server
-  hosts: "{{ 'bastion' if env.bastion.ip == env.file_server.ip else 'file_server' }}"
+  hosts: "{{ 'bastion' if (env.bastion.networking.ip | default('') == env.file_server.ip | default('')) else 'file_server' }}"
   gather_facts: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
