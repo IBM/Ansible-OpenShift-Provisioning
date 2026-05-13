@@ -1,0 +1,11 @@
+---
+# Handlers for disconnected_setup_registry_bastion role
+
+- name: Restart container registry
+  become: true
+  ansible.builtin.systemd:
+    name: container-registry
+    state: restarted
+    daemon_reload: true
+
+# Made with Bob

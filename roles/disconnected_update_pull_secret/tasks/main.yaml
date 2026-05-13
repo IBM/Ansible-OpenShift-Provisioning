@@ -70,26 +70,58 @@
             dest: "{{ inventory_dir }}/group_vars/pull_secret_with_registry.json"
             mode: "0600"
 
-        - name: Display instructions for permanent update
+        - name: Read current all.yaml file
+          ansible.builtin.slurp:
+            src: "{{ inventory_dir }}/group_vars/all.yaml"
+          register: all_yaml_content
+
+        - name: Decode all.yaml content
+          ansible.builtin.set_fact:
+            all_yaml_lines: "{{ (all_yaml_content.content | b64decode).split('\n') }}"
+
+        - name: Find pull_secret line in all.yaml
+          ansible.builtin.set_fact:
+            pull_secret_line_index: "{{ all_yaml_lines | map('regex_search', '^\\s*pull_secret:') | select('string') | list | length }}"
+
+        - name: Prepare updated pull secret for YAML (single line, properly escaped)
+          ansible.builtin.set_fact:
+            updated_pull_secret_yaml: "{{ updated_pull_secret | to_json }}"
+
+        - name: Prepare original pull secret comment
+          ansible.builtin.set_fact:
+            original_pull_secret_comment: "# ORIGINAL_PULL_SECRET: {{ env.redhat.pull_secret }}"
+
+        - name: Update all.yaml with new pull secret and commented backup
+          ansible.builtin.lineinfile:
+            path: "{{ inventory_dir }}/group_vars/all.yaml"
+            regexp: '^(\s*)pull_secret:'
+            line: "    {{ original_pull_secret_comment }}\n    pull_secret: '{{ updated_pull_secret_yaml }}'"
+            backrefs: yes
+            backup: yes
+
+        - name: Display success message
           ansible.builtin.debug:
             msg:
               - "=========================================="
               - "Pull Secret Updated Successfully!"
               - "=========================================="
               - ""
-              - "The pull secret has been updated for this playbook run."
+              - "✅ The pull secret has been automatically updated in:"
+              - "   {{ inventory_dir }}/group_vars/all.yaml"
               - ""
-              - "To make this change permanent:"
-              - "1. Review the updated pull secret at:"
+              - "✅ A backup of the original all.yaml was created with .backup extension"
+              - ""
+              - "✅ The original pull secret is preserved as a comment above the new one"
+              - ""
+              - "✅ A JSON copy is available at:"
               - "   {{ inventory_dir }}/group_vars/pull_secret_with_registry.json"
               - ""
-              - "2. Copy the content and update env.redhat.pull_secret in all.yaml"
+              - "Registry added:"
+              - "  Registry: {{ registry_url }}"
+              - "  Username: {{ disconnected.registry.bastion.username }}"
+              - "  Email: {{ disconnected.registry.bastion.email }}"
               - ""
-              - "3. Or manually add this entry to your existing pull secret:"
-              - "   '{{ registry_url }}': {"
-              - "     'auth': '{{ registry_auth }}',"
-              - "     'email': '{{ disconnected.registry.bastion.email }}'"
-              - "   }"
+              - "The updated pull secret is now active for all subsequent playbook runs."
 
     - name: Registry already in pull secret
       when: registry_exists

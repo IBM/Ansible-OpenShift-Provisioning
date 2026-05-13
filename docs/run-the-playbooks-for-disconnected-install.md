@@ -5,6 +5,7 @@ This guide explains how to set up and run OpenShift Container Platform (OCP) in 
 ## Table of Contents
 
 - [Overview](#overview)
+- [Correct Playbook Execution Order](#correct-playbook-execution-order)
 - [Architecture](#architecture)
 - [Prerequisites](#prerequisites)
 - [Configuration](#configuration)
@@ -21,6 +22,150 @@ In disconnected environments, OpenShift clusters cannot directly access Red Hat'
 2. Downloading oc-mirror plugin and OCP client tools
 3. Mirroring OCP platform images, operators, and additional images
 4. Generating necessary manifests for cluster installation
+
+## Correct Playbook Execution Order
+
+### Standard Installation (UPI - User Provisioned Infrastructure)
+
+For a complete disconnected OpenShift installation from scratch, execute playbooks in this **exact order**:
+
+1. **[`0_setup.yaml`](../playbooks/0_setup.yaml)** - Setup inventory, install Galaxy collections, check disconnected variables
+   ```bash
+   ansible-playbook -i inventories/default playbooks/0_setup.yaml
+   ```
+
+2. **[`1_create_lpar.yaml`](../playbooks/1_create_lpar.yaml)** - Create LPARs (if using HMC/DPM mode)
+   ```bash
+   ansible-playbook -i inventories/default playbooks/1_create_lpar.yaml
+   ```
+
+3. **[`2_create_kvm_host.yaml`](../playbooks/2_create_kvm_host.yaml)** - Boot RHEL on LPARs
+   ```bash
+   ansible-playbook -i inventories/default playbooks/2_create_kvm_host.yaml
+   ```
+
+4. **[`3_setup_kvm_host.yaml`](../playbooks/3_setup_kvm_host.yaml)** - Configure KVM hosts with libvirt, networking, storage
+   ```bash
+   ansible-playbook -i inventories/default playbooks/3_setup_kvm_host.yaml
+   ```
+
+5. **[`4_create_bastion.yaml`](../playbooks/4_create_bastion.yaml)** - Create bastion VM
+   ```bash
+   ansible-playbook -i inventories/default playbooks/4_create_bastion.yaml
+   ```
+
+6. **🆕 [`disconnected_setup_oc_mirror.yaml`](../playbooks/disconnected_setup_oc_mirror.yaml)** - **CRITICAL: Setup registry and mirror images**
+   ```bash
+   ansible-playbook -i inventories/default playbooks/disconnected_setup_oc_mirror.yaml --ask-vault-pass
+   ```
+   
+   **This playbook MUST run after bastion creation but BEFORE bastion setup because:**
+   - ✅ Bastion must exist to host the registry
+   - ✅ Registry and mirrored images must be ready before OCP installation files are created
+   - ✅ Pull secret is automatically updated in `all.yaml` for use by subsequent playbooks
+   - ✅ Generates manifests needed for disconnected cluster installation
+
+7. **[`5_setup_bastion.yaml`](../playbooks/5_setup_bastion.yaml)** - Configure bastion services (DNS, HAProxy, get OCP binaries)
+   ```bash
+   ansible-playbook -i inventories/default playbooks/5_setup_bastion.yaml
+   ```
+
+8. **[`6_create_nodes.yaml`](../playbooks/6_create_nodes.yaml)** - Create and bootstrap cluster nodes
+   ```bash
+   ansible-playbook -i inventories/default playbooks/6_create_nodes.yaml
+   ```
+
+9. **[`7_ocp_verification.yaml`](../playbooks/7_ocp_verification.yaml)** - Verify cluster installation
+   ```bash
+   ansible-playbook -i inventories/default playbooks/7_ocp_verification.yaml
+   ```
+
+10. **[`disconnected_apply_operator_manifests.yaml`](../playbooks/disconnected_apply_operator_manifests.yaml)** - Apply operator manifests to cluster
+    ```bash
+    ansible-playbook -i inventories/default playbooks/disconnected_apply_operator_manifests.yaml
+    ```
+
+### ABI Installation (Agent-Based Installer)
+
+For ABI disconnected installation, execute in this order:
+
+1. **[`0_setup.yaml`](../playbooks/0_setup.yaml)** - Setup inventory and check variables
+   ```bash
+   ansible-playbook -i inventories/default playbooks/0_setup.yaml
+   ```
+
+2. **[`3_setup_kvm_host.yaml`](../playbooks/3_setup_kvm_host.yaml)** - Configure KVM hosts (if using KVM)
+   ```bash
+   ansible-playbook -i inventories/default playbooks/3_setup_kvm_host.yaml
+   ```
+
+3. **[`4_create_bastion.yaml`](../playbooks/4_create_bastion.yaml)** - Create bastion VM
+   ```bash
+   ansible-playbook -i inventories/default playbooks/4_create_bastion.yaml
+   ```
+
+4. **🆕 [`disconnected_setup_oc_mirror.yaml`](../playbooks/disconnected_setup_oc_mirror.yaml)** - Setup registry and mirror images
+   ```bash
+   ansible-playbook -i inventories/default playbooks/disconnected_setup_oc_mirror.yaml --ask-vault-pass
+   ```
+
+5. **[`5_setup_bastion.yaml`](../playbooks/5_setup_bastion.yaml)** - Configure bastion services
+   ```bash
+   ansible-playbook -i inventories/default playbooks/5_setup_bastion.yaml
+   ```
+
+6. **[`create_abi_cluster.yaml`](../playbooks/create_abi_cluster.yaml)** - Create ABI cluster
+   ```bash
+   ansible-playbook -i inventories/default playbooks/create_abi_cluster.yaml
+   ```
+
+7. **[`monitor_create_abi_cluster.yaml`](../playbooks/monitor_create_abi_cluster.yaml)** - Monitor ABI installation
+   ```bash
+   ansible-playbook -i inventories/default playbooks/monitor_create_abi_cluster.yaml
+   ```
+
+### Pre-existing LPAR Installation
+
+If you have pre-existing LPARs with RHEL already installed, skip steps 1-3 and start from step 4:
+
+```bash
+# Start from KVM host setup
+ansible-playbook -i inventories/default playbooks/3_setup_kvm_host.yaml
+# Then continue with steps 5-10 as shown above
+```
+
+### Using Master Playbooks
+
+**⚠️ Important**: The current [`site.yaml`](../playbooks/site.yaml) master playbook calls the OLD `disconnected_mirror_artifacts.yaml` playbook. You should update it to use the new `disconnected_setup_oc_mirror.yaml` playbook instead.
+
+**Option 1: Run all standard playbooks at once** (after updating site.yaml):
+```bash
+ansible-playbook -i inventories/default playbooks/site.yaml --ask-vault-pass
+```
+
+**Option 2: Run ABI master playbook** (after updating master_playbook_for_abi.yaml):
+```bash
+ansible-playbook -i inventories/default playbooks/master_playbook_for_abi.yaml --ask-vault-pass
+```
+
+### Critical Timing Notes
+
+**The insertion point for `disconnected_setup_oc_mirror.yaml` is critical:**
+
+```
+✅ CORRECT ORDER:
+4_create_bastion.yaml → disconnected_setup_oc_mirror.yaml → 5_setup_bastion.yaml
+
+❌ WRONG ORDER:
+5_setup_bastion.yaml → disconnected_setup_oc_mirror.yaml (TOO LATE - install-config already created)
+disconnected_setup_oc_mirror.yaml → 4_create_bastion.yaml (TOO EARLY - bastion doesn't exist)
+```
+
+**Why this order matters:**
+1. Bastion must exist to host the container registry
+2. Registry must be running before mirroring images
+3. Images must be mirrored before creating OCP installation files
+4. Pull secret must be updated before `5_setup_bastion.yaml` creates install-config.yaml
 
 ### Installation Methods Comparison
 
