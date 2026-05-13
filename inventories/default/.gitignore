@@ -8,5 +8,3 @@ hosts
 !group_vars
 !host_vars
 !.gitignore
-
-# Assisted with Bob

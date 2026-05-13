@@ -5,7 +5,7 @@
 
 - name: Mirror OCP images using oc-mirror on bastion
   tags: mirror_ocp_bastion
-  when: disconnected.enabled
+  when: disconnected_enabled
   block:
     - name: Get user home directory
       ansible.builtin.shell: |
@@ -16,7 +16,12 @@
 
     - name: Set registry URL based on configuration
       ansible.builtin.set_fact:
-        registry_url: "{{ env.bastion.networking.ip ~ ':' ~ disconnected.registry.bastion.port if disconnected.registry.bastion.enabled | default(false) else disconnected.registry.url }}"
+        registry_url: >-
+          {{
+            env.bastion.networking.ip ~ ':' ~ disconnected.registry.bastion.port
+            if disconnected.registry.bastion.enabled | default(false)
+            else disconnected.registry.url
+          }}
 
     - name: Create imageset configuration file
       ansible.builtin.template:
@@ -25,6 +30,14 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: "0644"
+
+    - name: Copy monitoring script to bastion
+      ansible.builtin.copy:
+        src: monitor-oc-mirror.sh
+        dest: "{{ disconnected.mirroring.bastion.working_dir }}/monitor-oc-mirror.sh"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
 
     - name: Create registries.conf for oc-mirror v2 if needed
       when:
@@ -60,8 +73,8 @@
           args:
             chdir: "{{ disconnected.mirroring.bastion.working_dir }}"
           register: oc_mirror_v1_output
-          async: 7200
-          poll: 30
+          async: "{{ disconnected.mirroring.oc_mirror.oc_mirror_args.async_timeout | default(7200) }}"
+          poll: "{{ disconnected.mirroring.oc_mirror.oc_mirror_args.async_poll | default(30) }}"
 
         - name: Display oc-mirror v1 output
           ansible.builtin.debug:
@@ -89,9 +102,11 @@
         - name: Run oc-mirror v2 dry-run to generate mapping
           ansible.builtin.shell: |
             set -o pipefail
+            export SSL_CERT_FILE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
             oc mirror --v2 --config {{ disconnected.mirroring.bastion.working_dir }}/imageset-config.yaml \
               --workspace file://{{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-workspace \
               docker://{{ registry_url }} \
+              --dest-tls-verify=false \
               --dry-run
           args:
             chdir: "{{ disconnected.mirroring.bastion.working_dir }}"
@@ -102,21 +117,85 @@
           ansible.builtin.debug:
             var: oc_mirror_v2_dryrun.stdout_lines
 
-        - name: Run oc-mirror v2 to mirror images
+        - name: Run oc-mirror v2 to mirror images (async)
           ansible.builtin.shell: |
             set -o pipefail
-            oc mirror --v2 --config {{ disconnected.mirroring.bastion.working_dir }}/imageset-config.yaml \
+            export SSL_CERT_FILE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+            oc mirror --v2 \
+              --config {{ disconnected.mirroring.bastion.working_dir }}/imageset-config.yaml \
               --workspace file://{{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-workspace \
-              docker://{{ registry_url }}{{ ' --continue-on-error' if disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error }}
+              docker://{{ registry_url }} \
+              --dest-tls-verify=false \
+              {{ '--continue-on-error' if disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error else '' }} \
+              {{ '--src-tls-verify=false' if disconnected.mirroring.oc_mirror.oc_mirror_args.source_skip_tls else '' }} \
+              2>&1 | tee {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log
           args:
             chdir: "{{ disconnected.mirroring.bastion.working_dir }}"
-          register: oc_mirror_v2_output
-          async: 7200
-          poll: 30
+          register: oc_mirror_v2_job
+          async: "{{ disconnected.mirroring.oc_mirror.oc_mirror_args.async_timeout | default(7200) }}"
+          poll: 0
 
-        - name: Display oc-mirror v2 output
+        - name: Display mirroring progress information
           ansible.builtin.debug:
-            var: oc_mirror_v2_output.stdout_lines
+            msg:
+              - "=========================================="
+              - "OC-Mirror is running in the background"
+              - "=========================================="
+              - "Progress log: {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log"
+              - "Job ID: {{ oc_mirror_v2_job.ansible_job_id }}"
+              - ""
+              - "To monitor progress in real-time, SSH to bastion and run:"
+              - "  tail -f {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log"
+              - ""
+              - "Or use this command to see only image pulls:"
+              - >-
+                  tail -f {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log |
+                  grep -E 'mirroring|copying|Pulling|sha256'
+              - ""
+              - >-
+                Ansible will check progress every
+                {{ disconnected.mirroring.oc_mirror.oc_mirror_args.async_poll | default(30) }} seconds...
+
+        - name: Monitor oc-mirror progress with periodic updates
+          ansible.builtin.async_status:
+            jid: "{{ oc_mirror_v2_job.ansible_job_id }}"
+          register: oc_mirror_v2_result
+          until: oc_mirror_v2_result.finished
+          retries: >-
+            {{
+              (
+                disconnected.mirroring.oc_mirror.oc_mirror_args.async_timeout | default(7200) /
+                disconnected.mirroring.oc_mirror.oc_mirror_args.async_poll | default(30)
+              ) | int
+            }}
+          delay: "{{ disconnected.mirroring.oc_mirror.oc_mirror_args.async_poll | default(30) }}"
+          notify: Display progress update
+
+        - name: Set final output variable
+          ansible.builtin.set_fact:
+            oc_mirror_v2_output: "{{ oc_mirror_v2_result }}"
+
+        - name: Display oc-mirror v2 final output
+          ansible.builtin.debug:
+            msg:
+              - "=========================================="
+              - "OC-Mirror completed successfully!"
+              - "=========================================="
+              - >-
+                Full log available at:
+                {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log
+              - ""
+              - "Summary of last 50 lines:"
+
+        - name: Display last 50 lines of mirroring output
+          ansible.builtin.shell: |
+            tail -50 {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log
+          register: mirror_summary
+          changed_when: false
+
+        - name: Show mirroring summary
+          ansible.builtin.debug:
+            var: mirror_summary.stdout_lines
 
         - name: Copy cluster resources to mirror output directory
           ansible.builtin.copy:

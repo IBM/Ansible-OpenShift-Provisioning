@@ -6,7 +6,7 @@
 - name: Update pull secret with bastion registry credentials
   tags: update_pull_secret
   when:
-    - disconnected.enabled
+    - disconnected_enabled
     - disconnected.registry.bastion.enabled | default(false)
   delegate_to: localhost
   run_once: true
@@ -130,4 +130,4 @@
           - "Bastion registry ({{ registry_url }}) already exists in pull secret."
           - "No update needed."
 
-# Made with Bob
+# Assisted with Bob

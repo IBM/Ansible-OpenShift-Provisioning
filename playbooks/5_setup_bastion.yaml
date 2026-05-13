@@ -75,6 +75,7 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   tasks:
   - name: Enabliling the HiperSocket card on bastion if installation_type is lpar else will be skipped.
     block:

@@ -216,10 +216,18 @@ ansible-playbook -i inventories/default playbooks/5_setup_bastion.yaml
 
 **Requirements**:
 - RHEL 8/9 or compatible Linux distribution
-- Minimum 50GB free disk space (100GB+ recommended for full mirroring)
-- 4GB RAM minimum
+- **Disk Space**:
+  - Minimum: 100 GB (single OCP version + limited operators)
+  - Recommended: 200 GB (multiple versions + operators)
+  - Production: 500 GB+ (full catalog mirroring)
+- 4GB RAM minimum (8GB+ recommended for large mirrors)
 - Root/sudo access
 - s390x architecture support
+
+**Disk Space Breakdown**:
+- Registry data (`/opt/registry/data`): 100-150 GB
+- oc-mirror workspace (`/opt/oc-mirror`): 50-100 GB
+- System and logs: 20-50 GB
 
 #### Network Requirements
 - File server must have internet access (or pre-downloaded binaries)
@@ -237,7 +245,20 @@ Ensure you have:
 
 ## Configuration
 
-### Step 1: Configure secrets.yaml
+### Step 1: Enable Disconnected Mode in all.yaml
+
+Edit `inventories/default/group_vars/all.yaml` and set the disconnected mode flag:
+
+```yaml
+# Section 1 - Ansible Controller
+installation_type: kvm
+controller_sudo_pass: "{{ vault_ctl_host_sudo_pass }}"
+disconnected_enabled: true  # ⚠️ REQUIRED: Set to true for disconnected installations
+```
+
+**Important**: This parameter was moved from `disconnected.yaml` to `all.yaml` under Section 1 - Ansible Controller. The default value is `false`.
+
+### Step 2: Configure secrets.yaml
 
 Add the registry password to `inventories/default/group_vars/secrets.yaml`:
 
@@ -250,13 +271,133 @@ vault_registry_password: 'your-secure-password-here'
 ansible-vault encrypt inventories/default/group_vars/secrets.yaml
 ```
 
-### Step 2: Configure disconnected.yaml
+### Step 3: Configure disconnected.yaml
 
-Edit `inventories/default/group_vars/disconnected.yaml`:
+#### Create disconnected.yaml from Template
+
+Copy the template file to create your configuration:
+
+```bash
+cp inventories/default/group_vars/disconnected.yaml.template \
+   inventories/default/group_vars/disconnected.yaml
+```
+
+#### Mandatory Configuration Changes
+
+Edit `inventories/default/group_vars/disconnected.yaml` and update these **required** values:
+
+**1. Mirror Host Configuration** (lines 49-52):
+```yaml
+mirroring:
+  host:
+    name: your-mirror-host-name  # ⚠️ REQUIRED: Hostname of mirror host with internet access
+    ip: 192.168.1.100            # ⚠️ REQUIRED: IP address of mirror host
+    user: root                   # User with sudo access
+    pass: your-secure-password   # ⚠️ REQUIRED: Password for mirror host user
+```
+
+**2. Registry Certificate** (lines 11-21):
+- If `ca_trusted: false` (default): Certificate will be **auto-generated** - no action needed
+- If `ca_trusted: true`: Paste your existing certificate in the `ca_cert` field
+
+**3. Registry Password** (line 52):
+- Already references `{{ vault_registry_password }}` from `secrets.yaml`
+- Ensure you've set this in Step 1
+
+#### Optional Configuration Changes
+
+These values have sensible defaults but can be customized:
+
+**Registry Configuration:**
+```yaml
+bastion:
+  port: 5000                    # Registry port (default: 5000)
+  username: 'admin'             # Registry username (default: admin)
+  email: 'registry@example.com' # Email for pull secret
+```
+
+**OCP Version and Operators:**
+```yaml
+oc_mirror:
+  image_set:
+    mirror:
+      platform:
+        channels:
+          - name: stable-4.21
+            minVersion: 4.21.14  # Customize OCP version
+            maxVersion: 4.21.14
+      operators:
+        - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.21
+          packages:
+            - name: serverless-operator  # Add/remove operators as needed
+```
+
+#### Complete Configuration Example
+
+Here's a complete example with all mandatory values filled:
 
 ```yaml
 disconnected:
-  enabled: true  # REQUIRED: Change from false to true
+  enabled: true
+  
+  registry:
+    ca_trusted: false  # Auto-generates self-signed certificate
+    
+    bastion:
+      enabled: true
+      port: 5000
+      username: 'admin'
+      password: "{{ vault_registry_password }}"
+      email: 'registry@example.com'
+      use_local_repo: true
+  
+  mirroring:
+    host:
+      name: mirror-host-01        # ⚠️ YOUR MIRROR HOST NAME
+      ip: 192.168.100.50          # ⚠️ YOUR MIRROR HOST IP
+      user: root
+      pass: SecurePassword123!    # ⚠️ YOUR MIRROR HOST PASSWORD
+    
+    oc_mirror:
+      image_set:
+        apiVersion: mirror.openshift.io/v2alpha1
+        mirror:
+          platform:
+            architectures:
+              - multi
+            channels:
+              - name: stable-4.21
+                full: false
+                minVersion: 4.21.14
+                maxVersion: 4.21.14
+          operators:
+            - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.21
+              full: false
+              packages:
+                - name: serverless-operator
+                  channels:
+                    - name: stable
+```
+
+#### Configuration Validation Checklist
+
+Before running the playbook, verify:
+
+- ✅ `disconnected_enabled: true` set in `all.yaml` (Section 1 - Ansible Controller)
+- ✅ `disconnected.yaml` created from template
+- ✅ Mirror host `name`, `ip`, and `pass` updated with your values
+- ✅ `vault_registry_password` set in `secrets.yaml`
+- ✅ `secrets.yaml` encrypted with `ansible-vault encrypt`
+- ✅ OCP version matches your target version
+- ✅ Required operators listed in `packages` section
+
+### Step 4: Verify all.yaml Configuration (Original Content Below)
+
+The original configuration example:
+
+```yaml
+disconnected:
+  enabled: true  # REQUIRED: Change from false to true (if not already done)
   
   registry:
     # Auto-configured when using bastion registry
@@ -299,6 +440,11 @@ disconnected:
     
     # oc-mirror configuration
     oc_mirror:
+      oc_mirror_args:
+        continue_on_error: false  # Continue mirroring even if some images fail
+        source_skip_tls: false  # Skip TLS verification for source registries
+        async_timeout: 7200  # Timeout in seconds (default: 7200 = 2 hours)
+        async_poll: 30  # Check status every N seconds (default: 30)
       oc_mirror_args:
         continue_on_error: false
         source_skip_tls: false
@@ -492,14 +638,20 @@ Actions:
 
 ### 4. disconnected_download_oc_mirror
 
-**Purpose**: Downloads oc-mirror and client tools  
+**Purpose**: Downloads oc-mirror, client tools, and RHCOS rootfs
 **Runs on**: File server (or bastion if same)
 
 Downloads:
 - oc-mirror plugin (s390x)
 - openshift-client-linux.tar.gz (s390x)
+- openshift-install-linux.tar.gz (s390x)
+- rhcos-live-rootfs.s390x.img (RHCOS rootfs for node installation)
 
-**Destination**: `{{ env.file_server.cfgs_dir }}/clients/`
+**Destinations**:
+- Client tools: `{{ env.file_server.document_root }}/clients/`
+- RHCOS rootfs: `{{ env.file_server.document_root }}/bin/`
+
+**Note**: The RHCOS rootfs file is required for node installation and will be served via HTTP during the bootstrap process.
 
 ### 5. disconnected_setup_oc_mirror_bastion
 
@@ -598,6 +750,94 @@ oc get mcp
 ```
 
 ## Troubleshooting
+
+### Self-Signed Certificate Challenges in Disconnected Environments
+
+When using a self-signed certificate for your disconnected registry (not from a globally trusted Certificate Authority), several certificate trust issues can arise during OpenShift installation. This section explains the challenges and the solutions implemented in this playbook.
+
+#### The Problem: Certificate Trust in Container Environments
+
+**Why Self-Signed Certificates Are Challenging:**
+
+1. **Multiple Trust Stores**: Different components use different certificate trust mechanisms:
+   - System trust store: `/etc/pki/ca-trust/source/anchors/`
+   - Container-specific: `/etc/containers/certs.d/<registry>/`
+   - Application-specific: Some tools have their own trust stores
+
+2. **Ephemeral Containers**: The OpenShift bootstrap process runs `oc` commands inside temporary containers that:
+   - Don't inherit environment variables from the host
+   - Don't have access to host certificate files
+   - Use Go's HTTP client which strictly validates certificates
+   - Cannot be easily configured with custom certificates
+
+3. **Bootstrap Isolation**: The bootstrap node runs critical installation scripts (`bootkube.sh`) that:
+   - Execute `oc adm release info` commands to query release images
+   - Run inside podman containers with isolated filesystems
+   - Fail with "x509: certificate signed by unknown authority" errors
+   - Cannot proceed without trusting the registry certificate
+
+#### The Solution: Multi-Layer Certificate Trust
+
+This playbook implements a comprehensive solution that addresses certificate trust at multiple levels:
+
+**1. System-Level Trust** (Lines 315-356 in [`roles/get_ocp/tasks/main.yaml`](roles/get_ocp/tasks/main.yaml:315-356))
+```yaml
+# Certificate added to system trust store
+/etc/pki/ca-trust/source/anchors/registry-ca.crt
+
+# Certificate added for container runtime
+/etc/containers/certs.d/172.23.238.65:5000/ca.crt
+```
+
+**2. Insecure Registry Configuration** (Lines 361-390 in [`roles/get_ocp/tasks/main.yaml`](roles/get_ocp/tasks/main.yaml:361-390))
+```yaml
+# Allows podman to skip TLS verification
+/etc/containers/registries.conf.d/999-insecure-registry.conf
+```
+This enables podman to pull images without certificate validation, which is acceptable in a controlled disconnected environment.
+
+**3. Bootstrap Script Patching** (Lines 412-430 in [`roles/get_ocp/tasks/main.yaml`](roles/get_ocp/tasks/main.yaml:412-430))
+
+The most critical fix: A systemd service (`patch-bootkube-insecure.service`) that runs early in the bootstrap process to modify the `bootkube.sh` script:
+
+```bash
+# Adds --insecure flag to all oc adm release info commands
+sed -i -e "s|oc adm release info|oc adm release info --insecure|g" \
+       -e "1a# insecure-added" /usr/local/bin/bootkube.sh
+```
+
+**Why This Is Necessary:**
+- The `bootkube.sh` script runs `oc` commands inside ephemeral containers
+- These containers cannot access the host's certificate trust store
+- The `--insecure` flag tells `oc` to skip TLS verification
+- This is the only way to make bootstrap work with self-signed certificates
+
+#### Final Bootstrap Configuration
+
+The bootstrap ignition now includes:
+
+✅ **Certificate in system trust store**: `/etc/pki/ca-trust/source/anchors/registry-ca.crt`
+✅ **Certificate for container runtime**: `/etc/containers/certs.d/172.23.238.65:5000/ca.crt`
+✅ **Insecure registry configuration**: `/etc/containers/registries.conf.d/999-insecure-registry.conf`
+✅ **Bootstrap script patcher**: `patch-bootkube-insecure.service` systemd unit
+
+**Security Considerations:**
+
+Using `--insecure` and `insecure = true` is acceptable in disconnected environments because:
+- The registry is on a trusted internal network
+- No external/untrusted registries are involved
+- The alternative (bootstrap failure) is worse
+- Production clusters can use proper certificates from internal CAs
+
+**For Production Environments:**
+
+Consider using certificates from an internal Certificate Authority (CA) that:
+- Is trusted by your organization
+- Can be pre-installed in RHCOS images
+- Eliminates the need for insecure flags
+- Provides proper certificate chain validation
+
+Set `disconnected.registry.ca_trusted: true` and provide your CA certificate in `disconnected.registry.ca_cert` to use this approach.
 
 ### Registry Issues
 

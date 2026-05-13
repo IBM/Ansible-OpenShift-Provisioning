@@ -24,7 +24,7 @@
       ansible.builtin.include_role:
         name: disconnected_download_registry_rpms
       when:
-        - disconnected.enabled
+        - disconnected_enabled
         - disconnected.registry.bastion.enabled | default(false)
         - not (disconnected.registry.bastion.use_local_repo | default(true))
       tags:
@@ -38,12 +38,15 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
     - "{{ inventory_dir }}/group_vars/disconnected.yaml"
+  pre_tasks:
+    - name: Gather service facts on bastion
+      ansible.builtin.service_facts:
   tasks:
     - name: Setup container registry on bastion
       ansible.builtin.include_role:
         name: disconnected_setup_registry_bastion
       when:
-        - disconnected.enabled
+        - disconnected_enabled
         - disconnected.registry.bastion.enabled | default(false)
       tags:
         - registry
@@ -61,7 +64,7 @@
       ansible.builtin.include_role:
         name: disconnected_update_pull_secret
       when:
-        - disconnected.enabled
+        - disconnected_enabled
         - disconnected.registry.bastion.enabled | default(false)
       tags:
         - registry
@@ -78,7 +81,7 @@
     - name: Download oc-mirror and client tools to file server
       ansible.builtin.include_role:
         name: disconnected_download_oc_mirror
-      when: disconnected.enabled
+      when: disconnected_enabled
       tags:
         - download
         - oc_mirror_download
@@ -91,10 +94,17 @@
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
     - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   tasks:
+    - name: Reload disconnected variables to get updated certificate
+      ansible.builtin.include_vars:
+        file: "{{ inventory_dir }}/group_vars/disconnected.yaml"
+      tags:
+        - setup
+        - oc_mirror_setup
+
     - name: Install and configure oc-mirror on bastion
       ansible.builtin.include_role:
         name: disconnected_setup_oc_mirror_bastion
-      when: disconnected.enabled
+      when: disconnected_enabled
       tags:
         - setup
         - oc_mirror_setup
@@ -110,7 +120,7 @@
     - name: Perform OCP mirroring operations
       ansible.builtin.include_role:
         name: disconnected_mirror_ocp_bastion
-      when: disconnected.enabled
+      when: disconnected_enabled
       tags:
         - mirror
         - oc_mirror_mirror
@@ -144,4 +154,4 @@
       tags:
         - always
 
-# Made with Bob
+# Assisted by Bob
