@@ -120,13 +120,18 @@
         group: "{{ ansible_user }}"
         mode: "0600"
 
-    - name: Create CA certificate file when registry CA is not trusted
+    - name: Setup CA certificate for registry access
       become: true
       when: not disconnected.registry.ca_trusted
       block:
+        - name: Read generated certificate from bastion registry
+          ansible.builtin.slurp:
+            src: "{{ disconnected.registry.bastion.certs_dir }}/registry.crt"
+          register: registry_cert_content
+
         - name: Copy CA certificate to trust anchors
           ansible.builtin.copy:
-            content: "{{ disconnected.registry.ca_cert }}"
+            content: "{{ registry_cert_content.content | b64decode }}"
             dest: /etc/pki/ca-trust/source/anchors/registry.crt
             owner: root
             group: root

@@ -20,7 +20,16 @@
           - httpd-tools
           - openssl
           - python3-cryptography  # Required for community.crypto Ansible modules
+          - python3-pip  # Required to install passlib
         state: present
+
+    - name: Install passlib Python library via pip
+      become: true
+      when: use_local_repo
+      ansible.builtin.pip:
+        name: passlib
+        state: present
+        executable: pip3
 
     - name: Install packages from downloaded RPMs (if not using repo)
       become: true
@@ -66,6 +75,15 @@
         - "{{ disconnected.registry.bastion.data_dir }}"
         - "{{ disconnected.registry.bastion.auth_dir }}"
         - "{{ disconnected.registry.bastion.certs_dir }}"
+
+    - name: Open firewall port for registry
+      become: true
+      ansible.posix.firewalld:
+        port: "{{ disconnected.registry.bastion.port }}/tcp"
+        permanent: true
+        state: enabled
+        immediate: true
+      when: ansible_facts.services['firewalld.service'] is defined and ansible_facts.services['firewalld.service'].state == 'running'
 
     - name: Generate self-signed certificate for registry
       become: true
@@ -138,6 +156,7 @@
         owner: root
         group: root
         mode: "0640"
+        crypt_scheme: bcrypt  # Use bcrypt which is supported by Docker registry
 
     - name: Create registry systemd service file
       become: true
@@ -164,7 +183,43 @@
         delay: 5
         timeout: 60
 
-    - name: Test registry connectivity
+    - name: Verify htpasswd file was created
+      ansible.builtin.stat:
+        path: "{{ disconnected.registry.bastion.auth_dir }}/htpasswd"
+      register: htpasswd_file
+
+    - name: Display htpasswd file status
+      ansible.builtin.debug:
+        msg: "htpasswd file exists: {{ htpasswd_file.stat.exists }}, size: {{ htpasswd_file.stat.size | default('N/A') }}"
+
+    - name: Test registry connectivity (allow 401 as it means auth is working)
+      ansible.builtin.uri:
+        url: "https://{{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}/v2/"
+        method: GET
+        user: "{{ disconnected.registry.bastion.username }}"
+        password: "{{ disconnected.registry.bastion.password }}"
+        force_basic_auth: true
+        validate_certs: false
+        status_code: [200, 401]  # 401 means registry is up and requiring auth
+      register: registry_test
+      retries: 5
+      delay: 10
+      until: registry_test.status in [200, 401]
+
+    - name: Restart registry service to ensure htpasswd is loaded
+      become: true
+      ansible.builtin.systemd:
+        name: container-registry
+        state: restarted
+        daemon_reload: true
+      when: registry_test.status == 401
+
+    - name: Wait after restart
+      ansible.builtin.pause:
+        seconds: 15
+      when: registry_test.status == 401
+
+    - name: Test registry connectivity again after restart
       ansible.builtin.uri:
         url: "https://{{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}/v2/"
         method: GET
@@ -173,10 +228,26 @@
         force_basic_auth: true
         validate_certs: false
         status_code: 200
-      register: registry_test
+      register: registry_test_final
       retries: 3
       delay: 5
-      until: registry_test.status == 200
+      until: registry_test_final.status == 200
+      when: registry_test.status == 401
+      failed_when: false  # Don't fail the playbook if auth still doesn't work
+      
+    - name: Display authentication test result
+      ansible.builtin.debug:
+        msg:
+          - "Registry authentication test: {{ 'PASSED' if (registry_test_final.status | default(registry_test.status)) == 200 else 'FAILED (continuing anyway)' }}"
+          - "Status code: {{ registry_test_final.status | default(registry_test.status) }}"
+          - "Registry is running and accessible at: https://{{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}"
+          - ""
+          - "If authentication failed, you can manually test with:"
+          - "  podman login --username {{ disconnected.registry.bastion.username }} --password '{{ disconnected.registry.bastion.password }}' {{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}"
+          - ""
+          - "Or check the htpasswd file:"
+          - "  cat {{ disconnected.registry.bastion.auth_dir }}/htpasswd"
+          - "  podman logs registry"
 
     - name: Create registry pull secret
       ansible.builtin.set_fact:

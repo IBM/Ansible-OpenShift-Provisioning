@@ -35,28 +35,29 @@ disconnected:
   mirroring:
     # this is the host that can access the internet as well as the registry
     host:
-      name: bastion-lp23
-      ip: 172.23.238.65
+      name: a3e06001
+      ip: 172.23.236.156
       user: root # with become access
       pass: pass4root
     # In disconnected mode client binaries and RHCOS will be placed on the
     # file server (env.file_server) and then downloaded to the final
     # destination from there. Currently only oc-mirror is handled this way.
     file_server:
-      clients_dir: 'clients'
+      document_root: '/var/www/html'  # HTTP server document root
+      clients_dir: 'clients'  # Subdirectory under document_root for client tools
       oc_mirror_tgz: 'oc-mirror.tar.gz'
-      download_dir: '/tmp/oc-mirror-downloads'  # Directory on file server to download files before distribution
+      download_dir: '/tmp/oc-mirror-downloads'  # Temporary directory on file server to download files before distribution
     # Configuration for bastion host where oc-mirror will run
     bastion:
       working_dir: '/opt/oc-mirror'  # Working directory for oc-mirror operations on bastion
       mirror_output_dir: '/opt/oc-mirror/mirror-output'  # Directory to store mirroring results and manifests
     # Download URLs for oc-mirror plugin and OCP client tools
     oc_mirror_download:
-      base_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/"  # Base URL for oc-mirror download
+      base_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable"  # Base URL for oc-mirror download
       oc_mirror_tgz: 'oc-mirror.tar.gz'  # oc-mirror plugin archive name
     # this will download oc binary to the mirror host for use on the mirror host for mirroring
     client_download:
-      ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/stable-4.21/s390x/"
+      ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/stable-4.21/s390x"
       ocp_client_tgz: 'openshift-client-linux.tar.gz'
     legacy:
       platform: false
