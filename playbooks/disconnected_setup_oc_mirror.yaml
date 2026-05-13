@@ -68,7 +68,7 @@
         - update_pull_secret
 
 - name: Download oc-mirror to file server
-  hosts: "{{ 'bastion' if (env.bastion.networking.ip | default('') == env.file_server.ip | default('')) else 'file_server' }}"
+  hosts: file_server
   gather_facts: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
@@ -117,30 +117,30 @@
 
     - name: Display next steps
       ansible.builtin.debug:
-        msg:
-          - "=========================================="
-          - "OCP Mirroring completed successfully!"
-          - "=========================================="
-          - ""
-          - "Registry Information:"
-          - "{% if disconnected.registry.bastion.enabled | default(false) %}"
-          - "  - Registry URL: {{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}"
-          - "  - Registry Hostname: {{ env.bastion.networking.hostname }}:{{ disconnected.registry.bastion.port }}"
-          - "  - Username: {{ disconnected.registry.bastion.username }}"
-          - "{% else %}"
-          - "  - Using external registry: {{ disconnected.registry.url }}"
-          - "{% endif %}"
-          - ""
-          - "Next steps:"
-          - "1. Review the mirrored content in: {{ disconnected.mirroring.bastion.mirror_output_dir }}"
-          - "2. Apply the generated YAML files to your cluster:"
-          - "   - ImageContentSourcePolicy (ICSP) or ImageDigestMirrorSet (IDMS)"
-          - "   - CatalogSource for operators"
-          - "3. Update your install-config.yaml with the imageContentSources"
-          - "4. Proceed with cluster installation"
-          - ""
-          - "For more information, see:"
-          - "https://docs.redhat.com/en/documentation/openshift_container_platform/4.14/html/disconnected_installation_mirroring/"
+        msg: |
+          ==========================================
+          OCP Mirroring completed successfully!
+          ==========================================
+
+          Registry Information:
+          {% if disconnected.registry.bastion.enabled | default(false) %}
+            - Registry URL: {{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}
+            - Registry Hostname: {{ env.bastion.networking.hostname }}:{{ disconnected.registry.bastion.port }}
+            - Username: {{ disconnected.registry.bastion.username }}
+          {% else %}
+            - Using external registry: {{ disconnected.registry.url }}
+          {% endif %}
+
+          Next steps:
+          1. Review the mirrored content in: {{ disconnected.mirroring.bastion.mirror_output_dir }}
+          2. Apply the generated YAML files to your cluster:
+             - ImageContentSourcePolicy (ICSP) or ImageDigestMirrorSet (IDMS)
+             - CatalogSource for operators
+          3. Update your install-config.yaml with the imageContentSources
+          4. Proceed with cluster installation
+
+          For more information, see:
+          https://docs.redhat.com/en/documentation/openshift_container_platform/4.14/html/disconnected_installation_mirroring/
       tags:
         - always
 

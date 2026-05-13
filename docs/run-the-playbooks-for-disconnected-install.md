@@ -279,9 +279,10 @@ disconnected:
   
   mirroring:
     file_server:
-      clients_dir: 'clients'
+      document_root: '/var/www/html'  # HTTP server document root
+      clients_dir: 'clients'  # Subdirectory under document_root (accessible at http://<ip>:<port>/clients/)
       oc_mirror_tgz: 'oc-mirror.tar.gz'
-      download_dir: '/tmp/oc-mirror-downloads'
+      download_dir: '/tmp/oc-mirror-downloads'  # Temporary download directory
     
     bastion:
       working_dir: '/opt/oc-mirror'

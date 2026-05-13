@@ -24,7 +24,7 @@
 
     - name: Create clients directory on file server
       ansible.builtin.file:
-        path: "{{ env.file_server.cfgs_dir }}/{{ disconnected.mirroring.file_server.clients_dir }}"
+        path: "{{ disconnected.mirroring.file_server.document_root }}/{{ disconnected.mirroring.file_server.clients_dir }}"
         state: directory
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
@@ -43,7 +43,7 @@
 
     - name: Download OCP client tools
       ansible.builtin.get_url:
-        url: "{{ disconnected.mirroring.client_download.ocp_download_url }}{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+        url: "{{ disconnected.mirroring.client_download.ocp_download_url }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
         dest: "{{ disconnected.mirroring.file_server.download_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
         mode: "0644"
         timeout: 300
@@ -55,7 +55,7 @@
     - name: Copy oc-mirror to clients directory for distribution
       ansible.builtin.copy:
         src: "{{ disconnected.mirroring.file_server.download_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
-        dest: "{{ env.file_server.cfgs_dir }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
+        dest: "{{ disconnected.mirroring.file_server.document_root }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: "0644"
@@ -64,7 +64,7 @@
     - name: Copy OCP client to clients directory for distribution
       ansible.builtin.copy:
         src: "{{ disconnected.mirroring.file_server.download_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
-        dest: "{{ env.file_server.cfgs_dir }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+        dest: "{{ disconnected.mirroring.file_server.document_root }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: "0644"
@@ -73,7 +73,8 @@
     - name: Display download summary
       ansible.builtin.debug:
         msg:
-          - "oc-mirror downloaded to: {{ env.file_server.cfgs_dir }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
-          - "OCP client downloaded to: {{ env.file_server.cfgs_dir }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+          - "oc-mirror available at: {{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{ env.file_server.port }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.file_server.oc_mirror_tgz }}"
+          - "OCP client available at: {{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{ env.file_server.port }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
+          - "Files copied to: {{ disconnected.mirroring.file_server.document_root }}/{{ disconnected.mirroring.file_server.clients_dir }}/"
 
 # Made with Bob
