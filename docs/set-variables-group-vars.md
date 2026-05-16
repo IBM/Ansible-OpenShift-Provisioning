@@ -201,7 +201,6 @@
 **day2_compute_node.hostname** | The hostname of the KVM host | kvm-host-01
 **day2_compute_node.host_user** | KVM host user which is used to create the VM | root
 **day2_compute_node.host_arch** | KVM host architecture.  | s390x
-**day2_compute_node.install_dev** | <b>(Optional)</b> Installation device for CoreOS installation. Defaults to 'vda' if not specified. | vda
 
 ## 14 - (Optional) Agent Based Installer
 **Variable Name** | **Description** | **Example**

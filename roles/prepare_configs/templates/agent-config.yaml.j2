@@ -9,6 +9,14 @@ hosts:
 {% for item in range( env.cluster.nodes.control.ip | length ) %}
   - hostname: "{{ env.cluster.nodes.control.hostname[item] }}"
     role: master
+{% if installation_type | lower == 'lpar' %}
+{%-   set control_node_hostname = env.cluster.nodes.control.vm_name[item] -%}
+{%-   set control_node_vars = lookup('file', inventory_dir + '/host_vars/' + control_node_hostname + '.yaml') | from_yaml -%}
+{%-   if control_node_vars.lpar is defined and control_node_vars.lpar.storage_group_1 is defined and control_node_vars.lpar.storage_group_1.type | lower == 'fcp' %}
+    rootDeviceHints:
+      deviceName: /dev/disk/by-path/ccw-0.0.{{ control_node_vars.lpar.storage_group_1.dev_num }}-fc-{{ control_node_vars.lpar.storage_group_1.storage_wwpn[0] }}-lun-{{ control_node_vars.lpar.storage_group_1.lun_name }}
+{%   endif %}
+{% endif %}
     interfaces:
       - name: eth0
         macAddress: "{{ env.cluster.nodes.control.mac[item] }}"
@@ -33,12 +41,20 @@ hosts:
           - destination: 0.0.0.0/0
             next-hop-address: "{{ env.bastion.networking.gateway }}"
             next-hop-interface: eth0
-            table-id: 254           
+            table-id: 254
 {% endfor %}
 {% if env.cluster.nodes.compute.ip is defined %}
 {% for item in range( env.cluster.nodes.compute.ip | length ) %}
   - hostname: "{{ env.cluster.nodes.compute.hostname[item] }}"
     role: worker
+{% if installation_type | lower == 'lpar' %}
+{%-   set compute_node_hostname = env.cluster.nodes.compute.vm_name[item] -%}
+{%-   set compute_node_vars = lookup('file', inventory_dir + '/host_vars/' + compute_node_hostname + '.yaml') | from_yaml -%}
+{%-   if compute_node_vars.lpar is defined and compute_node_vars.lpar.storage_group_1 is defined and compute_node_vars.lpar.storage_group_1.type | lower == 'fcp' %}
+    rootDeviceHints:
+      deviceName: /dev/disk/by-path/ccw-0.0.{{ compute_node_vars.lpar.storage_group_1.dev_num }}-fc-{{ compute_node_vars.lpar.storage_group_1.storage_wwpn[0] }}-lun-{{ compute_node_vars.lpar.storage_group_1.lun_name }}
+{%-   endif %}
+{% endif %}
     interfaces:
       - name: eth0
         macAddress: "{{ env.cluster.nodes.compute.mac[item] }}"
@@ -63,7 +79,7 @@ hosts:
           - destination: 0.0.0.0/0
             next-hop-address: "{{ env.bastion.networking.gateway }}"
             next-hop-interface: eth0
-            table-id: 254 
+            table-id: 254
 {% endfor %}
 {% endif %}
 {% endif %}

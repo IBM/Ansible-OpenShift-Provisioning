@@ -21,17 +21,17 @@
     - ~/ansible_workdir/agent-config.yaml
     - ~/ansible_workdir/agent-config-backup.yaml
 
-- name: Check if SSH key exists
+- name: Check if bastion SSH key exists
   stat:
-    path: "~/.ssh/{{ env.ansible_key_name }}.pub"
-  register: ssh_key
+    path: "/root/.ssh/id_rsa.pub"
+  register: ssh_key_check
 
-- name: Generate SSH key
-  command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ env.ansible_key_name }}"
-  when: ssh_key.stat.exists == false
+- name: Generate bastion SSH key if not exists
+  command: ssh-keygen -t rsa -b 4096 -N "" -f "/root/.ssh/id_rsa" -C "OpenShift key"
+  when: ssh_key_check.stat.exists == false
 
-- name: Read SSH Key
-  command: cat ~/.ssh/{{ env.ansible_key_name }}.pub
+- name: Read bastion SSH Key
+  command: cat /root/.ssh/id_rsa.pub
   register: ssh_key
 
 - name: Prepare Install Config
