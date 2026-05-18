@@ -23,15 +23,15 @@
 
 - name: Check if bastion SSH key exists
   stat:
-    path: "/root/.ssh/id_rsa.pub"
-  register: ssh_key_check
+    path: "~/.ssh/{{ env.ansible_key_name }}.pub"
+  register: ssh_key
 
 - name: Generate bastion SSH key if not exists
-  command: ssh-keygen -t rsa -b 4096 -N "" -f "/root/.ssh/id_rsa" -C "OpenShift key"
-  when: ssh_key_check.stat.exists == false
+  command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ env.ansible_key_name }}" -C "OpenShift key"
+  when: ssh_key.stat.exists == false
 
 - name: Read bastion SSH Key
-  command: cat /root/.ssh/id_rsa.pub
+  command: cat ~/.ssh/{{ env.ansible_key_name }}.pub
   register: ssh_key
 
 - name: Prepare Install Config
