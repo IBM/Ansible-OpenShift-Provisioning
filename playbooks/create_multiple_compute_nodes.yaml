@@ -1,0 +1,131 @@
+---
+###################################################################################################
+# Playbook: create_multiple_compute_nodes.yaml
+# Description: Add multiple compute nodes to an existing OpenShift cluster in a single operation
+#
+# This playbook allows you to add multiple compute nodes at once, which is more efficient than
+# running create_compute_node.yaml multiple times.
+#
+# Configuration file format:
+# ---
+# day2_compute_nodes:
+#   - vm_name: worker-x86-1
+#     vm_hostname: worker-x86-1
+#     vm_ip: 192.168.122.50
+#     vm_ipv6: "fd00::50"
+#     vm_mac: "52:54:00:ab:cd:50"
+#     vm_interface: enp1s0
+#     hostname: x86-kvm-host.example.com
+#     host_user: root
+#     host_arch: x86_64
+#   - vm_name: worker-x86-2
+#     vm_hostname: worker-x86-2
+#     vm_ip: 192.168.122.51
+#     vm_ipv6: "fd00::51"
+#     vm_mac: "52:54:00:ab:cd:51"
+#     vm_interface: enp1s0
+#     hostname: x86-kvm-host.example.com
+#     host_user: root
+#     host_arch: x86_64
+#   - vm_name: worker-s390x-1
+#     vm_hostname: worker-s390x-1
+#     vm_ip: 192.168.122.52
+#     vm_interface: enc1
+#     hostname: s390x-kvm-host.example.com
+#     host_user: root
+#     host_arch: s390x
+#
+# Execute the playbook with '--extra-vars' option:
+# ansible-playbook playbooks/create_multiple_compute_nodes.yaml --extra-vars "@extra-nodes.yml"
+#
+###################################################################################################
+
+- name: Add multiple compute nodes to cluster
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  pre_tasks:
+    - name: Check required variables
+      when: (day2_compute_nodes is not defined) or (day2_compute_nodes | length == 0)
+      block:
+        - name: Display error message
+          ansible.builtin.debug:
+            msg:
+              - "ERROR: Variable 'day2_compute_nodes' is not defined or empty!"
+              - "Execute: 'ansible-playbook playbooks/create_multiple_compute_nodes.yaml --extra-vars \"@extra-nodes.yml\"'"
+              - ""
+              - "Configuration file should contain a list of nodes:"
+              - "---"
+              - "day2_compute_nodes:"
+              - "  - vm_name: worker-1"
+              - "    vm_hostname: worker-1"
+              - "    vm_ip: 192.168.122.50"
+              - "    hostname: kvm-host.example.com"
+              - "    host_user: root"
+              - "    host_arch: x86_64"
+              - "  - vm_name: worker-2"
+              - "    ..."
+        - name: Abort playbook
+          ansible.builtin.fail:
+            msg: "See above error!"
+
+    - name: Display nodes to be added
+      ansible.builtin.debug:
+        msg:
+          - "Will add {{ day2_compute_nodes | length }} compute node(s):"
+          - "{{ day2_compute_nodes | map(attribute='vm_hostname') | list }}"
+
+    - name: Confirm node addition
+      ansible.builtin.pause:
+        prompt: "Press ENTER to continue or Ctrl+C to abort"
+      when: day2_compute_nodes | length > 1
+
+- name: Process each compute node
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  tasks:
+    - name: Add compute nodes sequentially
+      ansible.builtin.include_tasks: ../roles/create_compute_node/tasks/add_single_node.yaml
+      loop: "{{ day2_compute_nodes }}"
+      loop_control:
+        loop_var: current_node
+        label: "{{ current_node.vm_hostname }}"
+
+- name: Summary of added nodes
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  tasks:
+    - name: Get all cluster nodes
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc get nodes -o wide
+      register: cluster_nodes
+      changed_when: false
+
+    - name: Display cluster nodes
+      ansible.builtin.debug:
+        msg: "{{ cluster_nodes.stdout_lines }}"
+
+    - name: Display summary
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "Successfully added {{ day2_compute_nodes | length }} compute node(s)"
+          - "=========================================="
+          - "Nodes added:"
+          - "{{ day2_compute_nodes | map(attribute='vm_hostname') | list }}"
+          - ""
+          - "Next steps:"
+          - "1. Verify nodes are Ready: oc get nodes"
+          - "2. Check node labels: oc get nodes --show-labels"
+          - "3. Verify workload distribution: oc get pods -A -o wide"
+
+# Made with Bob

@@ -1,0 +1,133 @@
+---
+# Task file: add_single_node.yaml
+# Description: Add a single compute node (used by create_multiple_compute_nodes.yaml)
+# This file is included in a loop to add multiple nodes sequentially
+
+- name: "Processing node: {{ current_node.vm_hostname }}"
+  ansible.builtin.debug:
+    msg:
+      - "=========================================="
+      - "Adding compute node: {{ current_node.vm_hostname }}"
+      - "Architecture: {{ current_node.host_arch }}"
+      - "KVM Host: {{ current_node.hostname }}"
+      - "IP Address: {{ current_node.vm_ip }}"
+      - "=========================================="
+
+- name: Get RHCOS iso download url from machine-config-operator
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
+    | jq -r '.architectures.{{ current_node.host_arch }}.artifacts.metal.formats.iso.disk.location'
+  register: _rhcos_iso_dl_url
+  changed_when: false
+
+- name: Check variable '_rhcos_iso_dl_url' is not 'null'
+  ansible.builtin.fail:
+    msg: "Failed to get RHCOS ISO URL for architecture {{ current_node.host_arch }}"
+  when: _rhcos_iso_dl_url.stdout == "null"
+
+- name: Get RHCOS kernel download url from machine-config-operator
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
+    | jq -r '.architectures.{{ current_node.host_arch }}.artifacts.metal.formats.pxe.kernel.location'
+  register: _rhcos_kernel_dl_url
+  changed_when: false
+
+- name: Get RHCOS initrd download url from machine-config-operator
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
+    | jq -r '.architectures.{{ current_node.host_arch }}.artifacts.metal.formats.pxe.initramfs.location'
+  register: _rhcos_initrd_dl_url
+  changed_when: false
+
+- name: Get RHCOS rootfs download url from machine-config-operator
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
+    | jq -r '.architectures.{{ current_node.host_arch }}.artifacts.metal.formats.pxe.rootfs.location'
+  register: _rhcos_rootfs_dl_url
+  changed_when: false
+
+- name: Redefine RHCOS variables
+  ansible.builtin.set_fact:
+    rhcos_live_kernel: "{{ (_rhcos_kernel_dl_url.stdout | split('/') | last) }}"
+    rhcos_live_initrd: "{{ (_rhcos_initrd_dl_url.stdout | split('/') | last) }}"
+    rhcos_live_rootfs: "{{ (_rhcos_rootfs_dl_url.stdout | split('/') | last) }}"
+    rhcos_live_iso: "{{ (_rhcos_iso_dl_url.stdout.split('/')[-1]) }}"
+
+- name: Redefine RHCOS download url
+  ansible.builtin.set_fact:
+    rhcos_download_url: "{{ (_rhcos_rootfs_dl_url.stdout | replace(rhcos_live_rootfs, '')) }}"
+
+- name: Include common role
+  ansible.builtin.include_role:
+    name: common
+
+- name: Delete existing compute node if present
+  ansible.builtin.include_role:
+    name: delete_compute_node
+  vars:
+    param_compute_node: "{{ current_node }}"
+
+- name: Print current node status
+  ansible.builtin.include_role:
+    name: print_node_status
+
+- name: Update ignition files
+  ansible.builtin.include_role:
+    name: update_ignition_files
+
+- name: Update DNS for new node
+  ansible.builtin.include_role:
+    name: dns_update
+  vars:
+    param_dns_cmd: add
+    param_dns_hostname: "{{ current_node.vm_hostname }}"
+    param_dns_ip: "{{ current_node.vm_ip }}"
+  when: env.bastion.options.dns is defined and env.bastion.options.dns
+
+- name: Create compute node VM
+  ansible.builtin.include_role:
+    name: create_compute_node
+  vars:
+    param_compute_node: "{{ current_node }}"
+  when: current_node.hostname is defined
+
+- name: Approve certificates for new node
+  ansible.builtin.include_role:
+    name: approve_certs
+
+- name: Wait for node to be ready
+  ansible.builtin.include_role:
+    name: wait_for_node
+  vars:
+    wait_for_node_name: "{{ current_node.vm_hostname }}"
+
+- name: Final certificate approval
+  ansible.builtin.include_role:
+    name: approve_certs
+  vars:
+    approve_certs_cleanup: true
+
+- name: Print node status after addition
+  ansible.builtin.include_role:
+    name: print_node_status
+
+- name: Update HAProxy for new node
+  ansible.builtin.include_role:
+    name: haproxy_update
+  vars:
+    param_haproxy_cmd: add
+    param_haproxy_hostname: "{{ current_node.vm_hostname }}"
+  when: env.bastion.options.loadbalancer.on_bastion
+
+- name: "Node {{ current_node.vm_hostname }} added successfully"
+  ansible.builtin.debug:
+    msg:
+      - "=========================================="
+      - "✅ Node {{ current_node.vm_hostname }} added successfully"
+      - "=========================================="
+
+# Made with Bob
