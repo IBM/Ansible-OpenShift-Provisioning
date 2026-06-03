@@ -1,0 +1,4 @@
+---
+
+- import_playbook: hcp_kubevirt_prereqs_setup.yaml
+- import_playbook: create_hcpvirt.yaml

@@ -1,0 +1,48 @@
+---
+- name: Check whether HostPathProvisioner already exists
+  ansible.builtin.command: >
+    oc get hostpathprovisioner {{ hcp.hpp.name }}
+  register: hpp_check
+  changed_when: false
+  failed_when: false
+
+- name: Mark HPP present flag
+  ansible.builtin.set_fact:
+    hpp_already_present: "{{ hpp_check.rc == 0 }}"
+
+- name: Skip HPP install when already present
+  ansible.builtin.debug:
+    msg: "HostPathProvisioner already exists, skipping install_hpp role."
+  when: hpp_already_present
+
+- name: Install and configure HPP
+  when: not hpp_already_present
+  block:
+
+    - name: Ensure ansible work directory exists
+      ansible.builtin.file:
+        path: /root/ansible_workdir
+        state: directory
+        mode: '0755'
+
+    - name: Render HostPathProvisioner CR
+      ansible.builtin.template:
+        src: hostpathprovisioner.yaml.j2 
+        dest: /root/ansible_workdir/{{ hcp.hpp.name }}-cr.yaml
+        mode: '0644'
+
+    - name: Apply HostPathProvisioner CR
+      kubernetes.core.k8s:
+        state: present
+        src: /root/ansible_workdir/{{ hcp.hpp.name }}-cr.yaml
+
+    - name: Render StorageClass
+      ansible.builtin.template:
+        src: hostpath-storageclass.yaml.j2
+        dest: /root/ansible_workdir/{{ hcp.hpp.storageclass_name }}-sc.yaml
+        mode: '0644'
+
+    - name: Apply StorageClass
+      kubernetes.core.k8s:
+        state: present
+        src: /root/ansible_workdir/{{ hcp.hpp.storageclass_name }}-sc.yaml
