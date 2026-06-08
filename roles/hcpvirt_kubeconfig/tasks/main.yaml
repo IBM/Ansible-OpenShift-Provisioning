@@ -43,6 +43,7 @@
       when:
         - kubeconfig_test.rc != 0
       register: metallb_restart
+      changed_when: false
 
     - name: Wait for MetalLB speaker pods to be ready after restart
       ansible.builtin.command:
@@ -56,9 +57,9 @@
         (metallb_wait.stdout.split() | difference(['Running']) | length) == 0
 
     - name: Verify kubeconfig accessibility after MetalLB restart
-      ansible.builtin.command: |
+      ansible.builtin.command:
         cmd: oc --kubeconfig {{ hcp_kubeconfig }} get nodes --request-timeout=30s
-      when: metallb_restart is changed
+      when: kubeconfig_test.rc == 0
       register: kubeconfig_verify
       retries: 5
       delay: 10
