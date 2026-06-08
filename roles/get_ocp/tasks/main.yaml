@@ -1,14 +1,50 @@
 ---
+- name: Set registry URL and read certificate when using bastion registry
+  tags: get_ocp
+  when:
+    - disconnected_enabled
+    - disconnected.registry.bastion.enabled
+  block:
+    - name: Check if certificate exists in disconnected config
+      ansible.builtin.set_fact:
+        has_ca_cert_in_config: "{{ (disconnected.registry.ca_cert | default('') | trim | length > 0) }}"
+
+    - name: Read certificate from bastion registry if not in config
+      when:
+        - not disconnected.registry.ca_trusted
+        - not has_ca_cert_in_config
+      ansible.builtin.slurp:
+        src: "{{ disconnected.registry.bastion.certs_dir }}/registry.crt"
+      register: bastion_registry_cert
+
+    - name: Set registry URL and certificate
+      ansible.builtin.set_fact:
+        disconnected:
+          "{{ disconnected | combine({
+            'registry': disconnected.registry | combine({
+              'url': env.bastion.networking.ip ~ ':' ~ disconnected.registry.bastion.port,
+              'ip': env.bastion.networking.ip,
+              'ca_cert': (bastion_registry_cert.content | b64decode) if (bastion_registry_cert is defined and bastion_registry_cert.content is defined) else disconnected.registry.ca_cert
+            }, recursive=True)
+          }, recursive=True) }}"
+
+    - name: Verify certificate is available for install-config
+      ansible.builtin.fail:
+        msg: "Certificate not available in disconnected.registry.ca_cert. Please ensure the registry setup has been completed or the certificate is properly configured in disconnected.yaml"
+      when:
+        - not disconnected.registry.ca_trusted
+        - (disconnected.registry.ca_cert | default('') | trim | length == 0)
+
 - name: Delete ignition folder for idempotency
   tags: get_ocp
-  file:
+  ansible.builtin.file:
     path: /var/www/html/ignition
     state: absent
 
 - name: Create directory bin for mirrors
   tags: get_ocp
   become: true
-  file:
+  ansible.builtin.file:
     path: /var/www/html/bin
     state: directory
     mode: "0755"
@@ -18,32 +54,70 @@
 - name: Delete OCP download directory for idempotency, because ignition files deprecate after 24 hours.
   tags: get_ocp
   become: true
-  file:
+  ansible.builtin.file:
     path: /root/ocpinst
     state: absent
 
 - name: Create OCP download directory
   tags: get_ocp
-  file:
+  ansible.builtin.file:
     path: /root/ocpinst
     state: directory
 
+- name: Set download URLs based on disconnected mode
+  tags: get_ocp
+  ansible.builtin.set_fact:
+    _rhcos_url: "{% if disconnected_enabled %}{{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{ env.file_server.port }}/{{ disconnected.mirroring.file_server.clients_dir }}/{% else %}{{ rhcos_download_url }}{% endif %}"
+    _ocp_url: "{% if disconnected_enabled %}{{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{ env.file_server.port }}/{{ disconnected.mirroring.file_server.clients_dir }}/{% else %}{{ ocp_download_url }}{% endif %}"
+
 - name: Get Red Hat CoreOS rootfs file if it's not there already.
   tags: get_ocp
-  get_url:
-    url: "{{ rhcos_download_url }}{{ rhcos_live_rootfs }}"
+  when: not disconnected_enabled
+  ansible.builtin.get_url:
+    url: "{{ _rhcos_url }}{{ rhcos_live_rootfs }}"
     dest: "/var/www/html/bin/{{ rhcos_live_rootfs }}"
     mode: "0644"
+
+- name: Check if RHCOS rootfs exists on local bastion HTTP root in disconnected mode
+  tags: get_ocp
+  when: disconnected_enabled
+  ansible.builtin.stat:
+    path: "/var/www/html/bin/{{ rhcos_live_rootfs }}"
+  register: rhcos_rootfs_stat
+
+- name: Check if RHCOS rootfs exists on configured file server in disconnected mode
+  tags: get_ocp
+  when:
+    - disconnected_enabled
+    - (env.file_server.ip | default('')) != (env.bastion.networking.ip | default(''))
+  ansible.builtin.stat:
+    path: "{{ disconnected.mirroring.file_server.document_root }}/bin/{{ rhcos_live_rootfs }}"
+  delegate_to: "{{ env.file_server.ip }}"
+  register: rhcos_rootfs_file_server_stat
+
+- name: Fail if RHCOS rootfs is missing in disconnected mode
+  tags: get_ocp
+  when:
+    - disconnected_enabled
+    - not rhcos_rootfs_stat.stat.exists
+    - ((env.file_server.ip | default('')) == (env.bastion.networking.ip | default('')) or not rhcos_rootfs_file_server_stat.stat.exists)
+  ansible.builtin.fail:
+    msg:
+      - "RHCOS rootfs file not found for disconnected installation."
+      - "Bastion path checked: /var/www/html/bin/{{ rhcos_live_rootfs }}"
+      - "File server path checked: {{ disconnected.mirroring.file_server.document_root }}/bin/{{ rhcos_live_rootfs }}"
+      - "Disconnected node installation requires this file to be served over HTTP from {{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{ env.file_server.port }}/bin/{{ rhcos_live_rootfs }}"
+      - "Run the flow that includes [roles/disconnected_download_oc_mirror/tasks/main.yaml](roles/disconnected_download_oc_mirror/tasks/main.yaml:78) or manually place the file at the expected location."
 
 - name: Unzip OCP client and installer
   tags: get_ocp
   ansible.builtin.unarchive:
     src: "{{ item }}"
     dest: /root/ocpinst/
-    remote_src: yes
+    remote_src: true
   loop:
-    - "{{ ocp_download_url }}{{ ocp_client_tgz }}"
-    - "{{ ocp_download_url }}{{ ocp_install_tgz }}"
+    - "{{ _ocp_url }}{{ ocp_client_tgz }}"
+    - "{{ _ocp_url }}{{ ocp_install_tgz }}"
 
 - name: Copy kubectl, oc, and openshift-install binaries to /usr/local/sbin
   tags: get_ocp
@@ -54,7 +128,7 @@
     owner: root
     group: root
     mode: "755"
-    remote_src: yes
+    remote_src: true
   loop:
     - kubectl
     - oc
@@ -62,22 +136,22 @@
 
 - name: Use template file to create install-config and backup.
   tags: get_ocp
-  template:
+  ansible.builtin.template:
     src: install-config.yaml.j2
     dest: "{{ item }}"
-    force: yes
+    force: true
   loop:
     - /root/ocpinst/install-config.yaml
     - /root/ocpinst/install-config-backup.yaml
 
 - name: Capture OCP public key
   tags: get_ocp
-  command: cat /root/.ssh/id_rsa.pub
+  ansible.builtin.command: cat /root/.ssh/id_rsa.pub
   register: ocp_pub_key
 
 - name: Place SSH key in install-config
   tags: get_ocp
-  lineinfile:
+  ansible.builtin.lineinfile:
     line: "sshKey: '{{ ocp_pub_key.stdout }}'"
     path: "{{ item }}"
   loop:
@@ -88,14 +162,20 @@
   tags: get_ocp
   ansible.builtin.shell: |
     set -o pipefail
-    {{ 'export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE=quay.io/openshift-release-dev/ocp-release:' if disconnected.enabled }}{{ disconnected.mirroring.oc_mirror.release_image_tag if disconnected.enabled and not disconnected.mirroring.legacy.platform }}{{ disconnected.mirroring.legacy.ocp_quay_release_image_tag if disconnected.enabled and disconnected.mirroring.legacy.platform }}
+    {% if disconnected_enabled %}
+    {% if disconnected.mirroring.legacy.platform %}
+    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }}:{{ disconnected.mirroring.legacy.ocp_tag }}
+    {% else %}
+    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/openshift/release-images:{{ disconnected.mirroring.oc_mirror.release_image_tag }}
+    {% endif %}
+    {% endif %}
     /root/ocpinst/openshift-install create manifests --dir=/root/ocpinst/
   become: true
 
 - name: Copy the file when ipsec flag is enabled
   tags: get_ocp
   become: true
-  copy:
+  ansible.builtin.copy:
     src: cluster-network-03-config.yml
     dest: /root/ocpinst/manifests/cluster-network-03-config.yml
   when: env.ipsec_enabled is defined and env.ipsec_enabled != None and env.ipsec_enabled
@@ -103,17 +183,17 @@
 - name: List the files in the manifests directory
   tags: get_ocp
   become: true
-  command: "ls -lrt /root/ocpinst/manifests/"
+  ansible.builtin.command: "ls -lrt /root/ocpinst/manifests/"
   register: manifests_list
 
-- debug:
-    msg: "{{ manifests_list }}"    
+- ansible.builtin.debug:
+    msg: "{{ manifests_list }}"
 
 
 - name: Set masters schedulable parameter to false
   tags: get_ocp
   become: true
-  replace:
+  ansible.builtin.replace:
     path: /root/ocpinst/manifests/cluster-scheduler-02-config.yml
     regexp: ": true"
     replace: ": false"
@@ -122,7 +202,7 @@
 - name: Set permissions for ocpinst directory contents to root
   tags: get_ocp
   become: true
-  command: chmod 0755 /root/ocpinst/{{item}}
+  ansible.builtin.command: chmod 0755 /root/ocpinst/{{item}}
   loop:
     - manifests
     - openshift
@@ -134,7 +214,7 @@
   become: true
   block:
     - name: Generate Butane file for nodes
-      template:
+      ansible.builtin.template:
         src: cex-butane-machineconfig.bu.j2
         dest: "{{ output_dir }}/99-{{ node_role }}-s390x-cex-luks-config.bu"
       loop:
@@ -147,13 +227,13 @@
         layout: "{{ butane_default[cex_device].layout }}"
 
     - name: Download Butane binary for s390x
-      get_url:
+      ansible.builtin.get_url:
         url: https://mirror.openshift.com/pub/openshift-v4/clients/butane/latest/butane-s390x
         dest: /usr/local/bin/butane
         mode: '0755'
 
     - name: Convert Butane YAML to Ignition for each role
-      shell: |
+      ansible.builtin.shell: |
         /usr/local/bin/butane "{{ output_dir }}/99-{{ item }}-s390x-cex-luks-config.bu" \
           -o "{{ output_dir }}/99-{{ item }}-s390x-cex-luks-config.yaml"
       loop:
@@ -161,10 +241,10 @@
         - worker
 
     - name: Copy generated ignition files to final directory
-      copy:
+      ansible.builtin.copy:
         src: "{{ output_dir }}/99-{{ item }}-s390x-cex-luks-config.yaml"
         dest: "/root/ocpinst/openshift/99-{{ item }}-s390x-cex-luks-config.yaml"
-        remote_src: yes
+        remote_src: true
         mode: '0644'
       loop:
         - master
@@ -172,10 +252,25 @@
   when:
     - cex | bool
 
+- name: Create registry CA MachineConfig for disconnected installations
+  tags: get_ocp
+  when:
+    - disconnected_enabled
+    - not disconnected.registry.ca_trusted
+  block:
+    - name: Create registry CA MachineConfig manifest
+      ansible.builtin.template:
+        src: 99-registry-ca-machineconfig.yaml.j2
+        dest: /root/ocpinst/openshift/99-registry-ca-machineconfig.yaml
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+
 - name: Set ownership of ocpinst directory contents to root
   tags: get_ocp
   become: true
-  command: chown root:root /root/ocpinst/{{item}}
+  ansible.builtin.command: chown root:root /root/ocpinst/{{item}}
   loop:
     - manifests
     - openshift
@@ -187,12 +282,168 @@
   become: true
   ansible.builtin.shell: |
     set -o pipefail
-    {{ 'export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE=quay.io/openshift-release-dev/ocp-release:' if disconnected.enabled }}{{ disconnected.mirroring.oc_mirror.release_image_tag if disconnected.enabled and not disconnected.mirroring.legacy.platform }}{{ disconnected.mirroring.legacy.ocp_quay_release_image_tag if disconnected.enabled and disconnected.mirroring.legacy.platform }}
+    {% if disconnected_enabled %}
+    {% if disconnected.mirroring.legacy.platform %}
+    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }}:{{ disconnected.mirroring.legacy.ocp_tag }}
+    {% else %}
+    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/openshift/release-images:{{ disconnected.mirroring.oc_mirror.release_image_tag }}
+    {% endif %}
+    {% if not disconnected.registry.ca_trusted %}
+    export GODEBUG=x509ignoreCN=0
+    {% endif %}
+    {% endif %}
     /root/ocpinst/openshift-install create ignition-configs  --dir=/root/ocpinst/
+
+- name: Patch bootstrap ignition to add registry certificate for containers
+  tags: get_ocp
+  when:
+    - disconnected_enabled
+    - not disconnected.registry.ca_trusted
+  become: true
+  block:
+    - name: Read bootstrap ignition file
+      ansible.builtin.slurp:
+        src: /root/ocpinst/bootstrap.ign
+      register: bootstrap_ign_content
+
+    - name: Parse bootstrap ignition JSON
+      ansible.builtin.set_fact:
+        bootstrap_ign: "{{ bootstrap_ign_content.content | b64decode | from_json }}"
+
+    - name: Create registry cert directory entry for bootstrap
+      ansible.builtin.set_fact:
+        registry_cert_dir:
+          path: "/etc/containers/certs.d/{{ disconnected.registry.ip }}:{{ disconnected.registry.bastion.port if disconnected.registry.bastion.enabled else disconnected.registry.url.split(':')[-1] }}"
+          mode: 493  # 0755 in decimal
+          user:
+            name: root
+          group:
+            name: root
+
+    - name: Create registry cert file entry for bootstrap
+      ansible.builtin.set_fact:
+        registry_cert_file:
+          path: "/etc/containers/certs.d/{{ disconnected.registry.ip }}:{{ disconnected.registry.bastion.port if disconnected.registry.bastion.enabled else disconnected.registry.url.split(':')[-1] }}/ca.crt"
+          mode: 420  # 0644 in decimal
+          overwrite: true
+          contents:
+            source: "data:text/plain;charset=utf-8;base64,{{ disconnected.registry.ca_cert | b64encode }}"
+          user:
+            name: root
+          group:
+            name: root
+
+    - name: Create system trust anchor cert file entry for bootstrap
+      ansible.builtin.set_fact:
+        system_cert_file:
+          path: "/etc/pki/ca-trust/source/anchors/registry-ca.crt"
+          mode: 420  # 0644 in decimal
+          overwrite: true
+          contents:
+            source: "data:text/plain;charset=utf-8;base64,{{ disconnected.registry.ca_cert | b64encode }}"
+          user:
+            name: root
+          group:
+            name: root
+
+    - name: Add registry certificate directory to bootstrap ignition
+      ansible.builtin.set_fact:
+        bootstrap_ign: "{{ bootstrap_ign | combine({'storage': {'directories': (bootstrap_ign.storage.directories | default([])) + [registry_cert_dir]}}, recursive=true) }}"
+
+    - name: Add registry certificate file to bootstrap ignition
+      ansible.builtin.set_fact:
+        bootstrap_ign: "{{ bootstrap_ign | combine({'storage': {'files': bootstrap_ign.storage.files + [registry_cert_file, system_cert_file]}}, recursive=true) }}"
+
+    - name: Create registries.conf.d directory entry for bootstrap
+      ansible.builtin.set_fact:
+        registries_conf_d_dir:
+          path: "/etc/containers/registries.conf.d"
+          mode: 493  # 0755 in decimal
+          user:
+            name: root
+          group:
+            name: root
+
+    - name: Create insecure registry drop-in configuration
+      ansible.builtin.set_fact:
+        insecure_registry_conf_content: |
+          [[registry]]
+          location = "{{ disconnected.registry.ip }}:{{ disconnected.registry.bastion.port if disconnected.registry.bastion.enabled else disconnected.registry.url.split(':')[-1] }}"
+          insecure = true
+
+    - name: Create insecure registry drop-in file entry for bootstrap
+      ansible.builtin.set_fact:
+        insecure_registry_conf_file:
+          path: "/etc/containers/registries.conf.d/999-insecure-registry.conf"
+          mode: 420  # 0644 in decimal
+          overwrite: true
+          contents:
+            source: "data:text/plain;charset=utf-8;base64,{{ insecure_registry_conf_content | b64encode }}"
+          user:
+            name: root
+          group:
+            name: root
+
+    - name: Add registries.conf.d directory and insecure config to bootstrap ignition
+      ansible.builtin.set_fact:
+        bootstrap_ign: "{{ bootstrap_ign | combine({'storage': {'directories': (bootstrap_ign.storage.directories | default([])) + [registries_conf_d_dir], 'files': bootstrap_ign.storage.files + [insecure_registry_conf_file]}}, recursive=true) }}"
+
+    - name: Create modified bootkube.sh script that uses insecure flag
+      ansible.builtin.set_fact:
+        bootkube_wrapper_content: |
+          #!/bin/bash
+          # Modify oc commands to use --insecure flag
+          export OC_INSECURE="--insecure"
+          exec /usr/local/bin/bootkube.sh.original "$@"
+
+    - name: Create bootkube wrapper script file entry
+      ansible.builtin.set_fact:
+        bootkube_wrapper_file:
+          path: "/usr/local/bin/bootkube-wrapper.sh"
+          mode: 493  # 0755 in decimal
+          overwrite: true
+          contents:
+            source: "data:text/plain;charset=utf-8;base64,{{ bootkube_wrapper_content | b64encode }}"
+          user:
+            name: root
+          group:
+            name: root
+
+    - name: Create systemd oneshot service to patch bootkube.sh for insecure registry
+      ansible.builtin.set_fact:
+        patch_bootkube_unit:
+          name: patch-bootkube-insecure.service
+          enabled: true
+          contents: |
+            [Unit]
+            Description=Patch bootkube.sh to use insecure flag for oc commands
+            Before=bootkube.service release-image.service
+            After=local-fs.target
+            ConditionPathExists=/usr/local/bin/bootkube.sh
+            
+            [Service]
+            Type=oneshot
+            ExecStart=/bin/bash -c 'if ! grep -q "insecure-added" /usr/local/bin/bootkube.sh; then sed -i -e "s|oc adm release info|oc adm release info --insecure|g" -e "1a# insecure-added" /usr/local/bin/bootkube.sh; fi'
+            RemainAfterExit=yes
+            
+            [Install]
+            WantedBy=multi-user.target
+
+    - name: Add systemd unit to patch bootkube.sh to bootstrap ignition
+      ansible.builtin.set_fact:
+        bootstrap_ign: "{{ bootstrap_ign | combine({'systemd': {'units': (bootstrap_ign.systemd.units | default([])) + [patch_bootkube_unit]}}, recursive=true) }}"
+
+    - name: Write patched bootstrap ignition back to file
+      ansible.builtin.copy:
+        content: "{{ bootstrap_ign | to_nice_json }}"
+        dest: /root/ocpinst/bootstrap.ign
+        owner: root
+        group: root
+        mode: "0755"
 
 - name: Set ownership to root and permissions of ignitions and related files.
   tags: get_ocp
-  file:
+  ansible.builtin.file:
     state: "{{ item.state }}"
     path: /root/ocpinst/{{ item.path }}
     owner: root
@@ -210,60 +461,60 @@
 - name: Create directory in admin user's home for default kubeconfig.
   tags: get_ocp, config
   become: false
-  file:
+  ansible.builtin.file:
     state: directory
     path: ~/.kube
 
 - name: Create directory in root's home for default kubeconfig.
   tags: get_ocp, config
   become: true
-  file:
+  ansible.builtin.file:
     state: directory
     path: ~/.kube
 
 - name: Make kubeconfig admin user's default (for non-root user).
   tags: get_ocp, config
-  copy:
+  ansible.builtin.copy:
     src: /root/ocpinst/auth/kubeconfig
     dest: /home/{{ env.bastion.access.user }}/.kube/config
     owner: "{{ env.bastion.access.user }}"
     group: "{{ env.bastion.access.user }}"
-    remote_src: yes
+    remote_src: true
   when: env.bastion.access.user != "root"
 
 - name: Make kubeconfig admin user's default (for root user).
   tags: get_ocp, config
-  copy:
+  ansible.builtin.copy:
     src: /root/ocpinst/auth/kubeconfig
     dest: /{{ env.bastion.access.user }}/.kube/config
     owner: "{{ env.bastion.access.user }}"
     group: "{{ env.bastion.access.user }}"
-    remote_src: yes
+    remote_src: true
   when: env.bastion.access.user == "root"
 
 - name: Make kubeconfig root user's default.
   tags: get_ocp, config
-  copy:
+  ansible.builtin.copy:
     src: /root/ocpinst/auth/kubeconfig
     dest: /root/.kube/config
     owner: root
     group: root
-    remote_src: yes
+    remote_src: true
 
 - name: Create ignition directory in HTTP-accessible directory.
   tags: get_ocp
   become: true
-  file:
+  ansible.builtin.file:
     path: /var/www/html/ignition
     state: directory
 
 - name: Copy ignition files to HTTP-accessible directory.
   tags: get_ocp
   become: true
-  copy:
+  ansible.builtin.copy:
     src: /root/ocpinst/{{ item }}.ign
     dest: /var/www/html/ignition
-    remote_src: yes
+    remote_src: true
     mode: "775"
     group: root
     owner: root

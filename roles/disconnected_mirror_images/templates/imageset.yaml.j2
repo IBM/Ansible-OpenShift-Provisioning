@@ -1,7 +1,7 @@
 kind: ImageSetConfiguration
 apiVersion: {{ disconnected.mirroring.oc_mirror.image_set.apiVersion }}
 archiveSize: 4
-{% if (disconnected.enabled) and (disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v1alpha2") %}
+{% if (disconnected_enabled) and (disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v1alpha2") %}
 storageConfig:
   {% if disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.enabled %}
   registry:

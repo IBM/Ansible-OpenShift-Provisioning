@@ -16,4 +16,4 @@
       loop:
         - disconnected_check_vars
         - disconnected_apply_operator_manifests_to_cluster
-      when: disconnected.enabled
+      when: disconnected_enabled

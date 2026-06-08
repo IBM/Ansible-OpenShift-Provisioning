@@ -1,0 +1,75 @@
+---
+# Role: disconnected_download_registry_rpms
+# Description: Downloads required RPM packages for registry setup to the file server
+# This role runs on a host with internet access to download RPMs for offline installation
+
+- name: Download registry RPMs to file server
+  tags: download_registry_rpms
+  when:
+    - disconnected_enabled
+    - disconnected.registry.bastion.enabled | default(false)
+    - not (disconnected.registry.bastion.use_local_repo | default(true))
+  block:
+    - name: Create RPM download directory on file server
+      ansible.builtin.file:
+        path: "{{ env.file_server.cfgs_dir }}/{{ disconnected.registry.bastion.rpm_path }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+
+    - name: Create temporary download directory
+      ansible.builtin.file:
+        path: "/tmp/rpm-download"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+
+    - name: Download required packages and dependencies for s390x
+      become: true
+      ansible.builtin.shell: |
+        set -o pipefail
+        yumdownloader --resolve --destdir=/tmp/rpm-download --archlist=s390x,noarch \
+          podman \
+          httpd-tools \
+          openssl \
+          container-selinux \
+          conmon \
+          crun \
+          fuse-overlayfs \
+          slirp4netns
+      args:
+        creates: /tmp/rpm-download/podman-*.rpm
+      register: yum_download
+      changed_when: yum_download.rc == 0
+
+    - name: Copy downloaded RPMs to file server distribution directory
+      ansible.builtin.copy:
+        src: "/tmp/rpm-download/"
+        dest: "{{ env.file_server.cfgs_dir }}/{{ disconnected.registry.bastion.rpm_path }}/"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0644"
+        remote_src: true
+
+    - name: List downloaded RPMs
+      ansible.builtin.find:
+        paths: "{{ env.file_server.cfgs_dir }}/{{ disconnected.registry.bastion.rpm_path }}"
+        patterns: "*.rpm"
+      register: downloaded_rpms
+
+    - name: Display downloaded RPMs
+      ansible.builtin.debug:
+        msg:
+          - "Downloaded {{ downloaded_rpms.files | length }} RPM packages"
+          - "Location: {{ env.file_server.cfgs_dir }}/{{ disconnected.registry.bastion.rpm_path }}"
+          - "Files:"
+          - "{{ downloaded_rpms.files | map(attribute='path') | map('basename') | list }}"
+
+    - name: Clean up temporary download directory
+      ansible.builtin.file:
+        path: "/tmp/rpm-download"
+        state: absent
+
+# Made with Bob

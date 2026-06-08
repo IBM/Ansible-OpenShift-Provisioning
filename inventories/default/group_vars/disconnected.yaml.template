@@ -1,0 +1,132 @@
+# Warning: currently, the oc-mirror plugin is officially downloadable to amd64 only.
+# Please refer to docs set-variables-group-vars.md for instructions on how to create this configuration file for disconnected.
+# Note: The 'disconnected_enabled' parameter has been moved to all.yaml under Section 1 - Ansible Controller
+disconnected:
+  registry:
+    url: 'registry url'  # Will be auto-set to bastion IP:port if using bastion registry
+    ip: 'registry reachable ip'  # Will be auto-set to bastion IP if using bastion registry
+    pull_secret: "{{ env.redhat.pull_secret }}"  # References pull_secret from all.yaml (will be auto-updated with registry credentials)
+    mirror_pull_secret: "{{ env.redhat.pull_secret }}"  # Same as pull_secret, used for mirroring operations
+    ca_trusted: false  # Set to false to auto-generate self-signed certificate, true if using provided cert
+    ca_cert: |
+      # -----BEGIN CERTIFICATE-----
+      # Your registry certificate will be auto-generated if ca_trusted is false
+      # Or paste your existing certificate here if ca_trusted is true
+      # This certificate will be added to:
+      # - System trust store: /etc/pki/ca-trust/source/anchors/
+      # - Container runtime: /etc/containers/certs.d/<registry>/
+      # - Bootstrap ignition for disconnected installation
+      # -----END CERTIFICATE-----
+    # Configuration for container registry on bastion (if no external registry available)
+    bastion:
+      enabled: true  # Set to true to create registry on bastion
+      port: 5000  # Registry port
+      username: 'admin'  # Registry username
+      password: "{{ vault_registry_password }}"  # Registry password from secrets.yaml
+      email: 'registry@example.com'  # Email for registry authentication in pull secret
+      data_dir: '/opt/registry/data'  # Registry data storage
+      auth_dir: '/opt/registry/auth'  # Registry authentication files
+      certs_dir: '/opt/registry/certs'  # Registry certificates
+      # Package installation configuration
+      use_local_repo: true  # Set to false to install from downloaded RPMs
+      rpm_dir: '/tmp/registry-rpms'  # Directory for downloaded RPMs (if use_local_repo=false)
+      rpm_path: 'rpms/registry'  # Path on file server for RPMs (if use_local_repo=false)
+      required_rpms:  # List of RPM files to download (if use_local_repo=false)
+        - 'podman-*.rpm'
+        - 'httpd-tools-*.rpm'
+        - 'openssl-*.rpm'
+        # Add all dependency RPMs as needed
+  mirroring:
+    # this is the host that can access the internet as well as the registry
+    host:
+      name: mirror-host-name  # Hostname of the mirror host (must have internet access)
+      ip: 192.168.1.100  # IP address of the mirror host
+      user: root  # User with become/sudo access
+      pass: "{{ vault_mirror_pass }}" # Password for the mirror host user
+    # In disconnected mode client binaries and RHCOS will be placed on the
+    # file server (env.file_server) and then downloaded to the final
+    # destination from there. Currently only oc-mirror is handled this way.
+    file_server:
+      document_root: '/var/www/html'  # HTTP server document root
+      clients_dir: 'clients'  # Subdirectory under document_root for client tools
+      oc_mirror_tgz: 'oc-mirror.tar.gz'
+      download_dir: '/tmp/oc-mirror-downloads'  # Temporary directory on file server to download files before distribution
+    # Configuration for bastion host where oc-mirror will run
+    bastion:
+      working_dir: '/opt/oc-mirror'  # Working directory for oc-mirror operations on bastion
+      mirror_output_dir: '/opt/oc-mirror/mirror-output'  # Directory to store mirroring results and manifests
+    # Download URLs for oc-mirror plugin and OCP client tools
+    oc_mirror_download:
+      base_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable"  # Base URL for oc-mirror download
+      oc_mirror_tgz: 'oc-mirror.tar.gz'  # oc-mirror plugin archive name
+    # this will download oc binary to the mirror host for use on the mirror host for mirroring
+    client_download:
+      ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/stable-4.21/s390x"
+      ocp_client_tgz: 'openshift-client-linux.tar.gz'
+    # RHCOS downloads from dependencies directory
+    rhcos_download:
+      rhcos_download_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.21/latest"
+      rhcos_live_rootfs: 'rhcos-live-rootfs.s390x.img'
+    legacy:
+      platform: false
+      ocp_quay_release_image_tag: '4.21.14-multi'
+      ocp_org: 'ocp4'
+      ocp_repo: 'openshift4'
+      ocp_tag: 'v4.21.14' # platform images will be pushed to {registry_url}/{ocp_org}/{ocp_repo}:{ocp_tag}
+    oc_mirror:
+      oc_mirror_args:
+        continue_on_error: false
+        source_skip_tls: false
+        # Timeout for mirroring operations in seconds
+        # Recommendations based on content size:
+        # - Small (single version, few operators): 7200 (2 hours)
+        # - Medium (multiple versions, several operators): 14400 (4 hours)
+        # - Large (full channel, many operators): 28800 (8 hours)
+        # - Very Large (multiple channels, full operators): 43200 (12 hours)
+        # Increase if you see "async task did not complete within the requested time"
+        async_timeout: 14400
+        async_poll: 30  # Check status every N seconds (default: 30)
+      post_mirror:
+        mapping:
+          replace:
+            enabled: false
+            list:
+              - regexp: what
+                replace: with
+      release_image_tag: '4.21.14-multi'
+      release_image_registry: 'brew.registry.redhat.io'
+      image_set:
+      # this field is a standard image set from oc-mirror documentation.
+      # The only exception is the storageConfig which is altered to allow substitution of disconnected.registry.url
+        apiVersion: mirror.openshift.io/v2alpha1 # update the version with v2alpha1 for oc-mirror v2 plugin and v1alpha2 for v1 plugin
+        storageConfig:
+          enable: false # enable this flag if oc-mirror v1 plugin is used since storageConfig is removed for v2 plugin
+          registry:
+            enabled: true # use registry storage backend. Currently only method supported
+            imageURL: # the final value will be {imageURL: disconnected.registry.url/org/repo}
+              org: mirror
+              repo: oc-mirror-metadata
+            skipTLS: false # standard field form oc-mirror schema
+        mirror: # this field is also standard from the oc-mirror schema. It will be substituted as is into the final image set.
+          platform:
+            architectures:
+              - multi
+              # Note: cannot mirror tags like multi-s390x; list must contain pure
+              # architecture names (e.g. s390x) or the multiarch token 'multi'.
+            channels:
+              - name: stable-4.21
+                full: false
+                minVersion: 4.21.14
+                maxVersion: 4.21.14
+          operators:
+            - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.21
+              full: false
+              packages:
+                - name: serverless-operator
+                  channels:
+                    - name: stable
+                      # minVersion: '2.4.1-0'
+                      # maxVersion: '2.4.1-0'
+          additionalImages:
+            - name: registry.redhat.io/ubi9/ubi:latest
+          helm: {}

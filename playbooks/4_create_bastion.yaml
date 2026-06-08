@@ -9,3 +9,15 @@
   roles:
     - common
     - { role: create_bastion, when: env.bastion.create == True }
+
+- name: 4 create bastion - copy SSH key from localhost to access bastion
+  hosts: localhost
+  tags: ssh, ssh_copy_id
+  gather_facts: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  vars:
+    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}", "{{ path_to_key_pair }}"]
+  roles:
+    - { role: ssh_copy_id, when: env.bastion.create == True }

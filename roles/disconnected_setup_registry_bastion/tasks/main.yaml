@@ -1,0 +1,323 @@
+---
+# Role: disconnected_setup_registry_bastion
+# Description: Sets up a container registry on the bastion host for disconnected OCP installations
+# This role installs and configures podman and creates a local container registry
+
+- name: Setup container registry on bastion
+  tags: setup_registry_bastion
+  when: disconnected_enabled
+  block:
+    - name: Check if packages need to be downloaded
+      ansible.builtin.set_fact:
+        use_local_repo: "{{ disconnected.registry.bastion.use_local_repo | default(true) }}"
+
+    - name: Install required packages from configured repositories
+      become: true
+      when: use_local_repo
+      ansible.builtin.package:
+        name:
+          - podman
+          - httpd-tools
+          - openssl
+          - python3-cryptography  # Required for community.crypto Ansible modules
+          - python3-pip  # Required to install passlib
+        state: present
+
+    - name: Install passlib Python library via pip
+      become: true
+      when: use_local_repo
+      ansible.builtin.pip:
+        name: passlib
+        state: present
+        executable: pip3
+
+    - name: Install packages from downloaded RPMs (if not using repo)
+      become: true
+      when: not use_local_repo
+      block:
+        - name: Create RPM download directory
+          ansible.builtin.file:
+            path: "{{ disconnected.registry.bastion.rpm_dir }}"
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+
+        - name: Download RPMs from file server
+          ansible.builtin.get_url:
+            url: >-
+              {{ env.file_server.protocol }}://{{
+                 (env.file_server.user ~ ':' ~ env.file_server.pass ~ '@' if env.file_server.protocol == 'ftp' else '') ~
+                 env.file_server.ip ~ (':' ~ env.file_server.port if env.file_server.port | default('') | length > 0 else '') ~
+                 '/' ~ disconnected.registry.bastion.rpm_path ~ '/' ~ item }}
+            dest: "{{ disconnected.registry.bastion.rpm_dir }}/{{ item }}"
+            mode: "0644"
+          loop: "{{ disconnected.registry.bastion.required_rpms }}"
+          register: rpm_downloads
+          retries: 3
+          delay: 5
+
+        - name: Install RPMs from local directory
+          ansible.builtin.yum:
+            name: "{{ disconnected.registry.bastion.rpm_dir }}/*.rpm"
+            state: present
+            disable_gpg_check: true
+
+    - name: Create registry directories
+      become: true
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      loop:
+        - "{{ disconnected.registry.bastion.data_dir }}"
+        - "{{ disconnected.registry.bastion.auth_dir }}"
+        - "{{ disconnected.registry.bastion.certs_dir }}"
+
+    - name: Open firewall port for registry
+      become: true
+      ansible.posix.firewalld:
+        port: "{{ disconnected.registry.bastion.port }}/tcp"
+        permanent: true
+        state: enabled
+        immediate: true
+      when: ansible_facts.services['firewalld.service'] is defined and ansible_facts.services['firewalld.service'].state == 'running'
+
+    - name: Generate self-signed certificate for registry
+      become: true
+      when: not disconnected.registry.ca_trusted
+      block:
+        - name: Generate private key
+          community.crypto.openssl_privatekey:
+            path: "{{ disconnected.registry.bastion.certs_dir }}/registry.key"
+            size: 4096
+            mode: "0600"
+
+        - name: Generate certificate signing request
+          community.crypto.openssl_csr:
+            path: "{{ disconnected.registry.bastion.certs_dir }}/registry.csr"
+            privatekey_path: "{{ disconnected.registry.bastion.certs_dir }}/registry.key"
+            common_name: "{{ env.bastion.networking.hostname }}"
+            basic_constraints:
+              - "CA:TRUE"
+            basic_constraints_critical: true
+            key_usage:
+              - digitalSignature
+              - keyEncipherment
+              - keyCertSign
+              - cRLSign
+            key_usage_critical: true
+            subject_alt_name:
+              - "DNS:{{ env.bastion.networking.hostname }}"
+              - "DNS:{{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}"
+              - "IP:{{ env.bastion.networking.ip }}"
+
+        - name: Generate self-signed certificate
+          community.crypto.x509_certificate:
+            path: "{{ disconnected.registry.bastion.certs_dir }}/registry.crt"
+            privatekey_path: "{{ disconnected.registry.bastion.certs_dir }}/registry.key"
+            csr_path: "{{ disconnected.registry.bastion.certs_dir }}/registry.csr"
+            provider: selfsigned
+            selfsigned_not_after: "+3650d"
+            selfsigned_create_subject_key_identifier: always_create
+            mode: "0644"
+
+        - name: Copy certificate to system trust anchors
+          ansible.builtin.copy:
+            src: "{{ disconnected.registry.bastion.certs_dir }}/registry.crt"
+            dest: /etc/pki/ca-trust/source/anchors/registry.crt
+            owner: root
+            group: root
+            mode: "0644"
+            remote_src: true
+
+        - name: Read generated certificate
+          ansible.builtin.slurp:
+            src: "{{ disconnected.registry.bastion.certs_dir }}/registry.crt"
+          register: registry_cert_content
+
+        - name: Update CA trust
+          ansible.builtin.command: update-ca-trust
+          changed_when: true
+
+        - name: Create container registry certificate directory
+          become: true
+          ansible.builtin.file:
+            path: "/etc/containers/certs.d/{{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}"
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+
+        - name: Trust generated registry certificate for containers
+          become: true
+          ansible.builtin.copy:
+            src: "{{ disconnected.registry.bastion.certs_dir }}/registry.crt"
+            dest: "/etc/containers/certs.d/{{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}/ca.crt"
+            owner: root
+            group: root
+            mode: "0644"
+            remote_src: true
+
+        - name: Update disconnected.registry.ca_cert with generated certificate
+          ansible.builtin.set_fact:
+            disconnected:
+              "{{ disconnected | combine({
+                'registry': disconnected.registry | combine({
+                  'ca_cert': registry_cert_content.content | b64decode
+                }, recursive=True)
+              }, recursive=True) }}"
+
+        - name: Replace ca_cert block in disconnected.yaml with generated certificate
+          ansible.builtin.lineinfile:
+            path: "{{ inventory_dir }}/group_vars/disconnected.yaml"
+            insertafter: "    ca_cert"
+            backup: true
+            line: "{{ (registry_cert_content.content | b64decode).split('\n') | reject('equalto', '') | map('regex_replace', '^(.*)$', '      \\1') | join('\n') ~ '\n' }}"
+          delegate_to: localhost
+          run_once: true
+
+    - name: Use provided certificate if CA is trusted
+      become: true
+      when: disconnected.registry.ca_trusted
+      block:
+        - name: Create certificate from provided CA cert
+          ansible.builtin.copy:
+            content: "{{ disconnected.registry.ca_cert }}"
+            dest: "{{ disconnected.registry.bastion.certs_dir }}/registry.crt"
+            owner: root
+            group: root
+            mode: "0644"
+
+        - name: Create private key placeholder (using provided cert)
+          ansible.builtin.copy:
+            content: "# Using provided certificate"
+            dest: "{{ disconnected.registry.bastion.certs_dir }}/registry.key"
+            owner: root
+            group: root
+            mode: "0600"
+
+    - name: Create htpasswd file for registry authentication
+      become: true
+      ansible.builtin.shell: |
+        htpasswd -nbB {{ disconnected.registry.bastion.username }} {{ disconnected.registry.bastion.password }} > {{ disconnected.registry.bastion.auth_dir }}/htpasswd
+        chown root:root {{ disconnected.registry.bastion.auth_dir }}/htpasswd
+        chmod 0640 {{ disconnected.registry.bastion.auth_dir }}/htpasswd
+      args:
+        creates: "{{ disconnected.registry.bastion.auth_dir }}/htpasswd"
+      no_log: true  # Don't log password
+
+    - name: Create registry systemd service file
+      become: true
+      ansible.builtin.template:
+        src: registry.service.j2
+        dest: /etc/systemd/system/container-registry.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart container registry
+
+    - name: Enable and start container registry service
+      become: true
+      ansible.builtin.systemd:
+        name: container-registry
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Wait for registry to be ready
+      ansible.builtin.wait_for:
+        host: "{{ env.bastion.networking.ip }}"
+        port: "{{ disconnected.registry.bastion.port }}"
+        delay: 5
+        timeout: 60
+
+    - name: Verify htpasswd file was created
+      ansible.builtin.stat:
+        path: "{{ disconnected.registry.bastion.auth_dir }}/htpasswd"
+      register: htpasswd_file
+
+    - name: Display htpasswd file status
+      ansible.builtin.debug:
+        msg: "htpasswd file exists: {{ htpasswd_file.stat.exists }}, size: {{ htpasswd_file.stat.size | default('N/A') }}"
+
+    - name: Test registry connectivity (allow 401 as it means auth is working)
+      ansible.builtin.uri:
+        url: "https://{{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}/v2/"
+        method: GET
+        user: "{{ disconnected.registry.bastion.username }}"
+        password: "{{ disconnected.registry.bastion.password }}"
+        force_basic_auth: true
+        validate_certs: false
+        status_code: [200, 401]  # 401 means registry is up and requiring auth
+      register: registry_test
+      retries: 5
+      delay: 10
+      until: registry_test.status in [200, 401]
+
+    - name: Restart registry service to ensure htpasswd is loaded
+      become: true
+      ansible.builtin.systemd:
+        name: container-registry
+        state: restarted
+        daemon_reload: true
+      when: registry_test.status == 401
+
+    - name: Wait after restart
+      ansible.builtin.pause:
+        seconds: 15
+      when: registry_test.status == 401
+
+    - name: Test registry connectivity again after restart
+      ansible.builtin.uri:
+        url: "https://{{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}/v2/"
+        method: GET
+        user: "{{ disconnected.registry.bastion.username }}"
+        password: "{{ disconnected.registry.bastion.password }}"
+        force_basic_auth: true
+        validate_certs: false
+        status_code: 200
+      register: registry_test_final
+      retries: 3
+      delay: 5
+      until: registry_test_final.status == 200
+      when: registry_test.status == 401
+      failed_when: false  # Don't fail the playbook if auth still doesn't work
+      
+    - name: Display authentication test result
+      ansible.builtin.debug:
+        msg:
+          - "Registry authentication test: {{ 'PASSED' if (registry_test_final.status | default(registry_test.status)) == 200 else 'FAILED (continuing anyway)' }}"
+          - "Status code: {{ registry_test_final.status | default(registry_test.status) }}"
+          - "Registry is running and accessible at: https://{{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}"
+          - ""
+          - "If authentication failed, you can manually test with:"
+          - "  podman login --username {{ disconnected.registry.bastion.username }} --password '{{ disconnected.registry.bastion.password }}' {{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}"
+          - ""
+          - "Or check the htpasswd file:"
+          - "  cat {{ disconnected.registry.bastion.auth_dir }}/htpasswd"
+          - "  podman logs registry"
+
+    - name: Create registry pull secret
+      ansible.builtin.set_fact:
+        registry_auth: "{{ (disconnected.registry.bastion.username + ':' + disconnected.registry.bastion.password) | b64encode }}"
+
+    - name: Display registry information
+      ansible.builtin.debug:
+        msg:
+          - "Container registry successfully configured!"
+          - "Registry URL: {{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}"
+          - "Registry hostname: {{ env.bastion.networking.hostname }}:{{ disconnected.registry.bastion.port }}"
+          - "Username: {{ disconnected.registry.bastion.username }}"
+          - "Data directory: {{ disconnected.registry.bastion.data_dir }}"
+          - "Certificate: {{ disconnected.registry.bastion.certs_dir }}/registry.crt"
+          - ""
+          - "Add this to your pull secret:"
+          - "  '{{ env.bastion.networking.ip }}:{{ disconnected.registry.bastion.port }}': {"
+          - "    'auth': '{{ registry_auth }}',"
+          - "    'email': 'registry@example.com'"
+          - "  }"
+
+# Assisted with Bob

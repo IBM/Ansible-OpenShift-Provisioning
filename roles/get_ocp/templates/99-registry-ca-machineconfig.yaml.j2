@@ -1,0 +1,79 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: master
+  name: 99-master-registry-ca
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,{{ disconnected.registry.ca_cert | b64encode }}
+        mode: 0644
+        overwrite: true
+        path: /etc/pki/ca-trust/source/anchors/registry-ca.crt
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,{{ disconnected.registry.ca_cert | b64encode }}
+        mode: 0644
+        overwrite: true
+        path: /etc/containers/certs.d/{{ disconnected.registry.ip }}:{{ disconnected.registry.bastion.port if disconnected.registry.bastion.enabled else disconnected.registry.url.split(':')[-1] }}/ca.crt
+    systemd:
+      units:
+      - name: update-ca-trust.service
+        enabled: true
+        contents: |
+          [Unit]
+          Description=Update CA trust store with registry certificate
+          After=local-fs.target
+          Before=crio.service
+          
+          [Service]
+          Type=oneshot
+          ExecStart=/usr/bin/update-ca-trust
+          RemainAfterExit=yes
+          
+          [Install]
+          WantedBy=multi-user.target
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: worker
+  name: 99-worker-registry-ca
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,{{ disconnected.registry.ca_cert | b64encode }}
+        mode: 0644
+        overwrite: true
+        path: /etc/pki/ca-trust/source/anchors/registry-ca.crt
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,{{ disconnected.registry.ca_cert | b64encode }}
+        mode: 0644
+        overwrite: true
+        path: /etc/containers/certs.d/{{ disconnected.registry.ip }}:{{ disconnected.registry.bastion.port if disconnected.registry.bastion.enabled else disconnected.registry.url.split(':')[-1] }}/ca.crt
+    systemd:
+      units:
+      - name: update-ca-trust.service
+        enabled: true
+        contents: |
+          [Unit]
+          Description=Update CA trust store with registry certificate
+          After=local-fs.target
+          Before=crio.service
+          
+          [Service]
+          Type=oneshot
+          ExecStart=/usr/bin/update-ca-trust
+          RemainAfterExit=yes
+          
+          [Install]
+          WantedBy=multi-user.target

@@ -30,9 +30,9 @@ api-int.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.bas
 apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.     IN    A {{ env.bastion.networking.ip }}
 *.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.   IN    A {{ env.bastion.networking.ip }}
 
-{% if disconnected.enabled %}
+{% if disconnected_enabled %}
 ;entry for mirror host.
-{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ disconnected.registry.ip }}
+{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.bastion.networking.ip if disconnected.registry.bastion.enabled | default(false) else disconnected.registry.ip }}
 {% endif %}
 
 ;EOF

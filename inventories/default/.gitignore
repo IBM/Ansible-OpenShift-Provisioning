@@ -1,5 +1,10 @@
+# Exclude the hosts file (contains environment-specific inventory)
+hosts
+
+# Exclude everything else in this directory
 /*
+
+# But include these directories
 !group_vars
 !host_vars
 !.gitignore
-hosts

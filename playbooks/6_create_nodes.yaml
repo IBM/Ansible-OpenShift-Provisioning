@@ -32,6 +32,7 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   roles:
     - { role: prep_kvm_guests, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
     # Delete control, compute and infra nodes, if exists
@@ -43,6 +44,7 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   roles:
     - { role: common,  when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
     - { role: create_bootstrap, when: (hosts_with_host_vars|length == 0) or env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
@@ -53,6 +55,7 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   tasks:
     - name: boot bootstrap
       vars:
@@ -82,6 +85,7 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   roles:
     - common
     - create_control_nodes
@@ -95,6 +99,7 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   roles:
     - wait_for_bootstrap
 
@@ -105,6 +110,7 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   tasks:
     - name: Destroy bootstrap. Expect ignored errors if bootstrap is already destroyed.
       tags: create_nodes, teardown_bootstrap
@@ -128,6 +134,7 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   roles:
     - { role: common, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
     - { role: create_compute_nodes, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }

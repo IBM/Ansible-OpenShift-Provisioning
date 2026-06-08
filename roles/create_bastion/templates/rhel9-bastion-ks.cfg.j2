@@ -32,7 +32,16 @@ timezone {{ env.timezone }}
 eula --agreed
 
 # Network information
-network --bootproto=static --device={{ env.bastion.networking.interface }} --ip={{ env.bastion.networking.ip }} --gateway={{ env.bastion.networking.gateway }} --netmask={{ env.bastion.networking.subnetmask }} {{'--ipv6=' + env.bastion.networking.ipv6 if env.use_ipv6 else '--noipv6' }} {{'--ipv6gateway=' + env.bastion.networking.ipv6_gateway if env.use_ipv6 }} --nameserver={{ env.bastion.networking.nameserver1 }}{{ (',' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined }} --activate
+# For disconnected installations with DNS on bastion: use nameserver2 (external) if available, otherwise nameserver1
+# For installations without DNS on bastion: use nameserver1
+{% set bastion_nameserver2 = env.bastion.networking.nameserver2 | default('') | string | trim %}
+{% set bastion_ipv6 = env.bastion.networking.ipv6 | default('') | string | trim %}
+{% set bastion_ipv6_gateway = env.bastion.networking.ipv6_gateway | default('') | string | trim %}
+{% if env.bastion.options.dns is defined and env.bastion.options.dns and bastion_nameserver2 | length > 0 %}
+network --bootproto=static --device={{ env.bastion.networking.interface }} --ip={{ env.bastion.networking.ip }} --gateway={{ env.bastion.networking.gateway }} --netmask={{ env.bastion.networking.subnetmask }} {{ '--ipv6=' + bastion_ipv6 if env.use_ipv6 and bastion_ipv6 | length > 0 else '--noipv6' }} {{ '--ipv6gateway=' + bastion_ipv6_gateway if env.use_ipv6 and bastion_ipv6_gateway | length > 0 else '' }} --nameserver={{ bastion_nameserver2 }} --activate
+{% else %}
+network --bootproto=static --device={{ env.bastion.networking.interface }} --ip={{ env.bastion.networking.ip }} --gateway={{ env.bastion.networking.gateway }} --netmask={{ env.bastion.networking.subnetmask }} {{ '--ipv6=' + bastion_ipv6 if env.use_ipv6 and bastion_ipv6 | length > 0 else '--noipv6' }} {{ '--ipv6gateway=' + bastion_ipv6_gateway if env.use_ipv6 and bastion_ipv6_gateway | length > 0 else '' }} --nameserver={{ env.bastion.networking.nameserver1 }}{{ (',' + bastion_nameserver2) if bastion_nameserver2 | length > 0 else '' }} --activate
+{% endif %}
 network --hostname={{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}
 
 # Firewall and SELinux

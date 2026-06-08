@@ -1,0 +1,254 @@
+---
+# Role: disconnected_mirror_ocp_bastion
+# Description: Performs OCP mirroring operations using oc-mirror on the bastion
+# This role runs on the bastion to mirror OCP images to the disconnected registry
+
+- name: Mirror OCP images using oc-mirror on bastion
+  tags: mirror_ocp_bastion
+  when: disconnected_enabled
+  block:
+    - name: Get user home directory
+      ansible.builtin.shell: |
+        set -o pipefail
+        getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
+      changed_when: false
+      register: user_home
+
+    - name: Set registry URL based on configuration
+      ansible.builtin.set_fact:
+        registry_url: >-
+          {{
+            env.bastion.networking.ip ~ ':' ~ disconnected.registry.bastion.port
+            if disconnected.registry.bastion.enabled | default(false)
+            else disconnected.registry.url
+          }}
+
+    - name: Create imageset configuration file
+      ansible.builtin.template:
+        src: imageset-config.yaml.j2
+        dest: "{{ disconnected.mirroring.bastion.working_dir }}/imageset-config.yaml"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0644"
+
+    - name: Copy monitoring script to bastion
+      ansible.builtin.copy:
+        src: monitor-oc-mirror.sh
+        dest: "{{ disconnected.mirroring.bastion.working_dir }}/monitor-oc-mirror.sh"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+
+    - name: Create registries.conf for oc-mirror v2 if needed
+      when:
+        - disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v2alpha1"
+        - disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled
+      block:
+        - name: Create .config/containers directory
+          ansible.builtin.file:
+            path: "{{ user_home.stdout }}/.config/containers"
+            state: directory
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0700"
+
+        - name: Create registries.conf
+          ansible.builtin.template:
+            src: registries.conf.j2
+            dest: "{{ user_home.stdout }}/.config/containers/registries.conf"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+
+    - name: Mirror images using oc-mirror v1
+      when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v1alpha2"
+      block:
+        - name: Run oc-mirror v1 to mirror images
+          ansible.builtin.shell: |
+            set -o pipefail
+            oc mirror --config {{ disconnected.mirroring.bastion.working_dir }}/imageset-config.yaml \
+              docker://{{ registry_url }} \
+              --ignore-history{{ ' --continue-on-error' if disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error }} \
+              {{ ' --source-skip-tls' if disconnected.mirroring.oc_mirror.oc_mirror_args.source_skip_tls }}
+          args:
+            chdir: "{{ disconnected.mirroring.bastion.working_dir }}"
+          register: oc_mirror_v1_output
+          async: "{{ disconnected.mirroring.oc_mirror.oc_mirror_args.async_timeout | default(7200) }}"
+          poll: "{{ disconnected.mirroring.oc_mirror.oc_mirror_args.async_poll | default(30) }}"
+
+        - name: Display oc-mirror v1 output
+          ansible.builtin.debug:
+            var: oc_mirror_v1_output.stdout_lines
+
+        - name: Get results directory name
+          ansible.builtin.shell: |
+            set -o pipefail
+            ls {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-workspace/ | grep results
+          register: oc_mirror_results_dir
+          changed_when: false
+
+        - name: Copy results to mirror output directory
+          ansible.builtin.copy:
+            src: "{{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-workspace/{{ oc_mirror_results_dir.stdout }}/"
+            dest: "{{ disconnected.mirroring.bastion.mirror_output_dir }}/"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: preserve
+            remote_src: true
+
+    - name: Mirror images using oc-mirror v2
+      when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v2alpha1"
+      block:
+        - name: Run oc-mirror v2 dry-run to generate mapping
+          ansible.builtin.shell: |
+            set -o pipefail
+            export SSL_CERT_FILE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+            oc mirror --v2 --config {{ disconnected.mirroring.bastion.working_dir }}/imageset-config.yaml \
+              --workspace file://{{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-workspace \
+              docker://{{ registry_url }} \
+              --dest-tls-verify=false \
+              --dry-run
+          args:
+            chdir: "{{ disconnected.mirroring.bastion.working_dir }}"
+          register: oc_mirror_v2_dryrun
+          changed_when: false
+
+        - name: Display oc-mirror v2 dry-run output
+          ansible.builtin.debug:
+            var: oc_mirror_v2_dryrun.stdout_lines
+
+        - name: Run oc-mirror v2 to mirror images (async)
+          ansible.builtin.shell: |
+            set -o pipefail
+            export SSL_CERT_FILE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+            oc mirror --v2 \
+              --config {{ disconnected.mirroring.bastion.working_dir }}/imageset-config.yaml \
+              --workspace file://{{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-workspace \
+              docker://{{ registry_url }} \
+              --dest-tls-verify=false \
+              {{ '--continue-on-error' if disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error else '' }} \
+              {{ '--src-tls-verify=false' if disconnected.mirroring.oc_mirror.oc_mirror_args.source_skip_tls else '' }} \
+              2>&1 | tee {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log
+          args:
+            chdir: "{{ disconnected.mirroring.bastion.working_dir }}"
+          register: oc_mirror_v2_job
+          async: "{{ disconnected.mirroring.oc_mirror.oc_mirror_args.async_timeout | default(7200) }}"
+          poll: 0
+
+        - name: Display mirroring progress information
+          ansible.builtin.debug:
+            msg:
+              - "=========================================="
+              - "OC-Mirror is running in the background"
+              - "=========================================="
+              - "Progress log: {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log"
+              - "Job ID: {{ oc_mirror_v2_job.ansible_job_id }}"
+              - ""
+              - "To monitor progress in real-time, SSH to bastion and run:"
+              - "  tail -f {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log"
+              - ""
+              - "Or use this command to see only image pulls:"
+              - >-
+                  tail -f {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log |
+                  grep -E 'mirroring|copying|Pulling|sha256'
+              - ""
+              - >-
+                Ansible will check progress every
+                {{ disconnected.mirroring.oc_mirror.oc_mirror_args.async_poll | default(30) }} seconds...
+
+        - name: Monitor oc-mirror progress with periodic updates
+          ansible.builtin.async_status:
+            jid: "{{ oc_mirror_v2_job.ansible_job_id }}"
+          register: oc_mirror_v2_result
+          until: oc_mirror_v2_result.finished
+          retries: >-
+            {{
+              (
+                disconnected.mirroring.oc_mirror.oc_mirror_args.async_timeout | default(7200) /
+                disconnected.mirroring.oc_mirror.oc_mirror_args.async_poll | default(30)
+              ) | int
+            }}
+          delay: "{{ disconnected.mirroring.oc_mirror.oc_mirror_args.async_poll | default(30) }}"
+          notify: Display progress update
+
+        - name: Set final output variable
+          ansible.builtin.set_fact:
+            oc_mirror_v2_output: "{{ oc_mirror_v2_result }}"
+
+        - name: Display oc-mirror v2 final output
+          ansible.builtin.debug:
+            msg:
+              - "=========================================="
+              - "OC-Mirror completed successfully!"
+              - "=========================================="
+              - >-
+                Full log available at:
+                {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log
+              - ""
+              - "Summary of last 50 lines:"
+
+        - name: Display last 50 lines of mirroring output
+          ansible.builtin.shell: |
+            tail -50 {{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-progress.log
+          register: mirror_summary
+          changed_when: false
+
+        - name: Show mirroring summary
+          ansible.builtin.debug:
+            var: mirror_summary.stdout_lines
+
+        - name: Copy cluster resources to mirror output directory
+          ansible.builtin.copy:
+            src: "{{ disconnected.mirroring.bastion.working_dir }}/oc-mirror-workspace/working-dir/cluster-resources/"
+            dest: "{{ disconnected.mirroring.bastion.mirror_output_dir }}/"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: preserve
+            remote_src: true
+
+    - name: Perform post-mirror mapping replacements for v1
+      when:
+        - disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v1alpha2"
+        - disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled
+      block:
+        - name: Create copy of mapping file
+          ansible.builtin.copy:
+            src: "{{ disconnected.mirroring.bastion.mirror_output_dir }}/mapping.txt"
+            dest: "{{ disconnected.mirroring.bastion.mirror_output_dir }}/post_mapping.txt"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: preserve
+            remote_src: true
+
+        - name: Apply replacements to mapping file
+          ansible.builtin.replace:
+            path: "{{ disconnected.mirroring.bastion.mirror_output_dir }}/post_mapping.txt"
+            regexp: "{{ item.regexp }}"
+            replace: "{{ item.replace }}"
+          loop: "{{ disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.list }}"
+
+        - name: Mirror patched mappings
+          ansible.builtin.shell: |
+            set -o pipefail
+            oc image mirror -a {{ user_home.stdout }}/.docker/config.json \
+              -f {{ disconnected.mirroring.bastion.mirror_output_dir }}/post_mapping.txt \
+              --insecure \
+              --filter-by-os='.*' \
+              --continue-on-error || true
+          args:
+            chdir: "{{ disconnected.mirroring.bastion.working_dir }}"
+          register: oc_image_mirror_output
+
+        - name: Display oc image mirror output
+          ansible.builtin.debug:
+            var: oc_image_mirror_output.stdout_lines
+
+    - name: Display mirroring summary
+      ansible.builtin.debug:
+        msg:
+          - "Mirroring completed successfully"
+          - "Mirror output directory: {{ disconnected.mirroring.bastion.mirror_output_dir }}"
+          - "ImageSet configuration: {{ disconnected.mirroring.bastion.working_dir }}/imageset-config.yaml"
+          - "Apply the YAML files in {{ disconnected.mirroring.bastion.mirror_output_dir }} to your cluster"
+
+# Made with Bob
