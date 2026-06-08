@@ -68,7 +68,7 @@
   ansible.builtin.set_fact:
     cluster_password_decoded: "{{ cluster_password_encoded.stdout_lines[0].split(' ')[-1] | b64decode }}"
 
-- name: Saving the password in bastion 
+- name: Saving the password in bastion
   ansible.builtin.copy:
     content: "{{ cluster_password_decoded.stdout_lines[0] }}"
     dest: /root/ansible_workdir/kubeadmin-password
