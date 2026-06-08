@@ -1,5 +1,8 @@
-# Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE
+# Ansible-Automated OpenShift Provisioning on IBM zSystems / LinuxONE
 The documentation for this project can be found [here](https://ibm.github.io/Ansible-OpenShift-Provisioning/).
+
+**Supported Hypervisors:** KVM, LPAR, z/VM  
+**Installation Methods:** User-Provisioned Infrastructure (UPI), Agent-Based Installer (ABI), Hosted Control Plane (HCP)
 
 Release v2.4.0:
 This README contains the information for the current release only.
