@@ -15,11 +15,12 @@
     creates: /root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig
 
 - name: Set kubeconfig path variable
-    ansible.builtin.set_fact:
-      hcp_kubeconfig: "/root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig"
+  ansible.builtin.set_fact:
+    hcp_kubeconfig: >
+      /root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig
 
 - name: Set kubeconfig file permissions
-    ansible.builtin.file:
+  ansible.builtin.file:
     path: "{{ hcp_kubeconfig }}"
     mode: '0600'
 

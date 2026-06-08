@@ -49,6 +49,7 @@
 
 - name: Wait for Hosted Control Plane to Complete
   ansible.builtin.shell: |
+    set -o pipefail
     oc get hc -n {{ hcp.control_plane.clusters_namespace }} --no-headers | awk  '{print $4}'
   register: hc_status
   until: hc_status.stdout == "Completed"
@@ -71,6 +72,7 @@
   ansible.builtin.copy:
     content: "{{ cluster_password_decoded.stdout_lines[0] }}"
     dest: /root/ansible_workdir/kubeadmin-password
+    mode: '0600'
 
 - name: Get api server of Hosted Cluster
   ansible.builtin.shell: |

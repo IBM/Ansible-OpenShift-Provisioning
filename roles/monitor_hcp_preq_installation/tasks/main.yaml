@@ -198,21 +198,21 @@
   ansible.builtin.command: oc get sc
   register: storageclasses_output
   changed_when: false
-  when: 
+  when:
     - not (hcp.odf.delete | default(false))
     - hcp.storage.type == "odf"
 
 - name: Show storage classes
   ansible.builtin.debug:
     var: storageclasses_output.stdout_lines
-  when: 
+  when:
     - not (hcp.odf.delete | default(false))
     - hcp.storage.type == "odf"
 
 - name: ODF installation successful
   ansible.builtin.debug:
     msg: "ODF operator installation successful."
-  when: 
+  when:
     - not (hcp.odf.delete | default(false))
     - hcp.storage.type == "odf"
 

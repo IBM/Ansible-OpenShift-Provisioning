@@ -2,8 +2,8 @@
 - name: Check whether OpenShift Virtualization HyperConverged already exists
   ansible.builtin.command:
     cmd: >
-      oc get hyperconverged 
-      {{ hcp.ocpvirt.instance_name | default('kubevirt-hyperconverged', true) }} 
+      oc get hyperconverged
+      {{ hcp.ocpvirt.instance_name | default('kubevirt-hyperconverged', true) }}
       -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }}
   register: ocpvirt_check
   changed_when: false

@@ -53,7 +53,7 @@
         set -o pipefail
         oc get csv \
           -n {{ hcp.lso.namespace | default('openshift-local-storage', true) }} \
-          -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' \ 
+          -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' \
           | grep local-storage-operator \
           | grep Succeeded \
           | wc -l
