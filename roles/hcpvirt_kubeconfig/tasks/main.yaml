@@ -1,63 +1,65 @@
 ---
-    - name: Create ansible work directory for kubeconfig
-      ansible.builtin.file:
-        path: /root/ansible_workdir/kubeconfigs
-        state: directory
-        mode: '0755'
+- name: Create ansible work directory for kubeconfig
+    ansible.builtin.file:
+      path: /root/ansible_workdir/kubeconfigs
+      state: directory
+      mode: '0755'
 
-    - name: Generate kubeconfig for hosted cluster using hcp CLI
-      ansible.builtin.shell: |
-        hcp create kubeconfig kubevirt \
-          --name {{ hcp.control_plane.hosted_cluster_name }} \
-          --namespace {{ hcp.control_plane.clusters_namespace }} \
-          > /root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig
-      args:
-        creates: /root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig
+- name: Generate kubeconfig for hosted cluster using hcp CLI
+    ansible.builtin.shell: |
+      hcp create kubeconfig kubevirt \
+      --name {{ hcp.control_plane.hosted_cluster_name }} \
+      --namespace {{ hcp.control_plane.clusters_namespace }} \
+      > /root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig
+    args:
+      creates: /root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig
 
-    - name: Set kubeconfig path variable
-      set_fact:
-        hcp_kubeconfig: "/root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig"
+- name: Set kubeconfig path variable
+    ansible.builtin.set_fact:
+      hcp_kubeconfig: "/root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig"
 
-    - name: Set kubeconfig file permissions
-      ansible.builtin.file:
-        path: "{{ hcp_kubeconfig }}"
-        mode: '0600'
+- name: Set kubeconfig file permissions
+    ansible.builtin.file:
+    path: "{{ hcp_kubeconfig }}"
+    mode: '0600'
 
-    - name: Check kubeconfig accessibility and restart MetalLB if needed
-      block:
-        - name: Test kubeconfig accessibility
-          ansible.builtin.shell: |
-            oc --kubeconfig {{ hcp_kubeconfig }} get nodes --request-timeout=10s
-          register: kubeconfig_test
-          failed_when: false
-          changed_when: false
+- name: Check kubeconfig accessibility and restart MetalLB if needed
+    block:
+      - name: Test kubeconfig accessibility
+        ansible.builtin.shell: |
+          oc --kubeconfig {{ hcp_kubeconfig }} get nodes --request-timeout=10s
+        register: kubeconfig_test
+        failed_when: false
+        changed_when: false
 
-        - name: Display kubeconfig accessibility
-          ansible.builtin.debug:
-            msg: "{{ kubeconfig_test.stdout if kubeconfig_test.stdout != '' else kubeconfig_test.stderr }}"
+      - name: Display kubeconfig accessibility
+        ansible.builtin.debug:
+          msg: "{{ kubeconfig_test.stdout if kubeconfig_test.stdout != '' else kubeconfig_test.stderr }}"
 
-        - name: Restart MetalLB speaker daemonset on timeout
-          ansible.builtin.shell: |
-            oc rollout restart daemonset speaker -n metallb-system
-          when:
-            - kubeconfig_test.rc != 0
-          register: metallb_restart
+      - name: Restart MetalLB speaker daemonset on timeout
+        ansible.builtin.shell: |
+          oc rollout restart daemonset speaker -n metallb-system
+        when:
+          - kubeconfig_test.rc != 0
+        register: metallb_restart
 
-        - name: Wait for MetalLB speaker pods to be ready after restart
-          ansible.builtin.shell: |
-            oc get pods -n metallb-system -l component=speaker --no-headers 2>/dev/null | grep -c "Running" || echo "0"
-          when: metallb_restart is changed
-          retries: 3
-          delay: 10
-          until: metallb_wait.rc == 0
-          register: metallb_wait
-          failed_when: false
+      - name: Wait for MetalLB speaker pods to be ready after restart
+        ansible.builtin.command:
+          cmd: oc get pods -n metallb-system -l component=speaker -o jsonpath='{.items[*].status.phase}'
+        register: metallb_wait
+        retries: 3
+        delay: 10
+        changed_when: false
+        until: >
+          metallb_wait.stdout != '' and
+          (metallb_wait.stdout.split() | difference(['Running']) | length) == 0
 
-        - name: Verify kubeconfig accessibility after MetalLB restart
-          ansible.builtin.shell: |
-            oc --kubeconfig {{ hcp_kubeconfig }} get nodes --request-timeout=30s
-          when: metallb_restart is changed
-          retries: 5
-          delay: 10
-          until: kubeconfig_verify.rc == 0
-          register: kubeconfig_verify
+      - name: Verify kubeconfig accessibility after MetalLB restart
+        ansible.builtin.command: |
+          cmd: oc --kubeconfig {{ hcp_kubeconfig }} get nodes --request-timeout=30s
+        when: metallb_restart is changed
+        register: kubeconfig_verify
+        retries: 5
+        delay: 10
+        changed_when: false
+        until: kubeconfig_verify.rc == 0

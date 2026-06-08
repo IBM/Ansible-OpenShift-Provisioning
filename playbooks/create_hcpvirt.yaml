@@ -18,7 +18,7 @@
       changed_when: "'patched' in wildcard_patch.stdout or 'no change' not in wildcard_patch.stderr"
 
     - name: Display wildcard DNS configuration status
-      debug:
+      ansible.builtin.debug:
         msg: "Wildcard DNS routes enabled in management cluster ingress controller"
 
 # Create Hosted Control Plane on KubeVirt
@@ -40,7 +40,6 @@
     - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
   become: true
   gather_facts: false
-  
   roles:
     - hcpvirt_kubeconfig
 
@@ -55,12 +54,12 @@
 
     - name: Wait for router-nodeport-default service to be available
       ansible.builtin.shell: |
-        oc --kubeconfig {{ hcp_kubeconfig }} get service router-nodeport-default -n openshift-ingress --no-headers 2>/dev/null | wc -l
+        oc --kubeconfig {{ hcp_kubeconfig }} get service router-nodeport-default -n openshift-ingress --ignore-not-found -o name
       register: router_service_check
       retries: 30
       delay: 20
-      until: router_service_check.stdout | int > 0
-
+      until: router_service_check.stdout != ""
+      changed_when: false
 
     - name: Get HTTP NodePort for router
       ansible.builtin.shell: |
@@ -87,9 +86,9 @@
 
     - name: Display NodePort values
       ansible.builtin.debug:
-         msg:
-           - "HTTP NodePort: {{ http_nodeport }}"
-           - "HTTPS NodePort: {{ https_nodeport }}"
+        msg:
+          - "HTTP NodePort: {{ http_nodeport }}"
+          - "HTTPS NodePort: {{ https_nodeport }}"
 
 - name: Post HCP Creation Networking Setup
   hosts: mgmt_bastion
@@ -107,10 +106,8 @@
   hosts: mgmt_bastion
   become: true
   gather_facts: false
-
   vars_files:
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
     - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
-
   roles:
     - wait_for_hc_complete 

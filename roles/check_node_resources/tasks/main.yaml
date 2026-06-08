@@ -36,8 +36,6 @@
         ((validation_result.stdout | default('[]')) | trim != "") and
         ((validation_result.stdout | default('[]')) | from_json | length > 0)
 
-        
-
 - name: Success message
   ansible.builtin.debug:
     msg: |

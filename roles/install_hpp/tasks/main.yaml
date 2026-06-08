@@ -27,7 +27,7 @@
 
     - name: Render HostPathProvisioner CR
       ansible.builtin.template:
-        src: hostpathprovisioner.yaml.j2 
+        src: hostpathprovisioner.yaml.j2
         dest: /root/ansible_workdir/{{ hcp.hpp.name }}-cr.yaml
         mode: '0644'
 

@@ -109,14 +109,3 @@
         oc patch mce {{ hcp.mce.instance_name | default('engine', true) }}
         -p '{"spec":{"overrides":{"components":[{"name":"hypershift-preview","enabled":true}]}}}'
         --type merge
-
-    #- name: Create ClusterImageSet.yaml
-      #ansible.builtin.template:
-        #src: ClusterImageSet.yaml.j2
-        #dest: /root/ansible_workdir/ClusterImageSet.yaml
-        #mode: '0644'
-
-    #- name: Deploy ClusterImageSet
-      #ansible.builtin.command: oc apply -f /root/ansible_workdir/ClusterImageSet.yaml
-
-    

@@ -22,7 +22,7 @@
         ansible_user: root
         ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}"
         ansible_connection: ssh
-        inventory_dir: "{{ inventory_dir }}"     
+        inventory_dir: "{{ inventory_dir }}"
 
 # Login to OCP Management Cluster (from bastion)
 - name: Login to OCP Management Cluster
@@ -73,13 +73,10 @@
   roles:
     - install_mce_operator_kubevirt
     - install_metallb_operator
-    - install_ocpvirt_operator
-    
+    - install_ocpvirt_operator    
     - role: install_lso_operator
       when: hcp.storage.type == "odf"
-
     - role: install_odf_operator
       when: hcp.storage.type == "odf"
-
-    - role: install_hpp    
+    - role: install_hpp
     - monitor_hcp_preq_installation

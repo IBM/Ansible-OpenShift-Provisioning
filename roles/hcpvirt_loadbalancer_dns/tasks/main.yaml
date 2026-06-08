@@ -21,7 +21,7 @@
   until: lb_external_ip.stdout != ""
 
 - name: Display LoadBalancer external IP
-  debug:
+  ansible.builtin.debug:
     msg:
       - "LoadBalancer External IP: {{ lb_external_ip.stdout }}"
       - "Configure wildcard DNS: *.apps.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }} -> {{ lb_external_ip.stdout }}"

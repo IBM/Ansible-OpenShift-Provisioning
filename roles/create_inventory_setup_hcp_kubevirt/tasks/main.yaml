@@ -2,50 +2,58 @@
 
 - name: Find inventory directory from ansible.cfg
   tags: set_inventory
-  shell: cat {{ ansible_config_file }} | grep 'inventory=' | cut -f2 -d"="
+  ansible.builtin.shell: |
+    set -o pipefail
+    grep 'inventory=' {{ ansible_config_file }} | cut -f2 -d"="
+  args:
+    executable: /bin/bash
   register: find_inventory
+  changed_when: false
 
 - name: Find absolute path to project.
   tags: set_inventory
-  shell: |
+  ansible.builtin.shell: |
     ansible_config="{{ ansible_config_file }}"
     echo "${ansible_config%/*}/"
   register: find_project
 
 - name: Resolve SSH key name
-  set_fact:
+  ansible.builtin.set_fact:
     hcp_ansible_key_name: "{{ hcp.ansible_key_name | default('ansible-ocpz', true) }}"
 
 - name: Create inventory
-  template:
+  ansible.builtin.template:
     src: inventory_template.j2
     dest: "{{ find_project.stdout }}{{ find_inventory.stdout }}/inventory_hcp"
+    mode: "0644"
 
 - name: Check if SSH key exists
-  stat:
+  ansible.builtin.stat:
     path: "~/.ssh/{{ hcp_ansible_key_name }}.pub"
   register: ssh_key
 
 - name: Generate SSH key
-  command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ hcp_ansible_key_name }}"
-  when: ssh_key.stat.exists == false
+  ansible.builtin.command:
+    cmd: ssh-keygen -t rsa -b 4096 -N "" -f {{ ansible_env.HOME }}/.ssh/{{ hcp_ansible_key_name }}
+  when: not ssh_key.stat.exists
 
 - name: Create expect file
-  template:
+  ansible.builtin.template:
     src: ssh-key.exp.j2
     dest: "{{ find_project.stdout }}{{ find_inventory.stdout }}/ssh-key.exp.sh"
     mode: "+rx"
 
 - name: Add ssh-key to kvm_host Authorised Keys
   block:
-  - name: Adding ssh key
-    shell: "{{ find_project.stdout }}{{ find_inventory.stdout }}/ssh-key.exp.sh"
+    - name: Adding ssh key
+      ansible.builtin.command:
+        cmd: "{{ find_project.stdout }}{{ find_inventory.stdout }}/ssh-key.exp.sh"
   rescue:
     - name: Key already added
-      debug:
+      ansible.builtin.debug:
         msg: "Ignore the above error if ssh-key already added"
 
 - name: Delete expect file
-  file:
+  ansible.builtin.file:
     path: "{{ find_project.stdout }}{{ find_inventory.stdout }}/ssh-key.exp.sh"
     state: absent
