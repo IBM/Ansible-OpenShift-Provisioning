@@ -46,31 +46,31 @@
 - name: Create a Hosted Cluster
   ansible.builtin.command:
     cmd: >
-    hcp create cluster kubevirt
-    --name={{ hcp.control_plane.hosted_cluster_name }}
-    --node-pool-replicas={{ hcp.data_plane.compute_count }}
-    --arch={{ hcp.control_plane.arch }}
-    --pull-secret=/root/ansible_workdir/auth_file
-    --namespace={{ hcp.control_plane.clusters_namespace }}
-    --base-domain={{ hcp.control_plane.basedomain }}
-    --ssh-key ~/.ssh/{{ hcp.ansible_key_name }}.pub
-    {% if hcp.control_plane.high_availability == false %}
-    --control-plane-availability-policy "SingleReplica"
-    {% endif %}
-    --infra-availability-policy "SingleReplica"
-    --image-content-sources /root/ansible_workdir/icsp.yaml
-    {% set release_image = lookup('env', 'HCP_RELEASE_IMAGE') %}
-    {% if release_image is defined and release_image != '' %}
-    --release-image={{ release_image }}
-    {% else %}
-    --release-image=quay.io/openshift-release-dev/ocp-release:{{ hcp.control_plane.ocp_release_image }}
-    {% endif %}
-    {% if hcp.control_plane.additional_flags is defined and hcp.control_plane.additional_flags != '' %}
-    {{ hcp.control_plane.additional_flags }}
-    {% endif %}
-    --memory={{ hcp.data_plane.memory }}
-    --cores={{ hcp.data_plane.cores }}
-    --root-volume-size={{ hcp.data_plane.root_volume_size }}
+      hcp create cluster kubevirt
+      --name={{ hcp.control_plane.hosted_cluster_name }}
+      --node-pool-replicas={{ hcp.data_plane.compute_count }}
+      --arch={{ hcp.control_plane.arch }}
+      --pull-secret=/root/ansible_workdir/auth_file
+      --namespace={{ hcp.control_plane.clusters_namespace }}
+      --base-domain={{ hcp.control_plane.basedomain }}
+      --ssh-key ~/.ssh/{{ hcp.ansible_key_name }}.pub
+      {% if hcp.control_plane.high_availability == false %}
+      --control-plane-availability-policy "SingleReplica"
+      {% endif %}
+      --infra-availability-policy "SingleReplica"
+      --image-content-sources /root/ansible_workdir/icsp.yaml
+      {% set release_image = lookup('env', 'HCP_RELEASE_IMAGE') %}
+      {% if release_image is defined and release_image != '' %}
+      --release-image={{ release_image }}
+      {% else %}
+      --release-image=quay.io/openshift-release-dev/ocp-release:{{ hcp.control_plane.ocp_release_image }}
+      {% endif %}
+      {% if hcp.control_plane.additional_flags is defined and hcp.control_plane.additional_flags != '' %}
+      {{ hcp.control_plane.additional_flags }}
+      {% endif %}
+      --memory={{ hcp.data_plane.memory }}
+      --cores={{ hcp.data_plane.cores }}
+      --root-volume-size={{ hcp.data_plane.root_volume_size }}
 
 - name: Waiting for Hosted Control Plane to be available
   ansible.builtin.command:

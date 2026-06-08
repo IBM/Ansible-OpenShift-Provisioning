@@ -1,12 +1,12 @@
 ---
 - name: Check if oc command is available
-  shell: which oc
+  ansible.builtin.command: which oc
   register: oc_check
   failed_when: false
   changed_when: false
 
 - name: Fail if oc is not installed
-  fail:
+  ansible.builtin.fail:
     msg: "oc CLI is not installed. Please install OpenShift CLI tools first."
   when: oc_check.rc != 0
 

@@ -73,7 +73,7 @@
   roles:
     - install_mce_operator_kubevirt
     - install_metallb_operator
-    - install_ocpvirt_operator    
+    - install_ocpvirt_operator
     - role: install_lso_operator
       when: hcp.storage.type == "odf"
     - role: install_odf_operator

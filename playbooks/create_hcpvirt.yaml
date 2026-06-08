@@ -110,4 +110,4 @@
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
     - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
   roles:
-    - wait_for_hc_complete 
+    - wait_for_hc_complete

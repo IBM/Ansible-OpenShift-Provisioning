@@ -1,18 +1,18 @@
 ---
 - name: Create ansible work directory for kubeconfig
-    ansible.builtin.file:
-      path: /root/ansible_workdir/kubeconfigs
-      state: directory
-      mode: '0755'
+  ansible.builtin.file:
+    path: /root/ansible_workdir/kubeconfigs
+    state: directory
+    mode: '0755'
 
 - name: Generate kubeconfig for hosted cluster using hcp CLI
-    ansible.builtin.shell: |
-      hcp create kubeconfig kubevirt \
-      --name {{ hcp.control_plane.hosted_cluster_name }} \
-      --namespace {{ hcp.control_plane.clusters_namespace }} \
-      > /root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig
-    args:
-      creates: /root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig
+  ansible.builtin.shell: |
+    hcp create kubeconfig kubevirt \
+    --name {{ hcp.control_plane.hosted_cluster_name }} \
+    --namespace {{ hcp.control_plane.clusters_namespace }} \
+    > /root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig
+  args:
+    creates: /root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig
 
 - name: Set kubeconfig path variable
     ansible.builtin.set_fact:
