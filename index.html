@@ -46,6 +46,8 @@
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#supported-configurations">Supported Configurations</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#ready-to-start">Ready to Start?</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#need-help">Need Help?</a>
@@ -106,10 +108,36 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="ansible-automated-openshift-provisioning-on-kvm-on-ibm-zsystems-linuxone">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE<a class="headerlink" href="#ansible-automated-openshift-provisioning-on-kvm-on-ibm-zsystems-linuxone" title="Permanent link">#</a></h1>
+                <h1 id="ansible-automated-openshift-provisioning-on-ibm-zsystems-linuxone">Ansible-Automated OpenShift Provisioning on IBM zSystems / LinuxONE<a class="headerlink" href="#ansible-automated-openshift-provisioning-on-ibm-zsystems-linuxone" title="Permanent link">#</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
-<p>These Ansible Playbooks automate the setup and deployment of a Red Hat OpenShift Container Platform (RHOCP) cluster on IBM zSystems / LinuxONE with Kernel Virtual Machine (KVM) as the hypervisor.<br />
-<img src="images/overview.png" width="75%"/></p>
+<p>These Ansible Playbooks automate the setup and deployment of Red Hat OpenShift Container Platform (RHOCP) clusters on IBM zSystems / LinuxONE across multiple hypervisors and installation methods.</p>
+<h2 id="supported-configurations">Supported Configurations<a class="headerlink" href="#supported-configurations" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Hypervisor</th>
+<th>Installation Methods</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>KVM</strong></td>
+<td>UPI, Agent-Based Installer (ABI), Hosted Control Plane (HCP)</td>
+</tr>
+<tr>
+<td><strong>LPAR</strong></td>
+<td>UPI, Agent-Based Installer (ABI), Hosted Control Plane (HCP)</td>
+</tr>
+<tr>
+<td><strong>z/VM</strong></td>
+<td>UPI, Hosted Control Plane (HCP)</td>
+</tr>
+<tr>
+<td><img src="images/overview.png" width="75%"/></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <h2 id="ready-to-start">Ready to Start?<a class="headerlink" href="#ready-to-start" title="Permanent link">#</a></h2>
 <p>Use the left-hand panel to navigate the site. Start with the <a href="before-you-begin/">Before You Begin</a> page.</p>
 <h2 id="need-help">Need Help?<a class="headerlink" href="#need-help" title="Permanent link">#</a></h2>
@@ -167,5 +195,5 @@
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2026-04-23 08:30:20.207442+00:00
+Build Date UTC : 2026-06-08 10:37:05.123900+00:00
 -->
