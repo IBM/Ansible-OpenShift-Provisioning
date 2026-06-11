@@ -1,4 +1,7 @@
 ---
+- name: Setup inventory and SSH keys
+  import_playbook: setup_inventory_hcp_kubevirt.yaml
+
 - name: Run HCP KubeVirt prerequisites setup
   import_playbook: hcp_kubevirt_prereqs_setup.yaml
 

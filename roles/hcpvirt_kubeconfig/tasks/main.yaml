@@ -16,8 +16,7 @@
 
 - name: Set kubeconfig path variable
   ansible.builtin.set_fact:
-    hcp_kubeconfig: >
-      /root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig
+    hcp_kubeconfig: "/root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig"
 
 - name: Set kubeconfig file permissions
   ansible.builtin.file:
@@ -35,13 +34,47 @@
 
     - name: Display kubeconfig accessibility
       ansible.builtin.debug:
-        msg: "{{ kubeconfig_test.stdout if kubeconfig_test.stdout != '' else kubeconfig_test.stderr }}"
+        msg: "{{ kubeconfig_test.stdout | default('') ~ kubeconfig_test.stderr | default('') }}"
+    
+    - name: Classify kubeconfig failure
+      ansible.builtin.set_fact:
+        kube_error: "{{ (kubeconfig_test.stdout | default('')) ~ (kubeconfig_test.stderr | default('')) }}"
+
+    - name: Delete old kubeconfig
+      ansible.builtin.file:
+        path: "{{ hcp_kubeconfig }}"
+        state: absent
+      when: "'x509' in kube_error or 'certificate' in kube_error"
+
+    - name: Recreate kubeconfig
+      ansible.builtin.shell: |
+        hcp create kubeconfig kubevirt \
+        --name {{ hcp.control_plane.hosted_cluster_name }} \
+        --namespace {{ hcp.control_plane.clusters_namespace }} \
+        > {{ hcp_kubeconfig }}
+      args:
+        creates: /root/ansible_workdir/kubeconfigs/{{ hcp.control_plane.hosted_cluster_name }}-kubeconfig
+      when: "'x509' in kube_error or 'certificate' in kube_error"
+
+    - name: Test kubeconfig accessibility
+      ansible.builtin.shell: |
+        oc --kubeconfig {{ hcp_kubeconfig }} get nodes --request-timeout=10s
+      register: kubeconfig_test
+      failed_when: false
+      changed_when: false
+
+    - name: Display kubeconfig accessibility
+      ansible.builtin.debug:
+        msg: "{{ kubeconfig_test.stdout | default('') ~ kubeconfig_test.stderr | default('') }}"
+
+    - name: Classify kubeconfig failure
+      ansible.builtin.set_fact:
+        kube_error: "{{ (kubeconfig_test.stdout | default('')) ~ (kubeconfig_test.stderr | default('')) }}"
 
     - name: Restart MetalLB speaker daemonset on timeout
       ansible.builtin.shell: |
         oc rollout restart daemonset speaker -n metallb-system
-      when:
-        - kubeconfig_test.rc != 0
+      when: "'timed out' in kube_error or 'timeout' in kube_error or 'Client.Timeout' in kube_error"
       register: metallb_restart
       changed_when: false
 

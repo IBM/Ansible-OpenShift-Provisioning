@@ -80,20 +80,23 @@
       --namespace={{ hcp.control_plane.clusters_namespace }} hostedcluster/{{ hcp.control_plane.hosted_cluster_name }}
 
 - name: Wait for pods to come up in Hosted Control Plane Namespace
-  ansible.builtin.command:
-    cmd: oc get pods -n {{ hosted_control_plane_namespace }} -o name
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get pods -n {{ hosted_control_plane_namespace }} \
+    | wc -l
   register: pod_count
   changed_when: false
-  until: pod_count.stdout_lines | int > 20
+  until: pod_count.stdout | int > 20
   retries: 40
   delay: 10
 
 - name: Wait for all pods to be in Running State in  Hosted Control Plane Namespace
-  ansible.builtin.command:
-    cmd: oc get pods -n {{ hosted_control_plane_namespace }} -o jsonpath='{.items[*].status.phase}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get pods -n {{ hosted_control_plane_namespace }} --no-headers \
+    | awk '$3 != "Running" && $3 != "Completed" {count++} END {print count+0}'
   register: pod_status
   changed_when: false
-  until: >
-    (pod_status.stdout.split() | unique | difference(['Running','Succeeded']) | length) == 0
+  until: pod_status.stdout | int == 0
   retries: 40
   delay: 10

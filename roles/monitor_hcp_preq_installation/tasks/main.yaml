@@ -145,8 +145,11 @@
   changed_when: false
   failed_when: false
   when:
-    - not (hcp.odf.delete | default(false)) and odf_default_sc.rc != 0
     - hcp.storage.type == "odf"
+    - not (hcp.odf.delete | default(false))
+    - odf_default_sc is defined
+    - odf_default_sc.rc is defined
+    - odf_default_sc.rc != 0
 
 - name: Fail when expected ODF storageclass is not found
   ansible.builtin.fail:
@@ -155,8 +158,11 @@
       Available storageclasses:
       {{ odf_sc_list.stdout | default('No storageclasses returned') }}
   when:
-    - not (hcp.odf.delete | default(false)) and odf_default_sc.rc != 0
     - hcp.storage.type == "odf"
+    - not (hcp.odf.delete | default(false))
+    - odf_default_sc is defined
+    - odf_default_sc.rc is defined
+    - odf_default_sc.rc != 0
 
 - name: Patch ceph-rbd as default storageclass
   ansible.builtin.command: >
@@ -216,39 +222,6 @@
     - not (hcp.odf.delete | default(false))
     - hcp.storage.type == "odf"
 
-- name: Wait for OpenShift Virtualization pods to be Running
-  vars:
-    ocpvirt_ns: "{{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }}"
-  ansible.builtin.shell: |
-    set -o pipefail
-    total=$(oc get po -n {{ ocpvirt_ns }} --no-headers 2>/dev/null | wc -l)
-    not_running=$(oc get po -n {{ ocpvirt_ns }} --no-headers 2>/dev/null | awk '{print $3}' | grep -v '^Running$' | wc -l)
-    echo "${total} ${not_running}"
-  register: ocpvirt_pods_status
-  until: >
-    (ocpvirt_pods_status.stdout.split(' ')[0] | int) > 0
-    and (ocpvirt_pods_status.stdout.split(' ')[1] | int) == 0
-  retries: 40
-  delay: 15
-  changed_when: false
-  when: not (hcp.ocpvirt.delete | default(false))
-
-- name: Show OpenShift Virtualization pods
-  ansible.builtin.command: oc get po -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }} -o wide
-  register: ocpvirt_pods_output
-  changed_when: false
-  when: not (hcp.ocpvirt.delete | default(false))
-
-- name: Print OpenShift Virtualization pods
-  ansible.builtin.debug:
-    var: ocpvirt_pods_output.stdout_lines
-  when: not (hcp.ocpvirt.delete | default(false))
-
-- name: OpenShift Virtualization installation successful
-  ansible.builtin.debug:
-    msg: "OpenShift Virtualization operator installation successful."
-  when: not (hcp.ocpvirt.delete | default(false))
-
 - name: Verify HPP StorageClass exists
   ansible.builtin.command: oc get storageclass {{ hcp.hpp.storageclass_name }}
   register: hpp_sc_check
@@ -290,3 +263,36 @@
   ansible.builtin.debug:
     msg: "HPP StorageClass configured and set as default successfully."
   when: hcp.storage.type == "hpp"
+
+- name: Wait for OpenShift Virtualization pods to be Running
+  vars:
+    ocpvirt_ns: "{{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    total=$(oc get po -n {{ ocpvirt_ns }} --no-headers 2>/dev/null | wc -l)
+    not_running=$(oc get po -n {{ ocpvirt_ns }} --no-headers 2>/dev/null | awk '{print $3}' | grep -v '^Running$' | wc -l)
+    echo "${total} ${not_running}"
+  register: ocpvirt_pods_status
+  until: >
+    (ocpvirt_pods_status.stdout.split(' ')[0] | int) > 0
+    and (ocpvirt_pods_status.stdout.split(' ')[1] | int) == 0
+  retries: 40
+  delay: 15
+  changed_when: false
+  when: not (hcp.ocpvirt.delete | default(false))
+
+- name: Show OpenShift Virtualization pods
+  ansible.builtin.command: oc get po -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }} -o wide
+  register: ocpvirt_pods_output
+  changed_when: false
+  when: not (hcp.ocpvirt.delete | default(false))
+
+- name: Print OpenShift Virtualization pods
+  ansible.builtin.debug:
+    var: ocpvirt_pods_output.stdout_lines
+  when: not (hcp.ocpvirt.delete | default(false))
+
+- name: OpenShift Virtualization installation successful
+  ansible.builtin.debug:
+    msg: "OpenShift Virtualization operator installation successful."
+  when: not (hcp.ocpvirt.delete | default(false))

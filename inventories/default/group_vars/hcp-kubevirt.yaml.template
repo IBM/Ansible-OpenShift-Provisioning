@@ -23,6 +23,7 @@ hcp:
     ip_pool: #minimum 2 free IPs are required in the subnet for MetalLB to work properly. You can provide a single IP or IP ranges. For example:
     #- x.x.x.x-x.x.x.x
     #- x.x.x.x-x.x.x.y
+  catalogsource_image: ""  # Required only if we need to create the Catalogsource for installing metallb operator
 
   # OpenShift Virtualization Parameters
   ocpvirt:
@@ -42,6 +43,7 @@ hcp:
         - #disk1
         - #disk2
         - #disk3
+  catalogsource_image: ""  # Required only if we need to create the Catalogsource for installing lso operator
 
   storage:
     type:    # odf | hpp

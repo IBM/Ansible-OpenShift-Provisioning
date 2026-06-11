@@ -56,6 +56,30 @@
         state: directory
         mode: '0755'
 
+    - name: Create CatalogSource.yaml from template
+      ansible.builtin.template:
+        src: CatalogSource_custom.yaml.j2
+        dest: /root/ansible_workdir/CatalogSource_custom.yaml
+        mode: '0644'
+      when: hcp.metallb.catalogsource_image is defined and hcp.metallb.catalogsource_image | length > 0
+
+    - name: Deploy CatalogSource
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/CatalogSource_custom.yaml
+      when: hcp.metallb.catalogsource_image is defined and hcp.metallb.catalogsource_image | length > 0
+
+    - name: Wait for CatalogSource to be READY
+      ansible.builtin.command: 
+        cmd: >
+          oc get catalogsource custom-operators
+          -n openshift-marketplace
+          -o jsonpath='{.status.connectionState.lastObservedState}'
+      register: catalogsource_status
+      retries: 30
+      delay: 10
+      until: catalogsource_status.stdout == "READY"
+      changed_when: false
+      when: hcp.metallb.catalogsource_image is defined and hcp.metallb.catalogsource_image | length > 0
+
     - name: Ensure MetalLB namespace exists
       kubernetes.core.k8s:
         api_version: v1

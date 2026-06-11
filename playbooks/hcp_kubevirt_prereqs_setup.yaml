@@ -1,13 +1,4 @@
 ---
-# Setup inventory and passwordless SSH for bastion
-- name: Setup inventory and passwordless SSH
-  hosts: localhost
-  vars_files:
-    - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
-  roles:
-    - create_inventory_setup_hcp_kubevirt
-
 # Dynamically Add Bastion Host
 - name: Add Bastion Host to Inventory
   hosts: localhost
@@ -79,4 +70,5 @@
     - role: install_odf_operator
       when: hcp.storage.type == "odf"
     - role: install_hpp
+      when: hcp.storage.type == "hpp"
     - monitor_hcp_preq_installation

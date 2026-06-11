@@ -1,4 +1,33 @@
 ---
+# Dynamically Add Bastion Host to Inventory
+- name: Add Bastion Host to Inventory
+  hosts: localhost
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  tasks:
+    - name: Add bastion dynamically
+      ansible.builtin.add_host:
+        name: "{{ hcp.mgmt_cluster_bastion.ip }}"
+        groups: mgmt_bastion
+        ansible_user: root
+        ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}"
+        ansible_connection: ssh
+        inventory_dir: "{{ inventory_dir }}"
+
+# Login to OCP Management Cluster (from bastion)
+- name: Login to OCP Management Cluster
+  hosts: mgmt_bastion
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  vars:
+    vault_api_server: "{{ hcp.oc_url }}"
+    vault_user_name: "{{ vault_ocp_user }}"
+    vault_password: "{{ vault_ocp_password }}"
+  roles:
+    - login_to_mgmt_cluster
+
 # Enable wildcard DNS routes in management cluster
 - name: Pre HCP Creation - Enable Wildcard DNS Routes
   hosts: mgmt_bastion

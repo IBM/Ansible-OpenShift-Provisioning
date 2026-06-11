@@ -5,7 +5,11 @@ metadata:
   namespace: "{{ hcp.metallb.namespace | default('metallb-system', true) }}"
 spec:
   sourceNamespace: "{{ hcp.metallb.source_namespace | default('openshift-marketplace', true) }}"
-  source: "{{ hcp.metallb.source | default('redhat-operators', true) }}"
+{% if hcp.metallb.catalogsource_image is defined and hcp.metallb.catalogsource_image | string | length > 0 %}
+  source: custom-operators
+{% else %}
+  source: redhat-operators
+{% endif %}
 {% if hcp.metallb.version | default('', true) | length > 0 %}
   channel: "{{ hcp.metallb.version }}"
 {% endif %}

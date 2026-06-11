@@ -50,7 +50,7 @@
 - name: Wait for Hosted Control Plane to Complete
   ansible.builtin.shell: |
     set -o pipefail
-    oc get hc -n {{ hcp.control_plane.clusters_namespace }} --no-headers | awk  '{print $4}'
+    oc get hc -n {{ hcp.control_plane.clusters_namespace }} --no-headers | awk  '{print $5}'
   register: hc_status
   until: hc_status.stdout == "Completed"
   retries: 40
@@ -59,8 +59,8 @@
 - name: Get Password for Hosted Cluster
   ansible.builtin.shell: |
     set -o pipefail
-    oc get secret kubeadmin-password \n
-    -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" -o yaml \n
+    oc get secret kubeadmin-password \
+    -n "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}" -o yaml \
     | grep -i 'password:'
   register: cluster_password_encoded
 
@@ -70,7 +70,7 @@
 
 - name: Saving the password in bastion
   ansible.builtin.copy:
-    content: "{{ cluster_password_decoded.stdout_lines[0] }}"
+    content: "{{ cluster_password_decoded }}"
     dest: /root/ansible_workdir/kubeadmin-password
     mode: '0600'
 
@@ -90,6 +90,6 @@
       - "Control Plane Namespace: {{ hosted_control_plane_namespace }}"
       - "Kubeconfig Location: {{ hcp_kubeconfig }}"
       - "LoadBalancer IP: {{ lb_external_ip.stdout }}"
-      - "Login credentials: https://{{ console_url.stdout }} | Username : 'kubeadmin' Password : {{ cluster_password_decoded.stdout_lines[0] }} "
-      - "oc login command for CLI: oc login {{ api_server.stdout_lines[0].split(': ')[-1] }} -u kubeadmin -p {{ cluster_password_decoded.stdout_lines[0] }} "
+      - "Login credentials: https://{{ console_url.stdout }} | Username : 'kubeadmin' Password : {{ cluster_password_decoded }} "
+      - "oc login command for CLI: oc login {{ api_server.stdout_lines[0].split(': ')[-1] }} -u kubeadmin -p {{ cluster_password_decoded }}"
       - "=========================================="

@@ -5,7 +5,11 @@ metadata:
   namespace: "{{ hcp.lso.namespace | default('openshift-local-storage', true) }}"
 spec:
   sourceNamespace: openshift-marketplace
+{% if hcp.lso.catalogsource_image is defined and hcp.lso.catalogsource_image | string | length > 0 %}
+  source: custom-operators
+{% else %}
   source: redhat-operators
+{% endif %}
 {% if hcp.lso.version | length > 0 %}
   channel: "{{ hcp.lso.version }}"
 {% endif %}
