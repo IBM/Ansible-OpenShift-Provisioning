@@ -68,7 +68,7 @@
       when: hcp.metallb.catalogsource_image is defined and hcp.metallb.catalogsource_image | length > 0
 
     - name: Wait for CatalogSource to be READY
-      ansible.builtin.command: 
+      ansible.builtin.command:
         cmd: >
           oc get catalogsource custom-operators
           -n openshift-marketplace

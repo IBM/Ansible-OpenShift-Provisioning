@@ -6,4 +6,4 @@
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
     - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
   roles:
-    - create_inventory_setup_hcp_kubevirt 
+    - create_inventory_setup_hcp_kubevirt

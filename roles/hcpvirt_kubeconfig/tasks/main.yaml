@@ -35,7 +35,7 @@
     - name: Display kubeconfig accessibility
       ansible.builtin.debug:
         msg: "{{ kubeconfig_test.stdout | default('') ~ kubeconfig_test.stderr | default('') }}"
-    
+
     - name: Classify kubeconfig failure
       ansible.builtin.set_fact:
         kube_error: "{{ (kubeconfig_test.stdout | default('')) ~ (kubeconfig_test.stderr | default('')) }}"
