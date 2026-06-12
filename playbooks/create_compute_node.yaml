@@ -1,6 +1,6 @@
 ---
 ###################################################################################################
-#  To execute this playbook you need to create a node config yaml fiile with these parameters:
+#  To execute this playbook you need to create a node config yaml file with these parameters:
 # ---
 # day2_compute_node:
 #   vm_name: <your VM name>
@@ -12,6 +12,7 @@
 #   hostname: <KVM host name where the VM is created>
 #   host_user: <KVM host user which is used to create the VM>
 #   host_arch: <KVM host architecture>
+#   install_dev: <installation device, defaults to 'vda' if not specified>
 #
 # Execute the playbook with '--extra-vars' option.
 # E.g.:
