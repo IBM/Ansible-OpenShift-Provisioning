@@ -1,0 +1,8 @@
+# Configure which situations the module is allowed to regenerate private keys.
+# Choices:
+#   - "never"
+#   - "fail"
+#   - "partial_idempotence"
+#   - "full_idempotence" <- (default)
+#   - "always"
+regenerate_private_key: "full_idempotence"

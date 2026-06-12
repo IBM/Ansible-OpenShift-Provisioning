@@ -10,8 +10,12 @@
 ## 1 - Controller
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**installation_type** | Can be of type kvm or lpar. Some packages will be ignored for installation in case of non lpar based installation. | kvm 
+**installation_type** | Can be of type kvm or lpar. Some packages will be ignored for installation in case of non lpar based installation. | kvm
 **controller_sudo_pass** | The password to the machine running Ansible (localhost). This will only be used for two things. To ensure you've installed the pre-requisite packages if you're on Linux, and to add the login URL to your /etc/hosts file. | Pas$w0rd!
+**cex_device** | Specify the storage device type used for LUKS encryption. This setting determines enable cex MCO Ignition configuration will be applied. Use in combination with the cex parameter.  [dasd, fcp, virt]
+**regenerate_private_key** | <b>(Optional)</b> Controls whether to regenerate SSH private keys during the setup process. Default value is 'full_idempotence'. For usage inside of pipelines where SSH keys already exist, this value should be set to 'never' to preserve existing keys. See detailed description [here:](https://docs.ansible.com/projects/ansible/latest/collections/community/crypto/openssh_keypair_module.html) | full_idempotence
+**check_nodes_delay** | <b>(Optional)</b> Delay in seconds between retries when checking if control and compute nodes are in 'Ready' state. Used during the check_nodes role execution. Default value is 30 seconds. | 30
+
 
 ## 2 - LPAR(s)
 **Variable Name** | **Description** | **Example**
@@ -51,6 +55,8 @@
 :--- | :--- | :---
 **env.redhat.username** | Red Hat username with a valid license or free trial to Red Hat OpenShift Container Platform (RHOCP), which comes with necessary licenses for Red Hat Enterprise Linux (RHEL) and Red Hat CoreOS (RHCOS). | redhat.user
 **env.redhat.password** | Password to Red Hat above user's account. Used to auto-attach necessary subscriptions to KVM Host, bastion VM, and pull live images for OpenShift. | rEdHatPa$s!
+**env.redhat.rhel_activation_key** | In case that an activation key and organization instead of user and password exists, specify here the key. | `'RH_OCP_activation'`
+**env.redaht.rhel_organization** | In case that an activation key and organization instead of user and password exists, specify here the organization. | `'an_organization_key'` 
 **env.redhat.manage_subscription** | True or False. Would you like to subscribe the server with Red Hat? | True 
 **env.redhat.pull_secret** | Pull secret for OpenShift, comes from Red Hat's [Hybrid Cloud Console](https://console.redhat.com/openshift/install/ibmz/user-provisioned). Make sure to enclose in 'single quotes'.  | '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com"}}}'
 
@@ -178,7 +184,7 @@
 **ocp_install_tgz** | OpenShift installer filename (tar.gz). | openshift-install-linux.tar.gz
 **rhcos_download_url** | Link to the CoreOS files to be used for the bootstrap, control and compute nodes. Feel free to change to a different version. | https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/latest/s390x/
 **rhcos_os_variant** | CoreOS base OS. Use the OS string as defined in 'osinfo-query os -f short-id' | rhl9
-**rhcos_live_kernel** | CoreOS kernel filename to be used for the bootstrap, control and compute nodes. | rhcos-live-kernel-s390x
+**rhcos_live_kernel** | CoreOS kernel filename to be used for the bootstrap, control and compute nodes. | rhcos-live-kernel.s390x
 **rhcos_live_initrd** | CoreOS initramfs to be used for the bootstrap, control and compute nodes. | rhcos-live-initramfs.s390x.img
 **rhcos_live_rootfs** | CoreOS rootfs to be used for the bootstrap, control and compute nodes. | rhcos-live-rootfs.s390x.img
 
@@ -195,6 +201,7 @@
 **day2_compute_node.hostname** | The hostname of the KVM host | kvm-host-01
 **day2_compute_node.host_user** | KVM host user which is used to create the VM | root
 **day2_compute_node.host_arch** | KVM host architecture.  | s390x
+**day2_compute_node.install_dev** | <b>(Optional)</b> Installation device for CoreOS installation. Defaults to 'vda' if not specified. | vda
 
 ## 14 - (Optional) Agent Based Installer
 **Variable Name** | **Description** | **Example**
@@ -253,8 +260,9 @@
 :--- | :--- | :---
 **disconnected.enabled** | True or False, to enable disconnected mode | False
 **disconnected.registry.url** | String containing url of disconnected registry with or without port and without protocol | registry.tt.testing:5000
+**disconnected.registry.ip** | String containing ip of the registry, which will be used for resolving dns | `192.168.151.1`
 **disconnected.registry.pull_secret** | String containing pull secret of the disconnected registry to be applied on the *cluster*.  Make sure to enclose pull_secret in 'single quotes' and it has appropriate pull access. | '{"auths":{"registry.tt..testing:5000":{"auth":"b3Blb...4yQQ==","email":"test.user@example.com"}}}'
-**disconnected.registry.mirror_pull_ecret** | String containing pull secret to use for mirroring. Contains Red Hat secret and registry pull  secret. Make sure to enclose pull_secret in 'single quotes' and must be able to push to mirror registry. | '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com", "registry.tt..testing:5000":...user@example.com"}}}'
+**disconnected.registry.mirror_pull_secret** | String containing pull secret to use for mirroring. Contains Red Hat secret and registry pull  secret. Make sure to enclose pull_secret in 'single quotes' and must be able to push to mirror registry. | '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com", "registry.tt..testing:5000":...user@example.com"}}}'
 **disconnected.registry.ca_trusted** | True or False to indicate that mirror registry CA is implicitly trusted or needs to be made trusted on mirror host and cluster. | False
 **disconnected.registry.ca_cert** | Multiline string containing the mirror registry CA bundle | -----BEGIN CERTIFICATE-----MIIDqDCCApCgAwIBAgIULL+d1HTYsiP+8jeWnqBis3N4BskwDQYJKoZIhvcNAQEF...-----END CERTIFICATE-----
 **disconnected.mirroring.host.name** | String containing the hostname of the host, which will be used for mirroring | mirror-host-1
@@ -262,18 +270,23 @@
 **disconnected.mirroring.host.user** | String containing the username of the host, which will be used for mirroring | mirroruser
 **disconnected.mirroring.host.pass** | String containing the password of the host, which will be used for mirroring | mirrorpassword
 **disconnected.mirroring.file_server.clients_dir** | Directory path relative to the HTTP/FTP accessible directory on **env.file_server** where client binary tarballs are kept | clients
-**disconnected.mirroring.file_server.oc_mirror_tgz** | Name of oc-mirror tarball on **env.file_server** in **disconnected.mirroring.file_server.clients_dir** | oc-mirror.tar.gz
-**disconnected.mirroring.legacy.platform** | True or False if the platform should be mirrored using `oc adm release mirror`. | False
+**disconnected.mirroring.file_server.oc_mirror_tgz** | Name of oc-mirror tarball on **env.file_server** in **disconnected.mirroring.file_server.clients_dir**. This must be placed in your ftp server after downloading it yourself from https://console.redhat.com/openshift/downloads. | oc-mirror.tar.gz
+**disconnected.mirroring.client_download.ocp_download_url** | url to download the oc client | https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/amd64/
+**disconnected.mirroring.client_download.ocp_client_tgz** | Name of oc-client tarball on **env.file_server**. This should match the binary name available in **disconnected.mirroring.client_download.ocp_download_url** | openshift-client-linux.tar.gz
+**disconnected.mirroring.legacy.platform** | True or False if the platform should be mirrored using `oc adm release mirror`. If **True** then platform is mirrored in the old way and install config will be patched with the imagecontentsourcepolicy | False (default)
 **disconnected.mirroring.legacy.ocp_quay_release_image_tag** | The tag of the release image *quay.io/openshift-release-dev/ocp-release* to mirror and use | 4.13.1-s390x
 **disconnected.mirroring.legacy.ocp_org** | The org part of the repo on the mirror registry where the release image will be pushed | ocp4
 **disconnected.mirroring.legacy.ocp_repo** | The repo part of the repo on the mirror registry where the release image will be pushed | openshift4
 **disconnected.mirroring.legacy.ocp_tag** | The tag part of the repo on the mirror registry where the release image will be pushed. Full image would be as below.: disconnected.registry.url/disconnected.mirroring.legacy.ocp_org/disconnected...ocp_repo:disconnected..ocp_tag | v4.13.1
-**disconnected.mirroring.oc_mirror.release_image_tag** | The ocp release image tag you want to install the cluster with. Used when legacy platform  mirroring is disabled and **disconnected.mirroring.oc_mirror.image_set** contains platform  entries. |  4.13.1-multi
 **disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error** | True or False to give `--continue-on-error` flag to `oc-mirror` | False
 **disconnected.mirroring.oc_mirror.oc_mirror_args.source_skip_tls** | True or False to give `--source-skip-tls` flag to `oc-mirror` | False
 **disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled** | True or False to replace values in `mapping.txt` generated by oc-mirror.  This also does a manual repush of the images in `mapping.txt`. | False
 **disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.list** | List of **regexp** and **replace** where every string/regular expression  gets replaced by corresponding *replace* value. | regexp: interal-url.com replace: external-url.com
+**disconnected.mirroring.oc_mirror.release_image_tag** | The ocp release image tag you want to install the cluster with. Used when legacy platform  mirroring is disabled and **disconnected.mirroring.oc_mirror.image_set** contains platform  entries. |  4.13.1-multi
+**disconnected.mirroring.oc_mirror.release_image_registry** | The Release Image registry like Brew Registry which stores the release images as mirror to **registry.redhat.io**. This will be mirror registry for release operator images|  `brew.registry.redhat.io`
 **disconnected.mirroring.oc_mirror.image_set** | YAML fields containing a standard `oc-mirror` [image set](https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-creating-image-set-config_installing-mirroring-disconnected) with some minor changes to schema.  Differences are documented as needed. Used to generate final image set. | see template
+**disconnected.mirroring.oc_mirror.image_set.apiVersion** | The API version of the `ImageSetConfiguration` content. | `mirror.openshift.io/v1alpha2`, `mirror.openshift.io/v2alpha1`
+**disconnected.mirroring.oc_mirror.image_set.storageConfig.enabled** | True or False to set whether oc-mirror is v1 or v2. As for v2 storageConfig flag is removed completely | `True` or `False`
 **disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.enabled** | True or False to use registry storage backend for pushing mirrored content directly to the registry.  Currently only this backend is supported.| True
 **disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.imageURL.org** | The org part of registry imageURL from standard image set. | mirror
 **disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.imageURL.repo** | The repo part of registry imageURL from standard image set.  Final imageURL will be as below:  disconnected.registry.url/disconnected.mirroring.oc_mirror.image_set.storageConfig .registry.imageURL.org/disconnected...imageURL.repo | oc-mirror-metadata
@@ -290,7 +303,7 @@
 **hcp.pkgs** | list of packages for different hosts | 
 **hcp.mce.version** | version for multicluster-engine Operator | 2.4
 **hcp.mce.instance_name** | name of the MultiClusterEngine instance | engine
-**hcp.mce.catalogsource_name** | Name of the catalogsource for operatorhub | redhat-operators
+**hcp.mce.catalogsource_image** | Image ID for installing MCE | 970287
 **hcp.mce.delete** | true or false - deletes mce and related resources while running deletion playbook | true
 **hcp.asc.url_for_ocp_release_file** | Add URL for OCP release.txt File | https://...  ..../release.txt
 **hcp.asc.db_volume_size** | DatabaseStorage Volume Size | 10Gi
@@ -403,3 +416,20 @@
 **zvm.interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
 **zvm.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404
 **zvm.nodes.lun** | Disk details of fcp disk to be used for zVM node | 840a
+
+## Crypto Express Card based LUKS encryption specific for zKVM ( Optional )
+**Variable Name** | **Description** | **Example**
+**cex** | Whether to enable cex based luks encryption, default to False
+**cex_device** | Specify the storage device type used for LUKS encryption. This setting determines which MCO Ignition configuration will be applied from the defaults. Do not override the default value. Use in combination with the cex parameter. | [dasd, fcp, virt]
+**cex_uuid_map** | This var is required only for KVM installations using vfio_ap mediated device. Omit it when deploying on LPAR installation. Use in combination with cex and cex_device. Specify guest hostname: "UUID:domain" UUID can be generated from uuidgen command and domain can be retrieved from lszcrypt | upi-cex-control-1: "68cd2d83-3eef-4e45-b22c-534f90b16cb9:00.0035"
+
+## Additional Parameters (optional)
+
+### Download Kubeconfig
+These parameters control the download of kubeconfig and kubepassw files from the bastion host. See the [`download_kubeconfig`](../roles/download_kubeconfig/README.md) role for more details.
+
+**Variable Name** | **Description** | **Example/Default**
+:--- | :--- | :---
+**kubeconfig_dest_dir** | Destination directory on the local controller where downloaded files will be stored. Files are stored in a `kubeconfig/` subdirectory within this path. | /tmp
+**kubeconfig_source_dir** | Source directory on the bastion host from which files will be downloaded. | ~/ocpinst/auth
+**kubeconfig_files** | List of files to download from the bastion host. | ['kubeconfig', 'kubeadmin-password']

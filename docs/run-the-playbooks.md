@@ -1,5 +1,10 @@
 # Step 4: Run the Playbooks
 ## Overview
+* To ensure the passwords there is a secrets.yaml.template (inside the inventories/default/group_vars directory) file to be copied to secrets.yaml and put the necessary passwords to. After that you need to encrypt the secrets.yaml by running the command:
+```
+ansible-vault encrypt secrets.yaml  
+```
+* To use the encrypted secrets.yaml you need to add --ask-vault-pass (you need to enter the decryption key) or --vault-password-file path_to/vault_secret.sh (this file contains the decryption key) to the ansible-playbook calls.
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
 * Run this shell command:
 ```
@@ -169,6 +174,11 @@ ansible-playbook playbooks/add_compute_node.yaml --extra-vars "@compute-node.yam
 
 ### Outcomes
 * The defind compute node will be added or deleted, depends which playbook you have executed.
+
+## Download Kubeconfig Playbook (download_kubeconfig.yaml)
+### Overview
+* Use this playbook to download the kubeconfig file from the bastion to your local machine.
+* For detailed information, see the [Download Kubeconfig Playbook documentation](download-kubeconfig-playbook.md).
 
 ## Master Playbook (site.yaml)
 ### Overview

@@ -10,11 +10,11 @@ on:
 
 jobs:
   build:
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-24.04"
     steps:
       - uses: "actions/checkout@master"
       - name: "TODO to Issue"
-        uses: "alstr/todo-to-issue-action@v2.3"
+        uses: "alstr/todo-to-issue-action@v5.1"
         id: "todo"
         with:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}

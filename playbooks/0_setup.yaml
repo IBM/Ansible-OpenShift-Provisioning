@@ -1,13 +1,16 @@
 ---
 
-- hosts: localhost
+- name: "Setup inventory and install galaxy"
+  hosts: localhost
   tags: localhost
   connection: local
   become: false
   gather_facts: true
   vars_files:
-    - "{{ inventory_dir }}/group_vars/disconnected.yaml" 
-    - "{{ inventory_dir }}/group_vars/zvm.yaml" 
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/disconnected.yaml"
+    - "{{ inventory_dir }}/group_vars/zvm.yaml"
   roles:
     - set_inventory
     - install_galaxy
@@ -22,13 +25,13 @@
   post_tasks:
     - name: Find ibm_zhmc collection install location, if automated LPAR creation is to be used.
       tags: galaxy
-      shell: ansible-galaxy collection list ibm.ibm_zhmc | grep -i ansible | cut -c 3-
+      ansible.builtin.shell: ansible-galaxy collection list ibm.ibm_zhmc | grep -i ansible | cut -c 3-
       register: zhmc_path
       when: env.z.lpar1.create == True or env.z.lpar2.create == True or env.z.lpar3.create == True
 
     - name: Ensure zhmcclient requirements are installed.
       tags: galaxy
-      pip:
+      ansible.builtin.pip:
         requirements: "{{ zhmc_path.stdout }}/ibm/ibm_zhmc/requirements.txt"
         executable: pip3
         extra_args: --upgrade
@@ -36,7 +39,7 @@
 
     - name: Check to make sure that the KVM host has a corresponding inventory host_vars file named with matching hostname and .yaml extension.
       tags: lpar_check
-      stat:
+      ansible.builtin.stat:
         path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
       when: env.z.lpar1.hostname is defined
       register: lpar_host_vars
@@ -44,7 +47,7 @@
 
     - name: Check to make sure the second KVM hosts have a corresponding inventory host_vars file named with matching hostname and .yaml extension, if defined.
       tags: lpar_check
-      stat:
+      ansible.builtin.stat:
         path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar2.hostname }}.yaml"
       when: env.z.lpar2.hostname is defined
       register: lpar_host_vars
@@ -52,23 +55,25 @@
 
     - name: Check to make sure the third KVM hosts have a corresponding inventory host_vars file named with matching hostname and .yaml extension, if defined.
       tags: lpar_check
-      stat:
+      ansible.builtin.stat:
         path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar3.hostname }}.yaml"
       when: env.z.lpar3.hostname is defined
       register: lpar_host_vars
       failed_when: lpar_host_vars.stat.exists == False
 
-- hosts: localhost
+- name: "Install packages and cfg ssh"
+  hosts: localhost
   connection: local
   become: false
   gather_facts: true
   vars_files:
-    - "{{ inventory_dir }}/group_vars/all.yaml" 
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   vars:
     packages: "pkgs_controller"
-    ssh_target: [ "{{ env.file_server.ip }}", "{{ env.file_server.user }}", "{{ env.file_server.pass }}", "{{ path_to_key_pair }}" ]
+    ssh_target: ["{{ env.file_server.ip }}", "{{ env.file_server.user }}", "{{ env.file_server.pass }}", "{{ path_to_key_pair }}"]
   roles:
     - install_packages
     - ssh_key_gen
     - ssh_agent
-    - ssh_copy_id #to file server
+    - ssh_copy_id # to file server

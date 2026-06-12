@@ -68,7 +68,7 @@ configurations are mentioned over here.
 ### Overview
 
 Mirror the ocp platform and other necessary images to the mirror registry. Please run this playbook before you run **6 Create Nodes Playbook** and after
-**0 Setup Playbook**.
+**5 Setup Bastion**.
 
 ### Outcomes
 
@@ -76,7 +76,7 @@ Mirror the ocp platform and other necessary images to the mirror registry. Pleas
 * Template the mirror pull secret to the mirror host.
 * Add the ca cert to the mirror host anchors if ca is not trusted.
 * Mirror the platform images using `oc adm release mirror` if legacy mirroring is enabled.
-* Template the image set to mirror host and then mirror it using `oc-mirror` plogin.
+* Template the image set to mirror host and then mirror it using `oc-mirror` plugin.
 * Copy the results on the `oc-mirror` to ansible controller to apply to cluster in future steps.
 
 ### Notes

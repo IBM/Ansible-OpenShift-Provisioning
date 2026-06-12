@@ -6,12 +6,18 @@
       ansible.builtin.lineinfile:
         path: /etc/haproxy/haproxy.cfg
         insertafter: "#80 section"
-        line: "  server {{ param_haproxy_hostname }} {{ param_haproxy_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:80 check inter 1s"
+        line: "{{ _haproxy_backend_line_80 }}"
         state: present
+      vars:
+        _haproxy_backend_fqdn: "{{ param_haproxy_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
+        _haproxy_backend_line_80: "  server {{ param_haproxy_hostname }} {{ _haproxy_backend_fqdn }}:80 check inter 1s"
 
     - name: Add haproxy for 443 port
       ansible.builtin.lineinfile:
         path: /etc/haproxy/haproxy.cfg
         insertafter: "#443 section"
-        line: "  server {{ param_haproxy_hostname }} {{ param_haproxy_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:443 check inter 1s"
+        line: "{{ _haproxy_backend_line_443 }}"
         state: present
+      vars:
+        _haproxy_backend_fqdn: "{{ param_haproxy_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
+        _haproxy_backend_line_443: "  server {{ param_haproxy_hostname }} {{ _haproxy_backend_fqdn }}:443 check inter 1s"

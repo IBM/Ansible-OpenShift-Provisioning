@@ -1,7 +1,37 @@
 ---
+- name: Load cex_hostdev_map from JSON
+  set_fact:
+    cex_hostdev_map: "{{ lookup('file', '/root/.cex_hostdev_map.json') | from_json }}"
+  when: cex_uuid_map is defined
+
+- name: Debug rendered cex_hostdev per compute node
+  debug:
+    msg: "VM: {{ vm_name }}, Hostdev: {{ cex_hostdev }}"
+  vars:
+    vm_name: "{{ env.cluster.nodes.compute.vm_name[i] }}"
+    cex_hostdev: >-
+      {% if cex and cex_device is defined and cex_hostdev_map is defined and vm_name in cex_hostdev_map %}
+      --hostdev={{ cex_hostdev_map[vm_name] }}
+      {% else %}
+      ""
+      {% endif %}
+  with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }}
+  loop_control:
+    index_var: i
+
+- name: 'Include matching lpar yml file'
+  tags: create_teuthology_node
+  ansible.builtin.include_vars:
+    file: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yaml"
 
 - name: Install CoreOS on compute nodes
   tags: create_compute_nodes
+  vars:
+    vm_name: "{{ env.cluster.nodes.compute.vm_name[i] }}"
+    cex_hostdev: >-
+      {% if cex and cex_device is defined and cex_hostdev_map is defined and vm_name in cex_hostdev_map %}
+      --hostdev={{ cex_hostdev_map[vm_name] }}
+      {% endif %}
   shell: |
     virsh destroy {{ env.cluster.nodes.compute.vm_name[i] }} || true
     virsh undefine {{ env.cluster.nodes.compute.vm_name[i] }} --remove-all-storage --nvram || true
@@ -30,7 +60,8 @@
     --memballoon none \
     --graphics none \
     --wait=-1 \
-    --noautoconsole
+    --noautoconsole \
+    {{ cex_hostdev }}
   timeout: 360
   with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
   loop_control:
@@ -77,7 +108,7 @@
     compute_name: "{{ env.cluster.nodes.compute.vm_name[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
     compute_hostname: "{{ env.cluster.nodes.compute.hostname[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
     compute_ip: "{{ env.cluster.nodes.compute.ip[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
-    compute_ipv6: "{{ env.cluster.nodes.compute.ipv6[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
+    compute_ipv6: "{{ env.cluster.nodes.compute.ipv6[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] if env.use_ipv6 == True else '' }}"
   when: env.z.high_availability == True
 
 - name: Split information for infra nodes into groups. The number of groups being equal to the number of KVM hosts there are.
@@ -86,7 +117,7 @@
     infra_name: "{{ env.cluster.nodes.infra.vm_name[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
     infra_hostname: "{{ env.cluster.nodes.infra.hostname[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
     infra_ip: "{{ env.cluster.nodes.infra.ip[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
-    infra_ipv6: "{{ env.cluster.nodes.infra.ipv6[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] }}"
+    infra_ipv6: "{{ env.cluster.nodes.infra.ipv6[groups['kvm_host'].index(inventory_hostname)::groups['kvm_host'] | length] if env.use_ipv6 == True else '' }}"
   when: env.z.high_availability == True and env.cluster.nodes.infra.hostname is defined
 
 - name: Create CoreOS compute nodes on KVM hosts, if cluster is to be highly available.

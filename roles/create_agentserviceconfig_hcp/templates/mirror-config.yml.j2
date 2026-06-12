@@ -28,5 +28,16 @@ data:
       prefix = ""
 
       [[registry.mirror]]
+        location = "quay.io:443/acm-d"
+        insecure = false
+    
+    [[registry]]
+      location = "registry.redhat.io/multicluster-engine"
+      insecure = false
+      blocked = false
+      mirror-by-digest-only = true
+      prefix = ""
+
+      [[registry.mirror]]
         location = "brew.registry.redhat.io/multicluster-engine"
         insecure = false

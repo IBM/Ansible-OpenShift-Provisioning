@@ -6,6 +6,7 @@
   become: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
     - "{{ inventory_dir }}/group_vars/zvm.yaml"
     - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   roles:
@@ -38,6 +39,7 @@
   become: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   roles:
     - common
     - { role: boot_abi_agents, when: installation_type | lower == 'kvm' }
