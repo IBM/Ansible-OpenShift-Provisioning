@@ -5,10 +5,14 @@ metadata:
   namespace: "{{ hcp.mce.mce_namespace | default('multicluster-engine', true) }}"
 spec:
   sourceNamespace: openshift-marketplace
+{% if hcp.mce.catalogsource_image is defined and hcp.mce.catalogsource_image | string | length > 0 %}
+  source: custom-redhat-operators
+{% else %}
   source: redhat-operators
-{% set mce_channel = hcp.mce.version | default('', true) %}
+{% endif %}
+{% set mce_channel = hcp.mce.version | default('', true) | string %}
 {% if mce_channel | length > 0 %}
-  channel: "{{ mce_channel if (mce_channel is string and ('.' not in mce_channel or mce_channel.startswith('stable-'))) else 'stable-' ~ mce_channel }}"
+  channel: "{{ mce_channel if ('.' not in mce_channel or mce_channel.startswith('stable-')) else 'stable-' ~ mce_channel }}"
 {% endif %}
   installPlanApproval: Automatic
   name: multicluster-engine

@@ -51,7 +51,12 @@
     - name: Wait for LSO operator CSV to be Succeeded
       ansible.builtin.shell: |
         set -o pipefail
-        oc get csv -n {{ hcp.lso.namespace | default('openshift-local-storage', true) }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep local-storage-operator | grep Succeeded | wc -l
+        oc get csv \
+          -n {{ hcp.lso.namespace | default('openshift-local-storage', true) }} \
+          -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' \
+          | grep local-storage-operator \
+          | grep Succeeded \
+          | wc -l
       register: lso_csv
       until: lso_csv.stdout | int >= 1
       retries: 30
@@ -77,9 +82,12 @@
       ansible.builtin.command: oc apply -f /root/ansible_workdir/lso-LocalVolume.yaml
 
     - name: Label ODF storage nodes for LocalVolume selector
-      ansible.builtin.command: >
-        oc label node {{ item }}
-        {{ hcp.lso.storage_node_label.key | default('cluster.ocs.openshift.io/openshift-storage', true) }}={{ hcp.lso.storage_node_label.value | default('', true) }}
-        --overwrite
+      ansible.builtin.command:
+        cmd: >
+          oc label node {{ item }}
+          {{ hcp.lso.storage_node_label.key
+             | default('cluster.ocs.openshift.io/openshift-storage', true) }}={{ hcp.lso.storage_node_label.value
+             | default('', true) }}
+          --overwrite
       loop: "{{ hcp.lso.storage_nodes | default([], true) }}"
       when: hcp.lso.storage_nodes | default([], true) | length > 0

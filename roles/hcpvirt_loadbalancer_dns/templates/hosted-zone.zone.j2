@@ -1,0 +1,15 @@
+$TTL 900
+
+@                     IN SOA bastion.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}. hostmaster.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}. (
+                                  {{ ansible_date_time.epoch }}       ; serial
+                                  1D      ; refresh
+                                  1H      ; retry
+                                  1W      ; expire
+                                  3H )    ; minimum
+
+           IN NS bastion.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}.
+
+bastion    IN A {{ hcp.mgmt_cluster_bastion.ip }}
+*.apps     IN A {{ lb_external_ip.stdout }}
+api        IN A {{ lb_external_ip.stdout }}
+api-int    IN A {{ lb_external_ip.stdout }}

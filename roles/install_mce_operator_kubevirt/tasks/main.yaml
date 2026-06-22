@@ -34,6 +34,19 @@
       ansible.builtin.command: oc apply -f /root/ansible_workdir/CatalogSource.yaml
       when: hcp.mce.catalogsource_image is defined and hcp.mce.catalogsource_image | length > 0
 
+    - name: Wait for CatalogSource to be READY
+      ansible.builtin.command:
+        cmd: >
+          oc get catalogsource custom-redhat-operators
+          -n openshift-marketplace
+          -o jsonpath='{.status.connectionState.lastObservedState}'
+      register: catalogsource_status
+      retries: 30
+      delay: 10
+      until: catalogsource_status.stdout == "READY"
+      changed_when: false
+      when: hcp.mce.catalogsource_image is defined and hcp.mce.catalogsource_image | length > 0
+
     - name: Check if multicluster-engine Namespace exists
       kubernetes.core.k8s:
         api_version: v1
@@ -109,14 +122,3 @@
         oc patch mce {{ hcp.mce.instance_name | default('engine', true) }}
         -p '{"spec":{"overrides":{"components":[{"name":"hypershift-preview","enabled":true}]}}}'
         --type merge
-
-    #- name: Create ClusterImageSet.yaml
-      #ansible.builtin.template:
-        #src: ClusterImageSet.yaml.j2
-        #dest: /root/ansible_workdir/ClusterImageSet.yaml
-        #mode: '0644'
-
-    #- name: Deploy ClusterImageSet
-      #ansible.builtin.command: oc apply -f /root/ansible_workdir/ClusterImageSet.yaml
-
-    

@@ -1,0 +1,19 @@
+apiVersion: hostpathprovisioner.kubevirt.io/v1beta1
+kind: HostPathProvisioner
+metadata:
+  name: {{ hcp.hpp.name }}
+  namespace: openshift-cnv
+spec:
+  storagePools:
+    - pvcTemplate:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ hcp.hpp.storage_size }}
+      name: local
+      path: {{ hcp.hpp.storage_path }}
+  workload:
+    nodeSelector:
+      kubernetes.io/os: linux
+  imagePullPolicy: IfNotPresent

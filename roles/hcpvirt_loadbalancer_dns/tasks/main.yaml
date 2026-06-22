@@ -1,0 +1,80 @@
+---
+- name: Create LoadBalancer service manifest
+  ansible.builtin.template:
+    src: lb-service.yaml.j2
+    dest: /root/ansible_workdir/{{ hcp.control_plane.hosted_cluster_name }}-lb-service.yaml
+    mode: '0644'
+
+- name: Apply LoadBalancer service
+  kubernetes.core.k8s:
+    state: present
+    src: /root/ansible_workdir/{{ hcp.control_plane.hosted_cluster_name }}-lb-service.yaml
+
+- name: Wait for LoadBalancer to get external IP
+  ansible.builtin.shell: |
+    oc get service {{ hcp.control_plane.hosted_cluster_name }}-apps \
+      -n {{ hosted_control_plane_namespace }} \
+      -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+  register: lb_external_ip
+  retries: 30
+  delay: 10
+  until: lb_external_ip.stdout != ""
+
+- name: Display LoadBalancer external IP
+  ansible.builtin.debug:
+    msg:
+      - "LoadBalancer External IP: {{ lb_external_ip.stdout }}"
+      - "Configure wildcard DNS: *.apps.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }} -> {{ lb_external_ip.stdout }}"
+
+- name: Create DNS zone file
+  ansible.builtin.template:
+    src: hosted-zone.zone.j2
+    dest: "/var/named/{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}.zone"
+    mode: '0644'
+    owner: named
+    group: named
+
+- name: Check if zone already exists in named.conf
+  ansible.builtin.shell: |
+    grep -q "zone \"{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}\"" /etc/named.conf
+  register: zone_exists
+  failed_when: false
+  changed_when: false
+
+- name: Add zone configuration to named.conf
+  ansible.builtin.blockinfile:
+    path: /etc/named.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - {{ hcp.control_plane.hosted_cluster_name }}"
+    block: |
+      zone "{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}" {
+          type master;
+          file "/var/named/{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}.zone";
+          allow-query { any; };
+          allow-transfer { none; };
+          allow-update { none; };
+      };
+  when: zone_exists.rc != 0
+
+- name: Restart named service
+  ansible.builtin.systemd:
+    name: named
+    state: restarted
+    enabled: true
+
+- name: Verify DNS resolution
+  ansible.builtin.shell: |
+    nslookup test.apps.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }}
+  register: dns_verify
+  retries: 5
+  delay: 5
+  until: dns_verify.rc == 0
+  ignore_errors: true
+  changed_when: false
+
+- name: Display DNS configuration status
+  ansible.builtin.debug:
+    msg:
+      - "DNS zone file created successfully"
+      - "*.apps.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }} -> {{ lb_external_ip.stdout }}"
+      - "api.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }} -> {{ lb_external_ip.stdout }}"
+      - "api-int.{{ hcp.control_plane.hosted_cluster_name }}.{{ hcp.control_plane.basedomain }} -> {{ lb_external_ip.stdout }}"

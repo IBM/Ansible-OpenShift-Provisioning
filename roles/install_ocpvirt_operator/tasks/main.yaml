@@ -1,6 +1,10 @@
 ---
 - name: Check whether OpenShift Virtualization HyperConverged already exists
-  ansible.builtin.command: oc get hyperconverged {{ hcp.ocpvirt.instance_name | default('kubevirt-hyperconverged', true) }} -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }}
+  ansible.builtin.command:
+    cmd: >
+      oc get hyperconverged
+      {{ hcp.ocpvirt.instance_name | default('kubevirt-hyperconverged', true) }}
+      -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }}
   register: ocpvirt_check
   changed_when: false
   failed_when: false
@@ -51,7 +55,12 @@
     - name: Wait for OpenShift Virtualization operator CSV to be Succeeded
       ansible.builtin.shell: |
         set -o pipefail
-        oc get csv -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep kubevirt-hyperconverged | grep Succeeded | wc -l
+        oc get csv \
+        -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }} \
+        -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' \
+        | grep kubevirt-hyperconverged \
+        | grep Succeeded \
+        | wc -l
       register: ocpvirt_csv
       until: ocpvirt_csv.stdout | int >= 1
       retries: 30

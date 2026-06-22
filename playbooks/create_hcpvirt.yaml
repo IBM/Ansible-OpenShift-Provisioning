@@ -1,0 +1,142 @@
+---
+# Dynamically Add Bastion Host to Inventory
+- name: Add Bastion Host to Inventory
+  hosts: localhost
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  tasks:
+    - name: Add bastion dynamically
+      ansible.builtin.add_host:
+        name: "{{ hcp.mgmt_cluster_bastion.ip }}"
+        groups: mgmt_bastion
+        ansible_user: root
+        ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}"
+        ansible_connection: ssh
+        inventory_dir: "{{ inventory_dir }}"
+
+# Login to OCP Management Cluster (from bastion)
+- name: Login to OCP Management Cluster
+  hosts: mgmt_bastion
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  vars:
+    vault_api_server: "{{ hcp.oc_url }}"
+    vault_user_name: "{{ vault_ocp_user }}"
+    vault_password: "{{ vault_ocp_password }}"
+  roles:
+    - login_to_mgmt_cluster
+
+# Enable wildcard DNS routes in management cluster
+- name: Pre HCP Creation - Enable Wildcard DNS Routes
+  hosts: mgmt_bastion
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Enable wildcard DNS routes in OpenShift ingress controller
+      ansible.builtin.shell: |
+        oc patch ingresscontroller -n openshift-ingress-operator default \
+          --type=json \
+          -p '[{ "op": "add", "path": "/spec/routeAdmission", "value": {wildcardPolicy: "WildcardsAllowed"}}]'
+      register: wildcard_patch
+      failed_when: false
+      changed_when: "'patched' in wildcard_patch.stdout or 'no change' not in wildcard_patch.stderr"
+
+    - name: Display wildcard DNS configuration status
+      ansible.builtin.debug:
+        msg: "Wildcard DNS routes enabled in management cluster ingress controller"
+
+# Create Hosted Control Plane on KubeVirt
+- name: Create Hosted Control Plane Cluster
+  hosts: mgmt_bastion
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  become: true
+  gather_facts: false
+  roles:
+    - create_hcp_kubevirt
+
+# Extract kubeconfig and setup LoadBalancer for Ingress
+- name: Post HCP Creation - Extract kubeconfig
+  hosts: mgmt_bastion
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  become: true
+  gather_facts: false
+  roles:
+    - hcpvirt_kubeconfig
+
+- name: Fetching the HTTP and HTTPS NodePort
+  hosts: mgmt_bastion
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  become: true
+  gather_facts: false
+  tasks:
+
+    - name: Wait for router-nodeport-default service to be available
+      ansible.builtin.shell: |
+        oc --kubeconfig {{ hcp_kubeconfig }} get service router-nodeport-default -n openshift-ingress --ignore-not-found -o name
+      register: router_service_check
+      retries: 30
+      delay: 20
+      until: router_service_check.stdout != ""
+      changed_when: false
+
+    - name: Get HTTP NodePort for router
+      ansible.builtin.shell: |
+        oc --kubeconfig {{ hcp_kubeconfig }} get services -n openshift-ingress \
+         router-nodeport-default -o jsonpath='{.spec.ports[?(@.name=="http")].nodePort}'
+      register: http_nodeport_result
+      retries: 10
+      delay: 10
+      until: http_nodeport_result.stdout != ""
+
+    - name: Get HTTPS NodePort for router
+      ansible.builtin.shell: |
+        oc --kubeconfig {{ hcp_kubeconfig }} get services -n openshift-ingress \
+         router-nodeport-default -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}'
+      register: https_nodeport_result
+      retries: 10
+      delay: 10
+      until: https_nodeport_result.stdout != ""
+
+    - name: Set NodePort facts
+      ansible.builtin.set_fact:
+        http_nodeport: "{{ http_nodeport_result.stdout }}"
+        https_nodeport: "{{ https_nodeport_result.stdout }}"
+
+    - name: Display NodePort values
+      ansible.builtin.debug:
+        msg:
+          - "HTTP NodePort: {{ http_nodeport }}"
+          - "HTTPS NodePort: {{ https_nodeport }}"
+
+- name: Post HCP Creation Networking Setup
+  hosts: mgmt_bastion
+  become: true
+  gather_facts: false
+
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+
+  roles:
+    - hcpvirt_loadbalancer_dns
+
+- name: Wait for cluster opertors to be available & HCP to complete
+  hosts: mgmt_bastion
+  become: true
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+  roles:
+    - wait_for_hc_complete

@@ -53,7 +53,12 @@
     - name: Wait for ODF operator CSV to be Succeeded
       ansible.builtin.shell: |
         set -o pipefail
-        oc get csv -n {{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }} -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' | grep odf-operator | grep Succeeded | wc -l
+        oc get csv \
+        -n {{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }} \
+        -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.phase}{"\n"}{end}' \
+        | grep odf-operator \
+        | grep Succeeded \
+        | wc -l
       register: odf_csv
       until: odf_csv.stdout | int >= 1
       retries: 30

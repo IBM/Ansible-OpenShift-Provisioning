@@ -8,63 +8,71 @@
   retries: 30
   delay: 10
   changed_when: false
-  when: (hcp.mce.delete | default(false)) == false
+  when: not (hcp.mce.delete | default(false))
 
 - name: Show MCE status
   ansible.builtin.command: oc get mce -o wide
   register: mce_status_output
   changed_when: false
-  when: (hcp.mce.delete | default(false)) == false
+  when: not (hcp.mce.delete | default(false))
 
 - name: Print MCE status
   ansible.builtin.debug:
     var: mce_status_output.stdout_lines
-  when: (hcp.mce.delete | default(false)) == false
+  when: not (hcp.mce.delete | default(false))
 
 - name: MCE installation successful
   ansible.builtin.debug:
     msg: "MCE operator installation successful."
-  when: (hcp.mce.delete | default(false)) == false
+  when: not (hcp.mce.delete | default(false))
 
 - name: Wait for MetalLB pods to be Running
+  vars:
+    metallb_ns: "{{ hcp.metallb.namespace | default('metallb-system', true) }}"
   ansible.builtin.shell: |
     set -o pipefail
-    total=$(oc get po -n {{ hcp.metallb.namespace | default('metallb-system', true) }} --no-headers 2>/dev/null | wc -l)
-    not_running=$(oc get po -n {{ hcp.metallb.namespace | default('metallb-system', true) }} --no-headers 2>/dev/null | awk '{print $3}' | grep -v '^Running$' | wc -l)
+    total=$(oc get po -n {{ metallb_ns }} --no-headers 2>/dev/null | wc -l)
+    not_running=$(oc get po -n {{ metallb_ns }} --no-headers 2>/dev/null | awk '{print $3}' | grep -v '^Running$' | wc -l)
     echo "${total} ${not_running}"
   register: metallb_pods_status
-  until: (metallb_pods_status.stdout.split(' ')[0] | int) > 0 and (metallb_pods_status.stdout.split(' ')[1] | int) == 0
+  until: >
+    (metallb_pods_status.stdout.split(' ')[0] | int) > 0
+    and (metallb_pods_status.stdout.split(' ')[1] | int) == 0
   retries: 30
   delay: 10
   changed_when: false
-  when: (hcp.metallb.delete | default(false)) == false
+  when: not (hcp.metallb.delete | default(false))
 
 - name: Show MetalLB pods
   ansible.builtin.command: oc get po -n {{ hcp.metallb.namespace | default('metallb-system', true) }} -o wide
   register: metallb_pods_output
   changed_when: false
-  when: (hcp.metallb.delete | default(false)) == false
+  when: not (hcp.metallb.delete | default(false))
 
 - name: Print MetalLB pods
   ansible.builtin.debug:
     var: metallb_pods_output.stdout_lines
-  when: (hcp.metallb.delete | default(false)) == false
+  when: not (hcp.metallb.delete | default(false))
 
 - name: MetalLB installation successful
   ansible.builtin.debug:
     msg: "MetalLB operator installation successful."
-  when: (hcp.metallb.delete | default(false)) == false
+  when: not (hcp.metallb.delete | default(false))
 
 - name: Show LSO resources
   ansible.builtin.command: oc get all -n {{ hcp.lso.namespace | default('openshift-local-storage', true) }}
   register: lso_resources_output
   changed_when: false
-  when: (hcp.lso.delete | default(false)) == false
+  when:
+    - not (hcp.lso.delete | default(false))
+    - hcp.storage.type == "odf"
 
 - name: Print LSO resources
   ansible.builtin.debug:
     var: lso_resources_output.stdout_lines
-  when: (hcp.lso.delete | default(false)) == false
+  when:
+    - not (hcp.lso.delete | default(false))
+    - hcp.storage.type == "odf"
 
 - name: Wait for local PVs to be created
   ansible.builtin.shell: |
@@ -75,7 +83,9 @@
   retries: 30
   delay: 10
   changed_when: false
-  when: (hcp.lso.delete | default(false)) == false
+  when:
+    - not (hcp.lso.delete | default(false))
+    - hcp.storage.type == "odf"
 
 - name: Show local PVs
   ansible.builtin.shell: |
@@ -83,28 +93,38 @@
     oc get pv -A --no-headers | awk '$1 ~ /^local-pv-/ {print $0}'
   register: lso_local_pv_output
   changed_when: false
-  when: (hcp.lso.delete | default(false)) == false
+  when:
+    - not (hcp.lso.delete | default(false))
+    - hcp.storage.type == "odf"
 
 - name: Print local PVs
   ansible.builtin.debug:
     var: lso_local_pv_output.stdout_lines
-  when: (hcp.lso.delete | default(false)) == false
+  when:
+    - not (hcp.lso.delete | default(false))
+    - hcp.storage.type == "odf"
 
 - name: LSO installation successful
   ansible.builtin.debug:
     msg: "LSO operator installation successful."
-  when: (hcp.lso.delete | default(false)) == false
+  when:
+    - not (hcp.lso.delete | default(false))
+    - hcp.storage.type == "odf"
 
 - name: Wait for StorageCluster to be Ready
   ansible.builtin.shell: >
-    oc get storagecluster {{ ((hcp.odf | default({})).storagecluster | default({})).name | default('ocs-storagecluster', true) }} -n {{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }}
+    oc get storagecluster \
+    {{ ((hcp.odf | default({})).storagecluster | default({})).name | default('ocs-storagecluster', true) }} \
+    -n {{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }}
     -o jsonpath='{.status.phase}'
   register: storagecluster_phase
   until: storagecluster_phase.stdout == "Ready"
   retries: 60
   delay: 15
   changed_when: false
-  when: (hcp.odf.delete | default(false)) == false
+  when:
+    - not (hcp.odf.delete | default(false))
+    - hcp.storage.type == "odf"
 
 - name: Wait for ODF default storageclass to be created
   ansible.builtin.command: >
@@ -115,14 +135,21 @@
   delay: 15
   changed_when: false
   failed_when: false
-  when: (hcp.odf.delete | default(false)) == false
+  when:
+    - not (hcp.odf.delete | default(false))
+    - hcp.storage.type == "odf"
 
 - name: Get storage classes for diagnostics when expected class is missing
   ansible.builtin.command: oc get sc --no-headers
   register: odf_sc_list
   changed_when: false
   failed_when: false
-  when: (hcp.odf.delete | default(false)) == false and odf_default_sc.rc != 0
+  when:
+    - hcp.storage.type == "odf"
+    - not (hcp.odf.delete | default(false))
+    - odf_default_sc is defined
+    - odf_default_sc.rc is defined
+    - odf_default_sc.rc != 0
 
 - name: Fail when expected ODF storageclass is not found
   ansible.builtin.fail:
@@ -130,77 +157,142 @@
       Expected storageclass {{ (hcp.odf | default({})).default_storageclass_name | default('ocs-storagecluster-ceph-rbd', true) }} was not created.
       Available storageclasses:
       {{ odf_sc_list.stdout | default('No storageclasses returned') }}
-  when: (hcp.odf.delete | default(false)) == false and odf_default_sc.rc != 0
+  when:
+    - hcp.storage.type == "odf"
+    - not (hcp.odf.delete | default(false))
+    - odf_default_sc is defined
+    - odf_default_sc.rc is defined
+    - odf_default_sc.rc != 0
 
 - name: Patch ceph-rbd as default storageclass
   ansible.builtin.command: >
     oc patch storageclass {{ (hcp.odf | default({})).default_storageclass_name | default('ocs-storagecluster-ceph-rbd', true) }}
     -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'
-  when: (hcp.odf.delete | default(false)) == false
+  when:
+    - not (hcp.odf.delete | default(false))
+    - hcp.storage.type == "odf"
 
 - name: Wait for default storageclass annotation
   ansible.builtin.command: >
     oc get storageclass {{ (hcp.odf | default({})).default_storageclass_name | default('ocs-storagecluster-ceph-rbd', true) }}
-    -o jsonpath='{.metadata.annotations.storageclass\\.kubernetes\\.io/is-default-class}'
+    -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}'
   register: odf_default_sc_annotation
   until: odf_default_sc_annotation.stdout == "true"
   retries: 10
   delay: 6
   changed_when: false
-  when: (hcp.odf.delete | default(false)) == false
+  when:
+    - not (hcp.odf.delete | default(false))
+    - hcp.storage.type == "odf"
 
 - name: Show StorageCluster status
   ansible.builtin.command: oc get storagecluster -A
   register: odf_storagecluster_output
   changed_when: false
-  when: (hcp.odf.delete | default(false)) == false
+  when:
+    - not (hcp.odf.delete | default(false))
+    - hcp.storage.type == "odf"
 
 - name: Print StorageCluster status
   ansible.builtin.debug:
     var: odf_storagecluster_output.stdout_lines
-  when: (hcp.odf.delete | default(false)) == false
+  when:
+    - not (hcp.odf.delete | default(false))
+    - hcp.storage.type == "odf"
 
 - name: Get storage classes
   ansible.builtin.command: oc get sc
   register: storageclasses_output
   changed_when: false
-  when: (hcp.odf.delete | default(false)) == false
+  when:
+    - not (hcp.odf.delete | default(false))
+    - hcp.storage.type == "odf"
 
 - name: Show storage classes
   ansible.builtin.debug:
     var: storageclasses_output.stdout_lines
-  when: (hcp.odf.delete | default(false)) == false
+  when:
+    - not (hcp.odf.delete | default(false))
+    - hcp.storage.type == "odf"
 
 - name: ODF installation successful
   ansible.builtin.debug:
     msg: "ODF operator installation successful."
-  when: (hcp.odf.delete | default(false)) == false
+  when:
+    - not (hcp.odf.delete | default(false))
+    - hcp.storage.type == "odf"
+
+- name: Verify HPP StorageClass exists
+  ansible.builtin.command: oc get storageclass {{ hcp.hpp.storageclass_name }}
+  register: hpp_sc_check
+  retries: 10
+  delay: 5
+  until: hpp_sc_check.rc == 0
+  changed_when: false
+  when: hcp.storage.type == "hpp"
+
+- name: Get StorageClasses
+  ansible.builtin.command: oc get sc
+  register: hpp_sc_list
+  changed_when: false
+  when: hcp.storage.type == "hpp"
+
+- name: Show StorageClasses (HPP)
+  ansible.builtin.debug:
+    var: hpp_sc_list.stdout_lines
+  when: hcp.storage.type == "hpp"
+
+- name: Set hostpath-csi as default StorageClass
+  ansible.builtin.command: >
+    oc patch storageclass {{ hcp.hpp.storageclass_name }}
+    -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'
+  when: hcp.storage.type == "hpp"
+
+- name: Verify default StorageClass annotation (HPP)
+  ansible.builtin.command: >
+    oc get storageclass {{ hcp.hpp.storageclass_name }}
+    -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}'
+  register: hpp_default_sc
+  retries: 10
+  delay: 5
+  until: hpp_default_sc.stdout == "true"
+  changed_when: false
+  when: hcp.storage.type == "hpp"
+
+- name: HPP installation successful
+  ansible.builtin.debug:
+    msg: "HPP StorageClass configured and set as default successfully."
+  when: hcp.storage.type == "hpp"
 
 - name: Wait for OpenShift Virtualization pods to be Running
+  vars:
+    ocpvirt_ns: "{{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }}"
   ansible.builtin.shell: |
     set -o pipefail
-    total=$(oc get po -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }} --no-headers 2>/dev/null | wc -l)
-    not_running=$(oc get po -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }} --no-headers 2>/dev/null | awk '{print $3}' | grep -v '^Running$' | wc -l)
+    total=$(oc get po -n {{ ocpvirt_ns }} --no-headers 2>/dev/null | wc -l)
+    not_running=$(oc get po -n {{ ocpvirt_ns }} --no-headers 2>/dev/null | awk '{print $3}' | grep -v '^Running$' | wc -l)
     echo "${total} ${not_running}"
   register: ocpvirt_pods_status
-  until: (ocpvirt_pods_status.stdout.split(' ')[0] | int) > 0 and (ocpvirt_pods_status.stdout.split(' ')[1] | int) == 0
+  until: >
+    (ocpvirt_pods_status.stdout.split(' ')[0] | int) > 0
+    and (ocpvirt_pods_status.stdout.split(' ')[1] | int) == 0
   retries: 40
   delay: 15
   changed_when: false
-  when: (hcp.ocpvirt.delete | default(false)) == false
+  when: not (hcp.ocpvirt.delete | default(false))
 
 - name: Show OpenShift Virtualization pods
   ansible.builtin.command: oc get po -n {{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }} -o wide
   register: ocpvirt_pods_output
   changed_when: false
-  when: (hcp.ocpvirt.delete | default(false)) == false
+  when: not (hcp.ocpvirt.delete | default(false))
 
 - name: Print OpenShift Virtualization pods
   ansible.builtin.debug:
     var: ocpvirt_pods_output.stdout_lines
-  when: (hcp.ocpvirt.delete | default(false)) == false
+  when: not (hcp.ocpvirt.delete | default(false))
 
 - name: OpenShift Virtualization installation successful
   ansible.builtin.debug:
     msg: "OpenShift Virtualization operator installation successful."
-  when: (hcp.ocpvirt.delete | default(false)) == false
+  when: not (hcp.ocpvirt.delete | default(false))
