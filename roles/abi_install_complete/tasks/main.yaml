@@ -3,6 +3,7 @@
   ansible.builtin.include_tasks: ../../common/tasks/resolve_ocp_install_workdir.yaml
 
 - name: wait-for install-complete
+  when: not install_config_vars.fips
   block:
     - name: Start openshift-installer with 'wait-for install-complete' (async task)
       ansible.builtin.command: openshift-install agent wait-for install-complete --dir=/root/"{{ ocp_install_workdir }}"
@@ -19,9 +20,9 @@
       # Set wait time to 71 min, because it depends highly on system performance and network speed
       retries: 141
       delay: 30
-  when: not install_config_vars.fips
 
 - name: FIPS wait-for install-complete
+  when: install_config_vars.fips
   block:
     - name: Start openshift-installer with 'wait-for install-complete' (async task)
       ansible.builtin.command: openshift-install-fips agent wait-for install-complete --dir=/root/"{{ ocp_install_workdir }}"
@@ -38,41 +39,40 @@
       # Set wait time to 70 min, because it depends highly on system performance and network speed
       retries: 140
       delay: 30
-  when: install_config_vars.fips
 
 - name: Create ~/.kube directory if it does not exist
   tags: kubeconfig
-  file:
+  ansible.builtin.file:
     path: ~/.kube
     state: directory
     mode: '0755'
 
 - name: Copy kubeconfig to ~/.kube/config
   tags: kubeconfig
-  copy:
+  ansible.builtin.copy:
     src: /root/{{ ocp_install_workdir }}/auth/kubeconfig
     dest: ~/.kube/config
     owner: "{{ ansible_user_id }}"
-    group: "{{ ansible_user_gid }}" 
+    group: "{{ ansible_user_gid }}"
     mode: '0600'
-    remote_src: yes
+    remote_src: true
 
 - name: Check if kubeconfig was copied
   tags: kubeconfig
-  stat:
+  ansible.builtin.stat:
     path: ~/.kube/config
   register: kubeconfig_status
 
 - name: Display kubeconfig message
   tags: kubeconfig
-  debug:
+  ansible.builtin.debug:
     msg: "Kubeconfig is set at ~/.kube/config. No need to export KUBECONFIG unless you want to use a different one."
   when: kubeconfig_status.stat.exists
 
 - name: Display cluster details post-install
-  debug:
+  ansible.builtin.debug:
     msg:
       - Installation completed!
-      - Access the OpenShift web-console here --> https://console-openshift-console.apps.{{env.cluster.networking.metadata_name}}.{{env.cluster.networking.base_domain}}
+      - Web console: https://console-openshift-console.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
       - kubeadmin password of cluster is stored in ~/{{ ocp_install_workdir }}/auth/kubeadmin-password on bastion.
       - Login command --> oc login https://api.{{env.cluster.networking.metadata_name}}.{{env.cluster.networking.base_domain}}:6443 -u kubeadmin -p $( cat ~/{{ ocp_install_workdir }}/auth/kubeadmin-password )
