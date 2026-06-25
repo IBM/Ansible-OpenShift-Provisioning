@@ -79,8 +79,7 @@
     --disk size={{ env.cluster.nodes.control.disk_size }} \
     --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.control.mac[i]) }} \
     --graphics none \
-    --noautoconsole \
-    --wait=-1 \
+    --noautoconsole
   async: 3600
   poll: 0
   with_sequence: start=0 end={{ (env.cluster.nodes.control.hostname | length) - 1 }} stride=1
@@ -149,8 +148,7 @@
     --disk size={{ env.cluster.nodes.compute.disk_size }} \
     --network network={{ env.vnet_name }}{{ (',mac=' + env.cluster.nodes.compute.mac[i]) }} \
     --graphics none \
-    --noautoconsole \
-    --wait=-1 \
+    --noautoconsole
   async: 3600
   poll: 0
   with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
@@ -159,3 +157,22 @@
     index_var: i
     pause: 10
   when: env.cluster.nodes.compute is defined and abi.boot_method | lower == "iso"
+
+- name: Wait for all agent VM definitions to exist after ISO virt-install
+  ansible.builtin.shell: |
+    set -e
+    for vm in {{ env.cluster.nodes.control.vm_name | join(' ') }} {{ env.cluster.nodes.compute.vm_name | default([]) | join(' ') }}; do
+      virsh dominfo "$vm" >/dev/null 2>&1
+    done
+  register: agent_vms_defined
+  until: agent_vms_defined.rc == 0
+  retries: 36
+  delay: 10
+  when: abi.boot_method | lower == "iso"
+
+- name: Ensure ABI agent VMs are running after ISO boot
+  community.libvirt.virt:
+    name: "{{ item }}"
+    state: running
+  loop: "{{ env.cluster.nodes.control.vm_name + (env.cluster.nodes.compute.vm_name | default([])) }}"
+  when: abi.boot_method | lower == "iso"
