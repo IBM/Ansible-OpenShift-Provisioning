@@ -239,6 +239,10 @@ abi:
   ocp_installer_base_url: 'https://mirror.openshift.com/pub/openshift-v4/'
   architecture: <multi|s390x>  
   boot_method: <pxe|iso>
+  # (Optional) Pass --wait=-1 to virt-install for ISO boot. Defaults to true
+  # (upstream behavior). Set to false on hosts where the async virt-install
+  # job being reaped at timeout can power the agent VMs off mid-install.
+  iso_virt_install_wait: true
 
 # Openshift Settings  
 # Settings like architecture, hyperthreading, network cidr, etc.
