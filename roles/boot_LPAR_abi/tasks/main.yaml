@@ -61,9 +61,9 @@
       python3 /root/ansible_workdir/boot_lpar_abi.py \
       --cpcname {{ node.cpc_name }} \
       --lparname {{ node.lpar.name }} \
-      --hmchost {{ hmc.host }} \
-      --hmcuser {{ hmc.auth.user }} \
-      --hmcpass {{ hmc.auth.pass }} \
+      --hmchost {{ node.hmc.host }} \
+      --hmcuser {{ node.hmc.auth.user }} \
+      --hmcpass {{ node.hmc.auth.pass }} \
       --cpu {{ node.lpar.ifl.count }} \
       --memory {{ node.lpar.ifl.initial_memory }} \
       --kernel http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}-vmlinuz \
@@ -87,6 +87,12 @@
       --log_level DEBUG \
       --cmdline "{{ abi_cmdline }}"
   register: boot_result
+  timeout: "{{ abi_lpar_boot_timeout | default(900) }}"
+
+- name: Pause after booting LPAR node with ABI agent
+  ansible.builtin.pause:
+    seconds: "{{ abi_lpar_boot_pause_seconds | default(90) }}"
+  when: abi_lpar_boot_pause_seconds | default(90) | int > 0
 
 - name: Display boot result
   ansible.builtin.debug:

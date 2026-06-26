@@ -48,12 +48,12 @@ hosts:
   - hostname: "{{ env.cluster.nodes.compute.hostname[item] }}"
     role: worker
 {% if installation_type | lower == 'lpar' %}
-{%-   set compute_node_hostname = env.cluster.nodes.compute.vm_name[item] -%}
-{%-   set compute_node_vars = lookup('file', inventory_dir + '/host_vars/' + compute_node_hostname + '.yaml') | from_yaml -%}
-{%-   if compute_node_vars.lpar is defined and compute_node_vars.lpar.storage_group_1 is defined and compute_node_vars.lpar.storage_group_1.type | lower == 'fcp' %}
+{%   set compute_node_hostname = env.cluster.nodes.compute.vm_name[item] %}
+{%   set compute_node_vars = lookup('file', inventory_dir + '/host_vars/' + compute_node_hostname + '.yaml') | from_yaml %}
+{%   if compute_node_vars.lpar is defined and compute_node_vars.lpar.storage_group_1 is defined and compute_node_vars.lpar.storage_group_1.type | lower == 'fcp' %}
     rootDeviceHints:
       deviceName: /dev/disk/by-path/ccw-0.0.{{ compute_node_vars.lpar.storage_group_1.dev_num }}-fc-{{ compute_node_vars.lpar.storage_group_1.storage_wwpn[0] }}-lun-{{ compute_node_vars.lpar.storage_group_1.lun_name }}
-{%-   endif %}
+{%   endif %}
 {% endif %}
     interfaces:
       - name: eth0

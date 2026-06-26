@@ -24,26 +24,26 @@
     chdir: ~/{{ abi.ansible_workdir }}
   when: abi.boot_method | lower == "iso" and install_config_vars.fips
 
-- name: Check is vmlinuz exists in boot-artifacts
-  stat:
-    path: "~/{{ abi.ansible_workdir }}/boot-artifacts/agent.{{ ansible_architecture }}-vmlinuz"
-  register: vmlinuz
-
-- name: Copy and rename vmlinuz as kernel.img for PXE
-  ansible.builtin.copy:
-    src: "~/{{ abi.ansible_workdir }}/boot-artifacts/agent.{{ ansible_architecture }}-vmlinuz"
-    dest: /var/www/html/agent.{{ ansible_architecture }}-kernel.img
-    mode: '644'
-    remote_src: true
-  when: vmlinuz.stat.exists
-
-- name: Copy initrd.img, kernel.img, and rootfs.img for PXE
+- name: Copy initrd.img, vmlinuz, and rootfs.img for PXE
   ansible.builtin.copy:
     src: "~/{{ abi.ansible_workdir }}/boot-artifacts/"
     dest: /var/www/html/
     mode: '645'
     remote_src: true
   when: abi.boot_method | lower == "pxe"
+
+- name: Check if vmlinuz exists in /var/www/html
+  stat:
+    path: "/var/www/html/agent.{{ ansible_architecture }}-vmlinuz"
+  register: vmlinuz_www
+
+- name: Create kernel.img as copy of vmlinuz for backward compatibility
+  ansible.builtin.copy:
+    src: "/var/www/html/agent.{{ ansible_architecture }}-vmlinuz"
+    dest: /var/www/html/agent.{{ ansible_architecture }}-kernel.img
+    mode: '644'
+    remote_src: true
+  when: abi.boot_method | lower == "pxe" and vmlinuz_www.stat.exists
 
 - name: Copy ISO image to the server
   ansible.builtin.copy:

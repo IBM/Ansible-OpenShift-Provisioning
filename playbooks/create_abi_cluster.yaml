@@ -57,10 +57,17 @@
     - name: Support for LPAR ABI
       when: installation_type | lower == 'lpar' and abi.flag is defined and abi.flag is true
       block:
-        - name: Boot LPAR nodes with ABI agent
+        - name: Boot LPAR control nodes with ABI agent
           ansible.builtin.include_role:
             name: boot_LPAR_abi
           loop: "{{ env.cluster.nodes.control.vm_name }}"
+          loop_control:
+            loop_var: item
+
+        - name: Boot LPAR compute nodes with ABI agent
+          ansible.builtin.include_role:
+            name: boot_LPAR_abi
+          loop: "{{ env.cluster.nodes.compute.vm_name | default([]) }}"
           loop_control:
             loop_var: item
 
