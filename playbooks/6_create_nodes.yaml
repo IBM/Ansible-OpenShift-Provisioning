@@ -76,6 +76,31 @@
       loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
       when: item in hosts_with_host_vars
 
+- name: 6 create nodes - wait for CoreOS installation on LPARs
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  tasks:
+    - name: Wait for bootstrap SSH to become available
+      wait_for:
+        host: "{{ env.z.lpar2.ip }}"
+        port: 22
+        delay: 60
+        timeout: 3600
+        sleep: 30
+        state: started
+
+    - name: Wait for control plane SSH to become available
+      wait_for:
+        host: "{{ env.z.lpar3.ip }}"
+        port: 22
+        delay: 60
+        timeout: 3600
+        sleep: 30
+        state: started
+
 - name: 6 create nodes - create control nodes
   hosts: kvm_host
   gather_facts: false
