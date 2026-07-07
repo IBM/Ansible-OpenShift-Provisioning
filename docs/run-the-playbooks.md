@@ -142,6 +142,39 @@ Final steps of waiting for and verifying the OpenShift cluster to complete its i
 
 # Additional Playbooks
 
+## Delete Cluster Nodes Playbook (delete_cluster_nodes.yaml)
+### Overview
+* Use this playbook to delete all cluster nodes (bootstrap, control, compute, and infra nodes) from the configured KVM hosts based on your `inventories/default/group_vars/all.yaml` configuration.
+* This is useful when you need to tear down the cluster nodes while keeping the bastion and infrastructure intact.
+
+### Usage
+To delete all cluster nodes from all configured KVM hosts:
+```
+ansible-playbook playbooks/delete_cluster_nodes.yaml
+```
+
+To delete nodes from a specific KVM host only, use tags:
+```
+ansible-playbook playbooks/delete_cluster_nodes.yaml --tags kvm_host_1
+ansible-playbook playbooks/delete_cluster_nodes.yaml --tags kvm_host_2
+ansible-playbook playbooks/delete_cluster_nodes.yaml --tags kvm_host_3
+```
+
+### Outcomes
+* All cluster nodes (bootstrap, control, compute, and infra) are destroyed and undefined from the configured KVM hosts.
+* Virtual machine storage is removed.
+* A summary message is displayed upon completion.
+
+### Notes
+* This playbook does **NOT** delete:
+    * The bastion node
+    * Network configurations
+    * Storage pools
+    * DNS or HAProxy configurations
+* To verify deletion, run `virsh list --all` on each KVM host.
+* The playbook uses the existing `delete_nodes` role which safely handles non-existent VMs.
+* If you need to reinstall the cluster after deletion, use the `reinstall_cluster.yaml` playbook or run playbooks 6 and 7.
+
 ## Create additional compute nodes (create_compute_node.yaml) and delete compute nodes (delete_compute_node.yaml)
 ### Overview
 

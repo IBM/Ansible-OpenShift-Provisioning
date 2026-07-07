@@ -1,0 +1,53 @@
+---
+# This playbook deletes all cluster nodes (bootstrap, control, compute, and infra nodes)
+# based on the configuration in inventories/default/group_vars/all.yaml
+#
+# Usage:
+#   ansible-playbook playbooks/delete_cluster_nodes.yaml
+#
+# To delete nodes from specific KVM hosts only, use tags:
+#   ansible-playbook playbooks/delete_cluster_nodes.yaml --tags kvm_host_1
+#   ansible-playbook playbooks/delete_cluster_nodes.yaml --tags kvm_host_2
+#   ansible-playbook playbooks/delete_cluster_nodes.yaml --tags kvm_host_3
+
+- name: Delete cluster nodes from all KVM hosts
+  hosts: kvm_host
+  tags: always
+  become: true
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  tasks:
+    - name: Delete cluster nodes on this KVM host
+      ansible.builtin.include_role:
+        name: delete_nodes
+      tags:
+        - kvm_host_1
+        - kvm_host_2
+        - kvm_host_3
+      when: inventory_hostname in groups['kvm_host']
+
+- name: Summary of deleted nodes
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  tasks:
+    - name: Display completion message
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "Cluster node deletion completed"
+          - "=========================================="
+          - "All cluster nodes (bootstrap, control, compute, and infra) have been deleted from the configured KVM hosts."
+          - ""
+          - "Note: This playbook does NOT delete:"
+          - "  - The bastion node (use destroy_bastion role if needed)"
+          - "  - Network configurations"
+          - "  - Storage pools"
+          - ""
+          - "To verify, run 'virsh list --all' on each KVM host."
+
+# Made with Bob
