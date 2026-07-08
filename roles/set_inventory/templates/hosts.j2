@@ -23,7 +23,7 @@
 {% endif %}
 
 [bastion]
-{{ env.bastion.networking.hostname }} ansible_host={{ env.bastion.networking.ip }} ansible_user={{ env.bastion.access.user }} ansible_become_password='{{ '{{' }} env.bastion.access.pass {{ '}}' }}'
+{{ env.bastion.networking.hostname }} ansible_host={{ env.bastion.networking.ip }} ansible_user={{ env.bastion.access.user }} ansible_become_password='{{ '{{' }} env.bastion.access.pass {{ '}}' }}'{% if ( env.network_mode | upper == 'NAT' ) and ( env.jumphost.ip is not none ) %} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyCommand="ssh -o StrictHostKeyChecking=no -W %h:%p {{ env.jumphost.user }}@{{ env.jumphost.ip }}"'{% endif %}
 
 {% if ( env.network_mode | upper == 'NAT' ) and ( env.jumphost.name is not none ) and ( env.jumphost.ip is not none ) and ( env.jumphost.user is not none ) and ( env.jumphost.pass is not none ) -%}
 {{ '[jumphost]' }}
