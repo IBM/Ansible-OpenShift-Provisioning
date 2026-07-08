@@ -22,14 +22,16 @@
     path: ~/.ssh/config
     backup: true
     create: true
-    mode: '0644'
+    mode: '0600'
     block: |
       Host {{ env.jumphost.name }}
         HostName {{ env.jumphost.ip }}
         User {{ env.jumphost.user }}
         IdentityFile {{ path_to_key_pair.split('.')[:-1] | join('.') }}
+        StrictHostKeyChecking no
       Host {{ env.bastion.networking.ip }}
         HostName {{ env.bastion.networking.ip }}
         User {{ env.bastion.access.user }}
         IdentityFile {{ path_to_key_pair.split('.')[:-1] | join('.') }}
+        StrictHostKeyChecking no
         ProxyJump {{ env.jumphost.name }}
