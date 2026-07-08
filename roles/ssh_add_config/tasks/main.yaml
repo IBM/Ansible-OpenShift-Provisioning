@@ -1,5 +1,21 @@
 ---
 
+- name: Ensure ~/.ssh directory exists
+  tags: ssh_copy_id, ssh
+  ansible.builtin.file:
+    path: ~/.ssh
+    state: directory
+    mode: '0700'
+
+- name: Ensure ~/.ssh/config file exists
+  tags: ssh_copy_id, ssh
+  ansible.builtin.file:
+    path: ~/.ssh/config
+    state: touch
+    mode: '0600'
+    modification_time: preserve
+    access_time: preserve
+
 - name: Create ssh config file (or add to an exsting file) to if network mode is NAT
   tags: ssh_copy_id, ssh
   ansible.builtin.blockinfile:
@@ -8,12 +24,12 @@
     create: true
     mode: '0644'
     block: |
-      Host {{ env.jumphost.name }} 
+      Host {{ env.jumphost.name }}
         HostName {{ env.jumphost.ip }}
         User {{ env.jumphost.user }}
         IdentityFile {{ path_to_key_pair.split('.')[:-1] | join('.') }}
       Host {{ env.bastion.networking.ip }}
-        HostName {{ env.bastion.networking.ip }} 
+        HostName {{ env.bastion.networking.ip }}
         User {{ env.bastion.access.user }}
         IdentityFile {{ path_to_key_pair.split('.')[:-1] | join('.') }}
-        ProxyJump {{ env.jumphost.name }} 
+        ProxyJump {{ env.jumphost.name }}
