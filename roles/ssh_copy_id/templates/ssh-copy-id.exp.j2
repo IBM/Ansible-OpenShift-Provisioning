@@ -10,7 +10,7 @@ if {$force_conservative} {
 }
 
 set timeout 20
-spawn ssh-copy-id -f -o StrictHostKeyChecking=no -i {{ ssh_target[3] | regex_replace('^~', remote_home) }} {{ ssh_target[1] }}@{{ ssh_target[0] }}
+spawn ssh-copy-id -f -o StrictHostKeyChecking=no{% if ssh_target[4] is defined and ssh_target[4] != '' %} -o ProxyJump={{ ssh_target[4] }}{% endif %} -i {{ ssh_target[3] | regex_replace('^~', remote_home) }} {{ ssh_target[1] }}@{{ ssh_target[0] }}
 expect {
 	"password: " {
 		send -- "{{ ssh_target[2] }}\r"
