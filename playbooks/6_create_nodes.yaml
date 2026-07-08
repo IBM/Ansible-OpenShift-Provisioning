@@ -119,6 +119,7 @@
       community.libvirt.virt:
         name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
         command: undefine
+        force: true
       ignore_errors: true
 
 - name: 6 create nodes - once bootstrapping is complete, create compute nodes.
