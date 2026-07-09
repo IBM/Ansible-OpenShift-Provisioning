@@ -18,6 +18,10 @@ expect {
 	}
 	"password: " {
 		send -- "{{ ssh_target[2] }}\r"
+		exp_continue
+	}
+	"password: " {
+		send -- "{{ ssh_target[2] }}\r"
 		expect eof
 	}
 	"Number of key(s) added:" {}
