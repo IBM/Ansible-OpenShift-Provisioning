@@ -17,6 +17,12 @@
     - name: Load variables based on target architecture
       ansible.builtin.include_vars: "{{ role_path }}/../common/vars/{{ param_compute_node.host_arch }}/vars.yaml"
 
+    - name: Ensure /var/www/html/bin directory exists
+      ansible.builtin.file:
+        path: /var/www/html/bin
+        state: directory
+        mode: "0755"
+
     - name: "If not available, download Red Hat CoreOS rootfs file {{ rhcos_live_rootfs }}"
       ansible.builtin.get_url:
         url: "{{ item.baseurl }}{{ item.file }}"
@@ -66,7 +72,7 @@
               if env.use_ipv6 == True else '' }}
             _compute_nameserver_args: >-
               nameserver={{ env.cluster.networking.nameserver1 }}{{
-              (',' + env.cluster.networking.nameserver2)
+              (' nameserver=' + env.cluster.networking.nameserver2)
               if env.cluster.networking.nameserver2 is defined else '' }}
 
         - name: "Create compute node VM on {{ param_compute_node.host_arch }}"
@@ -78,11 +84,19 @@
             --name {{ param_compute_node.vm_name }} \
             --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
             --autostart \
-            --disk pool={{ env.cluster.networking.metadata_name }}-vdisk,size={{ env.cluster.nodes.compute.disk_size }},cache=none,io=native \
+            {% if param_compute_node.host_arch == 's390x' %}
+            --disk pool={{ param_compute_node.disk_pool | default(env.cluster.networking.metadata_name + '-vdisk') }},size={{ env.cluster.nodes.compute.disk_size }},cache=none,io=native \
+            {% else %}
+            --disk pool={{ param_compute_node.disk_pool | default('default') }},size={{ env.cluster.nodes.compute.disk_size }},discard=unmap,bus=virtio \
+            {% endif %}
             --ram {{ env.cluster.nodes.compute.ram }} \
             ${CPU_MODEL} \
             --vcpus {{ env.cluster.nodes.compute.vcpu }} \
+            {% if param_compute_node.host_arch == 's390x' %}
             --network network={{ env.vnet_name }}{{ (',mac=' + param_compute_node.vm_mac) if (param_compute_node.vm_mac is defined and env.use_dhcp) }} \
+            {% else %}
+            --network type=direct,source={{ env.macvtap_dev }},source_mode=bridge{{ (',mac=' + param_compute_node.vm_mac) if (param_compute_node.vm_mac is defined and env.use_dhcp) }} \
+            {% endif %}
             --memballoon none \
             --graphics none \
             --console pty,target_type=serial \
@@ -100,7 +114,7 @@
             --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }}" \
             --extra-args "coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
             --extra-args "{{ _vm_console }}"
-          timeout: 360
+          timeout: 1800
           register: cmd_output
         - name: Debug, print above command output
           ansible.builtin.debug:
