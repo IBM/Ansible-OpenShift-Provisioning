@@ -24,7 +24,7 @@
 
 [bastion]
 {% if ( env.network_mode | upper == 'NAT' ) and ( env.jumphost.name is not none ) %}
-{{ env.bastion.networking.hostname }} ansible_host={{ env.bastion.networking.ip }} ansible_user={{ env.bastion.access.user }} ansible_become_password='{{ '{{' }} env.bastion.access.pass {{ '}}' }}' ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyJump={{ env.jumphost.name }}'
+{{ env.bastion.networking.hostname }} ansible_host={{ env.bastion.networking.ip }} ansible_user={{ env.bastion.access.user }} ansible_become_password='{{ '{{' }} env.bastion.access.pass {{ '}}' }}' ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyCommand="ssh -i {{ path_to_key_pair.split('"'"'.'"'"')[:-1] | join('"'"'.'"'"') }} -o StrictHostKeyChecking=no -W %h:%p {{ env.jumphost.user }}@{{ env.jumphost.ip }}"'
 {% else %}
 {{ env.bastion.networking.hostname }} ansible_host={{ env.bastion.networking.ip }} ansible_user={{ env.bastion.access.user }} ansible_become_password='{{ '{{' }} env.bastion.access.pass {{ '}}' }}'
 {% endif %}
