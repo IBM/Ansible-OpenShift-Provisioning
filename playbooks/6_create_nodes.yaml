@@ -84,22 +84,20 @@
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   tasks:
     - name: Wait for bootstrap SSH to become available
-      wait_for:
-        host: "{{ env.z.lpar2.ip }}"
-        port: 22
-        delay: 60
-        timeout: 3600
-        sleep: 30
-        state: started
+      vars:
+        node_type: "bootstrap"
+      ansible.builtin.include_tasks:
+        file: ../roles/wait_for_lpar_ssh/tasks/main.yaml
+      loop: "{{ q('list', env.cluster.nodes[node_type].vm_name) | flatten }}"
+      when: item in hosts_with_host_vars
 
     - name: Wait for control plane SSH to become available
-      wait_for:
-        host: "{{ env.z.lpar3.ip }}"
-        port: 22
-        delay: 60
-        timeout: 3600
-        sleep: 30
-        state: started
+      vars:
+        node_type: "control"
+      ansible.builtin.include_tasks:
+        file: ../roles/wait_for_lpar_ssh/tasks/main.yaml
+      loop: "{{ q('list', env.cluster.nodes[node_type].vm_name) | flatten }}"
+      when: item in hosts_with_host_vars
 
 - name: 6 create nodes - create control nodes
   hosts: kvm_host
