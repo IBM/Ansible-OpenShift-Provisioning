@@ -12,11 +12,11 @@ disconnected:
       -----BEGIN CERTIFICATE-----
       if ca_trusted is False, then this ca will be added to mirror host anchors
       as well as to the install config of cluster
-      -----END CERTIFICATE-----
+      -----END CERTIFICATE-----       
   mirroring:
     # this is the host that can access the internet as well as the registry
     host:
-      name: hosname
+      name:
       ip: x.x.x.x
       user: mirroruser # with become access
       pass: mirrorpassword
@@ -28,8 +28,10 @@ disconnected:
       oc_mirror_tgz: 'oc-mirror.tar.gz'
     # this will download oc binary to the mirror host for use on the mirror host for mirroring
     client_download:
-      ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/amd64/"
+      ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/4.22.0/"
       ocp_client_tgz: 'openshift-client-linux.tar.gz'
+      oc_mirror_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/stable/"
+      oc_mirror_tgz: 'oc-mirror.tar.gz'
     legacy:
       platform: false
       ocp_quay_release_image_tag: '4.13.1-s390x'
@@ -47,7 +49,7 @@ disconnected:
             list:
               - regexp: what
                 replace: with
-      release_image_tag: '4.13.1-multi'
+      release_image_tag: '4.21.0-multi'
       release_image_registry: 'brew.registry.redhat.io'
       image_set:
       # this field is a standard image set from oc-mirror documentation.
@@ -68,15 +70,16 @@ disconnected:
               # Note: cannot mirror tags like multi-s390x; list must contain pure
               # architecture names (e.g. s390x) or the multiarch token 'multi'.
             channels:
-              - name: stable-4.13
+              - name: stable-4.21
                 full: false
-                minVersion: 4.13.1
-                maxVersion: 4.13.1
+                minVersion: 4.21.0
+                maxVersion: 4.21.0
+            kubeVirtContainer: true
           operators:
-            - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.13
+            - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.21
               full: false
               packages:
-                - name: serverless-operator
+                - name: multicluster-engine
                   channels:
                     - name: stable
                       # minVersion: '2.4.1-0'

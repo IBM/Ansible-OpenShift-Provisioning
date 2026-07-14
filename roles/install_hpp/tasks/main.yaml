@@ -32,9 +32,8 @@
         mode: '0644'
 
     - name: Apply HostPathProvisioner CR
-      kubernetes.core.k8s:
-        state: present
-        src: /root/ansible_workdir/{{ hcp.hpp.name }}-cr.yaml
+      ansible.builtin.command:
+        cmd: oc apply -f /root/ansible_workdir/{{ hcp.hpp.name }}-cr.yaml
 
     - name: Render StorageClass
       ansible.builtin.template:
@@ -43,6 +42,5 @@
         mode: '0644'
 
     - name: Apply StorageClass
-      kubernetes.core.k8s:
-        state: present
-        src: /root/ansible_workdir/{{ hcp.hpp.storageclass_name }}-sc.yaml
+      ansible.builtin.command:
+        cmd: oc apply -f /root/ansible_workdir/{{ hcp.hpp.storageclass_name }}-sc.yaml

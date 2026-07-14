@@ -3,8 +3,8 @@
 - name: Add Bastion Host to Inventory
   hosts: localhost
   vars_files:
-    - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   tasks:
     - name: Add bastion dynamically
       ansible.builtin.add_host:
@@ -13,14 +13,14 @@
         ansible_user: root
         ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}"
         ansible_connection: ssh
-        inventory_dir: "{{ inventory_dir }}"
+        inventory_dir: "{{ playbook_dir }}/../inventories/default"
 
 # Login to OCP Management Cluster (from bastion)
 - name: Login to OCP Management Cluster
   hosts: mgmt_bastion
   vars_files:
-    - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   vars:
     vault_api_server: "{{ hcp.oc_url }}"
     vault_user_name: "{{ vault_ocp_user }}"
@@ -32,8 +32,8 @@
 - name: Check OCP Node Resource Usage
   hosts: mgmt_bastion
   vars_files:
-    - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   vars:
     resource_threshold: 75
     debug_mode: true
@@ -44,11 +44,16 @@
 - name: Install Operators on the management cluster
   hosts: mgmt_bastion
   vars_files:
-    - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   become: true
   gather_facts: false
   pre_tasks:
+    - name: Load disconnected vars if file exists
+      ansible.builtin.include_vars:
+        file: "{{ playbook_dir }}/../inventories/default/group_vars/disconnected.yaml"
+      failed_when: false
+
     - name: Ensure ansible work directory exists
       ansible.builtin.file:
         path: /root/ansible_workdir
@@ -60,6 +65,38 @@
         path: /root/.kube
         state: directory
         mode: '0700'
+
+    - name: Find CatalogSource file in oc-mirror cluster-resources directory
+      ansible.builtin.find:
+        paths: "{{ disconnected.mirroring.cluster_resources_dir | default('/root/ocpinst_disconnected/working-dir/cluster-resources', true) }}"
+        patterns: "cs-*.yaml"
+        recurse: false
+      register: cs_file_find
+      when: disconnected.enabled | default(false)
+
+    - name: Read CatalogSource name from oc-mirror output
+      ansible.builtin.shell: |
+        grep '^  name:' {{ cs_file_find.files[0].path }} | awk '{print $2}'
+      register: cs_name_raw
+      changed_when: false
+      when:
+        - disconnected.enabled | default(false)
+        - cs_file_find.matched > 0
+
+    - name: Set disconnected CatalogSource name fact
+      ansible.builtin.set_fact:
+        disconnected_catalogsource_name: "{{ cs_name_raw.stdout | trim }}"
+      when:
+        - disconnected.enabled | default(false)
+        - cs_name_raw.stdout is defined
+        - cs_name_raw.stdout | trim | length > 0
+
+    - name: Display resolved CatalogSource name
+      ansible.builtin.debug:
+        msg: "Using CatalogSource '{{ disconnected_catalogsource_name }}' for disconnected operator installs"
+      when:
+        - disconnected.enabled | default(false)
+        - disconnected_catalogsource_name is defined
 
   roles:
     - install_mce_operator_kubevirt
