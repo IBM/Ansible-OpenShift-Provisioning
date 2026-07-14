@@ -1,6 +1,5 @@
 ---
 - name: Apply disconnected manifests for HCP
-  when: disconnected.enabled
   tags: disconnected_apply_hcp_manifests
   block:
     # -------------------------------------------------------------------------

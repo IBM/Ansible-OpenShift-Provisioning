@@ -6,5 +6,5 @@
 
 - name: Destroy Hosted Control Plane
   ansible.builtin.command:
-    cmd: hcp destroy cluster agent --name {{ hcp.control_plane.hosted_cluster_name }} --namespace {{ hcp.control_plane.clusters_namespace }}
+    cmd: hcp destroy cluster kubevirt --name {{ hcp.control_plane.hosted_cluster_name }} --namespace {{ hcp.control_plane.clusters_namespace }}
   when: hcp.control_plane.hosted_cluster_name in hc_check.stdout
