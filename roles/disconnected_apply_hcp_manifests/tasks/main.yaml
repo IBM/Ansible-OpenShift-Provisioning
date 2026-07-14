@@ -1,6 +1,7 @@
 ---
 - name: Apply disconnected manifests for HCP
   tags: disconnected_apply_hcp_manifests
+  when: disconnected.enabled
   block:
     # -------------------------------------------------------------------------
     # Step 0 – Locate the oc-mirror cluster-resources directory.
@@ -248,5 +249,3 @@
       until: catalogsource_status.stdout | int == 0
       changed_when: false
       when: catalogsource_files.matched > 0
-
-  when: disconnected.enabled
