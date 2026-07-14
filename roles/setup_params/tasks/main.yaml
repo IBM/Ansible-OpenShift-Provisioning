@@ -1,4 +1,7 @@
 ---
+- name: Resolve OCP install work directory
+  ansible.builtin.include_tasks: ../../common/tasks/resolve_ocp_install_workdir.yaml
+
 - name: Ensure the PXE boot directory exists
   ansible.builtin.file:
     path: /var/lib/libvirt/images/pxeboot
@@ -10,7 +13,7 @@
 - name: Generate param files
   ansible.builtin.template:
     src: param-file.param.j2
-    dest: ~/{{ abi.ansible_workdir }}/{{ env.cluster.networking.metadata_name }}-{{ item }}.param
+    dest: ~/{{ ocp_install_workdir }}/{{ env.cluster.networking.metadata_name }}-{{ item }}.param
     mode: '644'
   with_sequence: start=0 end={{ (zvm.nodes | length) - 1 }} stride=1
   loop_control:
@@ -19,21 +22,21 @@
 
 - name: Copy rootfs.img
   ansible.builtin.copy:
-    src: "~/{{ abi.ansible_workdir }}/boot-artifacts/agent.{{ ansible_architecture }}-rootfs.img"
+    src: "~/{{ ocp_install_workdir }}/boot-artifacts/agent.{{ ansible_architecture }}-rootfs.img"
     dest: /var/www/html/rootfs.img
     mode: '745'
     remote_src: true
 
 - name: Copy initrd.img
   ansible.builtin.copy:
-    src: "~/{{ abi.ansible_workdir }}/boot-artifacts/agent.{{ ansible_architecture }}-initrd.img"
+    src: "~/{{ ocp_install_workdir }}/boot-artifacts/agent.{{ ansible_architecture }}-initrd.img"
     dest: /var/lib/libvirt/images/pxeboot/initrd.img
     mode: '745'
     remote_src: true
 
 - name: Copy kernel.img
   ansible.builtin.copy:
-    src: "~/{{ abi.ansible_workdir }}/boot-artifacts/agent.{{ ansible_architecture }}-kernel.img"
+    src: "~/{{ ocp_install_workdir }}/boot-artifacts/agent.{{ ansible_architecture }}-kernel.img"
     dest: /var/lib/libvirt/images/pxeboot/kernel.img
     mode: '745'
     remote_src: true

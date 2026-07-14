@@ -1,0 +1,12 @@
+---
+- name: Resolve OCP install work directory
+  ansible.builtin.set_fact:
+    ocp_install_workdir: "{{ abi.ansible_workdir }}"
+  when: ocp_install_workdir is not defined
+
+- name: Require OCP install work directory
+  ansible.builtin.assert:
+    that:
+      - ocp_install_workdir is defined
+      - ocp_install_workdir | length > 0
+    fail_msg: "Define ocp_install_workdir or abi.ansible_workdir in group_vars/all.yaml."

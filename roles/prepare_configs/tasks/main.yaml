@@ -1,12 +1,15 @@
 ---
+- name: Resolve OCP install work directory
+  ansible.builtin.include_tasks: ../../common/tasks/resolve_ocp_install_workdir.yaml
+
 - name: Delete OCP Work Directory For Idempotency.
   file:
-    path: ~/ansible_workdir
+    path: "~/{{ ocp_install_workdir }}"
     state: absent
 
 - name: Create Work Directory
   file:
-    path: ~/ansible_workdir
+    path: "~/{{ ocp_install_workdir }}"
     state: directory
 
 - name: Prepare Agent Config
@@ -18,8 +21,8 @@
     mode: "0755"
     backup: yes
   loop:
-    - ~/ansible_workdir/agent-config.yaml
-    - ~/ansible_workdir/agent-config-backup.yaml
+    - "~/{{ ocp_install_workdir }}/agent-config.yaml"
+    - "~/{{ ocp_install_workdir }}/agent-config-backup.yaml"
 
 - name: Check if SSH key exists
   stat:
@@ -45,5 +48,5 @@
     mode: "0755"
     backup: yes
   loop:
-    - ~/ansible_workdir/install-config.yaml
-    - ~/ansible_workdir/install-config-backup.yaml
+    - "~/{{ ocp_install_workdir }}/install-config.yaml"
+    - "~/{{ ocp_install_workdir }}/install-config-backup.yaml"

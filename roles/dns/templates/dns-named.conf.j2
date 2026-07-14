@@ -18,7 +18,11 @@ options {
 	secroots-file	"/var/named/data/named.secroots";
 	recursing-file	"/var/named/data/named.recursing";
 	allow-query     { any; };
-	forwarders { {{ env.bastion.networking.nameserver2}}; {{ env.cluster.networking.forwarder }}; };
+{% if env.bastion.networking.nameserver2 is defined %}
+	forwarders { {{ env.bastion.networking.nameserver2 }}; {{ env.cluster.networking.forwarder }}; };
+{% else %}
+	forwarders { {{ env.cluster.networking.forwarder }}; };
+{% endif %}
 
 	/*
 	 - If you are building an AUTHORITATIVE DNS server, do NOT enable recursion.
