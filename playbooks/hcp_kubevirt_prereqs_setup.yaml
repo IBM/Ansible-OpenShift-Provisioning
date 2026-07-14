@@ -76,6 +76,7 @@
 
     - name: Read CatalogSource name from oc-mirror output
       ansible.builtin.shell: |
+        set -o pipefail
         grep '^  name:' {{ cs_file_find.files[0].path }} | awk '{print $2}'
       register: cs_name_raw
       changed_when: false

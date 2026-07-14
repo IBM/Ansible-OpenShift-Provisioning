@@ -12,7 +12,7 @@ disconnected:
       -----BEGIN CERTIFICATE-----
       if ca_trusted is False, then this ca will be added to mirror host anchors
       as well as to the install config of cluster
-      -----END CERTIFICATE-----       
+      -----END CERTIFICATE-----
   mirroring:
     # this is the host that can access the internet as well as the registry
     host:

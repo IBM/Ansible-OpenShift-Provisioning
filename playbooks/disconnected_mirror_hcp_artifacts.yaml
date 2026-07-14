@@ -13,7 +13,7 @@
         ansible_ssh_pass: "{{ disconnected.mirroring.host.pass }}"
         ansible_connection: ssh
         inventory_dir: "{{ playbook_dir }}/../inventories/default"
-      when: 
+      when:
         - disconnected.mirroring.host.name is defined
         - disconnected.mirroring.host.ip is defined
 

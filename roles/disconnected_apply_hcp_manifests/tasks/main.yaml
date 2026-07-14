@@ -1,5 +1,6 @@
 ---
 - name: Apply disconnected manifests for HCP
+  when: disconnected.enabled
   tags: disconnected_apply_hcp_manifests
   block:
     # -------------------------------------------------------------------------
@@ -238,6 +239,7 @@
 
     - name: Wait for CatalogSources to reach READY state
       ansible.builtin.shell: |
+        set -o pipefail
         oc get catalogsource -n openshift-marketplace \
           -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.connectionState.lastObservedState}{"\n"}{end}' \
           | awk -F'|' '$2 != "READY" {count++} END {print count+0}'

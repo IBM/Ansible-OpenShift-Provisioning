@@ -240,7 +240,11 @@
       tags: mirror_artifacts
       ansible.builtin.fetch:
         src: "{{ item.path }}"
-        dest: "{{ playbook_dir }}/../.oc-mirror-results/{{ item.path | relpath(user_home.stdout + '/ocpinst_disconnected/oc-mirror-workspace/' + oc_mirror_results_dir_name.stdout) }}"
+        dest: >-
+          {{ playbook_dir }}/../.oc-mirror-results/{{
+          item.path | relpath(user_home.stdout +
+          '/ocpinst_disconnected/oc-mirror-workspace/' +
+          oc_mirror_results_dir_name.stdout) }}
         flat: true
       loop: "{{ oc_mirror_v1_files.files }}"
       when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v1alpha2"

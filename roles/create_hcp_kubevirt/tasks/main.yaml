@@ -14,8 +14,8 @@
   when: not ssh_key_stat.stat.exists
 
 - name: Get ssh key
-  ansible.builtin.shell:
-    cmd: cat ~/.ssh/{{ hcp.ansible_key_name }}.pub
+  ansible.builtin.command:
+    cmd: cat /root/.ssh/{{ hcp.ansible_key_name }}.pub
   register: ssh_output
 
 - name: Load ssh_key into a variable
