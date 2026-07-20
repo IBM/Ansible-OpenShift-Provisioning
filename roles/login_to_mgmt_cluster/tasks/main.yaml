@@ -21,6 +21,7 @@
     oc login {{ vault_api_server }}
     -u {{ vault_user_name }}
     -p {{ vault_password }}
+    --insecure-skip-tls-verify=true
   no_log: false
   register: login_result
   changed_when: false

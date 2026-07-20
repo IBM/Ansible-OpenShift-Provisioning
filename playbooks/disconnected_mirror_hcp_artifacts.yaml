@@ -1,0 +1,34 @@
+---
+- name: Add Mirror Host to Inventory
+  hosts: localhost
+  vars_files:
+    - "{{ playbook_dir }}/../inventories/default/group_vars/disconnected.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+  tasks:
+    - name: Add mirror host dynamically
+      ansible.builtin.add_host:
+        name: "{{ disconnected.mirroring.host.ip }}"
+        groups: mirror_host
+        ansible_user: "{{ disconnected.mirroring.host.user }}"
+        ansible_ssh_pass: "{{ disconnected.mirroring.host.pass }}"
+        ansible_connection: ssh
+        inventory_dir: "{{ playbook_dir }}/../inventories/default"
+      when:
+        - disconnected.mirroring.host.name is defined
+        - disconnected.mirroring.host.ip is defined
+
+- name: Mirror ocp artifacts
+  hosts: mirror_host
+  gather_facts: true
+  vars_files:
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/disconnected.yaml"
+  tasks:
+    - name: mirror ocp artifacts when disconnected install
+      ansible.builtin.include_role:
+        name: '{{ item }}'
+      loop:
+        - disconnected_check_vars
+        - disconnected_mirror_images
+      when: disconnected.enabled

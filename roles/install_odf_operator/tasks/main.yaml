@@ -26,11 +26,35 @@
         mode: '0755'
 
     - name: Ensure ODF namespace exists
-      kubernetes.core.k8s:
-        api_version: v1
-        kind: Namespace
-        name: "{{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }}"
-        state: present
+      ansible.builtin.command:
+        cmd: oc create namespace {{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }}
+      register: odf_ns_create
+      changed_when: "'created' in odf_ns_create.stdout"
+      failed_when: odf_ns_create.rc != 0 and 'already exists' not in odf_ns_create.stderr
+
+    - name: Create CatalogSource.yaml from template
+      ansible.builtin.template:
+        src: CatalogSource.yaml.j2
+        dest: /root/ansible_workdir/odf-CatalogSource.yaml
+        mode: '0644'
+      when: (hcp.odf | default({})).catalogsource_image is defined and (hcp.odf | default({})).catalogsource_image | string | length > 0
+
+    - name: Deploy CatalogSource
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/odf-CatalogSource.yaml
+      when: (hcp.odf | default({})).catalogsource_image is defined and (hcp.odf | default({})).catalogsource_image | string | length > 0
+
+    - name: Wait for ODF CatalogSource to be READY
+      ansible.builtin.command:
+        cmd: >
+          oc get catalogsource custom-odf-operators
+          -n openshift-marketplace
+          -o jsonpath='{.status.connectionState.lastObservedState}'
+      register: odf_catalogsource_status
+      retries: 30
+      delay: 10
+      until: odf_catalogsource_status.stdout == "READY"
+      changed_when: false
+      when: (hcp.odf | default({})).catalogsource_image is defined and (hcp.odf | default({})).catalogsource_image | string | length > 0
 
     - name: Create OperatorGroup.yaml
       ansible.builtin.template:

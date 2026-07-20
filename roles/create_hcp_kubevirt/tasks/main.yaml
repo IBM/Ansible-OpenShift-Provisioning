@@ -3,9 +3,19 @@
   ansible.builtin.set_fact:
     hosted_control_plane_namespace: "{{ hcp.control_plane.clusters_namespace }}-{{ hcp.control_plane.hosted_cluster_name }}"
 
+- name: Check if SSH key already exists
+  ansible.builtin.stat:
+    path: "~/.ssh/{{ hcp.ansible_key_name }}"
+  register: ssh_key_stat
+
+- name: Generate SSH key if not present
+  ansible.builtin.command:
+    cmd: ssh-keygen -t rsa -b 4096 -N "" -f ~/.ssh/{{ hcp.ansible_key_name }}
+  when: not ssh_key_stat.stat.exists
+
 - name: Get ssh key
   ansible.builtin.command:
-    cmd: cat ~/.ssh/{{ hcp.ansible_key_name }}.pub
+    cmd: cat /root/.ssh/{{ hcp.ansible_key_name }}.pub
   register: ssh_output
 
 - name: Load ssh_key into a variable
@@ -13,17 +23,29 @@
     ssh_key: "{{ ssh_output.stdout_lines[0] }}"
 
 - name: Get pod name for hcp-cli-download
-  kubernetes.core.k8s_info:
-    api_version: v1
-    kind: Pod
-    namespace: "{{ hcp.mce.mce_namespace }}"
-    label_selectors:
-      - app= hcp-cli-download
+  ansible.builtin.shell:
+    cmd: >
+      oc get pod -n {{ hcp.mce.mce_namespace }}
+      -l app=hcp-cli-download
+      --no-headers -o custom-columns=NAME:.metadata.name
   register: hcp_pod_name
+  changed_when: false
 
-- name: Get hcp.tar.gz file from pod
+- name: Try copying hcp-linux-s390x.tar.gz directly from pod (newer MCE layout)
   ansible.builtin.command:
-    cmd: "oc cp multicluster-engine/{{ hcp_pod_name.resources[0].metadata.name }}:/opt/app-root/src/linux/s390x/ /root/ansible_workdir"
+    cmd: >
+      oc cp {{ hcp.mce.mce_namespace }}/{{ hcp_pod_name.stdout | trim }}:/opt/app-root/src/hcp-linux-s390x.tar.gz
+      /root/ansible_workdir/hcp.tar.gz
+  register: hcp_cp_direct
+  failed_when: false
+  changed_when: hcp_cp_direct.rc == 0
+
+- name: Fall back to copying from s390x directory (older MCE layout)
+  ansible.builtin.command:
+    cmd: >
+      oc cp {{ hcp.mce.mce_namespace }}/{{ hcp_pod_name.stdout | trim }}:/opt/app-root/src/linux/s390x/
+      /root/ansible_workdir
+  when: hcp_cp_direct.rc != 0
 
 - name: Extract binary from hcp.tar.gz
   ansible.builtin.unarchive:
@@ -43,6 +65,13 @@
     dest: /root/ansible_workdir/auth_file
     mode: '0600'
 
+- name: Write mirror registry CA certificate for HCP trust bundle
+  ansible.builtin.copy:
+    content: "{{ disconnected.registry.ca_cert }}"
+    dest: /root/ansible_workdir/mirror-registry-ca.crt
+    mode: '0600'
+  when: disconnected is defined and disconnected.enabled | default(false)
+
 - name: Create a Hosted Cluster
   ansible.builtin.command:
     cmd: >
@@ -59,11 +88,17 @@
       {% endif %}
       --infra-availability-policy "SingleReplica"
       --image-content-sources /root/ansible_workdir/icsp.yaml
+      {% if disconnected is defined and disconnected.enabled | default(false) %}
+      --release-image={{ disconnected.registry.url }}/openshift/release-images:{{ hcp.control_plane.ocp_release_image }}
+      --additional-trust-bundle /root/ansible_workdir/mirror-registry-ca.crt
+      --olm-disable-default-sources
+      {% else %}
       {% set release_image = lookup('env', 'HCP_RELEASE_IMAGE') %}
       {% if release_image is defined and release_image != '' %}
       --release-image={{ release_image }}
       {% else %}
       --release-image=quay.io/openshift-release-dev/ocp-release:{{ hcp.control_plane.ocp_release_image }}
+      {% endif %}
       {% endif %}
       {% if hcp.control_plane.additional_flags is defined and hcp.control_plane.additional_flags != '' %}
       {{ hcp.control_plane.additional_flags }}

@@ -81,11 +81,11 @@
       when: hcp.metallb.catalogsource_image is defined and hcp.metallb.catalogsource_image | length > 0
 
     - name: Ensure MetalLB namespace exists
-      kubernetes.core.k8s:
-        api_version: v1
-        kind: Namespace
-        name: "{{ hcp.metallb.namespace | default('metallb-system', true) }}"
-        state: present
+      ansible.builtin.command:
+        cmd: oc create namespace {{ hcp.metallb.namespace | default('metallb-system', true) }}
+      register: metallb_ns_create
+      changed_when: "'created' in metallb_ns_create.stdout"
+      failed_when: metallb_ns_create.rc != 0 and 'already exists' not in metallb_ns_create.stderr
 
     - name: Create OperatorGroup.yaml
       ansible.builtin.template:

@@ -5,7 +5,13 @@ metadata:
   namespace: "{{ (hcp.odf | default({})).namespace | default('openshift-storage', true) }}"
 spec:
   sourceNamespace: openshift-marketplace
+{% if disconnected is defined and disconnected.enabled | default(false) %}
+  source: "{{ disconnected_catalogsource_name }}"
+{% elif (hcp.odf | default({})).catalogsource_image is defined and (hcp.odf | default({})).catalogsource_image | string | length > 0 %}
+  source: custom-odf-operators
+{% else %}
   source: redhat-operators
+{% endif %}
 {% if (hcp.odf | default({})).version | default('', true) | length > 0 %}
   channel: "{{ (hcp.odf | default({})).version }}"
 {% endif %}

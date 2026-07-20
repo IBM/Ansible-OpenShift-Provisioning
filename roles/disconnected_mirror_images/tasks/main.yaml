@@ -10,6 +10,11 @@
         owner: root
         group: root
         mode: "644"
+    - name: Set ansible_user if not defined (for localhost)
+      tags: mirror_artifacts
+      ansible.builtin.set_fact:
+        ansible_user: "{{ disconnected.mirroring.host.user }}"
+      when: ansible_user is not defined
     - name: Get user home directory
       tags: mirror_artifacts
       ansible.builtin.shell: |
@@ -39,11 +44,7 @@
         remote_src: true
       loop:
         - "{{ disconnected.mirroring.client_download.ocp_download_url }}{{ disconnected.mirroring.client_download.ocp_client_tgz }}"
-        - >-
-          {{ env.file_server.protocol ~ '://' ~
-             (env.file_server.user ~ ':' ~ env.file_server.pass ~ '@' if env.file_server.protocol == 'ftp' else '') ~
-             env.file_server.ip ~ (':' ~ env.file_server.port if env.file_server.port | default('') | length > 0 else '') ~
-             '/' ~ disconnected.mirroring.file_server.clients_dir ~ '/' ~ disconnected.mirroring.file_server.oc_mirror_tgz }}
+        - "{{ disconnected.mirroring.client_download.ocp_download_url }}{{ disconnected.mirroring.client_download.oc_mirror_tgz }}"
     - name: Copy kubectl, oc, and oc-mirror binaries to /usr/local/sbin
       tags: mirror_artifacts
       become: true
@@ -227,17 +228,39 @@
         - name: print output of oc image mirror
           ansible.builtin.debug:
             var: cmd_oc_image_mirror
+    - name: Find oc-mirror result files on remote host (v1 plugin)
+      tags: mirror_artifacts
+      ansible.builtin.find:
+        paths: "{{ user_home.stdout }}/ocpinst_disconnected/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}"
+        recurse: true
+        file_type: file
+      register: oc_mirror_v1_files
+      when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v1alpha2"
     - name: Fetch the files that need to be applied on the cluster to the controller for oc-mirror v1 plugin
       tags: mirror_artifacts
-      ansible.posix.synchronize:
-        mode: pull
-        src: "{{ user_home.stdout }}/ocpinst_disconnected/oc-mirror-workspace/{{ oc_mirror_results_dir_name.stdout }}/*"
-        dest: "../.oc-mirror-results"
+      ansible.builtin.fetch:
+        src: "{{ item.path }}"
+        dest: >-
+          {{ playbook_dir }}/../.oc-mirror-results/{{
+          item.path | relpath(user_home.stdout +
+          '/ocpinst_disconnected/oc-mirror-workspace/' +
+          oc_mirror_results_dir_name.stdout) }}
+        flat: true
+      loop: "{{ oc_mirror_v1_files.files }}"
       when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v1alpha2"
+    - name: Find oc-mirror result files on remote host (v2 plugin)
+      tags: mirror_artifacts
+      ansible.builtin.find:
+        paths: "{{ user_home.stdout }}/ocpinst_disconnected/working-dir/cluster-resources"
+        recurse: true
+        file_type: file
+      register: oc_mirror_v2_files
+      when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v2alpha1"
     - name: Fetch the files that need to be applied on the cluster to the controller for oc-mirror v2 plugin
       tags: mirror_artifacts
-      ansible.posix.synchronize:
-        mode: pull
-        src: "{{ user_home.stdout }}/ocpinst_disconnected/working-dir/cluster-resources/*"
-        dest: "../.oc-mirror-results"
+      ansible.builtin.fetch:
+        src: "{{ item.path }}"
+        dest: "{{ playbook_dir }}/../.oc-mirror-results/{{ item.path | relpath(user_home.stdout + '/ocpinst_disconnected/working-dir/cluster-resources') }}"
+        flat: true
+      loop: "{{ oc_mirror_v2_files.files }}"
       when: disconnected.mirroring.oc_mirror.image_set.apiVersion == "mirror.openshift.io/v2alpha1"

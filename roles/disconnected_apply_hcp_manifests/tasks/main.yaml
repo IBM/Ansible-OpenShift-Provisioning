@@ -1,0 +1,251 @@
+---
+- name: Apply disconnected manifests for HCP
+  tags: disconnected_apply_hcp_manifests
+  when: disconnected.enabled
+  block:
+    # -------------------------------------------------------------------------
+    # Step 0 – Locate the oc-mirror cluster-resources directory.
+    #   oc-mirror v2 writes manifests directly on the bastion at:
+    #     /root/ocpinst_disconnected/working-dir/cluster-resources
+    #   No sync is needed — the bastion IS the mirror host.
+    # -------------------------------------------------------------------------
+    - name: Ensure ansible work directory exists
+      ansible.builtin.file:
+        path: /root/ansible_workdir
+        state: directory
+        mode: '0755'
+
+    - name: Resolve cluster-resources directory path
+      ansible.builtin.set_fact:
+        oc_mirror_cluster_resources_dir: >-
+          {{ disconnected.mirroring.cluster_resources_dir
+             | default('/root/ocpinst_disconnected/working-dir/cluster-resources', true) }}
+
+    - name: Verify cluster-resources directory exists
+      ansible.builtin.stat:
+        path: "{{ oc_mirror_cluster_resources_dir }}"
+      register: cluster_resources_stat
+
+    - name: Fail with a clear message if cluster-resources directory is missing
+      ansible.builtin.fail:
+        msg: >
+          oc-mirror cluster-resources directory not found at
+          '{{ oc_mirror_cluster_resources_dir }}'.
+          Ensure the disconnected mirroring step completed successfully
+          (disconnected_mirror_hcp_artifacts.yaml) before running this playbook.
+      when: not cluster_resources_stat.stat.exists or not cluster_resources_stat.stat.isdir
+
+    # -------------------------------------------------------------------------
+    # Step 1 – Create registry-config ConfigMap
+    #   The ConfigMap key MUST be the registry hostname:port so that the
+    #   cluster CA-bundle lookup works correctly (double-dot notation for
+    #   host:port separators is handled by OpenShift automatically).
+    # -------------------------------------------------------------------------
+    - name: Build registry ConfigMap key (replace colon with double-dot)
+      ansible.builtin.set_fact:
+        registry_cm_key: "{{ disconnected.registry.url | replace(':', '..') }}"
+        registry_ca_cert_indented: "{{ disconnected.registry.ca_cert | trim | indent(4, first=True) }}"
+      when: disconnected.registry.ca_cert is defined
+
+    - name: Write registry CA certificate ConfigMap to file
+      ansible.builtin.copy:
+        dest: /root/ansible_workdir/registry-config-cm.yaml
+        mode: '0644'
+        content: |
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: registry-config
+            namespace: openshift-config
+          data:
+            {{ registry_cm_key }}: |
+          {{ registry_ca_cert_indented }}
+      when: disconnected.registry.ca_cert is defined
+
+    - name: Apply registry-config ConfigMap to cluster
+      ansible.builtin.command:
+        cmd: oc apply -f /root/ansible_workdir/registry-config-cm.yaml
+      register: registry_configmap_apply
+      changed_when: "'created' in registry_configmap_apply.stdout or 'configured' in registry_configmap_apply.stdout"
+      when: disconnected.registry.ca_cert is defined
+
+    - name: Display registry-config ConfigMap apply status
+      ansible.builtin.debug:
+        msg: "registry-config ConfigMap: {{ registry_configmap_apply.stdout | default('skipped') }}"
+      when: disconnected.registry.ca_cert is defined
+
+    # -------------------------------------------------------------------------
+    # Step 2 – Patch image.config.openshift.io/cluster with additionalTrustedCA
+    # -------------------------------------------------------------------------
+    - name: Patch image.config.openshift.io/cluster with additionalTrustedCA
+      ansible.builtin.command: >
+        oc patch image.config.openshift.io/cluster --type=merge
+        -p '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}'
+      register: image_config_patch
+      changed_when: "'patched' in image_config_patch.stdout"
+      when: disconnected.registry.ca_cert is defined
+
+    - name: Display image.config patch status
+      ansible.builtin.debug:
+        msg: "image.config.openshift.io/cluster patch: {{ image_config_patch.stdout | default('skipped') }}"
+      when: disconnected.registry.ca_cert is defined
+
+    # -------------------------------------------------------------------------
+    # Step 3 – Wait 2-3 minutes, then verify MCP is updated and no CO is
+    #          degraded before proceeding to apply mirror manifests.
+    # -------------------------------------------------------------------------
+    - name: Initial pause to allow MCO to start reconciling the new CA
+      ansible.builtin.pause:
+        seconds: 120
+        prompt: "Waiting 2 minutes for MCO to pick up additionalTrustedCA change..."
+      when: disconnected.registry.ca_cert is defined
+
+    - name: Wait for master MachineConfigPool to finish updating
+      ansible.builtin.command:
+        cmd: oc wait machineconfigpool/master --for=condition=Updated=True --timeout=600s
+      register: mcp_master_ca_wait
+      retries: 5
+      delay: 30
+      until: mcp_master_ca_wait.rc == 0
+      changed_when: false
+      when: disconnected.registry.ca_cert is defined
+
+    - name: Wait for worker MachineConfigPool to finish updating
+      ansible.builtin.command:
+        cmd: oc wait machineconfigpool/worker --for=condition=Updated=True --timeout=600s
+      register: mcp_worker_ca_wait
+      retries: 5
+      delay: 30
+      until: mcp_worker_ca_wait.rc == 0
+      changed_when: false
+      when: disconnected.registry.ca_cert is defined
+
+    - name: Verify no ClusterOperator is degraded
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc get clusteroperators -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{range .status.conditions[?(@.type=="Degraded")]}{.status}{end}{"\n"}{end}' \
+          | grep -c '|True' || true
+      register: co_degraded_count
+      retries: 18
+      delay: 10
+      until: co_degraded_count.stdout | int == 0
+      changed_when: false
+      when: disconnected.registry.ca_cert is defined
+
+    - name: Display cluster operator health status
+      ansible.builtin.debug:
+        msg: "All ClusterOperators healthy – proceeding to apply mirror manifests"
+      when: disconnected.registry.ca_cert is defined
+
+    # -------------------------------------------------------------------------
+    # Step 4 – Apply IDMS, ITMS, and CatalogSource files
+    # -------------------------------------------------------------------------
+    - name: Find IDMS files in oc-mirror cluster-resources
+      ansible.builtin.find:
+        paths: "{{ oc_mirror_cluster_resources_dir }}"
+        patterns:
+          - "imageDigestMirrorSet*.yaml"
+          - "idms-*.yaml"
+          - "idms*.yaml"
+        recurse: true
+      register: idms_files
+
+    - name: Find ITMS files in oc-mirror cluster-resources
+      ansible.builtin.find:
+        paths: "{{ oc_mirror_cluster_resources_dir }}"
+        patterns:
+          - "imageTagMirrorSet*.yaml"
+          - "itms-*.yaml"
+          - "itms*.yaml"
+        recurse: true
+      register: itms_files
+
+    - name: Find CatalogSource files in oc-mirror cluster-resources
+      ansible.builtin.find:
+        paths: "{{ oc_mirror_cluster_resources_dir }}"
+        patterns:
+          - "catalogSource*.yaml"
+          - "cs-*.yaml"
+          - "catalog-source*.yaml"
+        recurse: true
+      register: catalogsource_files
+
+    - name: Apply IDMS manifests to management cluster
+      ansible.builtin.command: oc apply -f {{ item.path }}
+      loop: "{{ idms_files.files }}"
+      when: idms_files.matched > 0
+      register: idms_apply
+      changed_when: "'created' in idms_apply.stdout or 'configured' in idms_apply.stdout"
+
+    - name: Display IDMS apply results
+      ansible.builtin.debug:
+        msg: "Applied {{ idms_files.matched }} IDMS file(s)"
+      when: idms_files.matched > 0
+
+    - name: Render CAPI/importer IDMS for disconnected registry
+      ansible.builtin.copy:
+        dest: /root/ansible_workdir/idms-capi.yaml
+        mode: '0644'
+        content: |
+          apiVersion: config.openshift.io/v1
+          kind: ImageDigestMirrorSet
+          metadata:
+            name: idms-capi
+          spec:
+            imageDigestMirrors:
+            - mirrors:
+              - {{ disconnected.registry.url }}/openshift-release-dev/ocp-v4.0-art-dev
+              source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+
+    - name: Apply CAPI/importer IDMS to management cluster
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/idms-capi.yaml
+      register: idms_capi_apply
+      changed_when: "'created' in idms_capi_apply.stdout or 'configured' in idms_capi_apply.stdout"
+
+    - name: Apply ITMS manifests to management cluster
+      ansible.builtin.command: oc apply -f {{ item.path }}
+      loop: "{{ itms_files.files }}"
+      when: itms_files.matched > 0
+      register: itms_apply
+      changed_when: "'created' in itms_apply.stdout or 'configured' in itms_apply.stdout"
+
+    - name: Display ITMS apply results
+      ansible.builtin.debug:
+        msg: "Applied {{ itms_files.matched }} ITMS file(s)"
+      when: itms_files.matched > 0
+
+    - name: Disable default OperatorHub sources
+      ansible.builtin.command: >
+        oc patch OperatorHub cluster --type json
+        -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+      register: operatorhub_patch
+      changed_when: "'patched' in operatorhub_patch.stdout"
+
+    - name: Display OperatorHub patch status
+      ansible.builtin.debug:
+        msg: "Default OperatorHub sources disabled for disconnected environment"
+
+    - name: Apply CatalogSource manifests to management cluster
+      ansible.builtin.command: oc apply -f {{ item.path }}
+      loop: "{{ catalogsource_files.files }}"
+      when: catalogsource_files.matched > 0
+      register: catalogsource_apply
+      changed_when: "'created' in catalogsource_apply.stdout or 'configured' in catalogsource_apply.stdout"
+
+    - name: Display CatalogSource apply results
+      ansible.builtin.debug:
+        msg: "Applied {{ catalogsource_files.matched }} CatalogSource file(s)"
+      when: catalogsource_files.matched > 0
+
+    - name: Wait for CatalogSources to reach READY state
+      ansible.builtin.shell: |
+        set -o pipefail
+        oc get catalogsource -n openshift-marketplace \
+          -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.status.connectionState.lastObservedState}{"\n"}{end}' \
+          | awk -F'|' '$2 != "READY" {count++} END {print count+0}'
+      register: catalogsource_status
+      retries: 30
+      delay: 10
+      until: catalogsource_status.stdout | int == 0
+      changed_when: false
+      when: catalogsource_files.matched > 0

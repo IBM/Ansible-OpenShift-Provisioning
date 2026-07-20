@@ -3,7 +3,7 @@
 - name: Setup inventory and passwordless SSH
   hosts: localhost
   vars_files:
-    - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   roles:
     - create_inventory_setup_hcp_kubevirt

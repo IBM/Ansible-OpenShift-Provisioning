@@ -1,0 +1,7 @@
+---
+# Default variables for disconnected_apply_hcp_manifests role
+disconnected:
+  mirroring:
+    oc_mirror_results_dir: "/root/.oc-mirror-results"
+    # oc-mirror v2 plugin writes cluster-apply manifests here
+    cluster_resources_dir: "/root/ocpinst_disconnected/working-dir/cluster-resources"
