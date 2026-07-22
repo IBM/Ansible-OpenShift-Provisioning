@@ -100,6 +100,17 @@
       when: vars_file.stat.exists and networking.mode is defined and networking.mode | lower =='hipersocket'
     when: installation_type | lower == "lpar"
 
+- name: 5 setup bastion - Update python3.9
+  hosts: bastion
+  become: true
+  tasks:
+    - name: Update Python 3.9 to the latest version
+      ansible.builtin.dnf:
+        name: python3
+        state: latest
+        update_cache: true
+      failed_when: false
+
 - name: 5 setup bastion - configure bastion node with essential services
   hosts: bastion
   tags: services, section_2
