@@ -1,5 +1,29 @@
 ---
 
+# Ensure the anchor comments that 'add.yaml' relies on for 'insertafter' exist
+# in the live haproxy.cfg. If the file was not generated from the project template
+# these anchors may be absent — without them lineinfile appends entries outside
+# any backend block, producing a broken config that haproxy refuses to load.
+- name: Ensure haproxy backend anchor comments exist
+  become: true
+  when: param_haproxy_cmd == 'add'
+  block:
+    - name: Ensure '#80 section' anchor exists in backend ocp4-router-http
+      ansible.builtin.lineinfile:
+        path: /etc/haproxy/haproxy.cfg
+        insertafter: "^backend ocp4-router-http$"
+        regexp: "^\\s+#80 section"
+        line: "   #80 section"
+        state: present
+
+    - name: Ensure '#443 section' anchor exists in backend ocp4-router-https
+      ansible.builtin.lineinfile:
+        path: /etc/haproxy/haproxy.cfg
+        insertafter: "^backend ocp4-router-https$"
+        regexp: "^\\s+#443 section"
+        line: "   #443 section"
+        state: present
+
 - name: Load haproxy update task
   ansible.builtin.include_tasks: "{{ param_haproxy_cmd }}.yaml"
 
