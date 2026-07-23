@@ -4,7 +4,7 @@
   block:
     - name: Add forward DNS
       ansible.builtin.lineinfile:
-        path: /var/named/{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.zone
+        path: /var/named/{{ env.cluster.networking.metadata_name }}.db
         insertafter: ";entries for the compute nodes"
         line: "{{ _forward_dns_line }}"
         state: present
@@ -14,10 +14,10 @@
 
     - name: Add reverse DNS
       ansible.builtin.lineinfile:
-        path: /var/named/{{ env.bastion.networking.ip.split('.')[0:3] | reverse | join('.') }}.in-addr.arpa.zone
+        path: /var/named/{{ env.cluster.networking.metadata_name }}.rev
         insertafter: "PTR Record IP address to Hostname"
         line: "{{ _reverse_dns_line }}"
         state: present
       vars:
         _reverse_dns_fqdn: "{{ param_dns_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}."
-        _reverse_dns_line: "{{ param_dns_ip.split('.')[3] }}     IN      PTR     {{ _reverse_dns_fqdn }}"
+        _reverse_dns_line: "{{ param_dns_ip.split('.').3 }}     IN      PTR     {{ _reverse_dns_fqdn }}"
