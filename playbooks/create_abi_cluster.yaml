@@ -74,5 +74,9 @@
 - name: Setup SSH agent
   tags: ssh_to_nodes
   hosts: bastion
+  become: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   roles:
     - ssh_agent

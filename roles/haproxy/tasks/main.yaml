@@ -54,11 +54,11 @@
     line: "  server {{ env.cluster.nodes.compute.hostname[i] }} {{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:443 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
     insertafter: "443 section"
-  with_sequence: start=0 end={{(env.cluster.nodes.compute.hostname | length) - 1}} stride=1
+  loop: "{{ range(0, env.cluster.nodes.compute.hostname | length) | list }}"
   loop_control:
-    extended: yes
     index_var: i
-  when: env.cluster.nodes.compute.hostname[0] is defined
+    loop_var: i
+  when: (env.cluster.nodes.compute.hostname | length) > 0
 
 - name: Add infrastructure node information to 443 section in haproxy config
   tags: haproxy
@@ -88,11 +88,11 @@
   lineinfile:
     line: "  server {{ env.cluster.nodes.compute.hostname[i] }} {{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:80 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
-  with_sequence: start=0 end={{(env.cluster.nodes.compute.hostname | length) - 1}} stride=1
+  loop: "{{ range(0, env.cluster.nodes.compute.hostname | length) | list }}"
   loop_control:
-    extended: yes
     index_var: i
-  when: env.cluster.nodes.compute.hostname[0] is defined
+    loop_var: i
+  when: (env.cluster.nodes.compute.hostname | length) > 0
 
 - name: Add infrastructure node information to 80 section in haproxy config
   tags: haproxy

@@ -15,9 +15,11 @@
       {% else %}
       ""
       {% endif %}
-  with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }}
+  loop: "{{ range(0, env.cluster.nodes.compute.hostname | length) | list }}"
   loop_control:
     index_var: i
+    loop_var: i
+  when: (env.cluster.nodes.compute.hostname | length) > 0
 
 - name: 'Include matching lpar yml file'
   tags: create_teuthology_node
@@ -63,11 +65,11 @@
     --noautoconsole \
     {{ cex_hostdev }}
   timeout: 360
-  with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
+  loop: "{{ range(0, env.cluster.nodes.compute.hostname | length) | list }}"
   loop_control:
-    extended: yes
     index_var: i
-  when: env.cluster.nodes.compute.hostname[0] is defined and env.z.high_availability == False and inventory_hostname == env.z.lpar1.hostname and env.cluster.nodes.compute.vm_name[i] not in hosts_with_host_vars
+    loop_var: i
+  when: (env.cluster.nodes.compute.hostname | length) > 0 and env.z.high_availability == False and inventory_hostname == env.z.lpar1.hostname and env.cluster.nodes.compute.vm_name[i] not in hosts_with_host_vars
 
 - name: Install CoreOS on infra nodes
   tags: create_compute_nodes

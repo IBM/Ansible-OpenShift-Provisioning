@@ -69,18 +69,17 @@
     extended: yes
     index_var: i
 
-- block:
-  - name: Add compute nodes to DNS forwarding file on bastion
-    tags: dns
-    ansible.builtin.lineinfile:
-      path: /var/named/{{ env.cluster.networking.metadata_name }}.db
-      insertafter: "entries for the compute nodes"
-      line: "{{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.cluster.nodes.compute.ip[i] }}"
-    with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
-    loop_control:
-      extended: yes
-      index_var: i
-  when: env.cluster.nodes.compute.hostname is defined and env.cluster.nodes.compute.hostname[0] is defined and (env.cluster.nodes.compute.hostname | length) > 0
+- name: Add compute nodes to DNS forwarding file on bastion
+  tags: dns
+  ansible.builtin.lineinfile:
+    path: /var/named/{{ env.cluster.networking.metadata_name }}.db
+    insertafter: "entries for the compute nodes"
+    line: "{{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.cluster.nodes.compute.ip[i] }}"
+  loop: "{{ range(0, env.cluster.nodes.compute.hostname | length) | list }}"
+  loop_control:
+    index_var: i
+    loop_var: i
+  when: env.cluster.nodes.compute.hostname is defined and (env.cluster.nodes.compute.hostname | length) > 0
 
 - name: Add infrastructure nodes to DNS forwarding file on bastion if requested
   tags: dns
@@ -121,11 +120,11 @@
     path: /var/named/{{ env.cluster.networking.metadata_name }}.rev
     insertafter: "PTR Record IP address to Hostname"
     line: "{{ env.cluster.nodes.compute.ip[i].split('.').3 }}     IN      PTR     {{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}."
-  with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
+  loop: "{{ range(0, env.cluster.nodes.compute.hostname | length) | list }}"
   loop_control:
-    extended: yes
     index_var: i
-  when: env.cluster.nodes.compute.hostname is defined and env.cluster.nodes.compute.hostname[0] is defined and env.cluster.nodes.compute.hostname[0] != None
+    loop_var: i
+  when: env.cluster.nodes.compute.hostname is defined and (env.cluster.nodes.compute.hostname | length) > 0
 
 - name: Add infrastructure nodes to DNS reverse lookup file on bastion
   tags: dns
