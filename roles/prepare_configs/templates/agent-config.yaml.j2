@@ -9,6 +9,16 @@ hosts:
 {% for item in range( env.cluster.nodes.control.ip | length ) %}
   - hostname: "{{ env.cluster.nodes.control.hostname[item] }}"
     role: master
+{% if env.cluster.nodes.control.root_device_hints is defined and env.cluster.nodes.control.root_device_hints[item] %}
+    rootDeviceHints:
+      deviceName: "{{ env.cluster.nodes.control.root_device_hints[item] }}"
+{% elif env.lpar.storage_group_1 is defined and env.lpar.storage_group_1.dev_num is defined %}
+    rootDeviceHints:
+      {%- set dev = env.lpar.storage_group_1.dev_num -%}
+      {%- set wwpn = env.lpar.storage_group_1.storage_wwpn[0] -%}
+      {%- set lun = env.lpar.storage_group_1.lun_name %}
+      deviceName: "/dev/disk/by-path/ccw-{{ dev }}-fc-{{ wwpn }}-lun-{{ lun }}"
+{% endif %}
     interfaces:
       - name: eth0
         macAddress: "{{ env.cluster.nodes.control.mac[item] }}"
@@ -33,12 +43,17 @@ hosts:
           - destination: 0.0.0.0/0
             next-hop-address: "{{ env.bastion.networking.gateway }}"
             next-hop-interface: eth0
-            table-id: 254           
+            table-id: 254
 {% endfor %}
+
 {% if env.cluster.nodes.compute.ip is defined %}
 {% for item in range( env.cluster.nodes.compute.ip | length ) %}
   - hostname: "{{ env.cluster.nodes.compute.hostname[item] }}"
     role: worker
+{% if env.cluster.nodes.compute.root_device_hints is defined and env.cluster.nodes.compute.root_device_hints[item] %}
+    rootDeviceHints:
+      deviceName: "{{ env.cluster.nodes.compute.root_device_hints[item] }}"
+{% endif %}
     interfaces:
       - name: eth0
         macAddress: "{{ env.cluster.nodes.compute.mac[item] }}"
@@ -63,7 +78,7 @@ hosts:
           - destination: 0.0.0.0/0
             next-hop-address: "{{ env.bastion.networking.gateway }}"
             next-hop-interface: eth0
-            table-id: 254 
+            table-id: 254
 {% endfor %}
 {% endif %}
 {% endif %}

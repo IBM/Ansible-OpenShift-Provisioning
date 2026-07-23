@@ -142,7 +142,8 @@ env:
 #         - X
 #         - X
 #         - X
-
+        root_device_hints:
+          - ''
 # Section 9 - Compute Nodes
       compute:
         disk_size: 120
