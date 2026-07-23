@@ -98,4 +98,3 @@
   ansible.builtin.debug:
     var: boot_result
 
-# Made with Bob
