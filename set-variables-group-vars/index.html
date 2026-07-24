@@ -1014,8 +1014,13 @@
 <td style="text-align: left;">s390x</td>
 </tr>
 <tr>
+<td style="text-align: left;"><strong>day2_compute_node.disk_pool</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Name of the libvirt storage pool to use for the compute node VM disk. On s390x defaults to <code>&lt;metadata_name&gt;-vdisk</code>. On all other architectures (aarch64, x86_64) defaults to <code>default</code>. Only set this if your KVM host uses a custom pool name.</td>
+<td style="text-align: left;">default</td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>day2_compute_node.install_dev</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> Installation device for CoreOS installation. Defaults to 'vda' if not specified.</td>
+<td style="text-align: left;"><b>(Optional)</b> Installation device for CoreOS installation. Defaults to 'vda' if not specified. Leave blank or omit to use the default.</td>
 <td style="text-align: left;">vda</td>
 </tr>
 </tbody>
