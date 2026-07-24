@@ -228,6 +228,8 @@ day2_compute_node:
   hostname:
   host_user:
   host_arch:
+  disk_pool:
+  install_dev: # (Optional) Installation device, defaults to 'vda' if not specified
 
 
 # Section 14 - Agent Based Installer ( Optional )

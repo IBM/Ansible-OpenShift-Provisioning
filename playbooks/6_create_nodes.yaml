@@ -76,6 +76,29 @@
       loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
       when: item in hosts_with_host_vars
 
+- name: 6 create nodes - wait for CoreOS installation on LPARs
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  tasks:
+    - name: Wait for bootstrap SSH to become available
+      vars:
+        node_type: "bootstrap"
+      ansible.builtin.include_tasks:
+        file: ../roles/wait_for_lpar_ssh/tasks/main.yaml
+      loop: "{{ q('list', env.cluster.nodes[node_type].vm_name) | flatten }}"
+      when: item in hosts_with_host_vars
+
+    - name: Wait for control plane SSH to become available
+      vars:
+        node_type: "control"
+      ansible.builtin.include_tasks:
+        file: ../roles/wait_for_lpar_ssh/tasks/main.yaml
+      loop: "{{ q('list', env.cluster.nodes[node_type].vm_name) | flatten }}"
+      when: item in hosts_with_host_vars
+
 - name: 6 create nodes - create control nodes
   hosts: kvm_host
   gather_facts: false
