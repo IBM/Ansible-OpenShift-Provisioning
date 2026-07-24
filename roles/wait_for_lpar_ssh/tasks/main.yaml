@@ -1,0 +1,16 @@
+---
+- name: Include host vars for LPAR node
+  ansible.builtin.include_vars:
+    file: "{{ inventory_dir }}/host_vars/{{ item }}.yaml"
+    name: node
+
+- name: Wait for LPAR node SSH to become available
+  wait_for:
+    host: "{{ node.networking.ip }}"
+    port: 22
+    delay: 60
+    timeout: 3600
+    sleep: 30
+    state: started
+
+# Made with Bob
