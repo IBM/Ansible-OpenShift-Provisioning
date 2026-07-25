@@ -57,36 +57,37 @@
 
 - name: Booting LPAR node with ABI agent
   ansible.builtin.shell: |
-      set -o pipefail
-      python3 /root/ansible_workdir/boot_lpar_abi.py \
-      --cpcname {{ node.cpc_name }} \
-      --lparname {{ node.lpar.name }} \
-      --hmchost {{ node.hmc.host }} \
-      --hmcuser {{ node.hmc.auth.user }} \
-      --hmcpass {{ node.hmc.auth.pass }} \
-      --cpu {{ node.lpar.ifl.count }} \
-      --memory {{ node.lpar.ifl.initial_memory }} \
-      --kernel http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}-vmlinuz \
-      --initrd http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}-initrd.img \
-      --livedisktype {{ node.lpar.livedisk.livedisktype }} \
-      --devicenr {{ node.lpar.livedisk.devicenr }} \
-      {% if node.lpar.dpm_enabled == 'True' %}
-      --dpm_enabled {{ node.lpar.dpm_enabled }} \
-      --livediskuuid {{ live_disk_uuid }} \
-      {% endif %}
-      {% if node.lpar.livedisk.livedisktype | lower == 'scsi' %}
-      --livedisklun {{ live_disk_lun }} \
-      --livediskwwpn {{ live_disk_wwpn }} \
-      {% endif %}
-      --netset_ip {{ node.networking.ip }} \
-      --netset_gateway {{ node.networking.gateway }} \
-      --netset_network_type osa \
-      --netset_network_device "{{ node.lpar.networking.nic.card1.dev_num }}" \
-      --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
-      --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
-      --log_level DEBUG \
-      --cmdline "{{ abi_cmdline }}"
+    set -o pipefail
+    python3 /root/ansible_workdir/boot_lpar_abi.py \
+    --cpcname {{ node.cpc_name }} \
+    --lparname {{ node.lpar.name }} \
+    --hmchost {{ node.hmc.host }} \
+    --hmcuser {{ node.hmc.auth.user }} \
+    --hmcpass {{ node.hmc.auth.pass }} \
+    --cpu {{ node.lpar.ifl.count }} \
+    --memory {{ node.lpar.ifl.initial_memory }} \
+    --kernel http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}-vmlinuz \
+    --initrd http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}-initrd.img \
+    --livedisktype {{ node.lpar.livedisk.livedisktype }} \
+    --devicenr {{ node.lpar.livedisk.devicenr }} \
+    {% if node.lpar.dpm_enabled == 'True' %}
+    --dpm_enabled {{ node.lpar.dpm_enabled }} \
+    --livediskuuid {{ live_disk_uuid }} \
+    {% endif %}
+    {% if node.lpar.livedisk.livedisktype | lower == 'scsi' %}
+    --livedisklun {{ live_disk_lun }} \
+    --livediskwwpn {{ live_disk_wwpn }} \
+    {% endif %}
+    --netset_ip {{ node.networking.ip }} \
+    --netset_gateway {{ node.networking.gateway }} \
+    --netset_network_type osa \
+    --netset_network_device "{{ node.lpar.networking.nic.card1.dev_num }}" \
+    --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
+    --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
+    --log_level DEBUG \
+    --cmdline "{{ abi_cmdline }}"
   register: boot_result
+  changed_when: true
   timeout: "{{ abi_lpar_boot_timeout | default(900) }}"
 
 - name: Pause after booting LPAR node with ABI agent
