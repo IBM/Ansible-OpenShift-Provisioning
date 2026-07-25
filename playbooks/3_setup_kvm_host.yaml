@@ -123,25 +123,27 @@
 
     - name: Get user home directory
       tags: libvirt
-      ansible.builtin.shell: >
-             getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
+      ansible.builtin.shell: |
+        set -o pipefail
+        getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
       changed_when: false
       register: user_home
       when: installation_type | lower in ['kvm', 'lpar']
 
-    - name: Check if directory {{ user_home.stdout | default('') }}/.config/libvirt exists
+    - name: Check if .config/libvirt directory exists
       tags: libvirt
       ansible.builtin.stat:
         path: "{{ user_home.stdout }}/.config/libvirt"
       register: home_config_libvirt
       when: installation_type | lower in ['kvm', 'lpar']
 
-    - name: Create directory {{ user_home.stdout | default('') }}/.config/libvirt
+    - name: Create .config/libvirt directory
       tags: libvirt
       ansible.builtin.file:
         path: "{{ user_home.stdout }}/.config/libvirt"
         state: directory
-      when: installation_type | lower in ['kvm', 'lpar'] and home_config_libvirt.stat.exists == false
+        mode: '0755'
+      when: installation_type | lower in ['kvm', 'lpar'] and not home_config_libvirt.stat.exists
 
     - name: Create file for user's custom libvirt configurations.
       tags: libvirt
@@ -150,6 +152,7 @@
         state: touch
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
+        mode: '0644'
       when: installation_type | lower in ['kvm', 'lpar']
 
     - name: Set default uri connection to qemu:///system.
