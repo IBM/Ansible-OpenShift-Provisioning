@@ -1,11 +1,18 @@
 # Master playbook For ABI . If you want to do everything all in one, use this.
 ---
 
-- import_playbook: 0_setup.yaml # Import Playbook To Generate Inventory & Adding SSH-Keys.
-- import_playbook: 3_setup_kvm_host.yaml # Import Playbook To Install Prerequisites On KVM_HOST (runs for kvm and lpar; skipped internally for zvm).
-- import_playbook: 4_create_bastion.yaml # Import Playbook To Create Bastion.
-- import_playbook: 5_setup_bastion.yaml # Import Playbook To Configure Bastion.
-- import_playbook: disconnected_mirror_artifacts.yaml
+- name: 0 - Setup inventory and SSH keys
+  import_playbook: 0_setup.yaml
+- name: 3 - Setup KVM host prerequisites
+  import_playbook: 3_setup_kvm_host.yaml
+- name: 4 - Create bastion
+  import_playbook: 4_create_bastion.yaml
+- name: 5 - Setup bastion
+  import_playbook: 5_setup_bastion.yaml
+- name: Mirror disconnected artifacts
+  import_playbook: disconnected_mirror_artifacts.yaml
   when: disconnected.enabled
-- import_playbook: create_abi_cluster.yaml # Import Playbook To Create ABI Cluster.
-- import_playbook: monitor_create_abi_cluster.yaml # Import Playbook To Monitor ABI Cluster Installation.
+- name: Create ABI cluster
+  import_playbook: create_abi_cluster.yaml
+- name: Monitor ABI cluster installation
+  import_playbook: monitor_create_abi_cluster.yaml

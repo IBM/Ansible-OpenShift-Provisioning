@@ -2,49 +2,50 @@
 
 - name: Change permissive domain for haproxy
   tags: selinux,haproxy
-  selinux_permissive:
+  community.general.selinux_permissive:
     name: haproxy_t
     permissive: true
 
 - name: Use template to create haproxy config file
   tags: haproxy
-  template:
+  ansible.builtin.template:
     src: haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
-    backup: yes
-    force: yes
+    backup: true
+    force: true
+    mode: '0644'
 
 - name: Add control node information to 6443 section in haproxy config
   tags: haproxy
-  lineinfile:
+  ansible.builtin.lineinfile:
     line: "  server {{ env.cluster.nodes.control.hostname[i] }} {{ env.cluster.nodes.control.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:6443 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
     insertafter: "6443 section"
-  with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
+  with_sequence: start=0 end={{ (env.cluster.nodes.control.hostname | length) - 1 }} stride=1
   loop_control:
-    extended: yes
+    extended: true
     index_var: i
 
 - name: Add control node information to 22623 section in haproxy config
   tags: haproxy
-  lineinfile:
+  ansible.builtin.lineinfile:
     line: "  server {{ env.cluster.nodes.control.hostname[i] }} {{ env.cluster.nodes.control.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:22623 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
     insertafter: "22623 section"
-  with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
+  with_sequence: start=0 end={{ (env.cluster.nodes.control.hostname | length) - 1 }} stride=1
   loop_control:
-    extended: yes
+    extended: true
     index_var: i
 
 - name: Add control node information to 443 section in haproxy config, when no compute nodes are defined
   tags: haproxy
-  lineinfile:
+  ansible.builtin.lineinfile:
     line: "  server {{ env.cluster.nodes.control.hostname[i] }} {{ env.cluster.nodes.control.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:443 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
     insertafter: "443 section"
-  with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
+  with_sequence: start=0 end={{ (env.cluster.nodes.control.hostname | length) - 1 }} stride=1
   loop_control:
-    extended: yes
+    extended: true
     index_var: i
   when: env.cluster.nodes.compute.hostname[0] is not defined
 
@@ -62,24 +63,24 @@
 
 - name: Add infrastructure node information to 443 section in haproxy config
   tags: haproxy
-  lineinfile:
+  ansible.builtin.lineinfile:
     line: "  server {{ env.cluster.nodes.infra.hostname[i] }} {{ env.cluster.nodes.infra.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:443 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
     insertafter: "443 section"
-  with_sequence: start=0 end={{(env.cluster.nodes.infra.hostname | length) - 1}} stride=1
+  with_sequence: start=0 end={{ (env.cluster.nodes.infra.hostname | length) - 1 }} stride=1
   loop_control:
-    extended: yes
+    extended: true
     index_var: i
   when: env.cluster.nodes.infra.hostname is defined
 
 - name: Add control node information to 80 section in haproxy config, when no compute nodes are defined
   tags: haproxy
-  lineinfile:
+  ansible.builtin.lineinfile:
     line: "  server {{ env.cluster.nodes.control.hostname[i] }} {{ env.cluster.nodes.control.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:80 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
-  with_sequence: start=0 end={{(env.cluster.nodes.control.hostname | length) - 1}} stride=1
+  with_sequence: start=0 end={{ (env.cluster.nodes.control.hostname | length) - 1 }} stride=1
   loop_control:
-    extended: yes
+    extended: true
     index_var: i
   when: env.cluster.nodes.compute.hostname[0] is not defined
 
@@ -96,27 +97,28 @@
 
 - name: Add infrastructure node information to 80 section in haproxy config
   tags: haproxy
-  lineinfile:
+  ansible.builtin.lineinfile:
     line: "  server {{ env.cluster.nodes.infra.hostname[i] }} {{ env.cluster.nodes.infra.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:80 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
-  with_sequence: start=0 end={{(env.cluster.nodes.infra.hostname | length) - 1}} stride=1
+  with_sequence: start=0 end={{ (env.cluster.nodes.infra.hostname | length) - 1 }} stride=1
   loop_control:
-    extended: yes
+    extended: true
     index_var: i
   when: env.cluster.nodes.infra.hostname is defined
 
 - name: Set haproxy boolean to enable connections
   tags: haproxy
-  command: setsebool -P haproxy_connect_any 1
+  ansible.builtin.command: setsebool -P haproxy_connect_any 1
+  changed_when: true
 
 - name: Enable haproxy
   tags: haproxy
   ansible.builtin.systemd:
     name: haproxy
-    enabled: yes
+    enabled: true
 
 - name: Restart haproxy
   tags: haproxy
-  systemd:
+  ansible.builtin.systemd:
     state: restarted
     name: haproxy

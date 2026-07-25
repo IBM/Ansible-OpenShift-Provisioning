@@ -8,7 +8,7 @@
 
 - name: Add ansible SSH key to ssh-agent
   tags: ssh_agent, ssh
-  lineinfile:
+  ansible.builtin.lineinfile:
     line: "eval $(ssh-agent) && ssh-add ~/.ssh/{{ env.ansible_key_name }}"
     path: ~/.bash_profile
   become: false
@@ -16,6 +16,6 @@
 
 - name: Print results from setting up SSH agent
   tags: ssh_agent, ssh
-  debug:
+  ansible.builtin.debug:
     var: ssh_agent_setup
   become: false

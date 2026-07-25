@@ -186,7 +186,10 @@
 
     - name: Enable cockpit console
       tags: cockpit
-      ansible.builtin.command: systemctl enable --now cockpit.socket
+      ansible.builtin.systemd:
+        name: cockpit.socket
+        enabled: true
+        state: started
       when: installation_type | lower in ['kvm', 'lpar']
 
 - name: Configure ip_forward in case of NAT

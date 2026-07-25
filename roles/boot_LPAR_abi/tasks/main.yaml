@@ -98,4 +98,3 @@
 - name: Display boot result
   ansible.builtin.debug:
     var: boot_result
-

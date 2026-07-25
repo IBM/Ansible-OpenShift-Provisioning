@@ -33,7 +33,7 @@
   when: abi.boot_method | lower == "pxe"
 
 - name: Check if vmlinuz exists in /var/www/html
-  stat:
+  ansible.builtin.stat:
     path: "/var/www/html/agent.{{ ansible_architecture }}-vmlinuz"
   register: vmlinuz_www
 
