@@ -23,7 +23,7 @@ nav:
 
 extra_css:
   - stylesheets/extra.css
-  
+
 theme:
   name: readthedocs
   palette:
