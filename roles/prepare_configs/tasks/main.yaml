@@ -1,13 +1,14 @@
 ---
 - name: Delete OCP Work Directory For Idempotency.
-  file:
+  ansible.builtin.file:
     path: ~/ansible_workdir
     state: absent
 
 - name: Create Work Directory
-  file:
+  ansible.builtin.file:
     path: ~/ansible_workdir
     state: directory
+    mode: '0755'
 
 - name: Prepare Agent Config
   ansible.builtin.template:
@@ -16,23 +17,25 @@
     owner: root
     group: root
     mode: "0755"
-    backup: yes
+    backup: true
   loop:
     - ~/ansible_workdir/agent-config.yaml
     - ~/ansible_workdir/agent-config-backup.yaml
 
-- name: Check if SSH key exists
-  stat:
+- name: Check if bastion SSH key exists
+  ansible.builtin.stat:
     path: "~/.ssh/{{ env.ansible_key_name }}.pub"
   register: ssh_key
 
-- name: Generate SSH key
-  command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ env.ansible_key_name }}"
-  when: ssh_key.stat.exists == false
+- name: Generate bastion SSH key if not exists
+  ansible.builtin.command: ssh-keygen -t rsa -b 4096 -N "" -f "~/.ssh/{{ env.ansible_key_name }}"
+  when: not ssh_key.stat.exists
+  changed_when: true
 
-- name: Read SSH Key
-  command: cat ~/.ssh/{{ env.ansible_key_name }}.pub
+- name: Read bastion SSH Key
+  ansible.builtin.command: cat ~/.ssh/{{ env.ansible_key_name }}.pub
   register: ssh_key
+  changed_when: false
 
 - name: Prepare Install Config
   vars:
@@ -43,7 +46,7 @@
     owner: root
     group: root
     mode: "0755"
-    backup: yes
+    backup: true
   loop:
     - ~/ansible_workdir/install-config.yaml
     - ~/ansible_workdir/install-config-backup.yaml

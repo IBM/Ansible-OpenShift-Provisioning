@@ -102,14 +102,13 @@
     dig +short {{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1
   register: compute_lookup
   failed_when: env.cluster.nodes.compute.ip[i] != compute_lookup.stdout
-  with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
+  loop: "{{ range(0, env.cluster.nodes.compute.hostname | length) | list }}"
   loop_control:
-    extended: true
     index_var: i
+    loop_var: i
   when:
     - env.cluster.nodes.compute.hostname is defined
-    - env.cluster.nodes.compute.hostname[0] is defined
-    - env.cluster.nodes.compute.hostname[0] != none
+    - (env.cluster.nodes.compute.hostname | length) > 0
 
 - name: Check infrastructure nodes DNS resolution
   tags: check_dns, dns

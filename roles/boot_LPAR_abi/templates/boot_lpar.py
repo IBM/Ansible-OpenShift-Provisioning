@@ -7,7 +7,7 @@ def list_of_strings(arg):
 
 parser = argparse.ArgumentParser(description="Get the environment.")
 
-parser.add_argument("--cpcname", type=str, help="this is the CEC/CPC hosting the target LPAR" )
+parser.add_argument("--cpcname", type=str, help="this is the CEC/CPC hosting the target LPAR")
 parser.add_argument("--lparname", type=str, help="Hypervisor name", required=True)
 parser.add_argument("--hmchost", type=str, help="HMC Hostname or IP, enter the hmc url here", required=True)
 parser.add_argument("--hmcuser", type=str, help="HMC user", required=True)
@@ -34,8 +34,6 @@ parser.add_argument("--livediskwwpn", type=str, help="wwpn id of the scsi disk a
 
 parser.add_argument("--log_level", type=str, help="can be of type INFO or DEBUG")
 args = parser.parse_args()
-
-
 
 # Example usage:
 # cpc_name = "CPC_NAME" # this is the CEC/CPC hosting the target LPAR
@@ -64,7 +62,7 @@ lpar_cpu = args.cpu
 lpar_memory = args.memory
 lpar_parameters = {
     "boot_params": {
-        "boot_method" : args.livedisktype.lower(),
+        "boot_method": args.livedisktype.lower(),
         'netsetup': {
             "mac": None,
             "ip": args.netset_ip,
@@ -82,13 +80,13 @@ lpar_parameters = {
         }
     }
 }
-if args.livedisktype.lower()=="dasd" and args.livedisklun=="na" and args.livediskwwpn=="na":
-    lpar_parameters["boot_params"]["devicenr"]=args.devicenr
-elif args.livedisktype.lower()=="scsi" and args.livedisklun!="na" and args.livediskwwpn!="na":
-    lpar_parameters["boot_params"]["lun"]=args.livedisklun
-    lpar_parameters["boot_params"]["wwpn"]=args.livediskwwpn
-    lpar_parameters["boot_params"]["devicenr"]=args.devicenr
-    lpar_parameters["boot_params"]["uuid"]=args.livediskuuid
+if args.livedisktype.lower() == "dasd" and args.livedisklun == "na" and args.livediskwwpn == "na":
+    lpar_parameters["boot_params"]["devicenr"] = args.devicenr
+elif args.livedisktype.lower() == "scsi" and args.livedisklun != "na" and args.livediskwwpn != "na":
+    lpar_parameters["boot_params"]["lun"] = args.livedisklun
+    lpar_parameters["boot_params"]["wwpn"] = args.livediskwwpn
+    lpar_parameters["boot_params"]["devicenr"] = args.devicenr
+    lpar_parameters["boot_params"]["uuid"] = args.livediskuuid
 else:
     raise Exception("Please check the live disk details")
 hmc.start(lpar_name, lpar_cpu, lpar_memory, lpar_parameters)
