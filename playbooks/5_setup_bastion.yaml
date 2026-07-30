@@ -31,7 +31,8 @@
         passphrase: ""
         regenerate: never
       when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none)
-    - block:
+    - name: Check jumphost package dependencies
+      block:
         - name: Gather package facts on jumphost
           ansible.builtin.package_facts:
             manager: auto
@@ -47,7 +48,7 @@
             msg: "'expect' package is not installed on jumphost"
           when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none) and (not expect_installed)
       rescue:
-        - name: Package 'expect' must be installed on the jumphost, attempting to install it. #Using 'block' and 'rescue' to avoid running the 'package' module (which requires 'sudo') unless necessary.
+        - name: Package 'expect' must be installed on the jumphost, attempting to install it.
           become: true
           ansible.builtin.package:
             name: expect
@@ -55,7 +56,8 @@
   roles:
     - { role: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none) }
   post_tasks:
-    - meta: clear_facts
+    - name: Clear facts after jumphost setup
+      ansible.builtin.meta: clear_facts
 
 - name: 5 setup bastion - copy SSH key from localhost to access bastion (non-NAT only).
   hosts: localhost
@@ -88,29 +90,43 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   tasks:
-  - name: Enabliling the HiperSocket card on bastion if installation_type is lpar else will be skipped.
-    block:
-    - name: Getting the Hipervisor Details
-      ansible.builtin.command: lscpu
-      register: hipervisor_info
-    - name: Fail the play if bastion is on the KVM guest
-      ansible.builtin.fail:
-        msg: Currently not supported for LPAR clsuter with this particular mode when bastion is on KVM host.
-      when: "'KVM' in hipervisor_info.stdout"
-    - name: Check if vars file exists
-      ansible.builtin.stat:
-        path: "{{ inventory_dir }}/host_vars/{{ env.cluster.nodes.bootstrap.vm_name }}.yaml"
-      register: vars_file
-      delegate_to: localhost
-    - name: Include the vars
-      ansible.builtin.include_vars:
-        file: "{{ inventory_dir }}/host_vars/{{ env.cluster.nodes.bootstrap.vm_name }}.yaml"
-      when: vars_file.stat.exists
-    - name: Attaching HiperSocket card to bastion
-      ansible.builtin.include_tasks:
-        file: ../roles/bastion_setup_hipersocket_LPAR/tasks/main.yml
-      when: vars_file.stat.exists and networking.mode is defined and networking.mode | lower =='hipersocket'
-    when: installation_type | lower == "lpar"
+    - name: Enabliling the HiperSocket card on bastion if installation_type is lpar else will be skipped.
+      when: installation_type | lower == 'lpar'
+      block:
+        - name: Getting the Hipervisor Details
+          ansible.builtin.command: lscpu
+          register: hipervisor_info
+          changed_when: false
+
+        - name: Fail the play if bastion is on the KVM guest (only for non-ABI HiperSocket setups)
+          ansible.builtin.fail:
+            msg: Currently not supported for LPAR cluster with this particular mode when bastion is on KVM host.
+          when:
+            - "'KVM' in hipervisor_info.stdout"
+            - abi.flag is not defined or not abi.flag
+
+        - name: Check if vars file exists
+          ansible.builtin.stat:
+            path: "{{ inventory_dir }}/host_vars/{{ env.cluster.nodes.bootstrap.vm_name }}.yaml"
+          register: vars_file
+          delegate_to: localhost
+          when: env.cluster.nodes.bootstrap is defined
+
+        - name: Include the vars
+          ansible.builtin.include_vars:
+            file: "{{ inventory_dir }}/host_vars/{{ env.cluster.nodes.bootstrap.vm_name }}.yaml"
+          when:
+            - env.cluster.nodes.bootstrap is defined
+            - vars_file.stat.exists
+
+        - name: Attaching HiperSocket card to bastion
+          ansible.builtin.include_tasks:
+            file: ../roles/bastion_setup_hipersocket_LPAR/tasks/main.yml
+          when:
+            - env.cluster.nodes.bootstrap is defined
+            - vars_file.stat.exists
+            - networking.mode is defined
+            - networking.mode | lower == 'hipersocket'
 
 - name: 5 setup bastion - configure bastion node with essential services
   hosts: bastion
@@ -140,7 +156,8 @@
     - httpd
     - { role: install_tessia_baselib, when: ( installation_type|lower == "lpar" ) or ( installation_type|lower == "zvm" ) }
 
-- hosts: bastion
+- name: Setup OpenVPN on bastion
+  hosts: bastion
   tags: services, section_2, openvpn
   become: true
   vars_files:
@@ -149,11 +166,16 @@
   vars:
     openvpn_role: "server"
   roles:
-    #- { role: robertdebock.bootstrap, tags: openvpn, when: env.z.high_availability == True }
-    - { role: robertdebock.epel, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar" }
-    - { role: robertdebock.openvpn, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar" }
+    # - { role: robertdebock.bootstrap, tags: openvpn, when: env.z.high_availability }
+    - role: robertdebock.epel
+      tags: openvpn
+      when: env.setup_openvpn and env.z.high_availability and installation_type | lower != "lpar"
+    - role: robertdebock.openvpn
+      tags: openvpn
+      when: env.setup_openvpn and env.z.high_availability and installation_type | lower != "lpar"
 
-- hosts: localhost
+- name: Create OpenVPN cert landing dirs on localhost
+  hosts: localhost
   tags: services, section_2, openvpn
   gather_facts: false
   vars_files:
@@ -165,9 +187,11 @@
       ansible.builtin.file:
         state: directory
         path: tmp
-      when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"
+        mode: '0755'
+      when: env.setup_openvpn and env.z.high_availability and installation_type | lower != "lpar"
 
-- hosts: bastion
+- name: Fetch OpenVPN certs from bastion
+  hosts: bastion
   tags: services, section_2, openvpn
   become: true
   vars_files:
@@ -179,13 +203,13 @@
       ansible.builtin.fetch:
         src: /etc/openvpn/easy-rsa/pki/{{ item }}
         dest: tmp/
-        flat: yes
+        flat: true
       loop:
         - ca.crt
         - issued/client.crt
         - private/client.key
         - ta.key
-      when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"
+      when: env.setup_openvpn and env.z.high_availability and installation_type | lower != "lpar"
 
 - name: setup OpenVPN on KVM host(s).
   hosts: kvm_host
@@ -201,36 +225,44 @@
   pre_tasks:
     - name: Gather facts.
       ansible.builtin.setup:
-      when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"
+      when: env.setup_openvpn and env.z.high_availability and installation_type | lower != "lpar"
 
     - name: Create landing directories for certificates and keys on KVM hosts.
       tags: openvpn
       ansible.builtin.file:
         state: directory
         path: /etc/openvpn/client/{{ item }}
-        mode: '700'
+        mode: '0700'
       loop:
         - issued
         - private
-      when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"
+      when: env.setup_openvpn and env.z.high_availability and installation_type | lower != "lpar"
 
     - name: Copy certificates and keys from controller to KVM hosts.
       tags: openvpn
       ansible.builtin.copy:
         src: tmp/{{ item }}
         dest: /etc/openvpn/client/{{ item }}
-        mode: '600'
+        mode: '0600'
       loop:
         - ca.crt
         - client.crt
         - client.key
         - ta.key
-      when: env.setup_openvpn == True and env.z.high_availability == True and installation_type|lower != "zvm" and installation_type|lower != "lpar"
+      when: >-
+        env.setup_openvpn and env.z.high_availability
+        and installation_type | lower != "zvm"
+        and installation_type | lower != "lpar"
   roles:
-    - { role: robertdebock.epel, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"  }
-    - { role: robertdebock.openvpn, tags: openvpn, when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar" }
+    - role: robertdebock.epel
+      tags: openvpn
+      when: env.setup_openvpn and env.z.high_availability and installation_type | lower != "lpar"
+    - role: robertdebock.openvpn
+      tags: openvpn
+      when: env.setup_openvpn and env.z.high_availability and installation_type | lower != "lpar"
 
-- hosts: localhost
+- name: Clean up OpenVPN temp files on localhost
+  hosts: localhost
   tags: services, section_2, openvpn
   gather_facts: false
   vars_files:
@@ -242,9 +274,10 @@
       ansible.builtin.file:
         state: absent
         path: tmp
-      when: env.setup_openvpn == True and env.z.high_availability == True  and installation_type|lower != "lpar"
+      when: env.setup_openvpn and env.z.high_availability and installation_type | lower != "lpar"
 
-- hosts: bastion
+- name: 5 setup bastion - get OCP
+  hosts: bastion
   tags: get_ocp, section_3
   become: true
   vars_files:

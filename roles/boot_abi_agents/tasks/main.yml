@@ -126,12 +126,12 @@
     --noautoconsole
   async: 3600
   poll: 0
-  with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
+  loop: "{{ range(0, env.cluster.nodes.compute.hostname | length) | list }}"
   loop_control:
-    extended: true
     index_var: i
+    loop_var: i
     pause: 10
-  when: env.cluster.nodes.compute is defined and abi.boot_method | lower == "pxe"
+  when: env.cluster.nodes.compute is defined and (env.cluster.nodes.compute.hostname | length) > 0 and abi.boot_method | lower == "pxe"
 
 - name: Create CoreOS Compute Agent Nodes On The KVM host using ISO boot.
   ansible.builtin.shell: |
@@ -153,9 +153,9 @@
     --wait=-1 \
   async: 3600
   poll: 0
-  with_sequence: start=0 end={{ (env.cluster.nodes.compute.hostname | length) - 1 }} stride=1
+  loop: "{{ range(0, env.cluster.nodes.compute.hostname | length) | list }}"
   loop_control:
-    extended: true
     index_var: i
+    loop_var: i
     pause: 10
-  when: env.cluster.nodes.compute is defined and abi.boot_method | lower == "iso"
+  when: env.cluster.nodes.compute is defined and (env.cluster.nodes.compute.hostname | length) > 0 and abi.boot_method | lower == "iso"
