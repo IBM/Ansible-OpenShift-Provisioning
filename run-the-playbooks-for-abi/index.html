@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/run-the-playbooks-for-abi/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>Run the Agent Based Installer (ABI) Playbooks - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <title>Run the Playbooks (Agent-Based Installer) - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,7 +13,7 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Run the Agent Based Installer (ABI) Playbooks";
+        var mkdocs_page_name = "Run the Playbooks (Agent-Based Installer)";
         var mkdocs_page_input_path = "run-the-playbooks-for-abi.md";
         var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/run-the-playbooks-for-abi/";
       </script>
@@ -53,7 +53,7 @@
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Installation Instructions</span></p>
-              <ul>
+              <ul class="current">
                   <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
@@ -62,9 +62,73 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
                   </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Run the Playbooks (Agent-Based Installer)</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#note">Note:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#steps">Steps:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-1-initial-setup-for-abi">Step-1: Initial Setup for ABI</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-2-setup-playbook-0_setupyaml">Step-2: Setup Playbook (0_setup.yaml)</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#outcomes">Outcomes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#notes">Notes</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-3-setup-kvm-host-playbook-3_setup_kvm_hostyaml">Step-3: Setup KVM Host Playbook (3_setup_kvm_host.yaml)</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#overview_1">Overview</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#outcomes_1">Outcomes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#notes_1">Notes</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-4-create-bastion-playbook-4_create_bastionyaml">Step-4: Create Bastion Playbook (4_create_bastion.yaml)</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#overview_2">Overview</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#outcomes_2">Outcomes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#notes_2">Notes</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-5-setup-bastion-playbook-5_setup_bastionyaml">Step-5: Setup Bastion Playbook (5_setup_bastion.yaml)</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#overview_3">Overview</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#outcomes_3">Outcomes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#notes_3">Notes</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-6-master-playbook-master_playbook_for_abi">Step-6: Master Playbook (master_playbook_for_abi)</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#overview_4">Overview</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#outcomes_4">Outcomes</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hcp/">Run the Playbooks (HostedControlPlane)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../abi-lpar-configuration/">ABI LPAR Configuration</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Misc</span></p>
@@ -88,7 +152,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
-      <li class="breadcrumb-item active">Run the Agent Based Installer (ABI) Playbooks</li>
+          <li class="breadcrumb-item">Installation Instructions</li>
+      <li class="breadcrumb-item active">Run the Playbooks (Agent-Based Installer)</li>
     <li class="wy-breadcrumbs-aside">
           <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/run-the-playbooks-for-abi.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
@@ -280,6 +345,10 @@
               
             </div>
           </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../run-the-playbooks/" class="btn btn-neutral float-left" title="4 Run the Playbooks"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../run-the-playbooks-for-disconnected/" class="btn btn-neutral float-right" title="Run the Playbooks (Disconnected)">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
 
   <hr/>
 
@@ -306,6 +375,10 @@
         </span>
     
     
+      <span><a href="../run-the-playbooks/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../run-the-playbooks-for-disconnected/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

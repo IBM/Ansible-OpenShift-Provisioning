@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/abi-lpar-configuration/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>ABI LPAR Configuration - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../stylesheets/extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "ABI LPAR Configuration";
+        var mkdocs_page_input_path = "abi-lpar-configuration.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/abi-lpar-configuration/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/ansible-logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Read Me</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../before-you-begin/">Before You Begin</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../prerequisites/">Prerequisites</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation Instructions</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-abi/">Run the Playbooks (Agent-Based Installer)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hcp/">Run the Playbooks (HostedControlPlane)</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">ABI LPAR Configuration</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#key-differences-kvm-vs-lpar">Key Differences: KVM vs LPAR</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#how-it-works">How It Works</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#automatic-rootdevicehints-generation">Automatic rootDeviceHints Generation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#configuration-flow">Configuration Flow</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#configuration-requirements">Configuration Requirements</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#1-set-installation-type">1. Set Installation Type</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2-configure-lpar-storage-in-host-vars">2. Configure LPAR Storage in Host Vars</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-example-for-multiple-nodes">3. Example for Multiple Nodes</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#generated-agent-configyaml-example">Generated agent-config.yaml Example</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#for-lpar-installation">For LPAR Installation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#for-kvm-installation-no-rootdevicehints">For KVM Installation (No rootDeviceHints)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#running-the-playbooks">Running the Playbooks</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#complete-lpar-abi-installation">Complete LPAR ABI Installation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#individual-playbooks">Individual Playbooks</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#issue-rootdevicehints-not-appearing-in-agent-configyaml">Issue: rootDeviceHints not appearing in agent-config.yaml</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#issue-wrong-device-path-in-rootdevicehints">Issue: Wrong device path in rootDeviceHints</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#issue-template-fails-to-load-host_vars">Issue: Template fails to load host_vars</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#dasd-storage-support">DASD Storage Support</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#references">References</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Misc</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgements/">Acknowledgements</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Installation Instructions</li>
+      <li class="breadcrumb-item active">ABI LPAR Configuration</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/abi-lpar-configuration.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="agent-based-installer-abi-for-lpar-installations">Agent-Based Installer (ABI) for LPAR Installations<a class="headerlink" href="#agent-based-installer-abi-for-lpar-installations" title="Permanent link">#</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<blockquote>
+<p><strong>⚠️ Important Note</strong>: This guide focuses specifically on the LPAR-specific <code>rootDeviceHints</code> configuration. For a complete setup, you must also configure all other required variables. See:
+- <strong>Complete Variable Reference</strong>: <a href="../set-variables-group-vars/">set-variables-group-vars.md</a> and <a href="../set-variables-host-vars/">set-variables-host-vars.md</a>
+- <strong>Quick Start Guide</strong>: <a href="../ABI_LPAR_QUICK_REFERENCE/">ABI_LPAR_QUICK_REFERENCE.md</a>
+- <strong>Full Setup Instructions</strong>: <a href="../run-the-playbooks-for-abi/">run-the-playbooks-for-abi.md</a></p>
+</blockquote>
+<p>This guide explains how to use Agent-Based Installer (ABI) for LPAR-based OpenShift installations on IBM Z/LinuxONE. The key difference between KVM and LPAR installations is the requirement for <code>rootDeviceHints</code> in the agent-config.yaml file.</p>
+<h2 id="key-differences-kvm-vs-lpar">Key Differences: KVM vs LPAR<a class="headerlink" href="#key-differences-kvm-vs-lpar" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>KVM Installation</th>
+<th>LPAR Installation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rootDeviceHints</code></td>
+<td>Not required</td>
+<td><strong>Required</strong> for FCP storage</td>
+</tr>
+<tr>
+<td>Storage Configuration</td>
+<td>Virtual disks</td>
+<td>Physical FCP/DASD storage</td>
+</tr>
+<tr>
+<td>Device Path</td>
+<td>Automatic</td>
+<td>Must specify exact device path</td>
+</tr>
+</tbody>
+</table>
+<h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">#</a></h2>
+<h3 id="automatic-rootdevicehints-generation">Automatic rootDeviceHints Generation<a class="headerlink" href="#automatic-rootdevicehints-generation" title="Permanent link">#</a></h3>
+<p>When <code>installation_type: lpar</code> is set, the automation will:</p>
+<ol>
+<li>Read each node's host_vars file (e.g., <code>host_vars/control-1.yaml</code>)</li>
+<li>Extract FCP storage configuration from <code>lpar.storage_group_1</code></li>
+<li>Automatically generate <code>rootDeviceHints</code> in agent-config.yaml</li>
+<li>Use the format: <code>/dev/disk/by-path/ccw-0.0.{dev_num}-fc-{wwpn}-lun-{lun_name}</code></li>
+</ol>
+<h3 id="configuration-flow">Configuration Flow<a class="headerlink" href="#configuration-flow" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code>┌─────────────────────────────────────────────────────────────┐
+│ Step 1: Configure host_vars for each LPAR node             │
+│ File: inventories/default/host_vars/control-1.yaml         │
+│                                                             │
+│ lpar:                                                       │
+│   storage_group_1:                                          │
+│     type: fcp                                               │
+│     dev_num: &quot;1a00&quot;                                         │
+│     storage_wwpn:                                           │
+│       - &quot;0x500507680b2a5f7e&quot;                                │
+│     lun_name: &quot;0x4000000000000000&quot;                          │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│ Step 2: Set installation_type in all.yaml                  │
+│ File: inventories/default/group_vars/all.yaml              │
+│                                                             │
+│ installation_type: lpar                                     │
+│ abi:                                                        │
+│   flag: True                                                │
+│   boot_method: pxe                           │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│ Step 3: Template generates agent-config.yaml               │
+│ Role: prepare_configs                                       │
+│                                                             │
+│ hosts:                                                      │
+│   - hostname: &quot;control-1&quot;                                   │
+│     role: master                                            │
+│     rootDeviceHints:                                        │
+│       deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-       │
+│                   0x500507680b2a5f7e-lun-0x4000000000000000│
+└─────────────────────────────────────────────────────────────┘
+</code></pre>
+
+<h2 id="configuration-requirements">Configuration Requirements<a class="headerlink" href="#configuration-requirements" title="Permanent link">#</a></h2>
+<h3 id="1-set-installation-type">1. Set Installation Type<a class="headerlink" href="#1-set-installation-type" title="Permanent link">#</a></h3>
+<p>In <code>inventories/default/group_vars/all.yaml</code>:</p>
+<pre class="codehilite"><code class="language-yaml">installation_type: lpar
+
+abi:
+  flag: True
+  ansible_workdir: 'ansible_workdir'
+  ocp_installer_version: '4.18.8'
+  ocp_installer_base_url: 'https://mirror.openshift.com/pub/openshift-v4'
+  architecture: multi  # or s390x
+  boot_method: pxe
+</code></pre>
+
+<h3 id="2-configure-lpar-storage-in-host-vars">2. Configure LPAR Storage in Host Vars<a class="headerlink" href="#2-configure-lpar-storage-in-host-vars" title="Permanent link">#</a></h3>
+<p>For <strong>each</strong> LPAR node (control and compute), create/update the host_vars file:</p>
+<p><strong>File</strong>: <code>inventories/default/host_vars/control-1.yaml</code></p>
+<pre class="codehilite"><code class="language-yaml"># ... other configuration ...
+
+lpar:
+  storage_group_1:
+    name: storage_group_1
+    type: fcp  # FCP storage (Fibre Channel Protocol)
+    storage_wwpn:
+      - &quot;0x500507680b2a5f7e&quot;  # Primary WWPN
+      - &quot;0x500507680b2a5f7f&quot;  # Additional WWPNs for multipath
+      - &quot;0x500507680b2a5f80&quot;
+      - &quot;0x500507680b2a5f81&quot;
+    dev_num: &quot;1a00&quot;              # FCP device number
+    lun_name: &quot;0x4000000000000000&quot;  # LUN ID
+</code></pre>
+
+<p><strong>Important Notes</strong>:
+- Only the <strong>first WWPN</strong> (<code>storage_wwpn[0]</code>) is used for rootDeviceHints
+- All WWPNs are used for multipath configuration during boot
+- The <code>dev_num</code> should be the FCP adapter device number (without "0.0." prefix)
+- The <code>lun_name</code> is the LUN identifier in hexadecimal format</p>
+<h3 id="3-example-for-multiple-nodes">3. Example for Multiple Nodes<a class="headerlink" href="#3-example-for-multiple-nodes" title="Permanent link">#</a></h3>
+<p><strong>Control Node 1</strong>: <code>host_vars/control-1.yaml</code></p>
+<pre class="codehilite"><code class="language-yaml">lpar:
+  storage_group_1:
+    type: fcp
+    dev_num: &quot;1a00&quot;
+    storage_wwpn:
+      - &quot;0x500507680b2a5f7e&quot;
+    lun_name: &quot;0x4000000000000000&quot;
+</code></pre>
+
+<p><strong>Control Node 2</strong>: <code>host_vars/control-2.yaml</code></p>
+<pre class="codehilite"><code class="language-yaml">lpar:
+  storage_group_1:
+    type: fcp
+    dev_num: &quot;1a00&quot;
+    storage_wwpn:
+      - &quot;0x500507680b2a5f7e&quot;
+    lun_name: &quot;0x4001000000000000&quot;  # Different LUN
+</code></pre>
+
+<p><strong>Compute Node 1</strong>: <code>host_vars/compute-1.yaml</code></p>
+<pre class="codehilite"><code class="language-yaml">lpar:
+  storage_group_1:
+    type: fcp
+    dev_num: &quot;1a00&quot;
+    storage_wwpn:
+      - &quot;0x500507680b2a5f7e&quot;
+    lun_name: &quot;0x4002000000000000&quot;  # Different LUN
+</code></pre>
+
+<h2 id="generated-agent-configyaml-example">Generated agent-config.yaml Example<a class="headerlink" href="#generated-agent-configyaml-example" title="Permanent link">#</a></h2>
+<h3 id="for-lpar-installation">For LPAR Installation<a class="headerlink" href="#for-lpar-installation" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-yaml">apiVersion: v1alpha1
+kind: AgentConfig
+metadata:
+  name: ocp-cluster
+rendezvousIP: 
+
+hosts:
+  - hostname: &quot;control-1&quot;
+    role: master
+    rootDeviceHints:
+      deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4000000000000000
+    interfaces:
+      - name: eth0
+        macAddress: &quot;&quot;
+    networkConfig:
+      # ... network configuration ...
+
+  - hostname: &quot;control-2&quot;
+    role: master
+    rootDeviceHints:
+      deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4001000000000000
+    interfaces:
+      - name: eth0
+        macAddress: &quot;&quot;
+    networkConfig:
+      # ... network configuration ...
+
+  - hostname: &quot;compute-1&quot;
+    role: worker
+    rootDeviceHints:
+      deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4002000000000000
+    interfaces:
+      - name: eth0
+        macAddress: &quot;&quot;
+    networkConfig:
+      # ... network configuration ...
+</code></pre>
+
+<h3 id="for-kvm-installation-no-rootdevicehints">For KVM Installation (No rootDeviceHints)<a class="headerlink" href="#for-kvm-installation-no-rootdevicehints" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-yaml">apiVersion: v1alpha1
+kind: AgentConfig
+metadata:
+  name: ocp-cluster
+rendezvousIP: 
+
+hosts:
+  - hostname: &quot;control-1&quot;
+    role: master
+    # No rootDeviceHints for KVM
+    interfaces:
+      - name: eth0
+        macAddress: &quot;&quot;
+    networkConfig:
+      # ... network configuration ...
+</code></pre>
+
+<h2 id="running-the-playbooks">Running the Playbooks<a class="headerlink" href="#running-the-playbooks" title="Permanent link">#</a></h2>
+<h3 id="complete-lpar-abi-installation">Complete LPAR ABI Installation<a class="headerlink" href="#complete-lpar-abi-installation" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-bash"># Run the master playbook for ABI
+ansible-playbook playbooks/master_playbook_for_abi.yaml
+</code></pre>
+
+<p>This will:
+1. Setup the environment (playbook 0)
+2. Skip KVM host setup (only for installation_type: kvm)
+3. Create bastion (playbook 4)
+4. Setup bastion (playbook 5)
+5. Create ABI cluster with rootDeviceHints for LPAR (create_abi_cluster.yaml)
+6. Monitor installation (monitor_create_abi_cluster.yaml)</p>
+<h3 id="individual-playbooks">Individual Playbooks<a class="headerlink" href="#individual-playbooks" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-bash"># 1. Setup bastion (same for KVM and LPAR)
+ansible-playbook playbooks/4_create_bastion.yaml
+ansible-playbook playbooks/5_setup_bastion.yaml
+
+# 2. Create ABI cluster (generates agent-config.yaml with rootDeviceHints for LPAR)
+ansible-playbook playbooks/create_abi_cluster.yaml
+
+# 3. Monitor installation
+ansible-playbook playbooks/monitor_create_abi_cluster.yaml
+</code></pre>
+
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
+<h3 id="issue-rootdevicehints-not-appearing-in-agent-configyaml">Issue: rootDeviceHints not appearing in agent-config.yaml<a class="headerlink" href="#issue-rootdevicehints-not-appearing-in-agent-configyaml" title="Permanent link">#</a></h3>
+<p><strong>Check</strong>:
+1. Verify <code>installation_type: lpar</code> is set in <code>all.yaml</code>
+2. Ensure each node's host_vars file exists and has <code>lpar.storage_group_1</code> configured
+3. Verify <code>lpar.storage_group_1.type: fcp</code> is set
+4. Check that node names in <code>env.cluster.nodes.control.vm_name</code> match host_vars filenames</p>
+<h3 id="issue-wrong-device-path-in-rootdevicehints">Issue: Wrong device path in rootDeviceHints<a class="headerlink" href="#issue-wrong-device-path-in-rootdevicehints" title="Permanent link">#</a></h3>
+<p><strong>Verify</strong>:
+- <code>dev_num</code> format: Should be without "0.0." prefix (e.g., "1a00" not "0.0.1a00")
+- <code>storage_wwpn[0]</code> format: Should include "0x" prefix (e.g., "0x500507680b2a5f7e")
+- <code>lun_name</code> format: Should include "0x" prefix (e.g., "0x4000000000000000")</p>
+<h3 id="issue-template-fails-to-load-host_vars">Issue: Template fails to load host_vars<a class="headerlink" href="#issue-template-fails-to-load-host_vars" title="Permanent link">#</a></h3>
+<p><strong>Solution</strong>:
+Ensure host_vars files are named exactly as specified in <code>env.cluster.nodes.control.vm_name</code> and <code>env.cluster.nodes.compute.vm_name</code> arrays.</p>
+<p>Example:</p>
+<pre class="codehilite"><code class="language-yaml"># In all.yaml
+env:
+  cluster:
+    nodes:
+      control:
+        vm_name:
+          - control-1  # Must match: host_vars/control-1.yaml
+          - control-2  # Must match: host_vars/control-2.yaml
+</code></pre>
+
+<h2 id="dasd-storage-support">DASD Storage Support<a class="headerlink" href="#dasd-storage-support" title="Permanent link">#</a></h2>
+<p>Currently, the implementation focuses on FCP storage. For DASD storage:</p>
+<pre class="codehilite"><code class="language-yaml">lpar:
+  storage_group_1:
+    type: dasd
+    dev_num: &quot;0190&quot;
+</code></pre>
+
+<p>The rootDeviceHints for DASD would be:</p>
+<pre class="codehilite"><code class="language-yaml">rootDeviceHints:
+  deviceName: /dev/dasda
+</code></pre>
+
+<p><strong>Note</strong>: DASD support for ABI rootDeviceHints can be added if needed. Contact the maintainers for implementation.</p>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">#</a></h2>
+<p>✅ <strong>For KVM</strong>: No changes needed, rootDeviceHints are automatically excluded<br />
+✅ <strong>For LPAR</strong>: Set <code>installation_type: lpar</code> and configure <code>lpar.storage_group_1</code> in each node's host_vars<br />
+✅ <strong>Automatic</strong>: Template generates correct rootDeviceHints based on FCP storage configuration<br />
+✅ <strong>Reusable</strong>: Same storage configuration used for both booting and ABI installation  </p>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">#</a></h2>
+<ul>
+<li><a href="https://docs.openshift.com/container-platform/latest/installing/installing_with_agent_based_installer/preparing-to-install-with-agent-based-installer.html">OpenShift Agent-Based Installer Documentation</a></li>
+<li><a href="https://www.ibm.com/docs/en/linux-on-systems?topic=devices-fibre-channel-protocol">IBM Z Storage Configuration</a></li>
+<li><a href="https://ibm.github.io/Ansible-OpenShift-Provisioning/">Main Project Documentation</a></li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../run-the-playbooks-for-hcp/" class="btn btn-neutral float-left" title="Run the Playbooks (HostedControlPlane)"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../troubleshooting/" class="btn btn-neutral float-right" title="Troubleshooting">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright © 2022 IBM zSystems Washington Systems Center</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../run-the-playbooks-for-hcp/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../troubleshooting/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

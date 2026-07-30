@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/ABI_LPAR_QUICK_REFERENCE/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>ABI LPAR Quick Reference Card - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../stylesheets/extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "ABI LPAR Quick Reference Card";
+        var mkdocs_page_input_path = "ABI_LPAR_QUICK_REFERENCE.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/ABI_LPAR_QUICK_REFERENCE/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/ansible-logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Read Me</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../before-you-begin/">Before You Begin</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../prerequisites/">Prerequisites</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation Instructions</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-abi/">Run the Playbooks (Agent-Based Installer)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hcp/">Run the Playbooks (HostedControlPlane)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../abi-lpar-configuration/">ABI LPAR Configuration</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Misc</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgements/">Acknowledgements</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">ABI LPAR Quick Reference Card</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/ABI_LPAR_QUICK_REFERENCE.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="abi-lpar-quick-reference-card">ABI LPAR Quick Reference Card<a class="headerlink" href="#abi-lpar-quick-reference-card" title="Permanent link">#</a></h1>
+<h2 id="quick-start">🚀 Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
+<h3 id="step-1-set-installation-type">Step 1: Set Installation Type<a class="headerlink" href="#step-1-set-installation-type" title="Permanent link">#</a></h3>
+<p><strong>File</strong>: <code>inventories/default/group_vars/all.yaml</code></p>
+<pre class="codehilite"><code class="language-yaml">installation_type: lpar
+
+abi:
+  flag: True
+  boot_method: pxe
+</code></pre>
+
+<h3 id="step-2-configure-storage-for-each-node">Step 2: Configure Storage for Each Node<a class="headerlink" href="#step-2-configure-storage-for-each-node" title="Permanent link">#</a></h3>
+<p><strong>File</strong>: <code>inventories/default/host_vars/{node-name}.yaml</code></p>
+<pre class="codehilite"><code class="language-yaml">lpar:
+  storage_group_1:
+    type: fcp
+    dev_num: &quot;1a00&quot;
+    storage_wwpn:
+      - &quot;0x500507680b2a5f7e&quot;
+    lun_name: &quot;0x4000000000000000&quot;
+</code></pre>
+
+<h3 id="step-3-run-playbook">Step 3: Run Playbook<a class="headerlink" href="#step-3-run-playbook" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-bash">ansible-playbook playbooks/master_playbook_for_abi.yaml
+</code></pre>
+
+<hr />
+<h2 id="configuration-checklist">📋 Configuration Checklist<a class="headerlink" href="#configuration-checklist" title="Permanent link">#</a></h2>
+<ul>
+<li>[ ] Set <code>installation_type: lpar</code> in all.yaml</li>
+<li>[ ] Set <code>abi.flag: True</code> in all.yaml</li>
+<li>[ ] Configure <code>lpar.storage_group_1</code> in each node's host_vars</li>
+<li>[ ] Verify <code>storage_group_1.type: fcp</code></li>
+<li>[ ] Ensure dev_num, storage_wwpn, and lun_name are set</li>
+<li>[ ] Node names in all.yaml match host_vars filenames</li>
+</ul>
+<hr />
+<h2 id="storage-configuration-format">🔧 Storage Configuration Format<a class="headerlink" href="#storage-configuration-format" title="Permanent link">#</a></h2>
+<h3 id="required-fields">Required Fields<a class="headerlink" href="#required-fields" title="Permanent link">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dev_num</code></td>
+<td>4-digit hex (no prefix)</td>
+<td><code>"1a00"</code></td>
+</tr>
+<tr>
+<td><code>storage_wwpn[0]</code></td>
+<td>Hex with 0x prefix</td>
+<td><code>"0x500507680b2a5f7e"</code></td>
+</tr>
+<tr>
+<td><code>lun_name</code></td>
+<td>Hex with 0x prefix</td>
+<td><code>"0x4000000000000000"</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="generated-device-path">Generated Device Path<a class="headerlink" href="#generated-device-path" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code>/dev/disk/by-path/ccw-0.0.{dev_num}-fc-{wwpn}-lun-{lun_name}
+</code></pre>
+
+<p><strong>Example Output</strong>:</p>
+<pre class="codehilite"><code>/dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4000000000000000
+</code></pre>
+
+<hr />
+<h2 id="example-configurations">📝 Example Configurations<a class="headerlink" href="#example-configurations" title="Permanent link">#</a></h2>
+<h3 id="control-node">Control Node<a class="headerlink" href="#control-node" title="Permanent link">#</a></h3>
+<p><strong>File</strong>: <code>host_vars/control-1.yaml</code></p>
+<pre class="codehilite"><code class="language-yaml">lpar:
+  storage_group_1:
+    name: storage_group_1
+    type: fcp
+    storage_wwpn:
+      - &quot;0x500507680b2a5f7e&quot;
+      - &quot;0x500507680b2a5f7f&quot;
+    dev_num: &quot;1a00&quot;
+    lun_name: &quot;0x4000000000000000&quot;
+</code></pre>
+
+<h3 id="compute-node">Compute Node<a class="headerlink" href="#compute-node" title="Permanent link">#</a></h3>
+<p><strong>File</strong>: <code>host_vars/compute-1.yaml</code></p>
+<pre class="codehilite"><code class="language-yaml">lpar:
+  storage_group_1:
+    name: storage_group_1
+    type: fcp
+    storage_wwpn:
+      - &quot;0x500507680b2a5f7e&quot;
+      - &quot;0x500507680b2a5f7f&quot;
+    dev_num: &quot;1a00&quot;
+    lun_name: &quot;0x4002000000000000&quot;  # Different LUN
+</code></pre>
+
+<hr />
+<h2 id="verification">🔍 Verification<a class="headerlink" href="#verification" title="Permanent link">#</a></h2>
+<h3 id="check-generated-agent-configyaml">Check Generated agent-config.yaml<a class="headerlink" href="#check-generated-agent-configyaml" title="Permanent link">#</a></h3>
+<p><strong>Location</strong>: <code>~/ansible_workdir/agent-config.yaml</code> on bastion</p>
+<p><strong>Expected for LPAR</strong>:</p>
+<pre class="codehilite"><code class="language-yaml">hosts:
+  - hostname: &quot;control-1&quot;
+    role: master
+    rootDeviceHints:
+      deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-...
+</code></pre>
+
+<p><strong>Expected for KVM</strong>:</p>
+<pre class="codehilite"><code class="language-yaml">hosts:
+  - hostname: &quot;control-1&quot;
+    role: master
+    # No rootDeviceHints
+</code></pre>
+
+<hr />
+<h2 id="common-issues">⚠️ Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">#</a></h2>
+<h3 id="issue-no-rootdevicehints-in-agent-configyaml">Issue: No rootDeviceHints in agent-config.yaml<a class="headerlink" href="#issue-no-rootdevicehints-in-agent-configyaml" title="Permanent link">#</a></h3>
+<p><strong>Solution</strong>:
+- ✅ Verify <code>installation_type: lpar</code>
+- ✅ Check <code>lpar.storage_group_1.type: fcp</code>
+- ✅ Ensure host_vars file exists for each node</p>
+<h3 id="issue-wrong-device-path">Issue: Wrong device path<a class="headerlink" href="#issue-wrong-device-path" title="Permanent link">#</a></h3>
+<p><strong>Solution</strong>:
+- ✅ dev_num: Use "1a00" NOT "0.0.1a00"
+- ✅ wwpn: Include "0x" prefix
+- ✅ lun_name: Include "0x" prefix</p>
+<h3 id="issue-template-error-loading-host_vars">Issue: Template error loading host_vars<a class="headerlink" href="#issue-template-error-loading-host_vars" title="Permanent link">#</a></h3>
+<p><strong>Solution</strong>:
+- ✅ Node name in <code>env.cluster.nodes.control.vm_name</code> must match host_vars filename
+- ✅ Example: <code>vm_name: control-1</code> → file: <code>host_vars/control-1.yaml</code></p>
+<hr />
+<h2 id="key-differences-kvm-vs-lpar">🎯 Key Differences: KVM vs LPAR<a class="headerlink" href="#key-differences-kvm-vs-lpar" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>KVM</th>
+<th>LPAR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>rootDeviceHints</td>
+<td>❌ Not needed</td>
+<td>✅ Required</td>
+</tr>
+<tr>
+<td>Storage Config</td>
+<td>Virtual disks</td>
+<td>FCP/DASD</td>
+</tr>
+<tr>
+<td>Device Path</td>
+<td>Auto-detected</td>
+<td>Must specify</td>
+</tr>
+<tr>
+<td>host_vars Required</td>
+<td>Optional</td>
+<td><strong>Required</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="related-documentation">📚 Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Full Guide</strong>: <code>docs/abi-lpar-configuration.md</code></li>
+<li><strong>Implementation Details</strong>: <code>docs/IMPLEMENTATION_SUMMARY_ABI_LPAR.md</code></li>
+<li><strong>Main Docs</strong>: https://ibm.github.io/Ansible-OpenShift-Provisioning/</li>
+</ul>
+<hr />
+<h2 id="playbook-flow">🔗 Playbook Flow<a class="headerlink" href="#playbook-flow" title="Permanent link">#</a></h2>
+<pre class="codehilite"><code>master_playbook_for_abi.yaml
+  ├─ 0_setup.yaml (Setup environment)
+  ├─ 4_create_bastion.yaml (Create bastion)
+  ├─ 5_setup_bastion.yaml (Setup bastion)
+  ├─ create_abi_cluster.yaml
+  │   ├─ prepare_configs (Generate agent-config.yaml with rootDeviceHints)
+  │   ├─ create_agent (Generate installation images)
+  │   └─ boot_abi_agents (Boot nodes)
+  └─ monitor_create_abi_cluster.yaml (Monitor installation)
+</code></pre>
+
+<hr />
+<h2 id="pro-tips">💡 Pro Tips<a class="headerlink" href="#pro-tips" title="Permanent link">#</a></h2>
+<ol>
+<li><strong>Reuse Configuration</strong>: The same <code>lpar.storage_group_1</code> is used for both booting and ABI installation</li>
+<li><strong>Multiple Nodes</strong>: Each node can have different storage configuration</li>
+<li><strong>Multipath</strong>: List all WWPNs in <code>storage_wwpn</code> array, but only first is used for rootDeviceHints</li>
+<li><strong>Validation</strong>: Check generated agent-config.yaml before running create_agent role</li>
+</ol>
+<hr />
+<h2 id="need-help">🆘 Need Help?<a class="headerlink" href="#need-help" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Troubleshooting</strong>: See <code>docs/abi-lpar-configuration.md</code> → Troubleshooting section</li>
+<li><strong>GitHub Issues</strong>: https://github.com/IBM/Ansible-OpenShift-Provisioning/issues</li>
+<li><strong>Documentation</strong>: https://ibm.github.io/Ansible-OpenShift-Provisioning/</li>
+</ul>
+<hr />
+<p><strong>Version</strong>: 2.3.0+<br />
+<strong>Last Updated</strong>: 2026-04-05</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright © 2022 IBM zSystems Washington Systems Center</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

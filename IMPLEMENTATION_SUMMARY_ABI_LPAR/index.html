@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/IMPLEMENTATION_SUMMARY_ABI_LPAR/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Implementation Summary: ABI Support for LPAR Installations - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../stylesheets/extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Implementation Summary: ABI Support for LPAR Installations";
+        var mkdocs_page_input_path = "IMPLEMENTATION_SUMMARY_ABI_LPAR.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/IMPLEMENTATION_SUMMARY_ABI_LPAR/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/ansible-logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Read Me</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../before-you-begin/">Before You Begin</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../prerequisites/">Prerequisites</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation Instructions</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-abi/">Run the Playbooks (Agent-Based Installer)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hcp/">Run the Playbooks (HostedControlPlane)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../abi-lpar-configuration/">ABI LPAR Configuration</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Misc</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgements/">Acknowledgements</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Implementation Summary: ABI Support for LPAR Installations</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/IMPLEMENTATION_SUMMARY_ABI_LPAR.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="implementation-summary-abi-support-for-lpar-installations">Implementation Summary: ABI Support for LPAR Installations<a class="headerlink" href="#implementation-summary-abi-support-for-lpar-installations" title="Permanent link">#</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<p>This document summarizes the implementation of Agent-Based Installer (ABI) support for LPAR installations with automatic <code>rootDeviceHints</code> generation.</p>
+<h2 id="problem-statement">Problem Statement<a class="headerlink" href="#problem-statement" title="Permanent link">#</a></h2>
+<p>Previously, the ABI automation only worked for KVM installations. LPAR installations require <code>rootDeviceHints</code> in the <code>agent-config.yaml</code> file to specify the exact storage device path for installation. Without this, the OpenShift installer cannot determine which disk to use for installation.</p>
+<h2 id="solution">Solution<a class="headerlink" href="#solution" title="Permanent link">#</a></h2>
+<p>Implemented automatic generation of <code>rootDeviceHints</code> for LPAR installations by:
+1. Leveraging existing FCP storage configuration from node host_vars
+2. Conditionally adding rootDeviceHints based on <code>installation_type</code>
+3. Maintaining backward compatibility with KVM installations</p>
+<h2 id="changes-made">Changes Made<a class="headerlink" href="#changes-made" title="Permanent link">#</a></h2>
+<h3 id="1-template-updates">1. Template Updates<a class="headerlink" href="#1-template-updates" title="Permanent link">#</a></h3>
+<p><strong>File</strong>: <code>roles/prepare_configs/templates/agent-config.yaml.j2</code></p>
+<p><strong>Changes</strong>:
+- Added logic to read each node's host_vars file
+- Extract FCP storage configuration (<code>lpar.storage_group_1</code>)
+- Generate <code>rootDeviceHints</code> with proper device path format
+- Applied to both control and compute nodes
+- Only activated when <code>installation_type: lpar</code> and storage type is FCP</p>
+<p><strong>Key Logic</strong>:</p>
+<pre class="codehilite"><code class="language-jinja2">{%- if installation_type | lower == 'lpar' and 
+      node_vars.lpar.storage_group_1.type | lower == 'fcp' %}
+    rootDeviceHints:
+      deviceName: /dev/disk/by-path/ccw-0.0.{{ dev_num }}-fc-{{ wwpn }}-lun-{{ lun }}
+{%- endif %}
+</code></pre>
+
+<h3 id="2-documentation-updates">2. Documentation Updates<a class="headerlink" href="#2-documentation-updates" title="Permanent link">#</a></h3>
+<p><strong>File</strong>: <code>inventories/default/group_vars/all.yaml.template</code></p>
+<p><strong>Changes</strong>:
+- Added comprehensive comments explaining ABI LPAR configuration
+- Documented how rootDeviceHints are automatically generated
+- Provided example device path format
+- Clarified that KVM installations don't need rootDeviceHints</p>
+<p><strong>File</strong>: <code>inventories/default/host_vars/KVMhostname1-here.yaml.template</code></p>
+<p><strong>Changes</strong>:
+- Added detailed comments in storage_group_1 section
+- Explained dual use: boot configuration AND ABI rootDeviceHints
+- Provided example values and resulting device path
+- Clarified format requirements for dev_num, wwpn, and lun_name</p>
+<h3 id="3-new-documentation">3. New Documentation<a class="headerlink" href="#3-new-documentation" title="Permanent link">#</a></h3>
+<p><strong>File</strong>: <code>docs/abi-lpar-configuration.md</code></p>
+<p><strong>Content</strong>:
+- Complete guide for ABI LPAR installations
+- Configuration flow diagrams
+- Step-by-step setup instructions
+- Example configurations for multiple nodes
+- Comparison between KVM and LPAR installations
+- Troubleshooting section
+- Generated agent-config.yaml examples</p>
+<p><strong>File</strong>: <code>mkdocs.yaml</code></p>
+<p><strong>Changes</strong>:
+- Added link to new ABI LPAR documentation in navigation menu</p>
+<h2 id="technical-details">Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">#</a></h2>
+<h3 id="device-path-format">Device Path Format<a class="headerlink" href="#device-path-format" title="Permanent link">#</a></h3>
+<p>For FCP storage, the device path follows this format:</p>
+<pre class="codehilite"><code>/dev/disk/by-path/ccw-0.0.{dev_num}-fc-{wwpn}-lun-{lun_name}
+</code></pre>
+
+<p><strong>Example</strong>:</p>
+<pre class="codehilite"><code class="language-yaml"># Input from host_vars:
+lpar:
+  storage_group_1:
+    dev_num: &quot;1a00&quot;
+    storage_wwpn:
+      - &quot;0x500507680b2a5f7e&quot;
+    lun_name: &quot;0x4000000000000000&quot;
+
+# Generated rootDeviceHints:
+rootDeviceHints:
+  deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4000000000000000
+</code></pre>
+
+<h3 id="variable-reuse">Variable Reuse<a class="headerlink" href="#variable-reuse" title="Permanent link">#</a></h3>
+<p>The implementation reuses existing LPAR storage configuration:
+- <strong>Existing</strong>: <code>lpar.storage_group_1</code> used for booting LPAR nodes
+- <strong>New</strong>: Same configuration now also used for ABI rootDeviceHints
+- <strong>Benefit</strong>: No new variables needed, consistent configuration</p>
+<h3 id="conditional-logic">Conditional Logic<a class="headerlink" href="#conditional-logic" title="Permanent link">#</a></h3>
+<p>The template uses multiple conditions to ensure correct behavior:</p>
+<ol>
+<li><strong>Installation Type Check</strong>: <code>installation_type | lower == 'lpar'</code></li>
+<li><strong>Storage Type Check</strong>: <code>lpar.storage_group_1.type | lower == 'fcp'</code></li>
+<li><strong>Variable Existence Check</strong>: Ensures lpar.storage_group_1 is defined</li>
+<li><strong>Node Type</strong>: Applied to both control and compute nodes</li>
+</ol>
+<h2 id="backward-compatibility">Backward Compatibility<a class="headerlink" href="#backward-compatibility" title="Permanent link">#</a></h2>
+<p>✅ <strong>KVM Installations</strong>: No changes, rootDeviceHints not added<br />
+✅ <strong>Existing LPAR Boot</strong>: No impact on existing boot_LPAR role<br />
+✅ <strong>zVM Installations</strong>: No changes, continues to work as before<br />
+✅ <strong>Non-ABI Installations</strong>: Not affected, only impacts ABI workflow  </p>
+<h2 id="usage-flow">Usage Flow<a class="headerlink" href="#usage-flow" title="Permanent link">#</a></h2>
+<pre class="codehilite"><code>1. User sets installation_type: lpar in all.yaml
+2. User configures lpar.storage_group_1 in each node's host_vars
+3. User runs: ansible-playbook playbooks/master_playbook_for_abi.yaml
+4. prepare_configs role generates agent-config.yaml with rootDeviceHints
+5. create_agent role generates installation images
+6. Nodes boot and install using specified storage devices
+</code></pre>
+
+<h2 id="testing-recommendations">Testing Recommendations<a class="headerlink" href="#testing-recommendations" title="Permanent link">#</a></h2>
+<h3 id="test-case-1-kvm-installation-no-rootdevicehints">Test Case 1: KVM Installation (No rootDeviceHints)<a class="headerlink" href="#test-case-1-kvm-installation-no-rootdevicehints" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-yaml">installation_type: kvm
+abi:
+  flag: True
+</code></pre>
+
+<p><strong>Expected</strong>: agent-config.yaml generated WITHOUT rootDeviceHints</p>
+<h3 id="test-case-2-lpar-installation-with-fcp-with-rootdevicehints">Test Case 2: LPAR Installation with FCP (With rootDeviceHints)<a class="headerlink" href="#test-case-2-lpar-installation-with-fcp-with-rootdevicehints" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-yaml">installation_type: lpar
+abi:
+  flag: True
+</code></pre>
+
+<p><strong>Expected</strong>: agent-config.yaml generated WITH rootDeviceHints for each node</p>
+<h3 id="test-case-3-multiple-nodes-with-different-storage">Test Case 3: Multiple Nodes with Different Storage<a class="headerlink" href="#test-case-3-multiple-nodes-with-different-storage" title="Permanent link">#</a></h3>
+<ul>
+<li>Control nodes with different LUNs</li>
+<li>Compute nodes with different LUNs
+<strong>Expected</strong>: Each node gets unique rootDeviceHints based on its host_vars</li>
+</ul>
+<h3 id="test-case-4-missing-storage-configuration">Test Case 4: Missing Storage Configuration<a class="headerlink" href="#test-case-4-missing-storage-configuration" title="Permanent link">#</a></h3>
+<ul>
+<li>LPAR installation but host_vars missing storage_group_1
+<strong>Expected</strong>: Template should handle gracefully (no rootDeviceHints added)</li>
+</ul>
+<h2 id="files-modified">Files Modified<a class="headerlink" href="#files-modified" title="Permanent link">#</a></h2>
+<ol>
+<li><code>roles/prepare_configs/templates/agent-config.yaml.j2</code> - Core template logic</li>
+<li><code>inventories/default/group_vars/all.yaml.template</code> - Documentation</li>
+<li><code>inventories/default/host_vars/KVMhostname1-here.yaml.template</code> - Documentation</li>
+<li><code>mkdocs.yaml</code> - Navigation update</li>
+</ol>
+<h2 id="files-created">Files Created<a class="headerlink" href="#files-created" title="Permanent link">#</a></h2>
+<ol>
+<li><code>docs/abi-lpar-configuration.md</code> - Comprehensive user guide</li>
+<li><code>docs/IMPLEMENTATION_SUMMARY_ABI_LPAR.md</code> - This file</li>
+</ol>
+<h2 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">#</a></h2>
+<p>✅ <strong>Automated</strong>: No manual agent-config.yaml editing required<br />
+✅ <strong>Consistent</strong>: Uses same storage config for boot and installation<br />
+✅ <strong>Flexible</strong>: Works with different storage configurations per node<br />
+✅ <strong>Safe</strong>: Only affects LPAR installations, KVM unchanged<br />
+✅ <strong>Documented</strong>: Comprehensive guides and examples provided  </p>
+<h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">#</a></h2>
+<p>Potential improvements for future releases:</p>
+<ol>
+<li><strong>DASD Support</strong>: Add rootDeviceHints for DASD storage type</li>
+<li><strong>Validation</strong>: Add pre-flight checks for storage configuration</li>
+<li><strong>Multi-path</strong>: Support for multiple WWPN paths in rootDeviceHints</li>
+<li><strong>Error Handling</strong>: Enhanced error messages for missing configuration</li>
+</ol>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">#</a></h2>
+<ul>
+<li><a href="https://docs.openshift.com/container-platform/latest/installing/installing_with_agent_based_installer/preparing-to-install-with-agent-based-installer.html">OpenShift Agent-Based Installer</a></li>
+<li><a href="https://www.ibm.com/docs/en/linux-on-systems?topic=devices-fibre-channel-protocol">IBM Z FCP Storage</a></li>
+<li><a href="https://ibm.github.io/Ansible-OpenShift-Provisioning/">Project Documentation</a></li>
+</ul>
+<h2 id="contact">Contact<a class="headerlink" href="#contact" title="Permanent link">#</a></h2>
+<p>For questions or issues related to this implementation:
+- Open an issue on GitHub: https://github.com/IBM/Ansible-OpenShift-Provisioning/issues
+- Refer to the troubleshooting guide: <code>docs/abi-lpar-configuration.md</code></p>
+<hr />
+<p><strong>Implementation Date</strong>: 2026-04-05<br />
+<strong>Version</strong>: 2.3.0+<br />
+<strong>Status</strong>: Complete and Ready for Testing</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright © 2022 IBM zSystems Washington Systems Center</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
