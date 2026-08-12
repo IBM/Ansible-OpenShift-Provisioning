@@ -15,6 +15,7 @@
 **cex_device** | Specify the storage device type used for LUKS encryption. This setting determines enable cex MCO Ignition configuration will be applied. Use in combination with the cex parameter.  [dasd, fcp, virt]
 **regenerate_private_key** | <b>(Optional)</b> Controls whether to regenerate SSH private keys during the setup process. Default value is 'full_idempotence'. For usage inside of pipelines where SSH keys already exist, this value should be set to 'never' to preserve existing keys. See detailed description [here:](https://docs.ansible.com/projects/ansible/latest/collections/community/crypto/openssh_keypair_module.html) | full_idempotence
 **check_nodes_delay** | <b>(Optional)</b> Delay in seconds between retries when checking if control and compute nodes are in 'Ready' state. Used during the check_nodes role execution. Default value is 30 seconds. | 30
+**timeout_node_creation** | <b>(Optional)</b> Timeout in seconds for the virt-install command when creating control and compute nodes. Increase this value on slower environments where node creation takes longer than the default. Default value is 360 seconds. | 360
 
 
 ## 2 - LPAR(s)
