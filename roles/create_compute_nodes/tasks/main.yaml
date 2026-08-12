@@ -64,7 +64,7 @@
     --wait=-1 \
     --noautoconsole \
     {{ cex_hostdev }}
-  timeout: 360
+  timeout: "{{ timeout_node_creation }}"
   loop: "{{ range(0, env.cluster.nodes.compute.hostname | length) | list }}"
   loop_control:
     index_var: i
