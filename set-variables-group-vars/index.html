@@ -200,6 +200,11 @@
 <td style="text-align: left;"><b>(Optional)</b> Delay in seconds between retries when checking if control and compute nodes are in 'Ready' state. Used during the check_nodes role execution. Default value is 30 seconds.</td>
 <td style="text-align: left;">30</td>
 </tr>
+<tr>
+<td style="text-align: left;"><strong>timeout_node_creation</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Timeout in seconds for the virt-install command when creating control and compute nodes. Increase this value on slower environments where node creation takes longer than the default. Default value is 360 seconds.</td>
+<td style="text-align: left;">360</td>
+</tr>
 </tbody>
 </table>
 <h2 id="2-lpars">2 - LPAR(s)<a class="headerlink" href="#2-lpars" title="Permanent link">#</a></h2>
