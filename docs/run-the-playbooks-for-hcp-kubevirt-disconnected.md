@@ -24,7 +24,7 @@ Set `enabled: true` and fill in all registry fields:
 disconnected:
   enabled: true
   registry:
-    url: '<registry-host>:<port>'          # e.g. sno-bastion.sno.com:8443
+    url: '<registry-host>:<port>'          
     ip: '<registry-ip>'
     pull_secret: '<pull-secret-json>'      # auth for the mirror registry only
     mirror_pull_secret: '<pull-secret-json>' # auth for all source registries + mirror
@@ -191,7 +191,7 @@ Applies the disconnected configuration to the management cluster. Executes the
 **Step 1 — Registry CA ConfigMap**
 Creates the `registry-config` ConfigMap in `openshift-config` with the mirror
 registry CA certificate. The ConfigMap key uses `..` in place of `:` for the
-port separator (e.g. `sno-bastion.sno.com..8443`):
+port separator (e.g. `<registry-host>..<port>`):
 
 ```yaml
 apiVersion: v1
