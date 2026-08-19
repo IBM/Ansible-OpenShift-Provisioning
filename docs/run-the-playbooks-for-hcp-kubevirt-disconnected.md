@@ -272,20 +272,27 @@ Creates the Hosted Control Plane cluster. Key steps in the `create_hcp_kubevirt`
 ```
 
 **`hcp create cluster kubevirt` command** with disconnected flags:
+
+> **Note:** File paths are resolved at runtime from the home directory of `ansible_user`
+> on the bastion (via `getent passwd`).
+> `<bastion-workdir>` = `~<ansible_user>/ansible_workdir`
+> `<bastion-ssh-dir>` = `~<ansible_user>/.ssh`
+
 ```bash
 hcp create cluster kubevirt \
   --name=<cluster-name> \
-  --namespace=<namespace> \
-  --arch=s390x \
-  --pull-secret=/root/ansible_workdir/auth_file \
-  --base-domain=<base-domain> \
-  --image-content-sources /root/ansible_workdir/icsp.yaml \
-  --release-image=<registry-url>/openshift/release-images:<ocp-release-image> \
-  --additional-trust-bundle /root/ansible_workdir/mirror-registry-ca.crt \
-  --olm-disable-default-sources \
-  --control-plane-availability-policy SingleReplica \
-  --infra-availability-policy SingleReplica \
   --node-pool-replicas=<compute-count> \
+  --arch=s390x \
+  --pull-secret=<bastion-workdir>/auth_file \
+  --namespace=<namespace> \
+  --base-domain=<base-domain> \
+  --ssh-key <bastion-ssh-dir>/<ansible_key_name>.pub \
+  --control-plane-availability-policy SingleReplica \   # only when high_availability: false
+  --infra-availability-policy SingleReplica \
+  --image-content-sources <bastion-workdir>/icsp.yaml \
+  --release-image=<registry-url>/openshift/release-images:<ocp-release-image> \
+  --additional-trust-bundle <bastion-workdir>/mirror-registry-ca.crt \
+  --olm-disable-default-sources \
   --memory=<memory> \
   --cores=<cores> \
   --root-volume-size=<root-volume-size>
