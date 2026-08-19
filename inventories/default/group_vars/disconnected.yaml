@@ -19,7 +19,7 @@ disconnected:
       name:
       ip: x.x.x.x
       user: mirroruser # with become access
-      pass: mirrorpassword
+      pass: "{{ vault_mirror_host_pass }}"
     # In disconnected mode client binaries and RHCOS will be placed on the
     # file server (env.file_server) and then downloaded to the final
     # destination from there. Currently only oc-mirror is handled this way.

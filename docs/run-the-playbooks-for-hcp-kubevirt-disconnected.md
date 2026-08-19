@@ -10,7 +10,7 @@ This guide covers the end-to-end steps to install a Hosted Control Plane (HCP) o
 - A mirror registry (e.g. Quay) is running and accessible from the bastion and the management cluster.
 - The bastion host is reachable via SSH from the Ansible controller.
 - `oc` CLI is installed on the bastion.
-- `oc-mirror` v2 plugin is installed on the mirror host (bastion).
+- `oc-mirror` v2 plugin is installed on the mirror host. The mirror host can be the bastion itself or a separate dedicated host.
 
 ---
 
@@ -38,7 +38,12 @@ disconnected:
       name: <mirror-host-name>
       ip: <mirror-host-ip>
       user: root
-    cluster_resources_dir: /root/ocpinst_disconnected/working-dir/cluster-resources
+    # cluster_resources_dir is optional — auto-derived as:
+    #   <mirror-user-home>/ocpinst_disconnected/working-dir/cluster-resources
+    # Set explicitly only if oc-mirror wrote to a non-standard path, or if the
+    # mirror host is separate from the bastion and the files have been copied to
+    # a path accessible from the bastion.
+    # cluster_resources_dir: /custom/path/to/cluster-resources
     oc_mirror:
       image_set:
         apiVersion: mirror.openshift.io/v2alpha1
@@ -56,9 +61,16 @@ disconnected:
                 - name: kubevirt-hyperconverged
 ```
 
-> **Note:** `cluster_resources_dir` is where `oc-mirror v2` writes the cluster manifests
-> (`idms-*.yaml`, `itms-*.yaml`, `cs-*.yaml`) after mirroring. Default:
-> `/root/ocpinst_disconnected/working-dir/cluster-resources`
+> **Note:** `cluster_resources_dir` is **optional**. When not set, the path is
+> auto-derived as `<mirror-user-home>/ocpinst_disconnected/working-dir/cluster-resources`,
+> where `<mirror-user-home>` is the home directory of `disconnected.mirroring.host.user`
+> resolved via `getent` **on the mirror host** (using Ansible `delegate_to`). This works
+> whether the mirror host is the same machine as the bastion or a separate host.
+>
+> Set this explicitly only when:
+> - `oc-mirror` wrote its output to a non-standard path, **or**
+> - The mirror host is separate from the bastion and the `cluster-resources` files
+>   have been copied/mounted to a specific path accessible from the bastion.
 
 ---
 
@@ -81,7 +93,7 @@ hcp:
   metallb:
     version: stable
     ip_pool:
-      - <ip-range>                  # e.g. 172.23.232.232-172.23.232.234
+      - <ip-range>                  # e.g. x.x.x.x-x.x.x.x
     catalogsource_image: ""         # Leave empty — disconnected CatalogSource is used
 
   ocpvirt:
@@ -160,7 +172,8 @@ Sets up the Ansible inventory and SSH key configuration for the bastion.
 Runs `oc-mirror v2` on the mirror host to mirror all required images to the local registry.
 
 After mirroring completes, the following cluster manifests are written to
-`/root/ocpinst_disconnected/working-dir/cluster-resources/` on the bastion:
+`<mirror-user-home>/ocpinst_disconnected/working-dir/cluster-resources/` on the mirror host
+(where `<mirror-user-home>` is the home directory of `disconnected.mirroring.host.user`):
 
 | File | Purpose |
 |---|---|
@@ -187,7 +200,7 @@ metadata:
   name: registry-config
   namespace: openshift-config
 data:
-  sno-bastion.sno.com..8443: |
+  <registry-host>..<port>: |
     -----BEGIN CERTIFICATE-----
     ...
     -----END CERTIFICATE-----
@@ -229,7 +242,7 @@ Before installing operators, a pre-task reads the CatalogSource name from the
 `cluster-resources` directory and sets it as the source for all Subscriptions:
 
 ```
-/root/ocpinst_disconnected/working-dir/cluster-resources/cs-*.yaml
+<mirror-user-home>/ocpinst_disconnected/working-dir/cluster-resources/cs-*.yaml
   → disconnected_catalogsource_name = cs-redhat-operator-index-v4-21
 ```
 

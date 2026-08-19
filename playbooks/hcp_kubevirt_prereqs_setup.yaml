@@ -66,9 +66,31 @@
         state: directory
         mode: '0700'
 
+    - name: Resolve mirroring user home directory on the mirror host
+      ansible.builtin.shell: |
+        set -o pipefail
+        getent passwd {{ disconnected.mirroring.host.user }} | awk -F: '{ print $6 }'
+      changed_when: false
+      register: mirror_user_home
+      delegate_to: "{{ disconnected.mirroring.host.ip }}"
+      vars:
+        ansible_user: "{{ disconnected.mirroring.host.user }}"
+        ansible_ssh_pass: "{{ disconnected.mirroring.host.pass | default(omit) }}"
+      when: disconnected.enabled | default(false)
+
+    - name: Resolve cluster-resources directory path
+      ansible.builtin.set_fact:
+        oc_mirror_cluster_resources_dir: >-
+          {%- if disconnected.mirroring.cluster_resources_dir | default('', true) | length > 0 -%}
+            {{ disconnected.mirroring.cluster_resources_dir }}
+          {%- else -%}
+            {{ mirror_user_home.stdout | trim }}/ocpinst_disconnected/working-dir/cluster-resources
+          {%- endif -%}
+      when: disconnected.enabled | default(false)
+
     - name: Find CatalogSource file in oc-mirror cluster-resources directory
       ansible.builtin.find:
-        paths: "{{ disconnected.mirroring.cluster_resources_dir | default('/root/ocpinst_disconnected/working-dir/cluster-resources', true) }}"
+        paths: "{{ oc_mirror_cluster_resources_dir }}"
         patterns: "cs-*.yaml"
         recurse: false
       register: cs_file_find

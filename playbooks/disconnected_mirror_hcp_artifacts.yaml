@@ -2,6 +2,7 @@
 - name: Add Mirror Host to Inventory
   hosts: localhost
   vars_files:
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
     - "{{ playbook_dir }}/../inventories/default/group_vars/disconnected.yaml"
     - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   tasks:
@@ -10,7 +11,7 @@
         name: "{{ disconnected.mirroring.host.ip }}"
         groups: mirror_host
         ansible_user: "{{ disconnected.mirroring.host.user }}"
-        ansible_ssh_pass: "{{ disconnected.mirroring.host.pass }}"
+        ansible_ssh_pass: "{{ vault_mirror_host_pass }}"
         ansible_connection: ssh
         inventory_dir: "{{ playbook_dir }}/../inventories/default"
       when:

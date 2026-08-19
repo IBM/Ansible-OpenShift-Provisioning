@@ -5,21 +5,48 @@
   block:
     # -------------------------------------------------------------------------
     # Step 0 – Locate the oc-mirror cluster-resources directory.
-    #   oc-mirror v2 writes manifests directly on the bastion at:
-    #     /root/ocpinst_disconnected/working-dir/cluster-resources
-    #   No sync is needed — the bastion IS the mirror host.
+    #   oc-mirror v2 writes manifests under the mirroring user's home directory:
+    #     <user_home>/ocpinst_disconnected/working-dir/cluster-resources
+    #   The lookup is delegated to the mirror host so it works whether the
+    #   mirror host is the same machine as the bastion or a separate host.
+    #   Set disconnected.mirroring.cluster_resources_dir to override entirely.
     # -------------------------------------------------------------------------
+    - name: Resolve bastion user home directory
+      ansible.builtin.shell: |
+        set -o pipefail
+        getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
+      changed_when: false
+      register: bastion_user_home
+
+    - name: Set ansible workdir fact
+      ansible.builtin.set_fact:
+        bastion_workdir: "{{ bastion_user_home.stdout | trim }}/ansible_workdir"
+
     - name: Ensure ansible work directory exists
       ansible.builtin.file:
-        path: /root/ansible_workdir
+        path: "{{ bastion_workdir }}"
         state: directory
         mode: '0755'
+
+    - name: Resolve mirroring user home directory on the mirror host
+      ansible.builtin.shell: |
+        set -o pipefail
+        getent passwd {{ disconnected.mirroring.host.user }} | awk -F: '{ print $6 }'
+      changed_when: false
+      register: mirror_user_home
+      delegate_to: "{{ disconnected.mirroring.host.ip }}"
+      vars:
+        ansible_user: "{{ disconnected.mirroring.host.user }}"
+        ansible_ssh_pass: "{{ disconnected.mirroring.host.pass | default(omit) }}"
 
     - name: Resolve cluster-resources directory path
       ansible.builtin.set_fact:
         oc_mirror_cluster_resources_dir: >-
-          {{ disconnected.mirroring.cluster_resources_dir
-             | default('/root/ocpinst_disconnected/working-dir/cluster-resources', true) }}
+          {%- if disconnected.mirroring.cluster_resources_dir | default('', true) | length > 0 -%}
+            {{ disconnected.mirroring.cluster_resources_dir }}
+          {%- else -%}
+            {{ mirror_user_home.stdout | trim }}/ocpinst_disconnected/working-dir/cluster-resources
+          {%- endif -%}
 
     - name: Verify cluster-resources directory exists
       ansible.builtin.stat:
@@ -49,7 +76,7 @@
 
     - name: Write registry CA certificate ConfigMap to file
       ansible.builtin.copy:
-        dest: /root/ansible_workdir/registry-config-cm.yaml
+        dest: "{{ bastion_workdir }}/registry-config-cm.yaml"
         mode: '0644'
         content: |
           apiVersion: v1
@@ -64,7 +91,7 @@
 
     - name: Apply registry-config ConfigMap to cluster
       ansible.builtin.command:
-        cmd: oc apply -f /root/ansible_workdir/registry-config-cm.yaml
+        cmd: oc apply -f {{ bastion_workdir }}/registry-config-cm.yaml
       register: registry_configmap_apply
       changed_when: "'created' in registry_configmap_apply.stdout or 'configured' in registry_configmap_apply.stdout"
       when: disconnected.registry.ca_cert is defined
@@ -184,7 +211,7 @@
 
     - name: Render CAPI/importer IDMS for disconnected registry
       ansible.builtin.copy:
-        dest: /root/ansible_workdir/idms-capi.yaml
+        dest: "{{ bastion_workdir }}/idms-capi.yaml"
         mode: '0644'
         content: |
           apiVersion: config.openshift.io/v1
@@ -198,7 +225,7 @@
               source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 
     - name: Apply CAPI/importer IDMS to management cluster
-      ansible.builtin.command: oc apply -f /root/ansible_workdir/idms-capi.yaml
+      ansible.builtin.command: oc apply -f {{ bastion_workdir }}/idms-capi.yaml
       register: idms_capi_apply
       changed_when: "'created' in idms_capi_apply.stdout or 'configured' in idms_capi_apply.stdout"
 

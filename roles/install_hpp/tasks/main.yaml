@@ -19,28 +19,39 @@
   when: not hpp_already_present
   block:
 
+    - name: Resolve bastion user home directory
+      ansible.builtin.shell: |
+        set -o pipefail
+        getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
+      changed_when: false
+      register: bastion_user_home
+
+    - name: Set ansible workdir fact
+      ansible.builtin.set_fact:
+        bastion_workdir: "{{ bastion_user_home.stdout | trim }}/ansible_workdir"
+
     - name: Ensure ansible work directory exists
       ansible.builtin.file:
-        path: /root/ansible_workdir
+        path: "{{ bastion_workdir }}"
         state: directory
         mode: '0755'
 
     - name: Render HostPathProvisioner CR
       ansible.builtin.template:
         src: hostpathprovisioner.yaml.j2
-        dest: /root/ansible_workdir/{{ hcp.hpp.name }}-cr.yaml
+        dest: "{{ bastion_workdir }}/{{ hcp.hpp.name }}-cr.yaml"
         mode: '0644'
 
     - name: Apply HostPathProvisioner CR
       ansible.builtin.command:
-        cmd: oc apply -f /root/ansible_workdir/{{ hcp.hpp.name }}-cr.yaml
+        cmd: oc apply -f {{ bastion_workdir }}/{{ hcp.hpp.name }}-cr.yaml
 
     - name: Render StorageClass
       ansible.builtin.template:
         src: hostpath-storageclass.yaml.j2
-        dest: /root/ansible_workdir/{{ hcp.hpp.storageclass_name }}-sc.yaml
+        dest: "{{ bastion_workdir }}/{{ hcp.hpp.storageclass_name }}-sc.yaml"
         mode: '0644'
 
     - name: Apply StorageClass
       ansible.builtin.command:
-        cmd: oc apply -f /root/ansible_workdir/{{ hcp.hpp.storageclass_name }}-sc.yaml
+        cmd: oc apply -f {{ bastion_workdir }}/{{ hcp.hpp.storageclass_name }}-sc.yaml

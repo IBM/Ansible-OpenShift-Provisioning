@@ -19,9 +19,20 @@
 - name: Install and configure ODF
   when: not odf_already_present
   block:
+    - name: Resolve bastion user home directory
+      ansible.builtin.shell: |
+        set -o pipefail
+        getent passwd {{ ansible_user }} | awk -F: '{ print $6 }'
+      changed_when: false
+      register: bastion_user_home
+
+    - name: Set ansible workdir fact
+      ansible.builtin.set_fact:
+        bastion_workdir: "{{ bastion_user_home.stdout | trim }}/ansible_workdir"
+
     - name: Ensure ansible work directory exists
       ansible.builtin.file:
-        path: /root/ansible_workdir
+        path: "{{ bastion_workdir }}"
         state: directory
         mode: '0755'
 
@@ -35,12 +46,12 @@
     - name: Create CatalogSource.yaml from template
       ansible.builtin.template:
         src: CatalogSource.yaml.j2
-        dest: /root/ansible_workdir/odf-CatalogSource.yaml
+        dest: "{{ bastion_workdir }}/odf-CatalogSource.yaml"
         mode: '0644'
       when: (hcp.odf | default({})).catalogsource_image is defined and (hcp.odf | default({})).catalogsource_image | string | length > 0
 
     - name: Deploy CatalogSource
-      ansible.builtin.command: oc apply -f /root/ansible_workdir/odf-CatalogSource.yaml
+      ansible.builtin.command: oc apply -f {{ bastion_workdir }}/odf-CatalogSource.yaml
       when: (hcp.odf | default({})).catalogsource_image is defined and (hcp.odf | default({})).catalogsource_image | string | length > 0
 
     - name: Wait for ODF CatalogSource to be READY
@@ -59,20 +70,20 @@
     - name: Create OperatorGroup.yaml
       ansible.builtin.template:
         src: OperatorGroup.yaml.j2
-        dest: /root/ansible_workdir/odf-OperatorGroup.yaml
+        dest: "{{ bastion_workdir }}/odf-OperatorGroup.yaml"
         mode: '0644'
 
     - name: Deploy OperatorGroup
-      ansible.builtin.command: oc apply -f /root/ansible_workdir/odf-OperatorGroup.yaml
+      ansible.builtin.command: oc apply -f {{ bastion_workdir }}/odf-OperatorGroup.yaml
 
     - name: Create Subscription.yaml
       ansible.builtin.template:
         src: Subscription.yaml.j2
-        dest: /root/ansible_workdir/odf-Subscription.yaml
+        dest: "{{ bastion_workdir }}/odf-Subscription.yaml"
         mode: '0644'
 
     - name: Deploy Subscription for ODF
-      ansible.builtin.command: oc apply -f /root/ansible_workdir/odf-Subscription.yaml
+      ansible.builtin.command: oc apply -f {{ bastion_workdir }}/odf-Subscription.yaml
 
     - name: Wait for ODF operator CSV to be Succeeded
       ansible.builtin.shell: |
@@ -92,7 +103,7 @@
     - name: Create StorageCluster.yaml
       ansible.builtin.template:
         src: StorageCluster.yaml.j2
-        dest: /root/ansible_workdir/odf-StorageCluster.yaml
+        dest: "{{ bastion_workdir }}/odf-StorageCluster.yaml"
         mode: '0644'
 
     - name: Wait for StorageCluster CRD to be available
@@ -116,4 +127,4 @@
       failed_when: false
 
     - name: Deploy StorageCluster
-      ansible.builtin.command: oc apply -f /root/ansible_workdir/odf-StorageCluster.yaml
+      ansible.builtin.command: oc apply -f {{ bastion_workdir }}/odf-StorageCluster.yaml
