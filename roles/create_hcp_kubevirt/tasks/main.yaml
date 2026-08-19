@@ -124,7 +124,7 @@
     cmd: >
       oc wait --timeout=30m
       --for=condition=Available
-      --namespace={{ hcp.control_plane.clusters_namespace }} hostedcluster/{{ hcp.control_plane.hosted_cluster_name }}
+      --namespace={{ hcp.control_plane.clusters_namespace }} hostedclusters.hypershift.openshift.io/{{ hcp.control_plane.hosted_cluster_name }}
 
 - name: Wait for pods to come up in Hosted Control Plane Namespace
   ansible.builtin.shell: |
