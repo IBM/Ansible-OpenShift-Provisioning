@@ -2,6 +2,14 @@
 - name: Setup inventory and SSH keys
   import_playbook: setup_inventory_hcp_kubevirt.yaml
 
+- name: Installing disconneted setup
+  import_playbook: disconnected_mirror_hcp_artifacts.yaml
+  when: disconnected.enabled
+
+- name: Applying manifests
+  import_playbook: disconnected_hcp_kubevirt_setup.yaml
+  when: disconnected.enabled
+
 - name: Run HCP KubeVirt prerequisites setup
   import_playbook: hcp_kubevirt_prereqs_setup.yaml
 

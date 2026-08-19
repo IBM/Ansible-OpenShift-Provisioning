@@ -1,3 +1,3 @@
-search {{ env.cluster.networking.base_domain }}
-nameserver {{ env.bastion.networking.nameserver1 }}
-{{ ('nameserver ' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }}
+search {{ hcp.control_plane.basedomain | default(env.cluster.networking.base_domain) }}
+nameserver {{ hcp.mgmt_cluster_nameserver | default(env.bastion.networking.nameserver1) }}
+{{ ('nameserver ' + env.bastion.networking.nameserver2) if (env is defined and env.bastion.networking.nameserver2 is defined) else '' }}

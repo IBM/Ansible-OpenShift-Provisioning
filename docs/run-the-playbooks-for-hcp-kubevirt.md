@@ -166,7 +166,21 @@ The `mce.catalogsource_image` parameter in `hcp-kubevirt.yaml` is optional:
 - **If empty or not provided**: The MCE operator will be installed from the default Red Hat Operators catalog
 
 
-### FIPS Validation
+### Additional Flags (`control_plane.additional_flags`)
+
+The `additional_flags` parameter in `hcp-kubevirt.yaml` passes extra flags directly to the `hcp create cluster kubevirt` command. Multiple flags can be combined in a single string.
+
+#### HPP storage class when ODF is also installed
+
+By default, the `hcp` CLI selects the first available default StorageClass. If both ODF and HPP are present on the management cluster, you must explicitly tell HCP to use the HPP StorageClass for node root volumes — otherwise ODF's StorageClass will be picked:
+
+```yaml
+control_plane:
+  additional_flags: "--root-volume-storage-class hostpath-csi"
+```
+
+#### FIPS Validation
+
 For FIPS-validated deployments:
 - The management cluster must be installed with FIPS mode enabled
 - In the `hcp-kubevirt.yaml` file, set the `additional_flags` parameter to enable FIPS for the hosted cluster:
@@ -175,3 +189,10 @@ For FIPS-validated deployments:
     additional_flags: "--fips"
   ```
 - The hosted cluster will be created with FIPS mode enabled
+
+#### Combining multiple flags
+
+```yaml
+control_plane:
+  additional_flags: "--fips --root-volume-storage-class hostpath-csi"
+```

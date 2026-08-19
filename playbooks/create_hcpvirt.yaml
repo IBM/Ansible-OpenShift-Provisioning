@@ -3,8 +3,8 @@
 - name: Add Bastion Host to Inventory
   hosts: localhost
   vars_files:
-    - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   tasks:
     - name: Add bastion dynamically
       ansible.builtin.add_host:
@@ -13,14 +13,14 @@
         ansible_user: root
         ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}"
         ansible_connection: ssh
-        inventory_dir: "{{ inventory_dir }}"
+        inventory_dir: "{{ playbook_dir }}/../inventories/default"
 
 # Login to OCP Management Cluster (from bastion)
 - name: Login to OCP Management Cluster
   hosts: mgmt_bastion
   vars_files:
-    - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   vars:
     vault_api_server: "{{ hcp.oc_url }}"
     vault_user_name: "{{ vault_ocp_user }}"
@@ -32,8 +32,8 @@
 - name: Pre HCP Creation - Enable Wildcard DNS Routes
   hosts: mgmt_bastion
   vars_files:
-    - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   become: true
   gather_facts: false
   tasks:
@@ -54,10 +54,15 @@
 - name: Create Hosted Control Plane Cluster
   hosts: mgmt_bastion
   vars_files:
-    - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   become: true
   gather_facts: false
+  pre_tasks:
+    - name: Load disconnected vars if file exists
+      ansible.builtin.include_vars:
+        file: "{{ playbook_dir }}/../inventories/default/group_vars/disconnected.yaml"
+      failed_when: false
   roles:
     - create_hcp_kubevirt
 
@@ -65,8 +70,8 @@
 - name: Post HCP Creation - Extract kubeconfig
   hosts: mgmt_bastion
   vars_files:
-    - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   become: true
   gather_facts: false
   roles:
@@ -75,8 +80,8 @@
 - name: Fetching the HTTP and HTTPS NodePort
   hosts: mgmt_bastion
   vars_files:
-    - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   become: true
   gather_facts: false
   tasks:
@@ -123,11 +128,9 @@
   hosts: mgmt_bastion
   become: true
   gather_facts: false
-
   vars_files:
-    - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
-
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   roles:
     - hcpvirt_loadbalancer_dns
 
@@ -136,7 +139,7 @@
   become: true
   gather_facts: false
   vars_files:
-    - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/group_vars/hcp-kubevirt.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   roles:
     - wait_for_hc_complete
