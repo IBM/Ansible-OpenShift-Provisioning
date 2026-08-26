@@ -16,3 +16,6 @@ install_config_defaults:
   fips: false
 
 rhcos_os_variant: rhl9
+
+# Timeout in seconds for node creation via virt-install
+timeout_node_creation: 620
