@@ -42,7 +42,7 @@ network --bootproto=static --device={{ env.bastion.networking.interface }} --ip=
 {% else %}
 network --bootproto=static --device={{ env.bastion.networking.interface }} --ip={{ env.bastion.networking.ip }} --gateway={{ env.bastion.networking.gateway }} --netmask={{ env.bastion.networking.subnetmask }} {{ '--ipv6=' + bastion_ipv6 if env.use_ipv6 and bastion_ipv6 | length > 0 else '--noipv6' }} {{ '--ipv6gateway=' + bastion_ipv6_gateway if env.use_ipv6 and bastion_ipv6_gateway | length > 0 else '' }} --nameserver={{ env.bastion.networking.nameserver1 }}{{ (',' + bastion_nameserver2) if bastion_nameserver2 | length > 0 else '' }} --activate
 {% endif %}
-network --hostname={{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}
+network --hostname={{ env.bastion.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
 
 # Firewall and SELinux
 firewall --enabled --http --ftp --smtp --ssh --port=443,9090

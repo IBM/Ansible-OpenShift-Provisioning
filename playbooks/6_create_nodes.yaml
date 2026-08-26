@@ -120,13 +120,11 @@
       ignore_errors: true
       when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars
 
-    - name: Undefine bootstrap. Expect ignored errors if bootstrap is already undefined.
+    - name: Undefine bootstrap and remove all storage. Expect ignored errors if already removed.
       tags: create_nodes, teardown_bootstrap
-      community.libvirt.virt:
-        name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
-        command: undefine
+      ansible.builtin.command: >-
+        virsh undefine {{ env.cluster.nodes.bootstrap.vm_name }} --remove-all-storage
       ignore_errors: true
-
 - name: 6 create nodes - once bootstrapping is complete, create compute nodes.
   hosts: kvm_host
   tags: create_compute_nodes
