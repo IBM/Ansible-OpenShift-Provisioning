@@ -242,4 +242,5 @@
     - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   roles:
     - common
-    - { role: get_ocp, when: abi.flag is not defined or abi.flag != True }
+    - role: get_ocp 
+      when: abi.flag is not defined or abi.flag != True

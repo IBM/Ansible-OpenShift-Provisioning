@@ -39,15 +39,24 @@ networking:
 platform:
   none: {}
 fips: {{ install_config_vars.fips }}
-pullSecret: {{ ((env.redhat.pull_secret if not disconnected_enabled else disconnected.registry.pull_secret) if ((env.redhat.pull_secret if not disconnected_enabled else disconnected.registry.pull_secret) is string) else ((env.redhat.pull_secret if not disconnected_enabled else disconnected.registry.pull_secret) | to_json)) | to_json }}
+pullSecret: {{ ((env.redhat.pull_secret if not disconnected_enabled else (disconnected.registry.mirror_pull_secret if (use_pull_through_registry | default(false)) else disconnected.registry.pull_secret)) if ((env.redhat.pull_secret if not disconnected_enabled else (disconnected.registry.mirror_pull_secret if (use_pull_through_registry | default(false)) else disconnected.registry.pull_secret)) is string) else ((env.redhat.pull_secret if not disconnected_enabled else (disconnected.registry.mirror_pull_secret if (use_pull_through_registry | default(false)) else disconnected.registry.pull_secret)) | to_json)) | to_json }}
 {% if disconnected_enabled %}
 {{ 'imageContentSources: ' }}
+{% if use_pull_through_registry | default(false) %}
+{{ '- mirrors:'}}
+{{ '  - ' + disconnected.registry.url + '/' + (disconnected.registry.pull_through.quay_repo | default('quay-io')) + '/openshift-release-dev/ocp-release' }}
+{{ '  source: quay.io/openshift-release-dev/ocp-release' }}
+{{ '- mirrors:'}}
+{{ '  - ' + disconnected.registry.url + '/' + (disconnected.registry.pull_through.quay_repo | default('quay-io')) + '/openshift-release-dev/ocp-v4.0-art-dev' }}
+{{ '  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev' }}
+{% else %}
 {{ '- mirrors:'}}
 {{ '  - ' + disconnected.registry.url + '/' }}{{ disconnected.mirroring.legacy.ocp_org if disconnected.mirroring.legacy.platform else 'openshift' }}{{ '/' }}{{ disconnected.mirroring.legacy.ocp_repo if disconnected.mirroring.legacy.platform else 'release-images' }}
 {{ '  source: quay.io/openshift-release-dev/ocp-release' }}
 {{ '- mirrors:'}}
 {{ '  - ' + disconnected.registry.url + '/' }}{{ disconnected.mirroring.legacy.ocp_org if disconnected.mirroring.legacy.platform else 'openshift' }}{{ '/' }}{{ disconnected.mirroring.legacy.ocp_repo if disconnected.mirroring.legacy.platform else 'release' }}
 {{ '  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev' }}
+{% endif %}
 {% endif %}
 {% if disconnected_enabled and not disconnected.registry.ca_trusted %}
 additionalTrustBundle: |

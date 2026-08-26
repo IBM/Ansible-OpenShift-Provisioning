@@ -41,16 +41,6 @@
     path: /var/www/html/ignition
     state: absent
 
-- name: Create directory bin for mirrors
-  tags: get_ocp
-  become: true
-  ansible.builtin.file:
-    path: /var/www/html/bin
-    state: directory
-    mode: "0755"
-    owner: "root"
-    group: "root"
-
 - name: Delete OCP download directory for idempotency, because ignition files deprecate after 24 hours.
   tags: get_ocp
   become: true
@@ -75,14 +65,14 @@
   when: not disconnected_enabled
   ansible.builtin.get_url:
     url: "{{ _rhcos_url }}{{ rhcos_live_rootfs }}"
-    dest: "/var/www/html/bin/{{ rhcos_live_rootfs }}"
+    dest: "/var/www/html/{{ disconnected.mirroring.file_server.clients_dir }}/{{ rhcos_live_rootfs }}"
     mode: "0644"
 
 - name: Check if RHCOS rootfs exists on local bastion HTTP root in disconnected mode
   tags: get_ocp
   when: disconnected_enabled
   ansible.builtin.stat:
-    path: "/var/www/html/bin/{{ rhcos_live_rootfs }}"
+    path: "/var/www/html/{{ disconnected.mirroring.file_server.clients_dir }}/{{ rhcos_live_rootfs }}"
   register: rhcos_rootfs_stat
 
 - name: Check if RHCOS rootfs exists on configured file server in disconnected mode
@@ -91,7 +81,7 @@
     - disconnected_enabled
     - (env.file_server.ip | default('')) != (env.bastion.networking.ip | default(''))
   ansible.builtin.stat:
-    path: "{{ disconnected.mirroring.file_server.document_root }}/bin/{{ rhcos_live_rootfs }}"
+    path: "{{ disconnected.mirroring.file_server.document_root }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ rhcos_live_rootfs }}"
   delegate_to: "{{ env.file_server.ip }}"
   register: rhcos_rootfs_file_server_stat
 
@@ -104,9 +94,9 @@
   ansible.builtin.fail:
     msg:
       - "RHCOS rootfs file not found for disconnected installation."
-      - "Bastion path checked: /var/www/html/bin/{{ rhcos_live_rootfs }}"
-      - "File server path checked: {{ disconnected.mirroring.file_server.document_root }}/bin/{{ rhcos_live_rootfs }}"
-      - "Disconnected node installation requires this file to be served over HTTP from {{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{ env.file_server.port }}/bin/{{ rhcos_live_rootfs }}"
+      - "Bastion path checked: /var/www/html/{{ disconnected.mirroring.file_server.clients_dir }}/{{ rhcos_live_rootfs }}"
+      - "File server path checked: {{ disconnected.mirroring.file_server.document_root }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ rhcos_live_rootfs }}"
+      - "Disconnected node installation requires this file to be served over HTTP from {{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{ env.file_server.port }}/{{ disconnected.mirroring.file_server.clients_dir }}/{{ rhcos_live_rootfs }}"
       - "Run the flow that includes [roles/disconnected_download_oc_mirror/tasks/main.yaml](roles/disconnected_download_oc_mirror/tasks/main.yaml:78) or manually place the file at the expected location."
 
 - name: Unzip OCP client and installer
@@ -163,7 +153,9 @@
   ansible.builtin.shell: |
     set -o pipefail
     {% if disconnected_enabled %}
-    {% if disconnected.mirroring.legacy.platform %}
+    {% if use_pull_through_registry | default(false) %}
+    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/{{ disconnected.registry.pull_through.quay_repo | default('quay-io') }}/openshift-release-dev/ocp-release:{{ disconnected.mirroring.oc_mirror.release_image_tag }}
+    {% elif disconnected.mirroring.legacy.platform %}
     export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }}:{{ disconnected.mirroring.legacy.ocp_tag }}
     {% else %}
     export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/openshift/release-images:{{ disconnected.mirroring.oc_mirror.release_image_tag }}
@@ -283,7 +275,9 @@
   ansible.builtin.shell: |
     set -o pipefail
     {% if disconnected_enabled %}
-    {% if disconnected.mirroring.legacy.platform %}
+    {% if use_pull_through_registry | default(false) %}
+    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/{{ disconnected.registry.pull_through.quay_repo | default('quay-io') }}/openshift-release-dev/ocp-release:{{ disconnected.mirroring.oc_mirror.release_image_tag }}
+    {% elif disconnected.mirroring.legacy.platform %}
     export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }}:{{ disconnected.mirroring.legacy.ocp_tag }}
     {% else %}
     export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/openshift/release-images:{{ disconnected.mirroring.oc_mirror.release_image_tag }}

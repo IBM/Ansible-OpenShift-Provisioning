@@ -109,6 +109,22 @@
                 .get('rhcos_live_rootfs')
               ) | default(rhcos_live_rootfs | default('rhcos-live-rootfs.s390x.img'), true)
             }}
+          rhcos_live_kernel: >-
+            {{
+              (
+                disconnected.get('mirroring', {})
+                .get('rhcos_download', {})
+                .get('rhcos_live_kernel')
+              ) | default(rhcos_live_kernel | default('rhcos-live-kernel.s390x'), true)
+            }}
+          rhcos_live_initrd: >-
+            {{
+              (
+                disconnected.get('mirroring', {})
+                .get('rhcos_download', {})
+                .get('rhcos_live_initrd')
+              ) | default(rhcos_live_initrd | default('rhcos-live-initramfs.s390x.img'), true)
+            }}
 
     - name: Create download directory on file server
       ansible.builtin.file:
@@ -121,15 +137,6 @@
     - name: Create clients directory on file server
       ansible.builtin.file:
         path: "{{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}"
-        state: directory
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: "0755"
-      ignore_errors: true
-
-    - name: Create bin directory on file server
-      ansible.builtin.file:
-        path: "{{ oc_mirror_file_server.document_root }}/bin"
         state: directory
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
@@ -187,6 +194,7 @@
       retries: 3
       delay: 10
       until: oc_mirror_download is succeeded
+      when: not (use_pull_through_registry | default(false))   
 
     - name: Download OCP client tools
       ansible.builtin.get_url:
@@ -227,16 +235,46 @@
       delay: 10
       until: rhcos_rootfs_download is succeeded
 
-    - name: Verify all downloaded files exist before copying
+    - name: Download RHCOS kernel
+      ansible.builtin.get_url:
+        url: "{{ oc_mirror_rhcos_download.rhcos_download_url }}/{{ oc_mirror_rhcos_download.rhcos_live_kernel }}"
+        dest: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_kernel }}"
+        mode: "0644"
+        timeout: 300
+      register: rhcos_kernel_download
+      retries: 3
+      delay: 10
+      until: rhcos_kernel_download is succeeded
+
+    - name: Download RHCOS initramfs
+      ansible.builtin.get_url:
+        url: "{{ oc_mirror_rhcos_download.rhcos_download_url }}/{{ oc_mirror_rhcos_download.rhcos_live_initrd }}"
+        dest: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_initrd }}"
+        mode: "0644"
+        timeout: 300
+      register: rhcos_initrd_download
+      retries: 3
+      delay: 10
+      until: rhcos_initrd_download is succeeded
+
+    - name: Verify OCP/RHCOS downloaded files exist before copying
       ansible.builtin.stat:
         path: "{{ item }}"
       register: download_files_stat
       failed_when: not download_files_stat.stat.exists
       loop:
-        - "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_file_server.oc_mirror_tgz }}"
         - "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_client_download.ocp_client_tgz }}"
         - "{{ oc_mirror_file_server.download_dir }}/openshift-install-linux.tar.gz"
         - "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}"
+        - "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_kernel }}"
+        - "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_initrd }}"
+
+    - name: Verify oc-mirror downloaded file exists before copying
+      ansible.builtin.stat:
+        path: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_file_server.oc_mirror_tgz }}"
+      register: oc_mirror_file_stat
+      failed_when: not oc_mirror_file_stat.stat.exists
+      when: not (use_pull_through_registry | default(false))
 
     - name: Copy artifacts locally when mirroring host is the file server
       when: mirror_and_file_server_same_host
@@ -249,6 +287,7 @@
             group: "{{ ansible_user }}"
             mode: "0644"
             remote_src: true
+          when: not (use_pull_through_registry | default(false))
 
         - name: Copy OCP client to clients directory for distribution
           ansible.builtin.copy:
@@ -268,10 +307,28 @@
             mode: "0644"
             remote_src: true
 
-        - name: Copy RHCOS rootfs to bin directory for node installation
+        - name: Copy RHCOS rootfs to clients directory for node installation
           ansible.builtin.copy:
             src: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}"
-            dest: "{{ oc_mirror_file_server.document_root }}/bin/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}"
+            dest: "{{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+            remote_src: true
+
+        - name: Copy RHCOS kernel to clients directory for node installation
+          ansible.builtin.copy:
+            src: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_kernel }}"
+            dest: "{{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_kernel }}"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+            remote_src: true
+
+        - name: Copy RHCOS initramfs to clients directory for node installation
+          ansible.builtin.copy:
+            src: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_initrd }}"
+            dest: "{{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_initrd }}"
             owner: "{{ ansible_user }}"
             group: "{{ ansible_user }}"
             mode: "0644"
@@ -289,6 +346,7 @@
             mode: "0644"
             remote_src: true
           delegate_to: "{{ env.file_server.ip }}"
+          when: not (use_pull_through_registry | default(false))  
 
         - name: Copy OCP client to separate file server clients directory
           ansible.builtin.copy:
@@ -310,10 +368,30 @@
             remote_src: true
           delegate_to: "{{ env.file_server.ip }}"
 
-        - name: Copy RHCOS rootfs to separate file server bin directory
+        - name: Copy RHCOS rootfs to separate file server clients directory
           ansible.builtin.copy:
             src: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}"
-            dest: "{{ oc_mirror_file_server.document_root }}/bin/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}"
+            dest: "{{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+            remote_src: true
+          delegate_to: "{{ env.file_server.ip }}"
+
+        - name: Copy RHCOS kernel to separate file server clients directory
+          ansible.builtin.copy:
+            src: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_kernel }}"
+            dest: "{{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_kernel }}"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+            remote_src: true
+          delegate_to: "{{ env.file_server.ip }}"
+
+        - name: Copy RHCOS initramfs to separate file server clients directory
+          ansible.builtin.copy:
+            src: "{{ oc_mirror_file_server.download_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_initrd }}"
+            dest: "{{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_initrd }}"
             owner: "{{ ansible_user }}"
             group: "{{ ansible_user }}"
             mode: "0644"
@@ -335,8 +413,7 @@
             OCP installer available at: {{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{
             env.file_server.port }}/{{ oc_mirror_file_server.clients_dir }}/openshift-install-linux.tar.gz
           - >-
-            RHCOS rootfs available at: {{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{
-            env.file_server.port }}/bin/rhcos-live-rootfs.s390x.img
+            RHCOS rootfs available at: {{ env.file_server.protocol }}://{{ env.file_server.ip }}:{{ env.file_server.port }}/{{ oc_mirror_file_server.clients_dir }}/{{ oc_mirror_rhcos_download.rhcos_live_rootfs }}
           - "Files copied to: {{ oc_mirror_file_server.document_root }}/{{ oc_mirror_file_server.clients_dir }}/"
 
 # Assisted by Bob
