@@ -1,14 +1,14 @@
 ---
 - name: Delete ignition folder for idempotency
   tags: get_ocp
-  file:
+  ansible.builtin.file:
     path: /var/www/html/ignition
     state: absent
 
 - name: Create directory bin for mirrors
   tags: get_ocp
   become: true
-  file:
+  ansible.builtin.file:
     path: /var/www/html/bin
     state: directory
     mode: "0755"
@@ -18,21 +18,22 @@
 - name: Delete OCP download directory for idempotency, because ignition files deprecate after 24 hours.
   tags: get_ocp
   become: true
-  file:
+  ansible.builtin.file:
     path: /root/ocpinst
     state: absent
 
 - name: Create OCP download directory
   tags: get_ocp
-  file:
+  ansible.builtin.file:
     path: /root/ocpinst
     state: directory
 
-- name: Get Red Hat CoreOS rootfs file if it's not there already.
+- name: Get Red Hat CoreOS rootfs file if it's not there already or content was changed.
   tags: get_ocp
-  get_url:
+  ansible.builtin.get_url:
     url: "{{ rhcos_download_url }}{{ rhcos_live_rootfs }}"
     dest: "/var/www/html/bin/{{ rhcos_live_rootfs }}"
+    force: true
     mode: "0644"
 
 - name: Unzip OCP client and installer
@@ -40,7 +41,7 @@
   ansible.builtin.unarchive:
     src: "{{ item }}"
     dest: /root/ocpinst/
-    remote_src: yes
+    remote_src: true
   loop:
     - "{{ ocp_download_url }}{{ ocp_client_tgz }}"
     - "{{ ocp_download_url }}{{ ocp_install_tgz }}"
@@ -53,8 +54,8 @@
     dest: /usr/sbin/{{ item }}
     owner: root
     group: root
-    mode: "755"
-    remote_src: yes
+    mode: '0755'
+    remote_src: true
   loop:
     - kubectl
     - oc
@@ -62,22 +63,23 @@
 
 - name: Use template file to create install-config and backup.
   tags: get_ocp
-  template:
+  ansible.builtin.template:
     src: install-config.yaml.j2
     dest: "{{ item }}"
-    force: yes
+    force: true
+    mode: '0644'
   loop:
     - /root/ocpinst/install-config.yaml
     - /root/ocpinst/install-config-backup.yaml
 
 - name: Capture OCP public key
   tags: get_ocp
-  command: cat /root/.ssh/id_rsa.pub
+  ansible.builtin.command: cat /root/.ssh/id_rsa.pub
   register: ocp_pub_key
 
 - name: Place SSH key in install-config
   tags: get_ocp
-  lineinfile:
+  ansible.builtin.lineinfile:
     line: "sshKey: '{{ ocp_pub_key.stdout }}'"
     path: "{{ item }}"
   loop:
@@ -95,7 +97,7 @@
 - name: Copy the file when ipsec flag is enabled
   tags: get_ocp
   become: true
-  copy:
+  ansible.builtin.copy:
     src: cluster-network-03-config.yml
     dest: /root/ocpinst/manifests/cluster-network-03-config.yml
   when: env.ipsec_enabled is defined and env.ipsec_enabled != None and env.ipsec_enabled
@@ -103,17 +105,18 @@
 - name: List the files in the manifests directory
   tags: get_ocp
   become: true
-  command: "ls -lrt /root/ocpinst/manifests/"
+  ansible.builtin.command: "ls -lrt /root/ocpinst/manifests/"
   register: manifests_list
 
-- debug:
-    msg: "{{ manifests_list }}"    
+- name: Debug manifests list
+  ansible.builtin.debug:
+    msg: "{{ manifests_list }}"
 
 
 - name: Set masters schedulable parameter to false
   tags: get_ocp
   become: true
-  replace:
+  ansible.builtin.replace:
     path: /root/ocpinst/manifests/cluster-scheduler-02-config.yml
     regexp: ": true"
     replace: ": false"
@@ -122,7 +125,7 @@
 - name: Set permissions for ocpinst directory contents to root
   tags: get_ocp
   become: true
-  command: chmod 0755 /root/ocpinst/{{item}}
+  ansible.builtin.command: chmod 0755 /root/ocpinst/{{ item }}
   loop:
     - manifests
     - openshift
@@ -132,11 +135,14 @@
 - name: Generate Butane Ignition configs if CEX device is defined
   tags: get_ocp
   become: true
+  when:
+    - cex | bool
   block:
     - name: Generate Butane file for nodes
-      template:
+      ansible.builtin.template:
         src: cex-butane-machineconfig.bu.j2
         dest: "{{ output_dir }}/99-{{ node_role }}-s390x-cex-luks-config.bu"
+        mode: '0644'
       loop:
         - master
         - worker
@@ -147,13 +153,13 @@
         layout: "{{ butane_default[cex_device].layout }}"
 
     - name: Download Butane binary for s390x
-      get_url:
+      ansible.builtin.get_url:
         url: https://mirror.openshift.com/pub/openshift-v4/clients/butane/latest/butane-s390x
         dest: /usr/local/bin/butane
         mode: '0755'
 
     - name: Convert Butane YAML to Ignition for each role
-      shell: |
+      ansible.builtin.shell: |
         /usr/local/bin/butane "{{ output_dir }}/99-{{ item }}-s390x-cex-luks-config.bu" \
           -o "{{ output_dir }}/99-{{ item }}-s390x-cex-luks-config.yaml"
       loop:
@@ -161,21 +167,19 @@
         - worker
 
     - name: Copy generated ignition files to final directory
-      copy:
+      ansible.builtin.copy:
         src: "{{ output_dir }}/99-{{ item }}-s390x-cex-luks-config.yaml"
         dest: "/root/ocpinst/openshift/99-{{ item }}-s390x-cex-luks-config.yaml"
-        remote_src: yes
+        remote_src: true
         mode: '0644'
       loop:
         - master
         - worker
-  when:
-    - cex | bool
 
 - name: Set ownership of ocpinst directory contents to root
   tags: get_ocp
   become: true
-  command: chown root:root /root/ocpinst/{{item}}
+  ansible.builtin.command: chown root:root /root/ocpinst/{{ item }}
   loop:
     - manifests
     - openshift
@@ -192,7 +196,7 @@
 
 - name: Set ownership to root and permissions of ignitions and related files.
   tags: get_ocp
-  file:
+  ansible.builtin.file:
     state: "{{ item.state }}"
     path: /root/ocpinst/{{ item.path }}
     owner: root
@@ -210,60 +214,60 @@
 - name: Create directory in admin user's home for default kubeconfig.
   tags: get_ocp, config
   become: false
-  file:
+  ansible.builtin.file:
     state: directory
     path: ~/.kube
 
 - name: Create directory in root's home for default kubeconfig.
   tags: get_ocp, config
   become: true
-  file:
+  ansible.builtin.file:
     state: directory
     path: ~/.kube
 
 - name: Make kubeconfig admin user's default (for non-root user).
   tags: get_ocp, config
-  copy:
+  ansible.builtin.copy:
     src: /root/ocpinst/auth/kubeconfig
     dest: /home/{{ env.bastion.access.user }}/.kube/config
     owner: "{{ env.bastion.access.user }}"
     group: "{{ env.bastion.access.user }}"
-    remote_src: yes
+    remote_src: true
   when: env.bastion.access.user != "root"
 
 - name: Make kubeconfig admin user's default (for root user).
   tags: get_ocp, config
-  copy:
+  ansible.builtin.copy:
     src: /root/ocpinst/auth/kubeconfig
     dest: /{{ env.bastion.access.user }}/.kube/config
     owner: "{{ env.bastion.access.user }}"
     group: "{{ env.bastion.access.user }}"
-    remote_src: yes
+    remote_src: true
   when: env.bastion.access.user == "root"
 
 - name: Make kubeconfig root user's default.
   tags: get_ocp, config
-  copy:
+  ansible.builtin.copy:
     src: /root/ocpinst/auth/kubeconfig
     dest: /root/.kube/config
     owner: root
     group: root
-    remote_src: yes
+    remote_src: true
 
 - name: Create ignition directory in HTTP-accessible directory.
   tags: get_ocp
   become: true
-  file:
+  ansible.builtin.file:
     path: /var/www/html/ignition
     state: directory
 
 - name: Copy ignition files to HTTP-accessible directory.
   tags: get_ocp
   become: true
-  copy:
+  ansible.builtin.copy:
     src: /root/ocpinst/{{ item }}.ign
     dest: /var/www/html/ignition
-    remote_src: yes
+    remote_src: true
     mode: "775"
     group: root
     owner: root
