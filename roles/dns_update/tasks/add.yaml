@@ -6,12 +6,18 @@
       ansible.builtin.lineinfile:
         path: /var/named/{{ env.cluster.networking.metadata_name }}.db
         insertafter: ";entries for the compute nodes"
-        line: "{{ param_dns_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ param_dns_ip }}"
+        line: "{{ _forward_dns_line }}"
         state: present
+      vars:
+        _forward_dns_fqdn: "{{ param_dns_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}."
+        _forward_dns_line: "{{ _forward_dns_fqdn }} IN A {{ param_dns_ip }}"
 
     - name: Add reverse DNS
       ansible.builtin.lineinfile:
         path: /var/named/{{ env.cluster.networking.metadata_name }}.rev
         insertafter: "PTR Record IP address to Hostname"
-        line: "{{ param_dns_ip.split('.').3 }}     IN      PTR     {{ param_dns_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}."
+        line: "{{ _reverse_dns_line }}"
         state: present
+      vars:
+        _reverse_dns_fqdn: "{{ param_dns_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}."
+        _reverse_dns_line: "{{ param_dns_ip.split('.').3 }}     IN      PTR     {{ _reverse_dns_fqdn }}"

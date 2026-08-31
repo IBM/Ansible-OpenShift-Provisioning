@@ -37,10 +37,11 @@ args = parser.parse_args()
 
 
 
-# cpc_name = "a46" # this is the CEC/CPC hosting the target LPAR
-# hmc_address = "hmca2.boeblingen.de.ibm.com" # URL where HMC API is running
-# hmc_user = ""
-# hmc_password = ""
+# Example usage:
+# cpc_name = "CPC_NAME" # this is the CEC/CPC hosting the target LPAR
+# hmc_address = "hmc.example.com" # URL where HMC API is running
+# hmc_user = "username"
+# hmc_password = "password"
 # Currently there are no parameters for instantiating a hmc hypervisor
 hypervisor_params = None
 hmc = hmc.HypervisorHmc(args.cpcname, args.hmchost,

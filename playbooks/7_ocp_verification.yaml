@@ -9,6 +9,7 @@
   gather_facts: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   roles:
     - approve_certs
     - check_nodes
@@ -16,3 +17,5 @@
       approve_certs_cleanup: true
     - wait_for_cluster_operators
     - wait_for_install_complete
+    - label_infra_nodes
+

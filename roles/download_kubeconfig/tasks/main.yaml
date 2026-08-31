@@ -1,0 +1,23 @@
+---
+- name: Ensure destination directory exists
+  ansible.builtin.file:
+    path: "{{ kubeconfig_dest_dir }}/kubeconfig"
+    state: directory
+    mode: '0755'
+  delegate_to: localhost
+
+- name: Download kubeconfig files from bastion
+  tags:
+    - download_kubeconfig
+  ansible.builtin.fetch:
+    src: "{{ kubeconfig_source_dir }}/{{ item }}"
+    dest: "{{ kubeconfig_dest_dir }}/kubeconfig/{{ item }}"
+    flat: true
+  loop: "{{ kubeconfig_files }}"
+
+- name: Display download location
+  ansible.builtin.debug:
+    msg: "Kubeconfig files downloaded to {{ kubeconfig_dest_dir }}/kubeconfig/"
+  delegate_to: localhost
+
+# Assisted by Bob

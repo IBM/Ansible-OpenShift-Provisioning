@@ -22,6 +22,7 @@
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   pre_tasks:
     - name: Check required variables
       when: (day2_compute_node is not defined)

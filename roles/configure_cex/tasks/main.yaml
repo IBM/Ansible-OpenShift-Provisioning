@@ -1,0 +1,40 @@
+---
+
+- name: Set cex_cards from cex_uuid_map values (uuid:domain only)
+  set_fact:
+    cex_cards: "{{ cex_uuid_map.values() | list | unique }}"
+
+- name: Debug final list of CEX UUID assignments
+  debug:
+    var: cex_cards
+
+- name: Create VFIO assignment script for all CEX cards
+  template:
+    src: assign_cards.sh.j2
+    dest: /tmp/assign_all_cex_cards.sh
+    mode: '0755'
+
+- name: Execute VFIO assignment script
+  shell: /tmp/assign_all_cex_cards.sh
+  args:
+    executable: /bin/bash
+
+- name: Housekeep temporary assignment script
+  file:
+    path: /tmp/assign_all_cex_cards.sh
+    state: absent
+
+- name: Initialize empty cex_hostdev_map
+  set_fact:
+    cex_hostdev_map: {}
+
+- name: Populate cex_hostdev_map with mdev format
+  set_fact:
+    cex_hostdev_map: "{{ cex_hostdev_map | combine({ item.key : 'mdev_' + (item.value.split(':')[0] | regex_replace('-', '_')) + '_matrix' }) }}"
+  loop: "{{ cex_uuid_map | dict2items }}"
+
+
+- name: Save cex_hostdev_map to a file for reuse
+  copy:
+    dest: "/root/.cex_hostdev_map.json"
+    content: "{{ cex_hostdev_map | to_nice_json }}"

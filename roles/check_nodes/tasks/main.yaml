@@ -13,4 +13,4 @@
   register: cmd_output
   until: ("Ready" == cmd_output.stdout)
   retries: 90
-  delay: 20
+  delay: "{{ check_nodes_delay | default(30) }}"

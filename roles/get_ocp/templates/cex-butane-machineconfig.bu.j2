@@ -1,0 +1,35 @@
+variant: openshift
+version: {{ butane_default["version"] }}
+metadata:
+  name: {{ node_role }}-luks-storage
+  labels:
+    machineconfiguration.openshift.io/role: {{ node_role }}
+
+openshift:
+  fips: true
+  kernel_arguments:
+    - rd.luks.key=/etc/luks/cex.key
+
+{% if cex_device in ['dasd', 'virt'] %}
+boot_device:
+  layout: {{ butane_default[cex_device].layout }}
+  luks:
+    device: {{ butane_default[cex_device].device }}
+    cex:
+      enabled: true
+
+{% elif cex_device == 'fcp' %}
+storage:
+  filesystems:
+    - device: /dev/mapper/root
+      format: xfs
+      label: root
+      wipe_filesystem: true
+  luks:
+    - cex:
+        enabled: true
+      device: {{ butane_default[cex_device].device }}
+      label: luks-root
+      name: root
+      wipe_volume: true
+{% endif %}

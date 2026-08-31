@@ -32,3 +32,18 @@ use_proxy: false
 proxy_http:
 proxy_https:
 proxy_no:
+
+# (Optional) CEX Ignition specific
+# Default mappings based on cex_device
+output_dir: "/tmp"
+butane_default:
+  version: 4.19.0
+  dasd:
+    layout: s390x-eckd
+    device: /dev/dasd
+  virt:
+    layout: s390x-virt
+    device: /dev/disk/by-partlabel/root
+  fcp:
+    layout: s390x-fcp  # or s390x-fcp if needed
+    device: /dev/disk/by-label/root

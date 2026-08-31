@@ -1,6 +1,6 @@
 ---
 ###################################################################################################
-#  To execute this playbook you need to create a node config yaml fiile with these parameters:
+#  To execute this playbook you need to create a node config yaml file with these parameters:
 # ---
 # day2_compute_node:
 #   vm_name: <your VM name>
@@ -12,10 +12,11 @@
 #   hostname: <KVM host name where the VM is created>
 #   host_user: <KVM host user which is used to create the VM>
 #   host_arch: <KVM host architecture>
+#   install_dev: <installation device, defaults to 'vda' if not specified>
 #
 # Execute the playbook with '--extra-vars' option.
 # E.g.:
-# ansible-playbook playbooks/add_compute_node.yaml --extra-vars "@extra-cnode1.yml"
+# ansible-playbook playbooks/create_compute_node.yaml --ask-vault-pass
 
 - name: Add an additional compute node
   # Select bastion host
@@ -23,6 +24,7 @@
   gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
   pre_tasks:
     - name: Check required variables
       when: (day2_compute_node is not defined)
@@ -31,7 +33,7 @@
           ansible.builtin.debug:
             msg:
               - "ERROR: Variable 'day2_compute_node' is not defined!"
-              - "Execute: 'ansible-playbook playbooks/add_compute_node.yaml --extra-vars \"@extra-cnode.yml\"'"
+              - "Execute: 'ansible-playbook playbooks/create_compute_node.yaml'"
         - name: Abort playbook
           ansible.builtin.fail:
             msg: "See above error!"
