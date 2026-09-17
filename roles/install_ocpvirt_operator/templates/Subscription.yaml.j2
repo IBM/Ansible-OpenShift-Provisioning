@@ -5,7 +5,11 @@ metadata:
   namespace: "{{ hcp.ocpvirt.namespace | default('openshift-cnv', true) }}"
 spec:
   sourceNamespace: openshift-marketplace
+{% if disconnected is defined and disconnected.enabled | default(false) %}
+  source: "{{ disconnected_catalogsource_name }}"
+{% else %}
   source: redhat-operators
+{% endif %}
 {% if hcp.ocpvirt.version | default('', true) | length > 0 %}
   channel: "{{ hcp.ocpvirt.version }}"
 {% endif %}

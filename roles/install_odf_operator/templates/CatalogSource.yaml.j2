@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: custom-odf-operators
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  publisher: redhat
+  displayName: Custom ODF Operators
+  image: {{ (hcp.odf | default({})).catalogsource_image }}

@@ -5,7 +5,9 @@ metadata:
   namespace: "{{ hcp.mce.mce_namespace | default('multicluster-engine', true) }}"
 spec:
   sourceNamespace: openshift-marketplace
-{% if hcp.mce.catalogsource_image is defined and hcp.mce.catalogsource_image | string | length > 0 %}
+{% if disconnected is defined and disconnected.enabled | default(false) %}
+  source: "{{ disconnected_catalogsource_name }}"
+{% elif hcp.mce.catalogsource_image is defined and hcp.mce.catalogsource_image | string | length > 0 %}
   source: custom-redhat-operators
 {% else %}
   source: redhat-operators

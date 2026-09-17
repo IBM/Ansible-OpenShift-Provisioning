@@ -47,21 +47,12 @@
       changed_when: false
       when: hcp.mce.catalogsource_image is defined and hcp.mce.catalogsource_image | length > 0
 
-    - name: Check if multicluster-engine Namespace exists
-      kubernetes.core.k8s:
-        api_version: v1
-        kind: Namespace
-        name: "{{ hcp.mce.mce_namespace | default('multicluster-engine', true) }}"
-      register: namespace_check
-      ignore_errors: true
-
     - name: Create multicluster-engine Namespace
-      kubernetes.core.k8s:
-        api_version: v1
-        kind: Namespace
-        name: "{{ hcp.mce.mce_namespace | default('multicluster-engine', true) }}"
-        state: present
-      when: namespace_check.resources is not defined or namespace_check.resources | length == 0
+      ansible.builtin.command:
+        cmd: oc create namespace {{ hcp.mce.mce_namespace | default('multicluster-engine', true) }}
+      register: mce_ns_create
+      changed_when: "'created' in mce_ns_create.stdout"
+      failed_when: mce_ns_create.rc != 0 and 'already exists' not in mce_ns_create.stderr
 
     - name: Create OperatorGroup.yaml
       ansible.builtin.template:
@@ -116,9 +107,3 @@
       until: mce_status.stdout == "Available"
       retries: 40
       delay: 30
-
-    - name: Enable hypershift-preview component in MCE
-      ansible.builtin.command: >
-        oc patch mce {{ hcp.mce.instance_name | default('engine', true) }}
-        -p '{"spec":{"overrides":{"components":[{"name":"hypershift-preview","enabled":true}]}}}'
-        --type merge

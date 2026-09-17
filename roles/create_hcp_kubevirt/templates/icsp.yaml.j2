@@ -1,3 +1,11 @@
+{% if disconnected is defined and disconnected.enabled | default(false) %}
+- mirrors:
+  - {{ disconnected.registry.url }}/openshift/release
+  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+- mirrors:
+  - {{ disconnected.registry.url }}/openshift/release-images
+  source: quay.io/openshift-release-dev/ocp-release
+{% else %}
 - source: registry.redhat.io/rhacm2
   mirrors:
     - quay.io:443/acm-d
@@ -9,3 +17,4 @@
 - source: registry.access.redhat.com/openshift4/ose-oauth-proxy
   mirrors:
     - registry.redhat.io/openshift4/ose-oauth-proxy
+{% endif %}

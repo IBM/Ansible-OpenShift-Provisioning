@@ -24,11 +24,11 @@
         mode: '0755'
 
     - name: Ensure LSO namespace exists
-      kubernetes.core.k8s:
-        api_version: v1
-        kind: Namespace
-        name: "{{ hcp.lso.namespace | default('openshift-local-storage', true) }}"
-        state: present
+      ansible.builtin.command:
+        cmd: oc create namespace {{ hcp.lso.namespace | default('openshift-local-storage', true) }}
+      register: lso_ns_create
+      changed_when: "'created' in lso_ns_create.stdout"
+      failed_when: lso_ns_create.rc != 0 and 'already exists' not in lso_ns_create.stderr
 
     - name: Create OperatorGroup.yaml
       ansible.builtin.template:
