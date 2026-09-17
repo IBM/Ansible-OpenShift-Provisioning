@@ -154,7 +154,7 @@
     set -o pipefail
     {% if disconnected_enabled %}
     {% if use_pull_through_registry | default(false) %}
-    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/{{ disconnected.registry.pull_through.quay_repo | default('quay-io') }}/openshift-release-dev/ocp-release:{{ disconnected.mirroring.oc_mirror.release_image_tag }}
+    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/{{ disconnected.registry.pull_through.quay_repo | default('') }}{{ '/' if disconnected.registry.pull_through.quay_repo | default('') != '' else '' }}openshift-release-dev/ocp-release:{{ disconnected.mirroring.oc_mirror.release_image_tag }}
     {% elif disconnected.mirroring.legacy.platform %}
     export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }}:{{ disconnected.mirroring.legacy.ocp_tag }}
     {% else %}
@@ -276,7 +276,7 @@
     set -o pipefail
     {% if disconnected_enabled %}
     {% if use_pull_through_registry | default(false) %}
-    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/{{ disconnected.registry.pull_through.quay_repo | default('quay-io') }}/openshift-release-dev/ocp-release:{{ disconnected.mirroring.oc_mirror.release_image_tag }}
+    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/{{ disconnected.registry.pull_through.quay_repo | default('') }}{{ '/' if disconnected.registry.pull_through.quay_repo | default('') != '' else '' }}openshift-release-dev/ocp-release:{{ disconnected.mirroring.oc_mirror.release_image_tag }}
     {% elif disconnected.mirroring.legacy.platform %}
     export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ disconnected.registry.url }}/{{ disconnected.mirroring.legacy.ocp_org }}/{{ disconnected.mirroring.legacy.ocp_repo }}:{{ disconnected.mirroring.legacy.ocp_tag }}
     {% else %}

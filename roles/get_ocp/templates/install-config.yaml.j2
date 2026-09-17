@@ -44,10 +44,10 @@ pullSecret: {{ ((env.redhat.pull_secret if not disconnected_enabled else (discon
 {{ 'imageContentSources: ' }}
 {% if use_pull_through_registry | default(false) %}
 {{ '- mirrors:'}}
-{{ '  - ' + disconnected.registry.url + '/' + (disconnected.registry.pull_through.quay_repo | default('quay-io')) + '/openshift-release-dev/ocp-release' }}
+{{ '  - ' + disconnected.registry.url + '/' + ((disconnected.registry.pull_through.quay_repo | default('')) + ('/' if disconnected.registry.pull_through.quay_repo | default('') != '' else '') + 'openshift-release-dev/ocp-release') }}
 {{ '  source: quay.io/openshift-release-dev/ocp-release' }}
 {{ '- mirrors:'}}
-{{ '  - ' + disconnected.registry.url + '/' + (disconnected.registry.pull_through.quay_repo | default('quay-io')) + '/openshift-release-dev/ocp-v4.0-art-dev' }}
+{{ '  - ' + disconnected.registry.url + '/' + ((disconnected.registry.pull_through.quay_repo | default('')) + ('/' if disconnected.registry.pull_through.quay_repo | default('') != '' else '') + 'openshift-release-dev/ocp-v4.0-art-dev') }}
 {{ '  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev' }}
 {% else %}
 {{ '- mirrors:'}}
