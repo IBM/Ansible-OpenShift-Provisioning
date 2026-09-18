@@ -31,6 +31,13 @@ env:
 #      ip:
 #      user:
 #      pass: "{{ vault_lpar3_pass }}"
+    # (Optional) TigerVNC Remote Desktop Administration for KVM host
+    tigervnc:
+      enabled: True
+      display: 1
+      geometry: 1920x1080
+      session: gnome
+      # pass: "{{ vault_vnc_pass }}"
 
 # Section 3 - File Server
   file_server:

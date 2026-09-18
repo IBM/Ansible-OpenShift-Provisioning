@@ -1,0 +1,85 @@
+---
+- name: Ensure tigervnc-server package is installed
+  tags: tigervnc, vnc
+  ansible.builtin.package:
+    name: tigervnc-server
+    state: present
+  when: tigervnc_enabled | bool
+
+- name: Ensure /etc/tigervnc directory exists
+  tags: tigervnc, vnc
+  ansible.builtin.file:
+    path: /etc/tigervnc
+    state: directory
+    mode: '0755'
+  when: tigervnc_enabled | bool
+
+- name: Configure user mapping in /etc/tigervnc/vncserver.users
+  tags: tigervnc, vnc
+  ansible.builtin.lineinfile:
+    path: /etc/tigervnc/vncserver.users
+    regexp: '^:{{ tigervnc_display }}='
+    line: ':{{ tigervnc_display }}={{ tigervnc_user }}'
+    create: true
+    mode: '0644'
+  when: tigervnc_enabled | bool
+
+- name: Get home directory for VNC user
+  tags: tigervnc, vnc
+  ansible.builtin.shell: |
+    set -o pipefail
+    getent passwd {{ tigervnc_user }} | awk -F: '{ print $6 }'
+  changed_when: false
+  register: tigervnc_user_home
+  when: tigervnc_enabled | bool
+
+- name: Ensure ~/.vnc directory exists for VNC user
+  tags: tigervnc, vnc
+  ansible.builtin.file:
+    path: "{{ tigervnc_user_home.stdout }}/.vnc"
+    state: directory
+    owner: "{{ tigervnc_user }}"
+    group: "{{ tigervnc_user }}"
+    mode: '0700'
+  when: tigervnc_enabled | bool
+
+- name: Configure VNC user settings in ~/.vnc/config
+  tags: tigervnc, vnc
+  ansible.builtin.template:
+    src: vnc_config.j2
+    dest: "{{ tigervnc_user_home.stdout }}/.vnc/config"
+    owner: "{{ tigervnc_user }}"
+    group: "{{ tigervnc_user }}"
+    mode: '0600'
+  when: tigervnc_enabled | bool
+
+- name: Set VNC password for VNC user
+  tags: tigervnc, vnc
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo "{{ tigervnc_password }}" | vncpasswd -f > {{ tigervnc_user_home.stdout }}/.vnc/passwd
+    chmod 0600 {{ tigervnc_user_home.stdout }}/.vnc/passwd
+    chown {{ tigervnc_user }}:{{ tigervnc_user }} {{ tigervnc_user_home.stdout }}/.vnc/passwd
+  no_log: true
+  when:
+    - tigervnc_enabled | bool
+    - tigervnc_password is defined
+    - tigervnc_password | length > 0
+
+- name: Open VNC port in firewall
+  tags: tigervnc, vnc, firewall
+  ansible.posix.firewalld:
+    port: "{{ tigervnc_port }}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+  when: tigervnc_enabled | bool
+
+- name: Start and enable TigerVNC service
+  tags: tigervnc, vnc
+  ansible.builtin.systemd:
+    name: "vncserver@:{{ tigervnc_display }}.service"
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: tigervnc_enabled | bool

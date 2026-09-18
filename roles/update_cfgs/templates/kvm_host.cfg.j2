@@ -32,7 +32,7 @@ lang {{ env.language }}
 # Network information (will fill in during update_cfgs role)
 
 # Firewall and SELinux
-firewall --enabled --http --ftp --smtp --ssh --port=443,9090,123
+firewall --enabled --http --ftp --smtp --ssh --port=443,9090,123,5901
 selinux --enforcing
 
 # Root password (will fill in during update_cfgs role)
