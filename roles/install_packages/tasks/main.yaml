@@ -1,11 +1,14 @@
 ---
-- name: Print the list of packages to be installed and updated.
+- name: Print the list of packages to be installed and updated
   tags: install_packages
-  debug: msg={{ vars[packages] }} 
+  ansible.builtin.debug:
+    msg: "{{ vars[packages] }}"
 
 - name: Getting OS Version
-  shell: cat /etc/*release | grep 'VERSION_ID' | cut -d "=" -f 2 | tr -d '"'
+  ansible.builtin.shell:
+    cmd: cat /etc/*release | grep 'VERSION_ID' | cut -d "=" -f 2 | tr -d '"'
   register: os_version
+  changed_when: false
 
 - name: Installing libvirt-devel packages for RHEL machines.
   tags: install_packages
@@ -13,7 +16,7 @@
   ansible.builtin.package:
     name: "libvirt-devel"
     state: latest
-    update_cache: yes
+    update_cache: true
   when: ( ansible_os_family | lower == 'redhat') and ( os_version.stdout| float < 9.0 )
 
 - name: Installing required packages for Linux machines.
@@ -22,7 +25,7 @@
   ansible.builtin.package:
     name: "{{ item }}"
     state: latest
-    update_cache: yes
+    update_cache: true
   loop: "{{ vars[packages] }}"
   when: ansible_os_family != 'Darwin'
 

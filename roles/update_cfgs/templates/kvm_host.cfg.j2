@@ -32,7 +32,7 @@ lang {{ env.language }}
 # Network information (will fill in during update_cfgs role)
 
 # Firewall and SELinux
-firewall --enabled --http --ftp --smtp --ssh --port=443,9090,123
+firewall --enabled --http --ftp --smtp --ssh --port=443,9090,123{% if env.z is defined and env.z.tigervnc is defined and (env.z.tigervnc.enabled is not defined or env.z.tigervnc.enabled in [True, 'True', 'true', 1]) %},{{ 5900 + (env.z.tigervnc.display | default(1) | int) }}{% endif %}
 selinux --enforcing
 
 # Root password (will fill in during update_cfgs role)

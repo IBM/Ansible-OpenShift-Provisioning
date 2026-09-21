@@ -38,6 +38,12 @@
 **env.z.lpar3.ip** | <b>(Optional)</b> The IPv4 address of the third KVM host. | 192.168.10.3
 **env.z.lpar3.user** | Username for Linux admin on KVM host 3. Recommended to run as a non-root user with sudo access. | admin
 **env.z.lpar3.pass** | <b>(Optional)</b> The password for the admin user on the third KVM host. | ch4ngeMe!
+**env.z.tigervnc.enabled** | <b>(Optional)</b> True or False. Whether to install, configure, and enable TigerVNC server for graphical remote administration on the KVM host(s). Default is True. | True
+**env.z.tigervnc.display** | <b>(Optional)</b> Display number for TigerVNC server (maps to TCP port 5900 + display, e.g. 5901 for display 1). Default is 1. | 1
+**env.z.tigervnc.pass** | <b>(Optional)</b> Password for TigerVNC access. If omitted, defaults to the KVM host user password. | ch4ngeMe!
+**env.z.tigervnc.readonly_pass** | <b>(Optional)</b> View-only / read-only password for TigerVNC access. If specified, allows connecting to the VNC session with view-only privileges. | view0nly!
+**env.z.tigervnc.geometry** | <b>(Optional)</b> Display screen resolution for the TigerVNC session. Default is 1920x1080. | 1920x1080
+**env.z.tigervnc.session** | <b>(Optional)</b> Desktop session environment to launch for VNC. Default is gnome. | gnome
 
 ## 3 - File Server
 **Variable Name** | **Description** | **Example**
@@ -245,7 +251,7 @@
 :--- | :--- | :---
 **pkgs_galaxy** | A list of Ansible Galaxy collections that will be installed during the setup playbook. The collections listed are required. | [ ibm.ibm_zhmc, community.general, community.crypto, ansible.posix, community.libvirt ]
 **pkgs_controller** | A list of packages that will be installed on the machine running Ansible during the setup playbook. | [ openssh, expect, sshuttle ]
-**pkgs_kvm** | A list of packages that will be installed on the KVM Host during the setup_kvm_host playbook. | [ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]
+**pkgs_kvm** | A list of packages that will be installed on the KVM Host during the setup_kvm_host playbook. | [ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2, httpd ]
 **pkgs_bastion** | A list of packages that will be installed on the bastion during the setup_bastion playbook. Feel free to add more as needed, just make sure to follow the same list format. | [ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]
 **pkgs_zvm** | A list of packages that will be installed in case of HCP (zVM nodes) or LPAR installation. | [ git, python3-pip, python3-devel, openssl-devel, rust, cargo, libffi-devel, wget, tar, jq, gcc, make, x3270, python39 ]
 
