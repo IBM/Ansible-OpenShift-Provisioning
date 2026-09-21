@@ -302,6 +302,36 @@
 <td style="text-align: left;"><b>(Optional)</b> The password for the admin user on the third KVM host.</td>
 <td style="text-align: left;">ch4ngeMe!</td>
 </tr>
+<tr>
+<td style="text-align: left;"><strong>env.z.tigervnc.enabled</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> True or False. Whether to install, configure, and enable TigerVNC server for graphical remote administration on the KVM host(s). Default is True.</td>
+<td style="text-align: left;">True</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>env.z.tigervnc.display</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Display number for TigerVNC server (maps to TCP port 5900 + display, e.g. 5901 for display 1). Default is 1.</td>
+<td style="text-align: left;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>env.z.tigervnc.pass</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Password for TigerVNC access. If omitted, defaults to the KVM host user password.</td>
+<td style="text-align: left;">ch4ngeMe!</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>env.z.tigervnc.readonly_pass</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> View-only / read-only password for TigerVNC access. If specified, allows connecting to the VNC session with view-only privileges.</td>
+<td style="text-align: left;">view0nly!</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>env.z.tigervnc.geometry</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Display screen resolution for the TigerVNC session. Default is 1920x1080.</td>
+<td style="text-align: left;">1920x1080</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>env.z.tigervnc.session</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Desktop session environment to launch for VNC. Default is gnome.</td>
+<td style="text-align: left;">gnome</td>
+</tr>
 </tbody>
 </table>
 <h2 id="3-file-server">3 - File Server<a class="headerlink" href="#3-file-server" title="Permanent link">#</a></h2>
@@ -1178,7 +1208,7 @@
 <tr>
 <td style="text-align: left;"><strong>pkgs_kvm</strong></td>
 <td style="text-align: left;">A list of packages that will be installed on the KVM Host during the setup_kvm_host playbook.</td>
-<td style="text-align: left;">[ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]</td>
+<td style="text-align: left;">[ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2, httpd ]</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>pkgs_bastion</strong></td>
