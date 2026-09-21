@@ -86,7 +86,7 @@
     - role: httpd
       when: installation_type | lower in ['kvm', 'lpar']
     - role: tigervnc
-      when: installation_type | lower in ['kvm', 'lpar']
+      when: installation_type | lower == 'kvm'
   post_tasks:
     - name: Add ports to firewall
       tags: firewall-libvirt, libvirt

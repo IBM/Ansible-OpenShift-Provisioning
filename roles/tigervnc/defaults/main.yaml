@@ -4,6 +4,10 @@ tigervnc_enabled: "{{ (env.z.tigervnc.enabled if (env.z is defined and env.z.tig
 tigervnc_display: "{{ (env.z.tigervnc.display if (env.z is defined and env.z.tigervnc is defined and env.z.tigervnc.display is defined) else 1) | int }}"
 tigervnc_port: "{{ 5900 + (tigervnc_display | int) }}"
 tigervnc_user: "{{ ansible_user }}"
-tigervnc_password: "{{ (env.z.tigervnc.pass if (env.z is defined and env.z.tigervnc is defined and env.z.tigervnc.pass is defined) else (env.z.lpar1.pass if (env.z is defined and env.z.lpar1 is defined and env.z.lpar1.pass is defined) else (ansible_password | default('')))) }}"
+tigervnc_password: "{{ (env.z.tigervnc.pass if (env.z is defined and env.z.tigervnc is defined and env.z.tigervnc.pass is defined) else (vault_vnc_pass if (vault_vnc_pass is defined and vault_vnc_pass != '#X') else (env.z.lpar1.pass if (env.z is defined and env.z.lpar1 is defined and env.z.lpar1.pass is defined) else (ansible_password | default(''))))) }}"
+tigervnc_readonly_password: "{{ (env.z.tigervnc.readonly_pass if (env.z is defined and env.z.tigervnc is defined and env.z.tigervnc.readonly_pass is defined) else (env.z.tigervnc.view_only_pass if (env.z is defined and env.z.tigervnc is defined and env.z.tigervnc.view_only_pass is defined) else (vault_vnc_readonly_pass if (vault_vnc_readonly_pass is defined and vault_vnc_readonly_pass != '#X') else ''))) }}"
 tigervnc_geometry: "{{ (env.z.tigervnc.geometry if (env.z is defined and env.z.tigervnc is defined and env.z.tigervnc.geometry is defined) else '1920x1080') }}"
 tigervnc_session: "{{ (env.z.tigervnc.session if (env.z is defined and env.z.tigervnc is defined and env.z.tigervnc.session is defined) else 'gnome') }}"
+tigervnc_desktop_groups:
+  - "@Server with GUI"
+  - "@Graphical Administration Tools"

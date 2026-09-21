@@ -6,6 +6,16 @@
     state: present
   when: tigervnc_enabled | bool
 
+- name: Ensure GNOME desktop environment and graphical administration tools are installed
+  tags: tigervnc, vnc
+  ansible.builtin.dnf:
+    name: "{{ tigervnc_desktop_groups }}"
+    state: present
+  when:
+    - tigervnc_enabled | bool
+    - tigervnc_session == 'gnome'
+    - ansible_os_family == 'RedHat'
+
 - name: Ensure /etc/tigervnc directory exists
   tags: tigervnc, vnc
   ansible.builtin.file:
@@ -57,7 +67,11 @@
   tags: tigervnc, vnc
   ansible.builtin.shell: |
     set -o pipefail
-    echo "{{ tigervnc_password }}" | vncpasswd -f > {{ tigervnc_user_home.stdout }}/.vnc/passwd
+    {% if tigervnc_readonly_password is defined and tigervnc_readonly_password | length > 0 %}
+    printf '%s\n%s\n' "{{ tigervnc_password }}" "{{ tigervnc_readonly_password }}" | vncpasswd -f > {{ tigervnc_user_home.stdout }}/.vnc/passwd
+    {% else %}
+    printf '%s\n' "{{ tigervnc_password }}" | vncpasswd -f > {{ tigervnc_user_home.stdout }}/.vnc/passwd
+    {% endif %}
     chmod 0600 {{ tigervnc_user_home.stdout }}/.vnc/passwd
     chown {{ tigervnc_user }}:{{ tigervnc_user }} {{ tigervnc_user_home.stdout }}/.vnc/passwd
   no_log: true

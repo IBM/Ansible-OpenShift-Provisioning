@@ -38,6 +38,7 @@ env:
       geometry: 1920x1080
       session: gnome
       # pass: "{{ vault_vnc_pass }}"
+      # readonly_pass: "{{ vault_vnc_readonly_pass }}"
 
 # Section 3 - File Server
   file_server:
