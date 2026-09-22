@@ -128,6 +128,17 @@
             - networking.mode is defined
             - networking.mode | lower == 'hipersocket'
 
+- name: 5 setup bastion - Update python3.9
+  hosts: bastion
+  become: true
+  tasks:
+    - name: Update Python 3.9 to the latest version
+      ansible.builtin.dnf:
+        name: python3
+        state: latest
+        update_cache: true
+      failed_when: false
+
 - name: 5 setup bastion - configure bastion node with essential services
   hosts: bastion
   tags: services, section_2
