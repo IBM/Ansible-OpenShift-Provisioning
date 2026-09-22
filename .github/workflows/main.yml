@@ -50,7 +50,7 @@ jobs:
               '/need-fix': 'need-fix'
             };
 
-            const matchedCommand = Object.keys(commandMap).find(cmd => 
+            const matchedCommand = Object.keys(commandMap).find(cmd =>
               commentBody.startsWith(cmd)
             );
 
