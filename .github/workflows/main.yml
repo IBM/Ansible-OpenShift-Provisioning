@@ -1,0 +1,91 @@
+name: PR Slash Commands
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
+jobs:
+  handle-command:
+    # Only run on pull requests (GitHub classifies PR comments under issue_comment)
+    if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Process slash command
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const commentBody = context.payload.comment.body.trim();
+            const sender = context.payload.comment.user.login;
+            const issueNumber = context.payload.issue.number;
+            const repo = context.repo;
+
+            // 1. Verify maintainer permissions (admin, maintain, or write)
+            const permissionRes = await github.rest.repos.getCollaboratorPermissionLevel({
+              ...repo,
+              username: sender
+            });
+            const permission = permissionRes.data.permission;
+            const isMaintainer = ['admin', 'maintain', 'write'].includes(permission);
+
+            if (!isMaintainer) {
+              console.log(`User ${sender} does not have maintainer permissions (permission: ${permission}). Ignoring command.`);
+              // Optional: Add a reaction or reply stating unauthorized
+              await github.rest.reactions.createForIssueComment({
+                ...repo,
+                comment_id: context.payload.comment.id,
+                content: '-1'
+              });
+              return;
+            }
+
+            // 2. Command mapping: command -> label to add
+            const commandMap = {
+              '/keep-open': 'keep-open',
+              '/need-fix': 'need-fix'
+            };
+
+            const matchedCommand = Object.keys(commandMap).find(cmd => 
+              commentBody.startsWith(cmd)
+            );
+
+            if (matchedCommand) {
+              const labelToAdd = commandMap[matchedCommand];
+
+              // Add protective label
+              await github.rest.issues.addLabels({
+                ...repo,
+                issue_number: issueNumber,
+                labels: [labelToAdd]
+              });
+
+              // Remove stale labels if present
+              const currentLabels = context.payload.issue.labels.map(l => l.name);
+              for (const staleLabel of ['stale', 'pending-closure']) {
+                if (currentLabels.includes(staleLabel)) {
+                  try {
+                    await github.rest.issues.removeLabel({
+                      ...repo,
+                      issue_number: issueNumber,
+                      name: staleLabel
+                    });
+                  } catch (err) {
+                    console.log(`Label ${staleLabel} was not removed:`, err.message);
+                  }
+                }
+              }
+
+              // React to confirm the action
+              await github.rest.reactions.createForIssueComment({
+                ...repo,
+                comment_id: context.payload.comment.id,
+                content: '+1'
+              });
+
+              console.log(`Added label '${labelToAdd}' to PR #${issueNumber} by maintainer ${sender}`);
+            }
