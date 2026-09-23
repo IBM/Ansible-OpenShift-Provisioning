@@ -47,6 +47,7 @@
           ansible.builtin.fail:
             msg: "'expect' package is not installed on jumphost"
           when: (env.network_mode | upper == "NAT") and (env.jumphost.ip is not none) and (not expect_installed)
+      # Using 'block' and 'rescue' to avoid running the 'package' module (which requires 'sudo') unless necessary.
       rescue:
         - name: Package 'expect' must be installed on the jumphost, attempting to install it.
           become: true
@@ -59,7 +60,7 @@
     - name: Clear facts after jumphost setup
       ansible.builtin.meta: clear_facts
 
-- name: 5 setup bastion - copy SSH key from localhost to access bastion (non-NAT only).
+- name: 5 setup bastion - copy SSH key from localhost to access bastion.
   hosts: localhost
   tags: ssh, ssh_copy_id, section_1
   gather_facts: true
@@ -67,9 +68,16 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   vars:
-    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}", "{{ path_to_key_pair }}"]
+    ssh_target: >-
+      [
+        "{{ env.bastion.networking.ip }}",
+        "{{ env.bastion.access.user }}",
+        "{{ env.bastion.access.pass }}",
+        "{{ path_to_key_pair }}",
+        "{{ (env.jumphost.user + '@' + env.jumphost.ip) if (env.network_mode | upper == 'NAT' and env.jumphost.ip is not none) else '' }}"
+      ]
   roles:
-    - { role: ssh_copy_id, when: env.network_mode | upper != 'NAT' }
+    - role: ssh_copy_id
 
 - name: 5 setup bastion - copy SSH key from jumphost to bastion (NAT only).
   hosts: jumphost
