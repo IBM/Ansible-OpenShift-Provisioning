@@ -7,11 +7,11 @@
     - name: Delete compute node from OCP cluster
       ansible.builtin.shell: |
         set -o pipefail
-        if ! oc get nodes --no-headers=true | grep "^{{ param_compute_node.vm_hostname | lower }}" ; then
-            echo "INFO: Node '{{ param_compute_node.vm_hostname }}' not found or is already deleted"
+        if ! oc get nodes --no-headers=true | grep "^{{ param_compute_node.node_vm_hostname | lower }}" ; then
+            echo "INFO: Node '{{ param_compute_node.node_vm_hostname }}' not found or is already deleted"
             exit 0
         fi
-        NODE=$(oc get nodes --no-headers=true | grep "^{{ param_compute_node.vm_hostname | lower }}" | cut -f 1 -d " ")
+        NODE=$(oc get nodes --no-headers=true | grep "^{{ param_compute_node.node_vm_hostname | lower }}" | cut -f 1 -d " ")
         oc adm cordon "${NODE}"
         oc adm drain "${NODE}" --force --delete-emptydir-data --ignore-daemonsets --timeout=30s
         oc delete nodes "${NODE}"
@@ -22,15 +22,15 @@
 
 - name: Delete compute node VM on KVM host and print command output
   tags: delete_compute_node
-  when: param_compute_node.hostname is defined
-  remote_user: "{{ param_compute_node.host_user }}"
-  delegate_to: "{{ param_compute_node.hostname }}"
+  when: param_compute_node.hypervisor_name is defined
+  remote_user: "{{ param_compute_node.hypervisor_user }}"
+  delegate_to: "{{ param_compute_node.hypervisor_name }}"
   block:
     - name: Delete compute node VM on KVM host
       ansible.builtin.shell: |
         set -o pipefail
-        virsh destroy {{ param_compute_node.vm_name }} || true
-        virsh undefine {{ param_compute_node.vm_name }} --remove-all-storage --nvram || true
+        virsh destroy {{ param_compute_node.node_vm_name }} || true
+        virsh undefine {{ param_compute_node.node_vm_name }} --remove-all-storage --nvram || true
       register: cmd_output
     - name: Print cmd output
       ansible.builtin.debug:

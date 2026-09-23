@@ -1,0 +1,49 @@
+##############################################################
+# Compute node configuration for day2 UPI deployment
+# Copy and rename this template for each compute node.
+# Create for every node you would add to an existing cluster.
+# At the moment only KVM hypervisors are supported.
+##############################################################
+
+# Section 1 - General Settings
+hypervisor_name: KVM-host       # KVM Hypervisor name
+hypervisor_host_ip: #X          # IP address of this hypervisor host (e.g., 192.168.1.41)
+hypervisor_user: #X             # User to login to this hypervisor host
+                                # For some operation root access is needed (e.g. configure the host)
+hypervisor_user_pwd: "vault_host_user_pass"  # Password (use vault). Due to the limitation in execution
+                                # of Ansible use for every hypervisor host an entry in vault file and 
+                                # specify the name of the secret variable without '{{ }}'.
+hypervisor_arch: #X             # Architecture of this hypervisor host
+setup_host: True                # Setup this hypervisor?
+
+# Section 2 - node section
+node_vm_name: #X                # VM name
+node_vm_hostname: #X            # VM hostname
+
+# Section 3 - Hardware settings
+vcpu: 4           # Number of vCPUs for compute node
+memory: 16384     # Memory in MB for compute node (16GB recommended, adjust based on workload)
+disk_size:        # Optional disk size in GB. If empty, defaults to env.cluster.nodes.compute.disk_size
+vcpu_model_option: "--cpu host" # Only valid for KVM
+
+# Section 4 - Network interface settings
+networking:
+  ip: #X          # IPv4 address (e.g., 192.168.1.41)
+  ipv6: #X        # IPv6 address (e.g., fd00::41) or leave empty
+  gateway: "{{ env.bastion.networking.gateway }}"  # IPv4 gateway taken from bastion
+  ipv6_gateway: "{{ env.bastion.networking.ipv6_gateway }}" # IPv6 gateway (e.g., fd00::1) or leave empty
+  subnetmask: "{{ env.bastion.networking.subnetmask }}"     # IPv4 netmask (e.g., 255.255.255.0)
+  ipv6_prefix: "{{ env.bastion.networking.ipv6_prefix }}"   # IPv6 prefix length (e.g., 64) or leave empty
+  mac_address: #X # MAC address (e.g., 52:54:00:00:00:41) - needed for KVM
+  device1: #X     # Network device name (e.g., enc5000). For time being only one device is being supported
+  dhcp: false     # Use dhcp (mac address must be set) or static ip.
+
+# Section 5 - Storage settings
+storage:
+  pool_path: #X
+  pool_name: # Optional. If empty, defaults to "{{ env.cluster.networking.metadata_name }}-vdisk"
+
+# Section 6 - Compute Node Role
+# This node will run application workloads
+node_role: compute
+ignition_type: worker  # Will use worker.ign

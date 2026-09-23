@@ -197,19 +197,99 @@
 
 ## 13 - (Optional) Create compute node in a day-2 operation
 
+The day-2 workflow now uses a **host_vars-based** model.
+
+For a single-node day-2 operation, [`day2_compute_node`](inventories/default/group_vars/all.yaml:235) must be a list of host_vars entry names. Each entry must match a file in [`inventories/default/host_vars`](../inventories/default/host_vars).
+
+Example in [`all.yaml`](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template):
+
+```yaml
+day2_compute_node:
+  - example-day2-node
+```
+
+The referenced host_vars file contains the actual node and hypervisor definition. Use:
+- [`inventories/default/host_vars/compute-day2.yaml.template`](../inventories/default/host_vars/compute-day2.yaml.template) as the template
+- [`inventories/default/host_vars/example-day2-node.yaml`](../inventories/default/host_vars/example-day2-node.yaml) as an example
+
+### Day-2 host_vars fields
+
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**day2_compute_node.vm_name** | Name of the compute node VM.  | compute-4
-**day2_compute_node.vm_hostname** | Hostnames for compute node. | compute-4
-**day2_compute_node.vm_vm_ip** | IPv4 address of the compute node. | 192.168.10.99
-**day2_compute_node.vm_vm_ipv6** | IPv6 address of the compute node. | fd00::99
-**day2_compute_node.vm_mac** | MAC address of the compute node if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
-**day2_compute_node.vm_interface** | The network interface used for given IP addresses of the compute node. | enc1
-**day2_compute_node.hostname** | The hostname of the KVM host | kvm-host-01
-**day2_compute_node.host_user** | KVM host user which is used to create the VM | root
-**day2_compute_node.host_arch** | KVM host architecture.  | s390x
-**day2_compute_node.disk_pool** | <b>(Optional)</b> Name of the libvirt storage pool to use for the compute node VM disk. On s390x defaults to `<metadata_name>-vdisk`. On all other architectures (aarch64, x86_64) defaults to `default`. Only set this if your KVM host uses a custom pool name. | default
-**day2_compute_node.install_dev** | <b>(Optional)</b> Installation device for CoreOS installation. Defaults to 'vda' if not specified. Leave blank or omit to use the default. | vda
+**day2_compute_node.vm_name(deprecated)** | Name of the compute node VM.  | compute-4
+**day2_compute_node.vm_hostname(deprecated)** | Hostnames for compute node. | compute-4
+**day2_compute_node.vm_vm_ip(deprecated)** | IPv4 address of the compute node. | 192.168.10.99
+**day2_compute_node.vm_vm_ipv6(deprecated)** | IPv6 address of the compute node. | fd00::99
+**day2_compute_node.vm_mac(deprecated)** | MAC address of the compute node if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
+**day2_compute_node.vm_interface(deprecated)** | The network interface used for given IP addresses of the compute node. | enc1
+**day2_compute_node.hostname(deprecated)** | The hostname of the KVM host | kvm-host-01
+**day2_compute_node.host_user(deprecated)** | KVM host user which is used to create the VM | root
+**day2_compute_node.host_arch(deprecated)** | KVM host architecture.  | s390x
+**day2_compute_node.disk_pool(deprecated)** | <b>(Optional)</b> Name of the libvirt storage pool to use for the compute node VM disk. On s390x defaults to `<metadata_name>-vdisk`. On all other architectures (aarch64, x86_64) defaults to `default`. Only set this if your KVM host uses a custom pool name. | default
+**day2_compute_node.install_dev(deprecated)** | <b>(Optional)</b> Installation device for CoreOS installation. Defaults to 'vda' if not specified. Leave blank or omit to use the default. | vda
+**hypervisor_name** | Inventory name of the hypervisor that will host the day-2 compute node. | example-kvm-host
+**hypervisor_host_ip** | IPv4 address of the hypervisor. Used to build the [`day2_hosts`](../inventories/default/hosts) inventory section during [`playbooks/0_setup.yaml`](../playbooks/0_setup.yaml). | 192.168.100.10
+**hypervisor_user** | SSH user used to connect to the hypervisor. | root
+**hypervisor_user_pwd** | Password used for the hypervisor connection and privilege escalation. Usually sourced from vault variables. | `"{{ vault_host_user_pass }}"`
+**hypervisor_arch** | Hypervisor architecture. Used to select the correct RHCOS artifacts for the node. | x86_64
+**setup_host** | If `true`, the hypervisor is added to [`day2_hosts`](../inventories/default/hosts) during [`playbooks/0_setup.yaml`](../playbooks/0_setup.yaml) and configured by [`playbooks/3_setup_kvm_host.yaml`](../playbooks/3_setup_kvm_host.yaml). | true
+**node_vm_name** | Name of the day-2 compute VM to create. | worker-x64-example
+**node_vm_hostname** | Hostname of the new OpenShift node. | worker-x64-example
+**vcpu** | Number of virtual CPUs for the day-2 VM. | 4
+**memory** | Memory size in MB for the day-2 VM. | 16384
+**disk_size** | <b>(Optional)</b> Disk size in GB for the day-2 VM. If omitted, [`env.cluster.nodes.compute.disk_size`](../inventories/default/group_vars/all.yaml) is used. | 120
+**vcpu_model_option** | <b>(Optional)</b> CPU model option passed to [`virt-install`](../roles/create_compute_node/tasks/main.yaml:86). | --cpu host
+**networking.ip** | IPv4 address used when [`networking.dhcp`](../inventories/default/host_vars/compute-day2.yaml.template) is `false`. | 192.168.100.64
+**networking.ipv6** | <b>(Optional)</b> IPv6 address for the day-2 VM. | fd00::64
+**networking.gateway** | IPv4 gateway used for static day-2 node boot arguments. | 192.168.100.1
+**networking.ipv6_gateway** | <b>(Optional)</b> IPv6 gateway used when IPv6 is enabled. | fd00::1
+**networking.subnetmask** | IPv4 subnet mask used for static day-2 node boot arguments. | 255.255.255.0
+**networking.ipv6_prefix** | <b>(Optional)</b> IPv6 prefix length used when IPv6 is enabled. | 64
+**networking.mac_address** | MAC address assigned to the guest NIC. Required when [`networking.dhcp`](../inventories/default/host_vars/compute-day2.yaml.template) is `true`. | 52:54:00:00:01:41
+**networking.device1** | Guest network interface name used in static kernel boot arguments and host networking setup. | enp1s0
+**networking.dhcp** | Controls whether the day-2 VM boots with DHCP (`true`) or static network arguments (`false`). | false
+**storage.pool_path** | Libvirt storage pool path on the target hypervisor. | /var/lib/libvirt/images/
+**storage.pool_name** | <b>(Optional)</b> Libvirt storage pool name. If omitted, `{{ env.cluster.networking.metadata_name }}-vdisk` is used. | examplecluster-vdisk
+**node_role** | Role metadata for the day-2 node. | compute
+**ignition_type** | Ignition file type used for the day-2 node. | worker
+**memory** | Memory for the day-2 VM in MB. | 16384
+**disk_size** | Optional disk size for the day-2 VM in GB. If omitted, the day-2 flow uses [`env.cluster.nodes.compute.disk_size`](../inventories/default/group_vars/all.yaml). | 120
+**vcpu_model_option** | CPU model option passed to the VM creation logic. | --cpu host
+**networking.ip** | IPv4 address of the day-2 compute node. | 192.168.100.64
+**networking.ipv6** | Optional IPv6 address of the day-2 compute node. | fd00::64
+**networking.gateway** | IPv4 gateway for the day-2 compute node. | 192.168.100.1
+**networking.ipv6_gateway** | Optional IPv6 gateway for the day-2 compute node. | fd00::1
+**networking.subnetmask** | IPv4 subnet mask for the day-2 compute node. | 255.255.255.0
+**networking.ipv6_prefix** | Optional IPv6 prefix length. | 64
+**networking.mac_address** | MAC address used for the day-2 compute node. | 52:54:00:00:01:41
+**networking.device1** | Network device name inside the guest. For the time being only one device is being supported. | enp1s0
+**storage.pool_path** | Storage pool path used on the hypervisor. | /var/lib/libvirt/images/
+**storage.pool_name** | Optional libvirt storage pool name used for the VM disk. If omitted, the day-2 flow uses `{{ env.cluster.networking.metadata_name }}-vdisk`. | examplecluster-vdisk
+**node_role** | Role of the node to create. | compute
+**ignition_type** | Ignition type used for the node. | worker
+
+### How [`day2_compute_node`](inventories/default/group_vars/all.yaml:235) is used
+
+[`day2_compute_node`](inventories/default/group_vars/all.yaml:235) is consumed by several playbooks:
+
+- [`playbooks/0_setup.yaml`](../playbooks/0_setup.yaml) loads the referenced host_vars files and generates the [`day2_hosts`](../inventories/default/hosts) inventory section for eligible hypervisors.
+- [`playbooks/3_setup_kvm_host.yaml`](../playbooks/3_setup_kvm_host.yaml) configures the hypervisors listed in [`day2_hosts`](../inventories/default/hosts) when `setup_host: true`.
+- [`playbooks/create_compute_node.yaml`](../playbooks/create_compute_node.yaml) loads the first entry from [`day2_compute_node`](inventories/default/group_vars/all.yaml:235) and creates the node.
+- [`playbooks/delete_compute_node.yaml`](../playbooks/delete_compute_node.yaml) loads the same host_vars entry when deleting a day-2 node.
+
+### Notes for multi-node day-2 operations
+
+[`playbooks/create_multiple_compute_nodes.yaml`](../playbooks/create_multiple_compute_nodes.yaml) does **not** use [`day2_compute_node`](inventories/default/group_vars/all.yaml:235) directly. Instead, it expects an extra-vars file containing [`day2_compute_nodes`](../playbooks/create_multiple_compute_nodes.yaml:11), which is also a list of host_vars entry names.
+
+Example:
+
+```yaml
+day2_compute_nodes:
+  - example-day2-node
+  - another-day2-node
+```
+
+If those nodes use new hypervisors that must be prepared first, temporarily add the relevant host_vars entry names to [`day2_compute_node`](inventories/default/group_vars/all.yaml:235), rerun [`playbooks/0_setup.yaml`](../playbooks/0_setup.yaml), and then run [`playbooks/3_setup_kvm_host.yaml`](../playbooks/3_setup_kvm_host.yaml).
 
 ## 14 - (Optional) Agent Based Installer
 **Variable Name** | **Description** | **Example**
@@ -267,177 +347,3 @@
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
 **disconnected.enabled** | True or False, to enable disconnected mode | False
-**disconnected.registry.url** | String containing url of disconnected registry with or without port and without protocol | registry.tt.testing:5000
-**disconnected.registry.ip** | String containing ip of the registry, which will be used for resolving dns | `192.168.151.1`
-**disconnected.registry.pull_secret** | String containing pull secret of the disconnected registry to be applied on the *cluster*.  Make sure to enclose pull_secret in 'single quotes' and it has appropriate pull access. | '{"auths":{"registry.tt..testing:5000":{"auth":"b3Blb...4yQQ==","email":"test.user@example.com"}}}'
-**disconnected.registry.mirror_pull_secret** | String containing pull secret to use for mirroring. Contains Red Hat secret and registry pull  secret. Make sure to enclose pull_secret in 'single quotes' and must be able to push to mirror registry. | '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com", "registry.tt..testing:5000":...user@example.com"}}}'
-**disconnected.registry.ca_trusted** | True or False to indicate that mirror registry CA is implicitly trusted or needs to be made trusted on mirror host and cluster. | False
-**disconnected.registry.ca_cert** | Multiline string containing the mirror registry CA bundle | -----BEGIN CERTIFICATE-----MIIDqDCCApCgAwIBAgIULL+d1HTYsiP+8jeWnqBis3N4BskwDQYJKoZIhvcNAQEF...-----END CERTIFICATE-----
-**disconnected.mirroring.host.name** | String containing the hostname of the host, which will be used for mirroring | mirror-host-1
-**disconnected.mirroring.host.ip** | String containing ip of the host, which will be used for mirroring | 192.168.10.99
-**disconnected.mirroring.host.user** | String containing the username of the host, which will be used for mirroring | mirroruser
-**disconnected.mirroring.host.pass** | String containing the password of the host, which will be used for mirroring | mirrorpassword
-**disconnected.mirroring.file_server.clients_dir** | Directory path relative to the HTTP/FTP accessible directory on **env.file_server** where client binary tarballs are kept | clients
-**disconnected.mirroring.file_server.oc_mirror_tgz** | Name of oc-mirror tarball on **env.file_server** in **disconnected.mirroring.file_server.clients_dir**. This must be placed in your ftp server after downloading it yourself from https://console.redhat.com/openshift/downloads. | oc-mirror.tar.gz
-**disconnected.mirroring.client_download.ocp_download_url** | url to download the oc client | https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/amd64/
-**disconnected.mirroring.client_download.ocp_client_tgz** | Name of oc-client tarball on **env.file_server**. This should match the binary name available in **disconnected.mirroring.client_download.ocp_download_url** | openshift-client-linux.tar.gz
-**disconnected.mirroring.legacy.platform** | True or False if the platform should be mirrored using `oc adm release mirror`. If **True** then platform is mirrored in the old way and install config will be patched with the imagecontentsourcepolicy | False (default)
-**disconnected.mirroring.legacy.ocp_quay_release_image_tag** | The tag of the release image *quay.io/openshift-release-dev/ocp-release* to mirror and use | 4.13.1-s390x
-**disconnected.mirroring.legacy.ocp_org** | The org part of the repo on the mirror registry where the release image will be pushed | ocp4
-**disconnected.mirroring.legacy.ocp_repo** | The repo part of the repo on the mirror registry where the release image will be pushed | openshift4
-**disconnected.mirroring.legacy.ocp_tag** | The tag part of the repo on the mirror registry where the release image will be pushed. Full image would be as below.: disconnected.registry.url/disconnected.mirroring.legacy.ocp_org/disconnected...ocp_repo:disconnected..ocp_tag | v4.13.1
-**disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error** | True or False to give `--continue-on-error` flag to `oc-mirror` | False
-**disconnected.mirroring.oc_mirror.oc_mirror_args.source_skip_tls** | True or False to give `--source-skip-tls` flag to `oc-mirror` | False
-**disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled** | True or False to replace values in `mapping.txt` generated by oc-mirror.  This also does a manual repush of the images in `mapping.txt`. | False
-**disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.list** | List of **regexp** and **replace** where every string/regular expression  gets replaced by corresponding *replace* value. | regexp: interal-url.com replace: external-url.com
-**disconnected.mirroring.oc_mirror.release_image_tag** | The ocp release image tag you want to install the cluster with. Used when legacy platform  mirroring is disabled and **disconnected.mirroring.oc_mirror.image_set** contains platform  entries. |  4.13.1-multi
-**disconnected.mirroring.oc_mirror.release_image_registry** | The Release Image registry like Brew Registry which stores the release images as mirror to **registry.redhat.io**. This will be mirror registry for release operator images|  `brew.registry.redhat.io`
-**disconnected.mirroring.oc_mirror.image_set** | YAML fields containing a standard `oc-mirror` [image set](https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-creating-image-set-config_installing-mirroring-disconnected) with some minor changes to schema.  Differences are documented as needed. Used to generate final image set. | see template
-**disconnected.mirroring.oc_mirror.image_set.apiVersion** | The API version of the `ImageSetConfiguration` content. | `mirror.openshift.io/v1alpha2`, `mirror.openshift.io/v2alpha1`
-**disconnected.mirroring.oc_mirror.image_set.storageConfig.enabled** | True or False to set whether oc-mirror is v1 or v2. As for v2 storageConfig flag is removed completely | `True` or `False`
-**disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.enabled** | True or False to use registry storage backend for pushing mirrored content directly to the registry.  Currently only this backend is supported.| True
-**disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.imageURL.org** | The org part of registry imageURL from standard image set. | mirror
-**disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.imageURL.repo** | The repo part of registry imageURL from standard image set.  Final imageURL will be as below:  disconnected.registry.url/disconnected.mirroring.oc_mirror.image_set.storageConfig .registry.imageURL.org/disconnected...imageURL.repo | oc-mirror-metadata
-**disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.skipTLS** | True of False same purpose served as in standard image set i.e. skip the tls for the registry   during mirroring.| false
-**disconnected.mirrroing.oc_mirror.image_set.mirror** | YAML containing a list of what needs to be mirrored. See the oc mirror image set documentation. | see oc-mirror [image set](https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-creating-image-set-config_installing-mirroring-disconnected)   documentation
-
-## Hosted Control Plane ( Optional )
-**Variable Name** | **Description** | **Example**
-:--- | :--- | :---
-**hcp.compute_node_type** | Select the compute node type for HCP , either zKVM or zVM | zvm
-**hcp.mgmt_cluster_nameserver** | IP Address of Nameserver of Management Cluster | 192.168.10.1
-**hcp.oc_url** | URL for OC Client that you want to install on the host | https://... ..openshift-client-linux-4.13.0-ec.4.tar.gz
-**hcp.ansible_key_name** | ssh key name | ansible-ocpz
-**hcp.pkgs** | list of packages for different hosts | 
-**hcp.mce.version** | version for multicluster-engine Operator | 2.4
-**hcp.mce.instance_name** | name of the MultiClusterEngine instance | engine
-**hcp.mce.catalogsource_image** | Image ID for installing MCE | 970287
-**hcp.mce.delete** | true or false - deletes mce and related resources while running deletion playbook | true
-**hcp.asc.url_for_ocp_release_file** | Add URL for OCP release.txt File | https://...  ..../release.txt
-**hcp.asc.db_volume_size** | DatabaseStorage Volume Size | 10Gi
-**hcp.asc.fs_volume_size** | FileSystem Storage Volume Size | 10Gi
-**hcp.asc.ocp_version** | OCP Version for AgentServiceConfig | 4.13.0-ec.4
-**hcp.asc.iso_url** | Give URL for ISO image | https://...  ...s390x-live.s390x.iso
-**hcp.asc.root_fs_url** | Give URL for rootfs image | https://...  ... live-rootfs.s390x.img
-**hcp.asc.mce_namespace** | Namespace where your Multicluster Engine Operator is installed.  Recommended Namespace for MCE is 'multicluster-engine'.  Change this only if MCE is installed in other namespace. | multicluster-engine
-**hcp.control_plane.high_availabiliy** | Availability for Control Plane | true
-**hcp.control_plane.clusters_namespace** | Namespace for Creating Hosted Control Plane | clusters
-**hcp.control_plane.hosted_cluster_name** | Name for the Hosted Cluster  | hosted0
-**hcp.control_plane.basedomain** | Base domain for Hosted Cluster | example.com
-**hcp.control_plane.pull_secret_file** | Path for the pull secret  No need to change this as we are copying the pullsecret to same file  /root/ansible_workdir/auth_file | /root/ansible_workdir/auth_file
-**hcp.control_plane.ocp_release_image** | OCP Release version for Hosted Control Cluster and Nodepool | 4.13.0-rc.4-multi
-**hcp.control_plane.arch** | Architecture for InfraEnv and AgentServiceConfig" | s390x
-**hcp.control_plane.additional_flags** | Any additional flags for creating hcp ( In hcp create cluster agent command ) | --fips
-**hcp.control_plane.pull_secret** | Pull Secret of Management Cluster  Make sure to enclose pull_secret in 'single quotes' | '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com"}}}'
-**hcp.bastion_params.create** | true or false - create bastion with the provided IP | true
-**hcp.bastion_params.ip** | IPv4 address for bastion of Hosted Cluster | 192.168.10.1
-**hcp.bastion_params.user** | User for bastion of Hosted Cluster | root
-**hcp.bastion_params.host** | IPv4 address of KVM host  (kvm host where you want to run all oc commands and create VMs)| 192.168.10.1
-**hcp.bastion_params.host_user** | User for KVM host | root
-**hcp.bastion_params.hostname** | Hostname for bastion | bastion
-**hcp.bastion_params.base_domain** | DNS base domain for the bastion. | ihost.com
-**hcp.bastion_params.nameserver** | Nameserver for creating bastion | 192.168.10.1
-**hhcp.bastion_params.gateway** | Gateway IP for creating bastion  This is how it well be used ip=<ipv4 address>::<nameserver>:<subnet mask> | 192.168.10.1
-**hcp.bastion_params.subnet_mask** |  IPv4 address of subnetmask | 255.255.255.0
-**hcp.bastion_params.interface** | Interface for bastion | enc1
-**hcp.bastion_params.hipersockets** | Hipersockets card details for bastion | 0.0.f000,0.0.f001,0.0.f002
-**hcp.bastion_params.user_id** | user id for bastion to attach hipersocket interface | m1317008
-**hcp.bastion_params.file_server.ip** | IPv4 address for the file server that will be used to pass config files and iso to KVM host LPAR(s) and bastion VM during their first boot. | 192.168.10.201
-**hcp.bastion_params.file_server.protocol** | Protocol used to serve the files, either 'ftp' or 'http' | http
-**hcp.bastion_params.file_server.iso_mount_dir** | Directory path relative to the HTTP/FTP accessible directory where RHEL ISO is mounted. For example, if the FTP root is at /home/user1 and the ISO is mounted at /home/user1/RHEL/8.7 then this variable would be RHEL/8.7 - no slash before or after. | RHEL/8.7
-**hcp.bastion_params.disk** | rhel os variant for creating bastion | 8.7
-**hcp.bastion_params.network_name** | Name of the network which you want to use for guets VMs to connect | 8.7
-**hcp.bastion_params.language** | What language would you like Red Hat Enterprise Linux to use? In UTF-8 language code. Available languages and their corresponding codes can be found here, in the "Locale" column of Table 2.1. | en_US.UTF-8
-**hcp.bastion_params.timezone** | Which timezone would you like Red Hat Enterprise Linux to use? A list of available timezone options can be found here. | America/New_York
-**hcp.bastion_params.keyboard** | Which keyboard layout would you like Red Hat Enterprise Linux to use? | us
-**hcp.data_plane.compute_count** | Number of agents for the hosted cluster  The same number of compute nodes will be attached to Hosted Cotrol Plane | 2
-**hcp.data_plane.vcpus** | vCPUs for compute nodes | 4
-**hcp.data_plane.memory** | RAM for compute nodes | 16384
-**hcp.data_plane.kvm.boot_method** | Boot method for booting agents. Supported methods: pxe, iso | pxe
-**hcp.data_plane.kvm.storage.type** | Storage type for KVM guests  qcow/dasd | qcow
-**hcp.data_plane.kvm.storage.qcow.disk_size** | Disk size for kvm guests | 100G
-**hcp.data_plane.kvm.storage.qcow.pool_path** | Storage pool path for creating disks | /home/images/
-**hcp.data_plane.kvm.storage.dasd** | dasd disks for kvm guests | /disk
-**hcp.data_plane.kvm.ip_params.static_ip.enabled** | true or false - use static IPs for agents using NMState | true
-**hcp.data_plane.kvm.ip_params.static_ip.ip** | List of IP addresses for agents | 192.168.10.1
-**hcp.data_plane.kvm.ip_params.static_ip.interface** | Interface for agents for configuring NMStateConfig | eth0
-**hcp.data_plane.kvm.ip_params.mac** | List of macaddresses for the agents.  Configure in DHCP if you are using dynamic IPs for Agents. | - 52:54:00:ba:d3:f7 
-**hcp.data_plane.zvm.network_mode** | Network mode for zvm nodes  Supported modes: vswitch,osa, RoCE  |  vswitch
-**hcp.data_plane.zvm.disk_type** | Disk type for zvm nodes  Supported disk types: fcp, dasd | dasd
-**hcp.data_plane.zvm.subnetmask** | Subnet mask for compute nodes | 255.255.255.0
-**hcp.data_plane.zvm.gateway** | Gateway for compute nodes | 192.168.10.1
-**hcp.data_plane.zvm.nodes** | Set of parameters for zvm nodes  Give the details of each zvm node here | 
-**hcp.data_plane.zvm.name** | Name of the zVM guest | m1317002
-**hcp.data_plane.zvm.nodes.host** | Host name of the zVM guests  which we use to login 3270 console | boem1317
-**hcp.data_plane.zvmnodes.user** | Username for zVM guests to login | m1317002
-**hcp.data_plane.zvm.nodes.password** | password for the zVM guests to login | password
-**hcp.data_plane.zvm.nodes.interface.ifname** | Network interface name for zVM guests | encbdf0
-**hcp.data_plane.zvm.nodes.interface.nettype** | Network type for zVM guests for network connectivity | qeth
-**hcp.data_plane.zvm.nodes.interface.subchannels** | subchannels for zVM guests interfaces | 0.0.bdf0,0.0.bdf1,0.0.bdf2
-**hcp.data_plane.zvm.nodes.interface.options** | Configurations options  | layer2=1
-**hcp.data_plane.zvm.interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
-**hcp.data_plane.zvm.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404 
-**hcp.data_plane.zvm.nodes.lun** | Disk details of fcp disk to be used for zVM node | 0.0.4404
-**hcp.data_plane.lpar.network_mode** | Network mode for zvm nodes  Supported modes: osa, RoCE, Hipersockets  |  vswitch
-**hcp.data_plane.lpar.disk_type** | Disk type for zvm nodes  Supported disk types: fcp, dasd | dasd
-**hcp.data_plane.lpar.subnetmask** | Subnet mask for compute nodes | 255.255.255.0
-**hcp.data_plane.lpar.gateway** | Gateway for compute nodes | 192.168.10.1
-**hcp.data_plane.lpar.nodes** | Set of parameters for zvm nodes  Give the details of each zvm node here | 
-**hcp.data_plane.lpar.name** | Name of the zVM guest | m1317002
-**hcp.data_plane.lpar.nodes.hmc_host** | Host name of the LPAR  which we use to login 3270 console | boem1317
-**hcp.data_plane.lpar.nodes.interface.ifname** | Network interface name for LPAR | encbdf0
-**hcp.data_plane.lpar.nodes.interface.nettype** | Network type for LPAR for network connectivity | qeth
-**hcp.data_plane.lpar.nodes.interface.subchannels** | subchannels for LPAR interfaces | 0.0.bdf0,0.0.bdf1,0.0.bdf2
-**hcp.data_plane.lpar.nodes.interface.options** | Configurations options  | layer2=1
-**hcp.data_plane.lpar.interface.ip** | IP addresses for to be used for LPAR nodes | 192.168.10.1
-**hcp.data_plane.lpar.hipersockets.internal_ip** | Internal IP address for Hipersocket interface | 10.13.43.2
-**hcp.data_plane.lpar.hipersockets.ifname** | Hipersockets interface name | encf000
-**hcp.data_plane.lpar.hipersockets.subchannels** | subchannels for Hipersockets interfaces | 0.0.f000,0.0.f001,0.0.f002
-**hcp.data_plane.lpar.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404 
-**hcp.data_plane.lpar.nodes.lun** | Disk details of fcp disk to be used for zVM node | 0.0.4404
-**hcp.data_plane.lpar.nodes.live_disk.disk_type** | Live disk type for booting LPAR | scsi 
-**hcp.data_plane.lpar.nodes.live_disk.uuid** | UUID for the live disk | 600507000000000000xxxx
-**hcp.data_plane.lpar.nodes.live_disk.devicenr** | devicenr for the live disk | 8001
-**hcp.data_plane.lpar.nodes.live_disk.lun** | lun id  for the live disk | 40xxxxxxxxxxxxx
-**hcp.data_plane.lpar.nodes.live_disk.wwpn** | wwpn for the live disk | 500507630xxxxxxx
-**hcp.data_plane.lpar.nodes.live_disk.password** | password of the live disk | xxxxxx
-
-
-## ZVM ( Optional )
-**Variable Name** | **Description** | **Example**
-:--- | :--- | :---
-**zvm.network_mode** | Network mode for zvm nodes  Supported modes: vswitch,osa, RoCE  |  vswitch
-**zvm.disk_type** | Disk type for zvm nodes  Supported disk types: fcp, dasd | dasd
-**zvm.subnetmask** | Subnet mask for compute nodes | 255.255.255.0
-**zvm.gateway** | Gateway for compute nodes | 192.168.10.1
-**zvm.vcpus** | vCPUs for compute nodes | 4
-**zvm.memory** | RAM for compute nodes | 16384
-**zvm.nodes** | Set of parameters for zvm nodes  Give the details of each zvm node here |
-**zvm.nodes.name** | Name of the zVM guest | m1317002
-**zvm.nodes.host** | Host name of the zVM guests  which we use to login 3270 console | boem1317
-**zvm.nodes.user** | Username for zVM guests to login | m1317002
-**zvm.nodes.password** | password for the zVM guests to login | password
-**zvm.nodes.interface.ifname** | Network interface name for zVM guests | encbdf0
-**zvm.nodes.interface.nettype** | Network type for zVM guests for network connectivity | qeth
-**zvm.nodes.interface.subchannels** | subchannels for zVM guests interfaces | 0.0.bdf0,0.0.bdf1,0.0.bdf2
-**zvm.nodes.interface.options** | Configurations options  | layer2=1
-**zvm.interface.ip** | IP addresses for to be used for zVM nodes | 192.168.10.1
-**zvm.nodes.dasd.disk_id** | Disk id for dasd disk to be used for zVM node | 4404
-**zvm.nodes.lun** | Disk details of fcp disk to be used for zVM node | 840a
-
-## Crypto Express Card based LUKS encryption specific for zKVM ( Optional )
-**Variable Name** | **Description** | **Example**
-**cex** | Whether to enable cex based luks encryption, default to False
-**cex_device** | Specify the storage device type used for LUKS encryption. This setting determines which MCO Ignition configuration will be applied from the defaults. Do not override the default value. Use in combination with the cex parameter. | [dasd, fcp, virt]
-**cex_uuid_map** | This var is required only for KVM installations using vfio_ap mediated device. Omit it when deploying on LPAR installation. Use in combination with cex and cex_device. Specify guest hostname: "UUID:domain" UUID can be generated from uuidgen command and domain can be retrieved from lszcrypt | upi-cex-control-1: "68cd2d83-3eef-4e45-b22c-534f90b16cb9:00.0035"
-
-## Additional Parameters (optional)
-
-### Download Kubeconfig
-These parameters control the download of kubeconfig and kubepassw files from the bastion host. See the [`download_kubeconfig`](../roles/download_kubeconfig/README.md) role for more details.
-
-**Variable Name** | **Description** | **Example/Default**
-:--- | :--- | :---
-**kubeconfig_dest_dir** | Destination directory on the local controller where downloaded files will be stored. Files are stored in a `kubeconfig/` subdirectory within this path. | /tmp
-**kubeconfig_source_dir** | Source directory on the bastion host from which files will be downloaded. | ~/ocpinst/auth
-**kubeconfig_files** | List of files to download from the bastion host. | ['kubeconfig', 'kubeadmin-password']
