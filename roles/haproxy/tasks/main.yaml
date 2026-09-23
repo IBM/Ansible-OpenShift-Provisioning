@@ -78,6 +78,7 @@
   ansible.builtin.lineinfile:
     line: "  server {{ env.cluster.nodes.control.hostname[i] }} {{ env.cluster.nodes.control.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:80 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
+    insertafter: "80 section"
   with_sequence: start=0 end={{ (env.cluster.nodes.control.hostname | length) - 1 }} stride=1
   loop_control:
     extended: true
@@ -89,6 +90,7 @@
   ansible.builtin.lineinfile:
     line: "  server {{ env.cluster.nodes.compute.hostname[i] }} {{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:80 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
+    insertafter: "80 section"
   loop: "{{ range(0, env.cluster.nodes.compute.hostname | length) | list }}"
   loop_control:
     index_var: i
@@ -100,6 +102,7 @@
   ansible.builtin.lineinfile:
     line: "  server {{ env.cluster.nodes.infra.hostname[i] }} {{ env.cluster.nodes.infra.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:80 check inter 1s"
     path: /etc/haproxy/haproxy.cfg
+    insertafter: "80 section"
   with_sequence: start=0 end={{ (env.cluster.nodes.infra.hostname | length) - 1 }} stride=1
   loop_control:
     extended: true

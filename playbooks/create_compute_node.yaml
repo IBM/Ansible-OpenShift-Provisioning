@@ -1,22 +1,17 @@
 ---
 ###################################################################################################
-#  To execute this playbook you need to create a node config yaml file with these parameters:
-# ---
-# day2_compute_node:
-#   vm_name: <your VM name>
-#   vm_hostname: <your VM host name>
-#   vm_ip: <your VM IP address>
-#   vm_ipv6: <your VM IPv6 address>
-#   vm_mac:  <your VM MAC address, when DHCP is used>
-#   vm_interface: <your VM network interface used for the IP addresses>
-#   hostname: <KVM host name where the VM is created>
-#   host_user: <KVM host user which is used to create the VM>
-#   host_arch: <KVM host architecture>
-#   install_dev: <installation device, defaults to 'vda' if not specified>
+# To execute this playbook, define [`day2_compute_node`](inventories/default/group_vars/all.yaml:235)
+# as a list containing one host_vars entry name.
 #
-# Execute the playbook with '--extra-vars' option.
-# E.g.:
-# ansible-playbook playbooks/create_compute_node.yaml --ask-vault-pass
+# Example:
+# day2_compute_node:
+#   - new_compute_node
+#
+# The node definition is loaded from
+# [`inventories/default/host_vars/new_compute_node.yaml`](inventories/default/host_vars/new_compute_node.yaml)
+# using the template structure from
+# [`inventories/default/host_vars/compute-day2.yaml.template`](inventories/default/host_vars/compute-day2.yaml.template)
+###################################################################################################
 
 - name: Add an additional compute node
   # Select bastion host
@@ -27,47 +22,53 @@
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   pre_tasks:
     - name: Check required variables
-      when: (day2_compute_node is not defined)
+      when: (day2_compute_node is not defined) or (day2_compute_node | length == 0)
       block:
         - name: Check required variables
           ansible.builtin.debug:
             msg:
-              - "ERROR: Variable 'day2_compute_node' is not defined!"
-              - "Execute: 'ansible-playbook playbooks/create_compute_node.yaml'"
+              - "ERROR: Variable 'day2_compute_node' is not defined or empty!"
+              - "Set [`day2_compute_node`](inventories/default/group_vars/all.yaml:235) to a list with one host_vars entry name."
         - name: Abort playbook
           ansible.builtin.fail:
             msg: "See above error!"
+
+    - name: Load day-2 compute node host_vars
+      ansible.builtin.include_vars:
+        file: "{{ inventory_dir }}/host_vars/{{ day2_compute_node[0] }}.yaml"
+        name: day2_compute_node_vars
 
     - name: Get RHCOS iso download url from machine-config-operator
       ansible.builtin.shell: |
         set -o pipefail
         oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
-        | jq -r '.architectures.{{ day2_compute_node.host_arch }}.artifacts.metal.formats.iso.disk.location'
+        | jq -r '.architectures.{{ day2_compute_node_vars.hypervisor_arch }}.artifacts.metal.formats.iso.disk.location'
       register: _rhcos_iso_dl_url
 
     - name: Check variable '_rhcos_iso_dl_url' is not 'null'
       ansible.builtin.fail:
+        msg: "Failed to get RHCOS ISO URL for architecture {{ day2_compute_node_vars.hypervisor_arch }}"
       when: _rhcos_iso_dl_url.stdout == "null"
 
     - name: Get RHCOS kernel download url from machine-config-operator
       ansible.builtin.shell: |
         set -o pipefail
         oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
-        | jq -r '.architectures.{{ day2_compute_node.host_arch }}.artifacts.metal.formats.pxe.kernel.location'
+        | jq -r '.architectures.{{ day2_compute_node_vars.hypervisor_arch }}.artifacts.metal.formats.pxe.kernel.location'
       register: _rhcos_kernel_dl_url
 
     - name: Get RHCOS initrd download url from machine-config-operator
       ansible.builtin.shell: |
         set -o pipefail
         oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
-        | jq -r '.architectures.{{ day2_compute_node.host_arch }}.artifacts.metal.formats.pxe.initramfs.location'
+        | jq -r '.architectures.{{ day2_compute_node_vars.hypervisor_arch }}.artifacts.metal.formats.pxe.initramfs.location'
       register: _rhcos_initrd_dl_url
 
     - name: Get RHCOS rootfs download url from machine-config-operator
       ansible.builtin.shell: |
         set -o pipefail
         oc -n openshift-machine-config-operator get configmap/coreos-bootimages -o jsonpath='{.data.stream}' \
-        | jq -r '.architectures.{{ day2_compute_node.host_arch }}.artifacts.metal.formats.pxe.rootfs.location'
+        | jq -r '.architectures.{{ day2_compute_node_vars.hypervisor_arch }}.artifacts.metal.formats.pxe.rootfs.location'
       register: _rhcos_rootfs_dl_url
 
     - name: Redefine RHCOS variables
@@ -86,24 +87,24 @@
     - role: common
     - role: delete_compute_node
       # Some tasks will be delegated to the bastion host and target KVM host
-      param_compute_node: "{{ day2_compute_node }}"
+      param_compute_node: "{{ day2_compute_node_vars }}"
     - role: print_node_status
     - role: update_ignition_files
 
     - role: dns_update
       when: env.bastion.options.dns is defined and env.bastion.options.dns
       param_dns_cmd: add
-      param_dns_hostname: "{{ day2_compute_node.vm_hostname }}"
-      param_dns_ip: "{{ day2_compute_node.vm_ip }}"
+      param_dns_hostname: "{{ day2_compute_node_vars.node_vm_hostname }}"
+      param_dns_ip: "{{ day2_compute_node_vars.networking.ip }}"
 
     - role: create_compute_node
-      when: param_compute_node.hostname is defined
+      when: day2_compute_node_vars.hypervisor_name is defined
       # Some tasks will be delegated to the bastion host and target KVM host
-      param_compute_node: "{{ day2_compute_node }}"
+      param_compute_node: "{{ day2_compute_node_vars }}"
 
     - role: approve_certs
     - role: wait_for_node
-      wait_for_node_name: "{{ day2_compute_node.vm_hostname }}"
+      wait_for_node_name: "{{ day2_compute_node_vars.node_vm_hostname }}"
     - role: approve_certs
       approve_certs_cleanup: true
     - role: print_node_status
@@ -111,4 +112,4 @@
     - role: haproxy_update
       when: env.bastion.options.loadbalancer.on_bastion
       param_haproxy_cmd: add
-      param_haproxy_hostname: "{{ day2_compute_node.vm_hostname }}"
+      param_haproxy_hostname: "{{ day2_compute_node_vars.node_vm_hostname }}"
