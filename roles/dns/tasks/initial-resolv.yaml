@@ -5,7 +5,7 @@
     dest: /etc/resolv.conf
     owner: root
     group: root
-    mode: "644"
+    mode: "0644"
 
 # NetworkManager modifies our /etc/resolv.conf file on next restart or reboot, we need to disable it
 - name: Disable management of /etc/resolv.conf by NetworkManager
@@ -15,7 +15,7 @@
     dest: /etc/NetworkManager/conf.d/90-dns-none.conf
     group: root
     owner: root
-    mode: "644"
+    mode: "0644"
 
 - name: Restart network to update changes made to /etc/resolv.conf
   tags: resolv

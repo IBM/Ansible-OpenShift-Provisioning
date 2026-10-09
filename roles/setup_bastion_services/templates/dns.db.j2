@@ -1,0 +1,38 @@
+$TTL 86400
+@ IN SOA {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}. admin.{{ env.bastion.networking.base_domain }}.(
+                                                2020021821 ;Serial
+                                                3600 ;Refresh
+                                                1800 ;Retry
+                                                604800 ;Expire
+                                                86400 ;Minimum TTL
+)
+
+;Name Server / Bastion Information
+{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN NS {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}.
+
+;IP Address for Name Server
+{{ env.bastion.networking.hostname }} IN A {% if env.bastion.networking.internal_ip is defined and env.bastion.networking.internal_ip!=None %}{{ env.bastion.networking.internal_ip }}{% else %}{{ env.bastion.networking.ip }}{% endif %}
+
+;entry for bootstrap host.
+{% if env.cluster.nodes.bootstrap is defined %}
+{{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ env.cluster.nodes.bootstrap.ip }}
+{% endif %}
+
+;entries for the control nodes
+
+;entries for the compute nodes
+
+;The api identifies the IP of your load balancer.
+api.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.     IN    A {{ env.bastion.networking.ip }}
+api-int.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN    A {{ env.bastion.networking.ip }}
+
+;The wildcard also identifies the load balancer.
+apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.     IN    A {{ env.bastion.networking.ip }}
+*.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}.   IN    A {{ env.bastion.networking.ip }}
+
+{% if disconnected.enabled %}
+;entry for mirror host.
+{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}. IN A {{ disconnected.registry.ip }}
+{% endif %}
+
+;EOF

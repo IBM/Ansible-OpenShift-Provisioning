@@ -6,6 +6,7 @@
 * The variables marked with an `X` are required to be filled in. Many values are pre-filled or are optional. 
 * Optional values are commented out; in order to use them, remove the `#` and fill them in.
 * Many of the variables in these host_vars files are only required if you are NOT using pre-existing LPARs with RHEL installed. See the `Important Note` below this first section for more details.
+* **LPAR ABI deployments:** The filename of each host_vars file (`<vm_name>.yaml`) must match the corresponding `env.cluster.nodes.control.vm_name[n]` or `env.cluster.nodes.compute.vm_name[n]` value in `group_vars/all.yaml`. This is **not** the same as the OCP node hostname (set via `env.cluster.nodes.*.hostname[n]`). See Section 8 for a full explanation.
 * This is the most important step in the process. Take the time to make sure everything here is correct.
 * <u>Note on YAML syntax</u>: Only the lowest value in each hierarchicy needs to be filled in. For example, at the top of the variables file networking does not need to be filled in, but the hostname does. There are X's where input is required to help you with this.
 * Scroll the table to the right to see examples for each variable.
@@ -100,3 +101,58 @@
 **lpar.livedisk.wwpn** | <b>(Required if livedisktype is scsi)</b> World-wide port number when livedisktype is SCSI. | 500507630a1b50a4
 **lpar.livedisk.devicenr** | <b>(Optional)</b> the device no of the live disk | c6h1
 **lpar.livedisk.livedisk_root_pass** | <b>(Optional)</b> root password for the livedisk | p@ssword
+
+## 8 - LPAR ABI: vm_name, hostname, and mac explained
+
+This section explains three variables that are **distinct but easily confused** when deploying an Agent-Based Installer (ABI) cluster directly on bare-metal LPARs.
+
+### vm_name vs hostname
+
+| Variable | Where set | Purpose |
+|:---|:---|:---|
+| `env.cluster.nodes.*.vm_name[n]` | `group_vars/all.yaml` Sections 8 & 9 | Filename stem of `host_vars/<vm_name>.yaml`. Used by `boot_LPAR_abi` to load HMC/LPAR credentials and livedisk settings, and by `agent-config.yaml.j2` to look up FCP `rootDeviceHints`. |
+| `env.cluster.nodes.*.hostname[n]` | `group_vars/all.yaml` Sections 8 & 9 | Short OCP node hostname. Combined with `metadata_name` and `base_domain` to form the FQDN written as the `hostname:` field in `agent-config.yaml` (e.g. `control-01.ocpz.example.com`). Also used for DNS A/PTR records and HAProxy server lines by the `setup_bastion_services` role. |
+
+**On KVM deployments** `vm_name` and `hostname` are typically the same value because the libvirt VM name and the OCP hostname are set identically by convention.
+
+**On LPAR ABI deployments** they are independent:
+- `vm_name` identifies the LPAR's host_vars file (e.g. `lpar-node-1` → `host_vars/lpar-node-1.yaml`). It is the HMC/CPC identity.
+- `hostname` is the OCP node short name (e.g. `control-01`). It is combined with `metadata_name` and `base_domain` to produce the FQDN written into `agent-config.yaml` (e.g. `control-01.<metadata_name>.<base_domain>`). This FQDN is what OpenShift registers as the node name, so it must be DNS-resolvable.
+
+Example (`group_vars/all.yaml`):
+```yaml
+env:
+  cluster:
+    nodes:
+      control:
+        vm_name:   # host_vars filenames — match your LPAR names in HMC
+          - lpar-cpc1-01
+          - lpar-cpc1-02
+          - lpar-cpc1-03
+        hostname:  # OCP node hostnames — used for DNS and HAProxy
+          - control-01
+          - control-02
+          - control-03
+```
+
+With the above, you must have `host_vars/lpar-cpc1-01.yaml`, `host_vars/lpar-cpc1-02.yaml`, `host_vars/lpar-cpc1-03.yaml`. DNS will be configured for `control-01.<metadata_name>.<base_domain>`, and `agent-config.yaml` will contain `hostname: control-01.<metadata_name>.<base_domain>` — the FQDN that OpenShift registers as the node name (visible in `oc get nodes`).
+
+### mac is required for LPAR ABI
+
+The `env.cluster.nodes.*.mac[n]` variable is **required** for LPAR ABI deployments. It is used in `agent-config.yaml.j2` for two purposes:
+1. The `interfaces[].macAddress:` field — tells the agent which NIC to configure with the static IP.
+2. The `networkConfig.interfaces[].mac-address:` NMState field — configures the interface for static IP assignment.
+
+Without this value the agent cannot match the correct network interface and the node will not join the cluster.
+
+#### MAC Address Determination by Environment and Adapter Type
+
+- **RoCE Adapters:** Use the actual physical MAC address assigned to the RoCE card.
+- **DPM Mode:** Use the MAC address configured/assigned to the network adapter in DPM.
+- **Non-DPM Mode with Non-RoCE Adapters (e.g., OSA-Express / HiperSockets):** Non-DPM LPARs using OSA or HiperSockets in Layer 2 mode do not have a fixed permanent MAC address and the Linux kernel generates a random MAC address on every boot by default. For these environments, specify a **randomly generated MAC address** (e.g., `52:54:00:xx:yy:zz` or `02:xx:yy:zz:aa:bb` using valid unicast hex bytes) in `env.cluster.nodes.*.mac` in `group_vars/all.yaml`. During LPAR boot, the `boot_LPAR_abi` role writes this MAC into the boot parameter file (`genericdvd.prm`) via dracut's `ip=...::<mac>` parameter, which forces the kernel to assign this specified MAC to the LPAR interface so that it matches what `agent-config.yaml` expects.
+
+### LPAR Load Status Timeout (Optional)
+
+By default, the HMC status wait timeout when loading DASD or SCSI live disks is set to **300 seconds** (overriding the upstream `zhmcclient` default of 60 seconds). You can customize this timeout per node or globally:
+- Per node in `host_vars/<node>.yaml`: `lpar.load_status_timeout: 300`
+- Globally in `group_vars/all.yaml`: `env.lpar_load_status_timeout: 300`

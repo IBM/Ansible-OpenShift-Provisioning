@@ -1,5 +1,5 @@
 {% if env.cluster.nodes.compute.ip is defined %}
-{% set compute_replicas = env.cluster.nodes.compute.ip | length %}
+{% set compute_replicas = env.cluster.nodes.compute.ip | select('string') | list | length %}
 {% else %}
 {% set compute_replicas = 0 %}
 {% endif %}

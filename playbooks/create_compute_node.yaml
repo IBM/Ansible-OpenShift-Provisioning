@@ -90,8 +90,9 @@
     - role: print_node_status
     - role: update_ignition_files
 
-    - role: dns_update
+    - role: setup_bastion_services
       when: env.bastion.options.dns is defined and env.bastion.options.dns
+      bastion_services_mode: node_dns
       param_dns_cmd: add
       param_dns_hostname: "{{ day2_compute_node.vm_hostname }}"
       param_dns_ip: "{{ day2_compute_node.vm_ip }}"
@@ -108,7 +109,8 @@
       approve_certs_cleanup: true
     - role: print_node_status
 
-    - role: haproxy_update
+    - role: setup_bastion_services
       when: env.bastion.options.loadbalancer.on_bastion
+      bastion_services_mode: node_haproxy
       param_haproxy_cmd: add
       param_haproxy_hostname: "{{ day2_compute_node.vm_hostname }}"

@@ -24,12 +24,24 @@
     chdir: ~/{{ abi.ansible_workdir }}
   when: abi.boot_method | lower == "iso" and install_config_vars.fips
 
+- name: Clean up previous boot artifacts in /var/www/html for idempotency
+  ansible.builtin.file:
+    path: "/var/www/html/{{ item }}"
+    state: absent
+  loop:
+    - "agent.{{ ansible_architecture }}-rootfs.img"
+    - "agent.{{ ansible_architecture }}-vmlinuz"
+    - "agent.{{ ansible_architecture }}-initrd.img"
+    - "agent.{{ ansible_architecture }}-kernel.img"
+  when: abi.boot_method | lower == "pxe"
+
 - name: Copy initrd.img, vmlinuz, and rootfs.img for PXE
   ansible.builtin.copy:
     src: "~/{{ abi.ansible_workdir }}/boot-artifacts/"
     dest: /var/www/html/
     mode: '645'
     remote_src: true
+    force: true
   when: abi.boot_method | lower == "pxe"
 
 - name: Check if vmlinuz exists in /var/www/html

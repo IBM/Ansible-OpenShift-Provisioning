@@ -140,21 +140,22 @@
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
     - "{{ inventory_dir }}/group_vars/disconnected.yaml"
   pre_tasks:
-    - name: Import initial-resolv.yaml
+    - name: Import initial_resolv.yaml
       ansible.builtin.import_role:
-        name: dns
-        tasks_from: initial-resolv.yaml
+        name: setup_bastion_services
+        tasks_from: initial_resolv.yaml
       when: env.bastion.options.dns is defined and env.bastion.options.dns
   roles:
     - { role: attach_subscription, when: env.redhat.manage_subscription }
     - install_packages
     - ssh_ocp_key_gen
     - set_firewall
-    - { role: dns, when: env.bastion.options.dns }
+    - { role: setup_bastion_services, bastion_services_mode: dns, when: env.bastion.options.dns }
     - { role: check_dns, when: env.bastion.options.dns is defined and env.bastion.options.dns }
-    - { role: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
+    - { role: setup_bastion_services, bastion_services_mode: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
     - httpd
     - { role: install_tessia_baselib, when: ( installation_type|lower == "lpar" ) or ( installation_type|lower == "zvm" ) }
+    - { role: patch_tessia_baselib, when: ( ( installation_type|lower == "lpar" ) or ( installation_type|lower == "zvm" ) ) and ( patch_tessia_baselib | default(true) | bool ) }
 
 - name: Setup OpenVPN on bastion
   hosts: bastion

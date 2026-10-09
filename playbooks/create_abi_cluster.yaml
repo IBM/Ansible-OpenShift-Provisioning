@@ -46,6 +46,17 @@
     - role: boot_abi_agents
       when: installation_type | lower == 'kvm'
 
+# Ensure tessia-baselib patches are current before booting LPARs.
+- name: Patch tessia-baselib for LPAR ABI
+  hosts: bastion
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  roles:
+    - role: patch_tessia_baselib
+      when: installation_type | lower == 'lpar' and patch_tessia_baselib | default(true) | bool
+
 # Boot ABI LPAR Agents.
 - name: Boot ABI LPAR Agents
   hosts: bastion
@@ -67,7 +78,7 @@
         - name: Boot LPAR compute nodes with ABI agent
           ansible.builtin.include_role:
             name: boot_LPAR_abi
-          loop: "{{ env.cluster.nodes.compute.vm_name | default([]) }}"
+          loop: "{{ env.cluster.nodes.compute.vm_name | default([]) | select('string') | list }}"
           loop_control:
             loop_var: item
 

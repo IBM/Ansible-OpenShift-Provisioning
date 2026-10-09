@@ -1,0 +1,73 @@
+---
+# setup_bastion_services/tasks/node_haproxy.yaml
+#
+# Day2 operation: add or remove a single node's haproxy backend entries (80 + 443).
+# Required variables:
+#   param_haproxy_cmd      : 'add' or 'delete'
+#   param_haproxy_hostname : short hostname of the node
+
+- name: Ensure haproxy backend anchor comments exist before adding
+  become: true
+  when: param_haproxy_cmd == 'add'
+  block:
+    - name: Ensure '#80 section' anchor exists in ingress-router-80
+      ansible.builtin.lineinfile:
+        path: /etc/haproxy/haproxy.cfg
+        insertafter: "^listen ingress-router-80"
+        regexp: "^\\s+#80 section"
+        line: "   #80 section"
+        state: present
+
+    - name: Ensure '#443 section' anchor exists in ingress-router-443
+      ansible.builtin.lineinfile:
+        path: /etc/haproxy/haproxy.cfg
+        insertafter: "^listen ingress-router-443"
+        regexp: "^\\s+#443 section"
+        line: "   #443 section"
+        state: present
+
+- name: Add haproxy backend entries for node (port 80 and 443)
+  become: true
+  when: param_haproxy_cmd == 'add'
+  block:
+    - name: Add haproxy entry for port 80
+      ansible.builtin.lineinfile:
+        path: /etc/haproxy/haproxy.cfg
+        insertafter: "#80 section"
+        line: "{{ _haproxy_backend_line_80 }}"
+        state: present
+      vars:
+        _haproxy_backend_fqdn: "{{ param_haproxy_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
+        _haproxy_backend_line_80: "  server {{ param_haproxy_hostname }} {{ _haproxy_backend_fqdn }}:80 check inter 1s"
+
+    - name: Add haproxy entry for port 443
+      ansible.builtin.lineinfile:
+        path: /etc/haproxy/haproxy.cfg
+        insertafter: "#443 section"
+        line: "{{ _haproxy_backend_line_443 }}"
+        state: present
+      vars:
+        _haproxy_backend_fqdn: "{{ param_haproxy_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
+        _haproxy_backend_line_443: "  server {{ param_haproxy_hostname }} {{ _haproxy_backend_fqdn }}:443 check inter 1s"
+
+- name: Delete haproxy backend entries for node (port 80 and 443)
+  become: true
+  when: param_haproxy_cmd == 'delete'
+  block:
+    - name: Delete haproxy entry for port 80
+      ansible.builtin.lineinfile:
+        path: /etc/haproxy/haproxy.cfg
+        state: absent
+        regexp: "{{ param_haproxy_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:80 check"
+
+    - name: Delete haproxy entry for port 443
+      ansible.builtin.lineinfile:
+        path: /etc/haproxy/haproxy.cfg
+        state: absent
+        regexp: "{{ param_haproxy_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:443 check"
+
+- name: Restart 'haproxy' service to apply changes
+  become: true
+  ansible.builtin.systemd:
+    name: haproxy
+    state: restarted
