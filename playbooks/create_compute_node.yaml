@@ -16,7 +16,7 @@
 #
 # Execute the playbook with '--extra-vars' option.
 # E.g.:
-# ansible-playbook playbooks/add_compute_node.yaml --extra-vars "@extra-cnode1.yml"
+# ansible-playbook playbooks/create_compute_node.yaml --ask-vault-pass
 
 - name: Add an additional compute node
   # Select bastion host
@@ -33,7 +33,7 @@
           ansible.builtin.debug:
             msg:
               - "ERROR: Variable 'day2_compute_node' is not defined!"
-              - "Execute: 'ansible-playbook playbooks/add_compute_node.yaml --extra-vars \"@extra-cnode.yml\"'"
+              - "Execute: 'ansible-playbook playbooks/create_compute_node.yaml'"
         - name: Abort playbook
           ansible.builtin.fail:
             msg: "See above error!"

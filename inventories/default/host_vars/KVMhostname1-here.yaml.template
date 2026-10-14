@@ -29,19 +29,19 @@ storage:
 # Section 2 - CPC & HMC
 cpc_name: #X
 hmc:
-  host: #X
+  host: #X  # HMC hostname or IP (not a secret)
   auth:
-    user: #X
-    pass: #X
+    user: #X  # HMC username (not a secret)
+    pass: "{{ vault_hmc_pass }}"  # HMC password (secret)
 
 # Section 3 - LPAR
 lpar:
   name: #X
   description: #X
   access:
-    user: #X
-    pass: #X
-    root_pass: #X
+    user: #X  # LPAR username (not a secret)
+    pass: "{{ vault_lpar1_user_pass }}"  # LPAR user password (secret)
+    root_pass: "{{ vault_lpar1_root_pass }}"  # LPAR root password (secret)
 
 # Section 4 - IFL & Memory
   ifl:
@@ -71,6 +71,19 @@ lpar:
 #        dev_num: 
 
 # Section 6 - Storage
+# For LPAR installations, this storage configuration is used for:
+# 1. Booting the LPAR nodes (boot_LPAR role)
+# 2. Agent-Based Installer (ABI) rootDeviceHints in agent-config.yaml
+#
+# When using ABI with installation_type: lpar, the rootDeviceHints will be
+# automatically generated as:
+# deviceName: /dev/disk/by-path/ccw-0.0.{dev_num}-fc-{storage_wwpn[0]}-lun-{lun_name}
+#
+# Example values:
+#   dev_num: 1a00
+#   storage_wwpn[0]: 0x500507680b2a5f7e
+#   lun_name: 0x4000000000000000
+# Results in: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4000000000000000
   storage_group_1:
     name: #X
     type: fcp
@@ -93,14 +106,14 @@ lpar:
 #    dev_num: 
 #    lun_name:
 
-# Section 7 -live disk info
+# Section 7 - Live disk info
   livedisk:
-    livedisktype: #X 
+    livedisktype: #X
     lun: #X
     wwpn: #X
     devicenr: #X
     livediskuuid: #X Required when 'dpm_enabled' is true
-    livedisk_root_pass: #X
+    livedisk_root_pass: "{{ vault_livedisk_root_pass }}"  # Live disk root password (secret)
 
 # Type of LPAR(dpm or pr/sm), 'True' if dpm. Allowed values ['True', 'False']
   dpm_enabled: 'False'

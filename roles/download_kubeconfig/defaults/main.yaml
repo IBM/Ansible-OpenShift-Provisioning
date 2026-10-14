@@ -7,5 +7,3 @@ kubeconfig_source_dir: ~/ocpinst/auth
 kubeconfig_files:
   - kubeconfig
   - kubeadmin-password
-
-# Made with Bob

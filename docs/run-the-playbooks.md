@@ -76,6 +76,7 @@ Configures the RHEL server(s) installed natively on the LPAR(s) to act as virtua
 * RHEL subscription is auto-attached to all KVM hosts.
 * Software packages specified in group_vars/all.yaml have been installed.
 * Cockpit console enabled for Graphical User Interface via web browser. Go to http://kvm-ip-here:9090 to view it.
+* TigerVNC server is configured and enabled for remote desktop administration. Connect with a VNC client at kvm-ip-here:5901 (display :1).
 * Libvirt is started and enabled.
 * Logical volume group that was created during kickstart is extended to fill all available space.
 * A macvtap bridge has been created on the host's networking interface.

@@ -7,3 +7,6 @@ rhcos_os_variant: rhl9
 rhcos_live_kernel: "rhcos-live-kernel.s390x"
 rhcos_live_initrd: "rhcos-live-initramfs.s390x.img"
 rhcos_live_rootfs: "rhcos-live-rootfs.s390x.img"
+
+# Timeout in seconds for node creation via virt-install
+timeout_node_creation: 360

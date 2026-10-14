@@ -101,6 +101,10 @@ pkg-config
 # Allow root login, required change for RHEL9
 sed -i -e '/PermitRootLogin/ c\PermitRootLogin yes' /etc/ssh/sshd_config
 
+# Pre-authorize the Ansible controller's SSH public key so Ansible can connect directly via ProxyJump
+echo "{{ lookup('file', path_to_key_pair) }}" >> /root/.ssh/authorized_keys
+chmod 600 /root/.ssh/authorized_keys
+
 # Basic /root/.ssh/config setup
 echo "UserKnownHostsFile=/dev/null" >> /root/.ssh/config
 echo "StrictHostKeyChecking=no" >> /root/.ssh/config

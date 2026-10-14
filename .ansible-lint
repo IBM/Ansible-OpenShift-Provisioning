@@ -9,6 +9,7 @@ profile: null # min, basic, moderate, safety, shared, production
 exclude_paths:
   - .github/
   - docs/
+  - mkdocs.yaml
 # parseable: true
 # quiet: true
 # strict: true

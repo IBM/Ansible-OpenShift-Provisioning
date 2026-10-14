@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Mark stale PRs (1 month old)
-        uses: actions/stale@v10
+        uses: actions/stale@v11
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           only-pr-labels: ''
@@ -33,7 +33,7 @@ jobs:
           stale-pr-label: 'stale'
           days-before-stale: 30
           days-before-close: -1
-          exempt-pr-labels: 'keep-open,in-progress,blocked'
+          exempt-pr-labels: 'keep-open,in-progress,blocked,need-fix'
           operations-per-run: 100
           remove-stale-when-updated: true
           only-labels: ''
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Mark old PRs for closure (6 months old)
-        uses: actions/stale@v10
+        uses: actions/stale@v11
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           only-pr-labels: ''
@@ -83,7 +83,7 @@ jobs:
           stale-pr-label: 'pending-closure'
           days-before-stale: 180
           days-before-close: 7
-          exempt-pr-labels: 'keep-open,in-progress,blocked'
+          exempt-pr-labels: 'keep-open,in-progress,blocked,need-fix'
           operations-per-run: 100
           remove-stale-when-updated: true
           only-labels: ''
