@@ -57,7 +57,7 @@
   post_tasks:
     - meta: clear_facts
 
-- name: 5 setup bastion - copy SSH key from localhost to access bastion (non-NAT only).
+- name: 5 setup bastion - copy SSH key from localhost to access bastion (through the jumphost if NAT).
   hosts: localhost
   tags: ssh, ssh_copy_id, section_1
   gather_facts: true
@@ -65,9 +65,9 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   vars:
-    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}", "{{ path_to_key_pair }}"]
+    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}", "{{ path_to_key_pair }}", "{{ (env.network_mode | upper == 'NAT') | ternary(env.jumphost.user ~ '@' ~ env.jumphost.ip, '') }}"]
   roles:
-    - { role: ssh_copy_id, when: env.network_mode | upper != 'NAT' }
+    - { role: ssh_copy_id }
 
 - name: 5 setup bastion - copy SSH key from jumphost to bastion (NAT only).
   hosts: jumphost
