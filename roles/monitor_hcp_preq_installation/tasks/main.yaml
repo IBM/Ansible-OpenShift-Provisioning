@@ -8,23 +8,31 @@
   retries: 30
   delay: 10
   changed_when: false
-  when: not (hcp.mce.delete | default(false))
+  when:
+    - check_mce | default(true)
+    - not ((hcp.mce | default({})).delete | default(false))
 
 - name: Show MCE status
   ansible.builtin.command: oc get mce -o wide
   register: mce_status_output
   changed_when: false
-  when: not (hcp.mce.delete | default(false))
+  when:
+    - check_mce | default(true)
+    - not ((hcp.mce | default({})).delete | default(false))
 
 - name: Print MCE status
   ansible.builtin.debug:
     var: mce_status_output.stdout_lines
-  when: not (hcp.mce.delete | default(false))
+  when:
+    - check_mce | default(true)
+    - not ((hcp.mce | default({})).delete | default(false))
 
 - name: MCE installation successful
   ansible.builtin.debug:
     msg: "MCE operator installation successful."
-  when: not (hcp.mce.delete | default(false))
+  when:
+    - check_mce | default(true)
+    - not ((hcp.mce | default({})).delete | default(false))
 
 - name: Wait for MetalLB pods to be Running
   vars:
@@ -65,14 +73,14 @@
   changed_when: false
   when:
     - not (hcp.lso.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: Print LSO resources
   ansible.builtin.debug:
     var: lso_resources_output.stdout_lines
   when:
     - not (hcp.lso.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: Wait for local PVs to be created
   ansible.builtin.shell: |
@@ -85,7 +93,7 @@
   changed_when: false
   when:
     - not (hcp.lso.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: Show local PVs
   ansible.builtin.shell: |
@@ -95,21 +103,21 @@
   changed_when: false
   when:
     - not (hcp.lso.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: Print local PVs
   ansible.builtin.debug:
     var: lso_local_pv_output.stdout_lines
   when:
     - not (hcp.lso.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: LSO installation successful
   ansible.builtin.debug:
     msg: "LSO operator installation successful."
   when:
     - not (hcp.lso.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: Wait for StorageCluster to be Ready
   ansible.builtin.shell: >
@@ -124,7 +132,7 @@
   changed_when: false
   when:
     - not (hcp.odf.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: Wait for ODF default storageclass to be created
   ansible.builtin.command: >
@@ -137,7 +145,7 @@
   failed_when: false
   when:
     - not (hcp.odf.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: Get storage classes for diagnostics when expected class is missing
   ansible.builtin.command: oc get sc --no-headers
@@ -145,7 +153,7 @@
   changed_when: false
   failed_when: false
   when:
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
     - not (hcp.odf.delete | default(false))
     - odf_default_sc is defined
     - odf_default_sc.rc is defined
@@ -158,7 +166,7 @@
       Available storageclasses:
       {{ odf_sc_list.stdout | default('No storageclasses returned') }}
   when:
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
     - not (hcp.odf.delete | default(false))
     - odf_default_sc is defined
     - odf_default_sc.rc is defined
@@ -170,7 +178,7 @@
     -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'
   when:
     - not (hcp.odf.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: Wait for default storageclass annotation
   ansible.builtin.command: >
@@ -183,7 +191,7 @@
   changed_when: false
   when:
     - not (hcp.odf.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: Show StorageCluster status
   ansible.builtin.command: oc get storagecluster -A
@@ -191,14 +199,14 @@
   changed_when: false
   when:
     - not (hcp.odf.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: Print StorageCluster status
   ansible.builtin.debug:
     var: odf_storagecluster_output.stdout_lines
   when:
     - not (hcp.odf.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: Get storage classes
   ansible.builtin.command: oc get sc
@@ -206,21 +214,21 @@
   changed_when: false
   when:
     - not (hcp.odf.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: Show storage classes
   ansible.builtin.debug:
     var: storageclasses_output.stdout_lines
   when:
     - not (hcp.odf.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: ODF installation successful
   ansible.builtin.debug:
     msg: "ODF operator installation successful."
   when:
     - not (hcp.odf.delete | default(false))
-    - hcp.storage.type == "odf"
+    - (storage_type | default(hcp.storage.type)) == "odf"
 
 - name: Verify HPP StorageClass exists
   ansible.builtin.command: oc get storageclass {{ hcp.hpp.storageclass_name }}
@@ -229,24 +237,24 @@
   delay: 5
   until: hpp_sc_check.rc == 0
   changed_when: false
-  when: hcp.storage.type == "hpp"
+  when: (storage_type | default(hcp.storage.type)) == "hpp"
 
 - name: Get StorageClasses
   ansible.builtin.command: oc get sc
   register: hpp_sc_list
   changed_when: false
-  when: hcp.storage.type == "hpp"
+  when: (storage_type | default(hcp.storage.type)) == "hpp"
 
 - name: Show StorageClasses (HPP)
   ansible.builtin.debug:
     var: hpp_sc_list.stdout_lines
-  when: hcp.storage.type == "hpp"
+  when: (storage_type | default(hcp.storage.type)) == "hpp"
 
 - name: Set hostpath-csi as default StorageClass
   ansible.builtin.command: >
     oc patch storageclass {{ hcp.hpp.storageclass_name }}
     -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'
-  when: hcp.storage.type == "hpp"
+  when: (storage_type | default(hcp.storage.type)) == "hpp"
 
 - name: Verify default StorageClass annotation (HPP)
   ansible.builtin.command: >
@@ -257,12 +265,12 @@
   delay: 5
   until: hpp_default_sc.stdout == "true"
   changed_when: false
-  when: hcp.storage.type == "hpp"
+  when: (storage_type | default(hcp.storage.type)) == "hpp"
 
 - name: HPP installation successful
   ansible.builtin.debug:
     msg: "HPP StorageClass configured and set as default successfully."
-  when: hcp.storage.type == "hpp"
+  when: (storage_type | default(hcp.storage.type)) == "hpp"
 
 - name: Wait for OpenShift Virtualization pods to be Running
   vars:
