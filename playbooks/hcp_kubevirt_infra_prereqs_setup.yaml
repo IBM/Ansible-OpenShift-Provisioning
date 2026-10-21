@@ -1,0 +1,136 @@
+---
+# Dynamically Add Infra Bastion Host
+- name: Add Infra Bastion Host to Inventory
+  hosts: localhost
+  vars_files:
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+  tasks:
+    - name: Add infra bastion dynamically
+      ansible.builtin.add_host:
+        name: "{{ (hcp.infra_cluster_bastion | default({})).ip | default(hcp.mgmt_cluster_bastion.ip, true) }}"
+        groups: infra_bastion
+        ansible_user: root
+        ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}"
+        ansible_connection: ssh
+        inventory_dir: "{{ playbook_dir }}/../inventories/default"
+
+# Login to OCP External Infra Cluster (from bastion)
+- name: Login to OCP External Infra Cluster
+  hosts: infra_bastion
+  vars_files:
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+  vars:
+    vault_api_server: "{{ hcp.infra_oc_url | default(hcp.oc_url, true) }}"
+    vault_user_name: "{{ vault_infra_ocp_user | default(vault_ocp_user) }}"
+    vault_password: "{{ vault_infra_ocp_password | default(vault_ocp_password) }}"
+  roles:
+    - login_to_mgmt_cluster
+
+# Check Node Resources
+- name: Check OCP Node Resource Usage
+  hosts: infra_bastion
+  vars_files:
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+  vars:
+    resource_threshold: 75
+    debug_mode: true
+  roles:
+    - check_node_resources
+
+# Install Operators on External Infra Cluster Bastion
+- name: Install Operators on the external infra cluster
+  hosts: infra_bastion
+  vars_files:
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+  become: true
+  gather_facts: false
+  pre_tasks:
+    - name: Load disconnected vars if file exists
+      ansible.builtin.include_vars:
+        file: "{{ playbook_dir }}/../inventories/default/group_vars/disconnected.yaml"
+      failed_when: false
+
+    - name: Ensure ansible work directory exists
+      ansible.builtin.file:
+        path: /root/ansible_workdir
+        state: directory
+        mode: '0755'
+
+    - name: Ensure root kube directory exists
+      ansible.builtin.file:
+        path: /root/.kube
+        state: directory
+        mode: '0700'
+
+    - name: Resolve mirroring user home directory on the mirror host
+      ansible.builtin.shell: |
+        set -o pipefail
+        getent passwd {{ disconnected.mirroring.host.user }} | awk -F: '{ print $6 }'
+      changed_when: false
+      register: mirror_user_home
+      delegate_to: "{{ disconnected.mirroring.host.ip }}"
+      vars:
+        ansible_user: "{{ disconnected.mirroring.host.user }}"
+        ansible_ssh_pass: "{{ disconnected.mirroring.host.pass | default(omit) }}"
+      when: disconnected.enabled | default(false)
+
+    - name: Resolve cluster-resources directory path
+      ansible.builtin.set_fact:
+        oc_mirror_cluster_resources_dir: >-
+          {%- if disconnected.mirroring.cluster_resources_dir | default('', true) | length > 0 -%}
+            {{ disconnected.mirroring.cluster_resources_dir }}
+          {%- else -%}
+            {{ mirror_user_home.stdout | trim }}/ocpinst_disconnected/working-dir/cluster-resources
+          {%- endif -%}
+      when: disconnected.enabled | default(false)
+
+    - name: Find CatalogSource file in oc-mirror cluster-resources directory
+      ansible.builtin.find:
+        paths: "{{ oc_mirror_cluster_resources_dir }}"
+        patterns: "cs-*.yaml"
+        recurse: false
+      register: cs_file_find
+      when: disconnected.enabled | default(false)
+
+    - name: Read CatalogSource name from oc-mirror output
+      ansible.builtin.shell: |
+        set -o pipefail
+        grep '^  name:' {{ cs_file_find.files[0].path }} | awk '{print $2}'
+      register: cs_name_raw
+      changed_when: false
+      when:
+        - disconnected.enabled | default(false)
+        - cs_file_find.matched > 0
+
+    - name: Set disconnected CatalogSource name fact
+      ansible.builtin.set_fact:
+        disconnected_catalogsource_name: "{{ cs_name_raw.stdout | trim }}"
+      when:
+        - disconnected.enabled | default(false)
+        - cs_name_raw.stdout is defined
+        - cs_name_raw.stdout | trim | length > 0
+
+    - name: Display resolved CatalogSource name
+      ansible.builtin.debug:
+        msg: "Using CatalogSource '{{ disconnected_catalogsource_name }}' for disconnected operator installs"
+      when:
+        - disconnected.enabled | default(false)
+        - disconnected_catalogsource_name is defined
+
+  roles:
+    - install_metallb_operator
+    - install_ocpvirt_operator
+    - role: install_lso_operator
+      when: ((hcp.storage_for_infra | default({})).type | default(hcp.storage.type)) == "odf"
+    - role: install_odf_operator
+      when: ((hcp.storage_for_infra | default({})).type | default(hcp.storage.type)) == "odf"
+    - role: install_hpp
+      when: ((hcp.storage_for_infra | default({})).type | default(hcp.storage.type)) == "hpp"
+    - role: monitor_hcp_preq_installation
+      vars:
+        check_mce: false
+        storage_type: "{{ (hcp.storage_for_infra | default({})).type | default(hcp.storage.type) }}"

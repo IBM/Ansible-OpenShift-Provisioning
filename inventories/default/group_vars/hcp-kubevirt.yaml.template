@@ -1,13 +1,21 @@
 hcp:
   # Parameters for oc login
-  mgmt_cluster_nameserver:  
-  oc_url: 
+  mgmt_cluster_nameserver:
+  oc_url:
 
   mgmt_cluster_bastion:
     ip:               # Your bastion IP
     root_password: "{{ vault_bastion_root_pass }}"
 
-  ansible_key_name: 
+  # External Infra Cluster Parameters for oc login (if using external infra cluster)
+  infra_cluster_nameserver:
+  infra_oc_url:
+
+  infra_cluster_bastion:
+    ip:               # Your infra cluster bastion IP (leave empty if same as mgmt_cluster_bastion)
+    root_password: "{{ vault_infra_bastion_root_pass }}"
+
+  ansible_key_name:
 
   # MultiClusterEngine Parameters
   mce:
@@ -45,7 +53,12 @@ hcp:
         - #disk3
     catalogsource_image: ""  # Required only if we need to create the Catalogsource for installing lso operator
 
+  # Storage for management cluster
   storage:
+    type:    # odf | hpp
+
+  # Storage for external infra cluster (if using external infra cluster)
+  storage_for_infra:
     type:    # odf | hpp
       
   #ODF Parameters
