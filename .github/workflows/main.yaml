@@ -9,6 +9,10 @@ on:
       - 'mkdocs.yaml'
       - 'docs/**'
 
+permissions:
+  pull-requests: write
+  issues: write
+
 jobs:
   build:
     name: Deploy docs
