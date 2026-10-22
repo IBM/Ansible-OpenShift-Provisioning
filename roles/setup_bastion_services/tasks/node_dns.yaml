@@ -1,0 +1,66 @@
+---
+# setup_bastion_services/tasks/node_dns.yaml
+#
+# Day2 operation: add or remove a single node's DNS entries.
+# Required variables:
+#   param_dns_cmd      : 'add' or 'delete'
+#   param_dns_hostname : short hostname of the node
+#   param_dns_ip       : IP address of the node
+
+- name: Add forward and reverse DNS entry for node
+  become: true
+  when: param_dns_cmd == 'add'
+  block:
+    - name: Add forward DNS entry
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ env.cluster.networking.metadata_name }}.db
+        insertafter: ";entries for the compute nodes"
+        line: "{{ _forward_dns_line }}"
+        state: present
+      vars:
+        _forward_dns_fqdn: "{{ param_dns_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}."
+        _forward_dns_line: "{{ _forward_dns_fqdn }} IN A {{ param_dns_ip }}"
+
+    - name: Add reverse DNS entry
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ env.cluster.networking.metadata_name }}.rev
+        insertafter: ";PTR Record IP address to Hostname"
+        line: "{{ _reverse_dns_line }}"
+        state: present
+      vars:
+        _reverse_dns_fqdn: "{{ param_dns_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}."
+        _reverse_dns_line: "{{ param_dns_ip.split('.').3 }}     IN      PTR     {{ _reverse_dns_fqdn }}"
+
+- name: Delete forward and reverse DNS entry for node
+  become: true
+  when: param_dns_cmd == 'delete'
+  block:
+    - name: Delete forward DNS entry using hostname
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ env.cluster.networking.metadata_name }}.db
+        state: absent
+        regexp: "^{{ param_dns_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
+
+    - name: Delete forward DNS entry using IP
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ env.cluster.networking.metadata_name }}.db
+        state: absent
+        regexp: "A {{ param_dns_ip }}"
+
+    - name: Delete reverse DNS entry using hostname
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ env.cluster.networking.metadata_name }}.rev
+        state: absent
+        regexp: "{{ param_dns_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}."
+
+    - name: Delete reverse DNS entry using IP
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ env.cluster.networking.metadata_name }}.rev
+        state: absent
+        regexp: "^{{ param_dns_ip.split('.').3 }} "
+
+- name: Restart 'named' service to apply changes
+  become: true
+  ansible.builtin.systemd:
+    name: named
+    state: restarted

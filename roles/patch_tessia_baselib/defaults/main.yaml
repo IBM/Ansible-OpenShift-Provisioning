@@ -1,0 +1,30 @@
+---
+# Whether to apply tessia-baselib compatibility patches for RHEL live-disk boot.
+#
+# tessia-baselib was written for the "debirf" rescue image. When used with a
+# standard RHEL live disk (required for s390x LPAR ABI installs), four
+# incompatibilities arise that prevent successful booting:
+#
+#   1. LOGIN PROMPT  — tessia waits for "debirf-rescue login:" but RHEL shows
+#                      "<hostname> login:". Patched to r'login:\s*$'.
+#   2. SHELL PROMPT  — MESSAGES_DEFAULT_PATTERN = r'debirf-rescue:~#\s*$'
+#                      never matches RHEL. Patched to r'[#$]\s*$'.
+#   3. DASD TIMEOUT  — guest_obj.load status_timeout defaults to 60 s, too short for
+#                      DASD live disk on s390x. Raised to configurable (default 300 s);
+#                      added allow_status_exceptions=True and HTTP 500,263 handling.
+#   4. SCSI TIMEOUT  — scsi_load status_timeout defaults to 60 s, too short for
+#                      SCSI live disk on s390x. Raised to configurable (default 300 s);
+#                      added allow_status_exceptions=True.
+#   5. HMC 500,263   — HMC reports "load failed" (HTTP 500 reason 263) even
+#                      when the LPAR booted successfully (race condition in HMC
+#                      status reporting). Caught and logged as a warning.
+#   6. LPAR 409,332  — After load, send_os_command fails with HTTP 409,332
+#                      "The image is not in the operating or exceptions state"
+#                      because the LPAR hasn't reached 'operating' yet. Adds a
+#                      polling loop before opening the OS messages channel.
+#   7. SEND CMD 409  — Retries send_os_command on transient HTTP 409,332 errors.
+#
+# Set to false only if patches have been applied by another means and you do
+# not want the role to re-apply them on every bastion setup run.
+patch_tessia_baselib: true
+lpar_load_status_timeout: 300

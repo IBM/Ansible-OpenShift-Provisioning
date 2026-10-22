@@ -1,0 +1,79 @@
+---
+# Apply compatibility patches to the installed tessia-baselib package.
+# See roles/patch_tessia_baselib/defaults/main.yaml for a full explanation
+# of why each patch is necessary.
+#
+# All patches are idempotent: each task checks whether the OLD string is
+# still present before replacing it, and skips silently if the patch has
+# already been applied (or if a future version of the library changed the
+# code in a way that makes the patch unnecessary).
+
+- name: Patch tessia-baselib for RHEL live-disk compatibility
+  when: patch_tessia_baselib | default(true) | bool
+  block:
+    - name: Find tessia-baselib hmc.py path
+      ansible.builtin.command:
+        cmd: python3 -c "import tessia.baselib.hypervisors.hmc.hmc as m; import inspect; print(inspect.getfile(m))"
+      register: hmc_py_path
+      changed_when: false
+
+    - name: "Patch 1/7 — fix login prompt (debirf → generic 'login:')"
+      ansible.builtin.script:
+        cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} login_prompt"
+      register: patch1
+      changed_when: "'PATCHED' in patch1.stdout"
+
+    - name: "Patch 2/7 — fix shell prompt pattern (debirf-rescue:~# → generic [#$])"
+      ansible.builtin.script:
+        cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} shell_prompt"
+      register: patch2
+      changed_when: "'PATCHED' in patch2.stdout"
+
+    - name: "Patch 3/7 — raise dasd load status_timeout, allow exceptions status, and catch 500,263"
+      ansible.builtin.script:
+        cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} dasd_load_timeout"
+      register: patch3
+      changed_when: "'PATCHED' in patch3.stdout"
+
+    - name: "Patch 4/7 — raise scsi_load status_timeout and allow exceptions status"
+      ansible.builtin.script:
+        cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} scsi_load_timeout"
+      register: patch4
+      changed_when: "'PATCHED' in patch4.stdout"
+
+    - name: "Patch 5/7 — catch HMC 500,263 race condition on scsi_load and support configurable timeout"
+      ansible.builtin.script:
+        cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} scsi_load_500_263"
+      register: patch5
+      changed_when: "'PATCHED' in patch5.stdout"
+
+    - name: "Patch 6/7 — wait for LPAR operating/exceptions status before sending OS commands"
+      ansible.builtin.script:
+        cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} wait_for_operating"
+      register: patch6
+      changed_when: "'PATCHED' in patch6.stdout"
+
+    - name: "Patch 7/8 — retry send_os_command on HTTP 409,332"
+      ansible.builtin.script:
+        cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} send_os_cmd_retry"
+      register: patch7
+      changed_when: "'PATCHED' in patch7.stdout"
+
+    - name: "Patch 8/8 — replace STOMP OS-messages channel with HMC REST polling"
+      ansible.builtin.script:
+        cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} rest_os_messages"
+      register: patch8
+      changed_when: "'PATCHED' in patch8.stdout"
+
+    - name: Report patch status
+      ansible.builtin.debug:
+        msg: >-
+          tessia-baselib patches:
+          login_prompt={{ 'applied' if 'PATCHED' in patch1.stdout else 'already present or skipped' }},
+          shell_prompt={{ 'applied' if 'PATCHED' in patch2.stdout else 'already present or skipped' }},
+          dasd_load_timeout={{ 'applied' if 'PATCHED' in patch3.stdout else 'already present or skipped' }},
+          scsi_load_timeout={{ 'applied' if 'PATCHED' in patch4.stdout else 'already present or skipped' }},
+          scsi_load_500_263={{ 'applied' if 'PATCHED' in patch5.stdout else 'already present or skipped' }},
+          wait_for_operating={{ 'applied' if 'PATCHED' in patch6.stdout else 'already present or skipped' }},
+          send_os_cmd_retry={{ 'applied' if 'PATCHED' in patch7.stdout else 'already present or skipped' }},
+          rest_os_messages={{ 'applied' if 'PATCHED' in patch8.stdout else 'already present or skipped' }}

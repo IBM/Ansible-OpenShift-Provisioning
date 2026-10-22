@@ -3,7 +3,7 @@
   tags: check_dns, dns
   ansible.builtin.shell: |
     set -o pipefail
-    dig +short {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.bastion.networking.base_domain }} | tail -n1
+    dig @127.0.0.1 +short {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }} | tail -n1
   register: bastion_lookup
   failed_when: env.bastion.networking.ip != bastion_lookup.stdout
   when: env.bastion.networking.internal_ip is not defined or env.bastion.networking.internal_ip == none
@@ -12,12 +12,13 @@
   tags: check_dns, dns
   ansible.builtin.shell: |
     set -o pipefail
-    dig +short {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.bastion.networking.base_domain }} | tail -n1
+    dig @127.0.0.1 +short {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }} | tail -n1
   register: bastion_lookup
   failed_when: env.bastion.networking.internal_ip != bastion_lookup.stdout
   when: env.bastion.networking.internal_ip is defined and env.bastion.networking.internal_ip != none
 
 - name: Set expected IP for DNS check
+  tags: check_dns, dns
   ansible.builtin.set_fact:
     expected_ip: >-
       {{
@@ -34,7 +35,7 @@
   tags: check_dns, dns
   ansible.builtin.shell: |
     set -o pipefail
-    dig +short {{ item }} | tail -n1
+    dig @127.0.0.1 +short {{ item }} | tail -n1
   loop:
     - "api.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
     - "apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
@@ -55,7 +56,7 @@
   tags: check_dns, dns
   ansible.builtin.shell: |
     set -o pipefail
-    dig +short api-int.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1
+    dig @127.0.0.1 +short api-int.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1
   register: api_int_lookup
   changed_when: false
 
@@ -72,7 +73,7 @@
   tags: check_dns, dns
   ansible.builtin.shell: |
     set -o pipefail
-    dig +short {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1
+    dig @127.0.0.1 +short {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1
   register: bootstrap_lookup
   failed_when: env.cluster.nodes.bootstrap.ip != bootstrap_lookup.stdout
   when: env.cluster.nodes.bootstrap is defined
@@ -87,7 +88,7 @@
   tags: check_dns, dns
   ansible.builtin.shell: |
     set -o pipefail
-    dig +short {{ env.cluster.nodes.control.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1
+    dig @127.0.0.1 +short {{ env.cluster.nodes.control.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1
   register: control_lookup
   failed_when: env.cluster.nodes.control.ip[i] != control_lookup.stdout
   with_sequence: start=0 end={{ (env.cluster.nodes.control.hostname | length) - 1 }} stride=1
@@ -99,7 +100,7 @@
   tags: check_dns, dns
   ansible.builtin.shell: |
     set -o pipefail
-    dig +short {{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1
+    dig @127.0.0.1 +short {{ env.cluster.nodes.compute.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1
   register: compute_lookup
   failed_when: env.cluster.nodes.compute.ip[i] != compute_lookup.stdout
   loop: "{{ range(0, env.cluster.nodes.compute.hostname | length) | list }}"
@@ -109,12 +110,14 @@
   when:
     - env.cluster.nodes.compute.hostname is defined
     - (env.cluster.nodes.compute.hostname | length) > 0
+    - env.cluster.nodes.compute.hostname[i] is not none
+    - env.cluster.nodes.compute.hostname[i] | string | regex_search('^[a-zA-Z0-9]')
 
 - name: Check infrastructure nodes DNS resolution
   tags: check_dns, dns
   ansible.builtin.shell: |
     set -o pipefail
-    dig +short {{ env.cluster.nodes.infra.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1
+    dig @127.0.0.1 +short {{ env.cluster.nodes.infra.hostname[i] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }} | tail -n1
   register: infra_lookup
   failed_when: env.cluster.nodes.infra.ip[i] != infra_lookup.stdout
   with_sequence: start=0 end={{ (env.cluster.nodes.infra.hostname | length) - 1 }} stride=1

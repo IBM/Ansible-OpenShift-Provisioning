@@ -28,6 +28,22 @@
     update_cache: true
   loop: "{{ vars[packages] }}"
   when: ansible_os_family != 'Darwin'
+  ignore_errors: true
+  register: pkg_install_result
+
+- name: Warn if any packages failed to install (e.g. stale repo metadata).
+  tags: install_packages
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: package '{{ item.item }}' could not be installed on
+      {{ inventory_hostname }} — {{ item.msg | default('unknown error') }}.
+      This may be caused by an outdated or unreachable yum repository
+      (e.g. repomd.xml download failure). The setup will continue but
+      some functionality may be missing until the repo issue is resolved.
+  loop: "{{ pkg_install_result.results }}"
+  when:
+    - ansible_os_family != 'Darwin'
+    - item.failed | default(false)
 
 - name: Installing required packages for Mac machines.
   tags: install_packages

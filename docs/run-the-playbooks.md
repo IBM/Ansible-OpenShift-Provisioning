@@ -95,25 +95,35 @@ Creates the bastion KVM guest on the first KVM host. The bastion hosts essential
 * Recommend watching it come up from the first KVM host's cockpit. Go to http://kvm-ip-here:9090 via web-browser to view it. You'll have to sign in, enable administrative access (top right), and then click on the virtual machines tab on the left-hand toolbar.
 ## 5 Setup Bastion Playbook
 ### Overview
-Configuration of the bastion to host essential infrastructure services for the cluster. Can be first-time setup or use an existing server.
+Configuration of the bastion to host essential infrastructure services for the cluster.
+This playbook is **idempotent** — it can be safely run against a freshly created bastion or against an existing one (e.g. when `env.bastion.create: false` or on a re-run).
+
+* **Fresh bastion**: DNS zone files and the HAProxy configuration are templated out from scratch and all node entries are added.
+* **Existing bastion**:
+  * **DNS**: Only this cluster's zone entries are updated; all other zones and named options are preserved. A dated backup of `named.conf` is created before any change.
+  * **HAProxy**: `haproxy.cfg` is always fully re-templated after a dated backup. The cluster's `listen` blocks are wrapped in `# BEGIN <cluster>` / `# END <cluster>` markers. Because all ports (6443, 22623, 443, 80) bind to `*`, only **one OCP cluster** can be served per bastion at a time. Multi-cluster port assignment is planned for a future release.
+
+In both cases the result is a correctly configured, non-duplicated set of DNS and HAProxy entries reflecting the current inventory.
+
 ### Outcomes
 * Ansible SSH key copied to bastion for passwordless authentication.
 * Software packages specified in group_vars/all.yaml have been installed.
 * An OCP-specific SSH key is generated for passing into the install-config (then passed to the nodes).
 * Firewall is configured to permit traffic through the necessary ports.
-* Domain Name Server (DNS) configured to resolve cluster's IP addresses and APIs. Only done if env.bastion.options.dns is true.
+* Domain Name Server (DNS) configured to resolve cluster's IP addresses and APIs. Only done if `env.bastion.options.dns` is true. Idempotent — safe to re-run against a bastion with an existing named configuration.
 * DNS is checked to make sure all the necessary Fully Qualified Domain Names, including APIs resolve properly. Also ensures outside access is working.
-* High Availability Proxy (HAProxy) load balancer is configured. Only done if env.bastion.options.loadbalancer.on_bastion is true.
+* High Availability Proxy (HAProxy) load balancer is configured. Only done if `env.bastion.options.loadbalancer.on_bastion` is true. Idempotent — safe to re-run against a bastion with an existing HAProxy configuration.
 * If the the cluster is to be highly available (meaning spread across more than one LPAR), an OpenVPN server is setup on the bastion to allow for the KVM hosts to communicate between eachother. OpenVPN clients are configured on the KVM hosts.
-* CoreOS roofts is pulled to the bastion if not already there.
+* CoreOS rootfs is pulled to the bastion if not already there.
 * OCP client and installer are pulled down if not there already.
 * oc, kubectl and openshift-install binaries are installed.
 * OCP install-config is templated and backed up. In disconnected mode, if platform is mirrored (currently only legacy), image content source policy and additionalTrustBundle is also patched.
-* Manfifests are created.
+* Manifests are created.
 * OCP install directory found at /root/ocpinst/ is created and populated with necessary files.
 * Ignition files for the bootstrap, control, and compute nodes are transferred to HTTP-accessible directory for booting nodes.
 ### Notes
 * The stickiest part is DNS setup and get_ocp role at the end.
+* DNS and HAProxy configuration is handled by the [`setup_bastion_services`](../roles/setup_bastion_services/) role. See the README for a full description of the fresh vs. existing bastion logic and available modes.
 ## 6 Create Nodes Playbook
 ### Overview
 OCP cluster's nodes are created and the control plane is bootstrapped.

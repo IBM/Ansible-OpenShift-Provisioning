@@ -1,0 +1,10 @@
+[localhost]
+127.0.0.1 ansible_connection=local ansible_become_password='{{ controller_sudo_pass }}'
+
+[file_server]
+192.168.10.10 ansible_user=root ansible_become_password='{{ env.file_server.pass }}'
+
+[kvm_host]
+
+[bastion]
+bastion-01 ansible_host=192.168.10.10 ansible_user=root ansible_become_password='{{ env.bastion.access.pass }}'

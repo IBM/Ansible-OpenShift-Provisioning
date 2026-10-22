@@ -132,7 +132,7 @@
           cio_ignore=all,!condev zfcp.allow_lun_scan=0
           {%- if node.networking.mode | lower != "roce" %}
           rd.znet=qeth,{{
-          node.lpar.networking.nic.card1.dev_num }},layer2=1
+          node.lpar.networking.nic.card1.dev_num }},layer2=1,portno={{ node.lpar.networking.nic.card1.port | default(0) }}
           {%- endif %}
           {{ ipv6_string }}
           {%- if node.lpar.storage_group_1.type | lower == "fcp" %}
@@ -151,8 +151,8 @@
       ansible.builtin.debug:
         msg:
           python3 /root/ansible_workdir/boot_lpar.py \
-          --cpcname {{ node.cpc_name }} \
-          --lparname {{ node.lpar.name }} \
+          --cpcname {{ node.cpc_name | upper }} \
+          --lparname {{ node.lpar.name | upper }} \
           --hmchost {{ node.hmc.host }} \
           --hmcuser {{ node.hmc.auth.user }} \
           --hmcpass ****** \
@@ -166,8 +166,10 @@
           --livediskuuid {{ node.lpar.livedisk.livediskuuid }} \
           {% elif node.lpar.dpm_enabled == 'False' %}
           --devicenr {{ node.lpar.livedisk.devicenr }} \
+          {% if node.lpar.livedisk.livedisktype | lower == 'scsi' %}
           --livedisklun {{ live_disk_lun }} \
           --livediskwwpn {{ live_disk_wwpn }} \
+          {% endif %}
           {% endif %}
           --netset_ip {{ node.networking.ip }} \
           --netset_gateway {{ node.networking.gateway }} \
@@ -175,17 +177,18 @@
           --netset_network_device "{{ netset_network_device }}" \
           --netset_password ****** \
           --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
+          --status_timeout {{ node.lpar.load_status_timeout | default(env.lpar_load_status_timeout | default(300)) }} \
           --log_level DEBUG \
           --cmdline '{{ boot_cmdline }}'
 
     - name: Booting lpar node
       ansible.builtin.shell: |
           python3 /root/ansible_workdir/boot_lpar.py \
-          --cpcname {{ node.cpc_name }} \
-          --lparname {{ node.lpar.name }} \
+          --cpcname {{ node.cpc_name | upper }} \
+          --lparname {{ node.lpar.name | upper }} \
           --hmchost {{ node.hmc.host }} \
           --hmcuser {{ node.hmc.auth.user }} \
-          --hmcpass {{ node.hmc.auth.pass }} \
+          --hmcpass '{{ node.hmc.auth.pass }}' \
           --cpu {{ node.lpar.ifl.count }} \
           --memory {{ node.lpar.ifl.initial_memory }} \
           --kernel {{ rhcos_download_url }}{{ rhcos_live_kernel }} \
@@ -196,14 +199,17 @@
           --livediskuuid {{ node.lpar.livedisk.livediskuuid }} \
           {% elif node.lpar.dpm_enabled == 'False' %}
           --devicenr {{ node.lpar.livedisk.devicenr }} \
+          {% if node.lpar.livedisk.livedisktype | lower == 'scsi' %}
           --livedisklun {{ live_disk_lun }} \
           --livediskwwpn {{ live_disk_wwpn }} \
+          {% endif %}
           {% endif %}
           --netset_ip {{ node.networking.ip }} \
           --netset_gateway {{ node.networking.gateway }} \
           --netset_network_type osa \
           --netset_network_device "{{ netset_network_device }}" \
-          --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
+          --netset_password '{{ node.lpar.livedisk.livedisk_root_pass }}' \
           --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
+          --status_timeout {{ node.lpar.load_status_timeout | default(env.lpar_load_status_timeout | default(300)) }} \
           --log_level DEBUG \
           --cmdline '{{ boot_cmdline }}'

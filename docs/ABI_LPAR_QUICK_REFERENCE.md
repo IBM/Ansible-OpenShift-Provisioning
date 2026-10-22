@@ -35,10 +35,21 @@ ansible-playbook playbooks/master_playbook_for_abi.yaml
 
 - [ ] Set `installation_type: lpar` in all.yaml
 - [ ] Set `abi.flag: True` in all.yaml
+- [ ] Configure `env.cluster.nodes.control.mac` (and compute `.mac`) in all.yaml
+  - **RoCE / DPM:** Use physical or DPM assigned MAC address
+  - **Non-DPM with OSA/HiperSockets:** Use a **randomly generated MAC address** (e.g., `52:54:00:xx:yy:zz`)
 - [ ] Configure `lpar.storage_group_1` in each node's host_vars
-- [ ] Verify `storage_group_1.type: fcp`
-- [ ] Ensure dev_num, storage_wwpn, and lun_name are set
+  - **FCP**: set `type: fcp`, `dev_num`, `storage_wwpn`, `lun_name`
+  - **DASD**: set `type: dasd`, `dev_num` (bare hex, e.g. `"4401"` — no `0.0.` prefix)
+- [ ] Configure `lpar.livedisk` in each node's host_vars
+  - `livedisktype: dasd` or `scsi`
+  - `devicenr`: DASD address of the Ubuntu live disk (e.g. `"4400"`)
+  - `livedisk_root_pass: "{{ vault_livedisk_root_pass }}"` — verify this value is correct
+- [ ] Set `vault_livedisk_root_pass` in `secrets.yaml` (case-sensitive)
+- [ ] Set `vault_hmc_pass` in `secrets.yaml`
+- [ ] Set `env.bastion.networking.hmc_domain` in all.yaml if HMC hostname is in a subdomain
 - [ ] Node names in all.yaml match host_vars filenames
+- [ ] `env.cluster.nodes.control.hostname` values are short names (domain appended automatically)
 
 ---
 
@@ -124,14 +135,33 @@ hosts:
 ### Issue: No rootDeviceHints in agent-config.yaml
 **Solution**:
 - ✅ Verify `installation_type: lpar`
-- ✅ Check `lpar.storage_group_1.type: fcp`
+- ✅ Check `lpar.storage_group_1.type: fcp` or `dasd`
 - ✅ Ensure host_vars file exists for each node
 
 ### Issue: Wrong device path
 **Solution**:
-- ✅ dev_num: Use "1a00" NOT "0.0.1a00"
-- ✅ wwpn: Include "0x" prefix
-- ✅ lun_name: Include "0x" prefix
+- ✅ FCP dev_num: Use `"1a00"` NOT `"0.0.1a00"`
+- ✅ DASD dev_num: Use `"4401"` NOT `"0.0.4401"` — template adds `0.0.` prefix
+- ✅ wwpn (FCP): Include `"0x"` prefix
+- ✅ lun_name (FCP): Include `"0x"` prefix
+
+### Issue: Login incorrect on live disk
+**Solution**:
+- ✅ Verify `vault_livedisk_root_pass` exactly — it is **case-sensitive**
+- ✅ Test manually via HMC REST `list-os-messages` / `send-os-command`
+- ✅ See `docs/troubleshooting-lpar-abi-boot.md` §6
+
+### Issue: boot_lpar_abi.py hangs at HMC login
+**Solution**:
+- ✅ Previous failed runs may have exhausted HMC session slots
+- ✅ Log into HMC GUI → User Management → user → Active Sessions → delete all
+- ✅ See `docs/troubleshooting-lpar-abi-boot.md` §5
+
+### Issue: stomp.exception.ConnectFailedException
+**Solution**:
+- ✅ This is fixed automatically by `patch_tessia_baselib` (patch `rest_os_messages`)
+- ✅ If it recurs, run `5_setup_bastion.yaml` to re-apply all patches
+- ✅ See `docs/troubleshooting-lpar-abi-boot.md` §1
 
 ### Issue: Template error loading host_vars
 **Solution**:
@@ -155,6 +185,7 @@ hosts:
 
 - **Full Guide**: `docs/abi-lpar-configuration.md`
 - **Implementation Details**: `docs/IMPLEMENTATION_SUMMARY_ABI_LPAR.md`
+- **Boot Troubleshooting**: `docs/troubleshooting-lpar-abi-boot.md`
 - **Main Docs**: https://ibm.github.io/Ansible-OpenShift-Provisioning/
 
 ---
