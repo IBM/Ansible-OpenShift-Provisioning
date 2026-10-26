@@ -1,0 +1,95 @@
+---
+# create_bastion_zvm/tasks/prepare_kickstart.yaml
+#
+# All tasks run on localhost (the Ansible controller).
+# The kickstart file and boot script are generated locally, then the kickstart
+# is uploaded to the file server. The boot script stays on localhost and is
+# executed in boot_zvm_guest.yaml.
+
+# ---------------------------------------------------------------------------
+# Derive URLs used in the kickstart and passed to the boot script
+# ---------------------------------------------------------------------------
+- name: Set file-server base URL
+  ansible.builtin.set_fact:
+    _fs_base: >-
+      {{ env.file_server.protocol }}://{{ env.file_server.ip
+         }}{{ ':' + env.file_server.port
+             if env.file_server.port | default('') | string | length > 0
+             else '' }}
+
+- name: Set kickstart, kernel, initrd and repo URLs
+  ansible.builtin.set_fact:
+    # Strip the httpd document root prefix (e.g. /var/www/html) from cfgs_dir
+    # to get the URL-relative path (e.g. /pub → pub).
+    _ks_url:      "{{ _fs_base }}/{{ env.file_server.cfgs_dir | regex_replace('^(/var/www/html)?/', '') }}/{{ bastion.networking.hostname }}/bastion-ks.cfg"
+    _ks_kernel_url: "{{ _fs_base }}/{{ env.file_server.iso_mount_dir }}/images/kernel.img"
+    _ks_initrd_url: "{{ _fs_base }}/{{ env.file_server.iso_mount_dir }}/images/initrd.img"
+    _ks_repo_url:   "{{ _fs_base }}/{{ env.file_server.iso_mount_dir }}"
+
+# ---------------------------------------------------------------------------
+# Build kernel command line (consumed by boot_zvm_guest.yaml as _ks_cmdline)
+# ---------------------------------------------------------------------------
+- name: Build kernel command line
+  ansible.builtin.set_fact:
+    _ks_cmdline: >-
+      inst.ks={{ _ks_url }}
+      inst.repo={{ _ks_repo_url }}
+      ip={{ bastion.networking.ip }}::{{ bastion.networking.gateway }}:{{ bastion.networking.subnetmask }}:{{ bastion.networking.hostname }}:{{ bastion.networking.interface.ifname }}:none
+      nameserver={{ bastion.networking.nameserver1 }}
+      {% if bastion.networking.nameserver2 | default('') | length > 0 %}nameserver={{ bastion.networking.nameserver2 }} {% endif %}
+      rd.znet={{ bastion.networking.interface.nettype }},{{ bastion.networking.interface.subchannels }},{{ bastion.networking.interface.options }}
+      {% if bastion.disk_type | lower == 'dasd' %}rd.dasd={{ bastion.dasd.disk_id }}{% endif %}
+      {% if bastion.disk_type | lower == 'fcp' %}{% for _path in bastion.fcp.lun[0].paths %}rd.zfcp=0.0.{{ _path.fcp }},0x{{ _path.wwpn }},0x{{ bastion.fcp.lun[0].id }} {% endfor %}zfcp.allow_lun_scan={{ bastion.options.zfcp_allow_lun_scan | default(0) }}{% endif %}
+      console=ttysclp0 console=tty0
+      {% if bastion.additonal_params is defined and bastion.additonal_params | string | length > 0 %}{{ bastion.additonal_params }}{% endif %}
+
+# ---------------------------------------------------------------------------
+# Hash passwords (runs on localhost)
+# ---------------------------------------------------------------------------
+- name: Generate hashed root password
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo "{{ bastion.access.root_pass }}" | openssl passwd -6 -in -
+  register: _root_pass_hash
+  changed_when: true
+  no_log: true
+
+- name: Generate hashed user password
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo "{{ bastion.access.pass }}" | openssl passwd -6 -in -
+  register: _user_pass_hash
+  changed_when: true
+  no_log: true
+
+# ---------------------------------------------------------------------------
+# Upload kickstart to file server
+# ---------------------------------------------------------------------------
+- name: Create configuration directory on file server
+  delegate_to: "{{ groups['file_server'][0] }}"
+  become: true
+  ansible.builtin.file:
+    path: "{{ env.file_server.cfgs_dir }}/{{ bastion.networking.hostname }}"
+    state: directory
+    mode: "0755"
+
+- name: Upload RHEL9 kickstart to file server
+  delegate_to: "{{ groups['file_server'][0] }}"
+  become: true
+  ansible.builtin.template:
+    src: rhel9-bastion-zvm-ks.cfg.j2
+    dest: "{{ env.file_server.cfgs_dir }}/{{ bastion.networking.hostname }}/bastion-ks.cfg"
+    mode: "0644"
+    force: true
+  vars:
+    _root_pass_hashed: "{{ _root_pass_hash.stdout }}"
+    _user_pass_hashed: "{{ _user_pass_hash.stdout }}"
+
+# ---------------------------------------------------------------------------
+# Generate boot script on localhost
+# ---------------------------------------------------------------------------
+- name: Generate tessia-baselib boot script on localhost
+  ansible.builtin.template:
+    src: boot_bastion_zvm.py.j2
+    dest: "/tmp/boot_bastion_{{ bastion.zvm_name | lower }}.py"
+    mode: "0755"

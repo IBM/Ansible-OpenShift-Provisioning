@@ -79,3 +79,39 @@
     - ssh_key_gen
     - ssh_agent
     - ssh_copy_id # to file server
+
+# ── Install tessia-baselib on the Ansible controller when needed for zVM ──────
+# tessia-baselib is used to provision and power-manage z/VM guests directly from
+# the controller over the network.  This play ensures it is present before
+# 4_create_bastion.yaml and power_bastion.yaml run.
+#
+# Triggered when:
+#   - installation_type is 'zvm' or 'lpar', OR
+#   - at least one entry in bastion_nodes has bastion.type == 'zvm'
+- name: "Install tessia-baselib on controller for zVM bastion creation"
+  hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  tasks:
+    # Load each bastion's host_vars and check its type.
+    # We accumulate a boolean flag rather than trying complex filter chains.
+    - name: "Initialise _has_zvm_bastion flag"
+      ansible.builtin.set_fact:
+        _has_zvm_bastion: false
+
+    - name: "Load bastion host_vars and set _has_zvm_bastion if type == zvm"
+      ansible.builtin.include_tasks: ../roles/bastion_dispatch/tasks/check_zvm_bastion.yaml
+      loop: "{{ bastion_nodes | default([]) }}"
+      loop_control:
+        loop_var: _bn_item
+
+    - name: Install tessia-baselib on controller
+      ansible.builtin.include_role:
+        name: install_tessia_baselib
+      when: >
+        installation_type | lower in ['zvm', 'lpar'] or
+        _has_zvm_bastion | bool

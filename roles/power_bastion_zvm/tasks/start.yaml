@@ -1,0 +1,43 @@
+---
+# power_bastion_zvm/tasks/start.yaml
+#
+# IPL-boot a z/VM guest bastion from its installed RHEL disk.
+# All tasks run on localhost (the Ansible controller).
+# tessia-baselib connects to z/VM over the network — no SSH to z/VM host needed.
+
+# ── Step 1: install tessia-baselib on localhost if not present ────────────────
+- name: Install tessia-baselib on localhost
+  ansible.builtin.include_role:
+    name: install_tessia_baselib
+
+# ── Step 2: generate the IPL boot script ─────────────────────────────────────
+- name: Generate tessia-baselib IPL boot script on localhost
+  ansible.builtin.template:
+    src: start_bastion_zvm.py.j2
+    dest: "/tmp/start_bastion_{{ bastion.zvm_name | lower }}.py"
+    mode: "0755"
+
+# ── Step 3: IPL-boot the guest via tessia-baselib ─────────────────────────────
+- name: "IPL-boot z/VM guest {{ bastion.zvm_name }} via tessia-baselib"
+  ansible.builtin.command:
+    argv:
+      - "{{ tessia_python }}"
+      - "/tmp/start_bastion_{{ bastion.zvm_name | lower }}.py"
+  environment:
+    ZVM_PASS: "{{ bastion.zvm_pass }}"
+  register: _zvm_start_result
+  changed_when: true
+
+- name: Show IPL start output
+  ansible.builtin.debug:
+    var: _zvm_start_result.stdout_lines
+
+# ── Step 4: wait for SSH ──────────────────────────────────────────────────────
+- name: "Wait up to {{ zvm_start_timeout }}s for bastion SSH on {{ bastion.networking.ip }}"
+  ansible.builtin.wait_for:
+    host: "{{ bastion.networking.ip }}"
+    port: 22
+    delay: 30
+    timeout: "{{ zvm_start_timeout }}"
+    state: started
+  delegate_to: localhost

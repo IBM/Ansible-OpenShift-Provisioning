@@ -67,37 +67,29 @@
 **env.redhat.manage_subscription** | True or False. Would you like to subscribe the server with Red Hat? | True 
 **env.redhat.pull_secret** | Pull secret for OpenShift, comes from Red Hat's [Hybrid Cloud Console](https://console.redhat.com/openshift/install/ibmz/user-provisioned). Make sure to enclose in 'single quotes'.  | '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com"}}}'
 
-## 5 - Bastion
+## 5 - Bastion Nodes
+
+Bastion configuration has moved out of `all.yaml` and into individual `host_vars` files.
+Instead of the former `env.bastion.*` block, declare a top-level list of bastion names:
+
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
-**env.bastion.create** | True or False. Would you like to create a bastion KVM guest to host essential infrastructure services like DNS, load balancer, firewall, etc? Can de-select certain services with the env.bastion.options variables below. | True
-**env.bastion.vm_name** | Name of the bastion VM. Arbitrary value. | bastion
-**env.bastion.resources.disk_size** | How much of the storage pool would you like to allocate to the bastion (in Gigabytes)? Recommended 30 or more. | 30
-**env.bastion.resources.ram** | How much memory would you like to allocate the bastion (in megabytes)? Recommended 4096 or more | 4096
-**env.bastion.resources.swap** | How much swap storage would you like to allocate the bastion (in megabytes)? Recommended 4096 or more. | 4096
-**env.bastion.resources.vcpu** | How many virtual CPUs would you like to allocate to the bastion? Recommended 4 or more. | 4
-**env.bastion.resources.vcpu_model_option** | Configure the CPU model and CPU features exposed to the guest | --cpu host
-**env.bastion.networking.ip** | IPv4 address for the bastion. | 192.168.10.3
-**env.bastion.networking.internal_ip** | Private IPv4 address for bastion required when installing LPAR cluster with HiperSocket. Currently supports only when bastion is on LPAR or on zVM host. Incase of zVM bastion enable the HiperSocket prior to the playbook run with vmcp commands on the bastion. Alternative Option would be setting up the bridge port on OSA or RoCE. | 10.42.16.1  
-**env.bastion.networking.ipv6** | IPv6 address for the bastion if use_ipv6 variable is 'True'. | fd00::3
-**env.bastion.networking.mac** | MAC address for the bastion if use_dhcp variable is 'True'. | 52:54:00:18:1A:2B
-**env.bastion.networking.hostname** | Hostname of the bastion. Will be combined with env.bastion.networking.base_domain to create a Fully Qualified Domain Name (FQDN). | ocpz-bastion
-**env.bastion.networking.base_domain** | Base domain that, when combined with the hostname, creates a fully-qualified domain name (FQDN) for the bastion? | ihost.com
-**env.bastion.networking.subnetmask** | Subnet of the bastion. | 255.255.255.0
-**env.bastion.networking.gateway** | IPv4 of he bastion's gateway server. | 192.168.10.0
-**env.bastion.networking.ipv6_gateway** | IPv6 of he bastion's gateway server. | fd00::1
-**env.bastion.networking.ipv6_prefix** | IPv6 prefix. | 64
-**env.bastion.networking.nameserver1** | IPv4 address of the server that resolves the bastion's hostname. | 192.168.10.200
-**env.bastion.networking.nameserver2** | <b>(Optional)</b> A second IPv4 address that resolves the bastion's hostname. | 192.168.10.201
-**env.bastion.networking.forwarder** | What IPv4 address will be used to make external DNS calls for the bastion? Can use 1.1.1.1 or 8.8.8.8 as defaults. | 8.8.8.8
-**env.bastion.networking.interface** | Name of the networking interface on the bastion from Linux's perspective. Most likely enc1. | enc1
-**env.bastion.access.user** | What would you like the admin's username to be on the bastion? If root, make pass and root_pass vars the same. | admin
-**env.bastion.access.pass** | The password to the bastion's admin user. If using root, make pass and root_pass vars the same. | cH4ngeM3!
-**env.bastion.access.root_pass** | The root password for the bastion. If using root, make pass and root_pass vars the same. | R0OtPa$s!
-**env.bastion.options.dns** | Would you like the bastion to host the DNS information for the cluster? True or False. If false, resolution must come from elsewhere in your environment. Make sure to add IP addresses for KVM hosts, bastion, bootstrap, control, compute nodes, AND api, api-int and *.apps as described [here](https://docs.openshift.com/container-platform/4.8/installing/installing_bare_metal/installing-bare-metal-network-customizations.html) in section "User-provisioned DNS Requirements" Table 5. If True this will be done for you in the dns and check_dns roles. | True
-**env.bastion.options.loadbalancer.on_bastion** | Would you like the bastion to host the load balancer (HAProxy) for the cluster? True or False (boolean). If false, this service must be provided elsewhere in your environment, and public and private IP of the load balancer must be provided in the following two variables. | True
-**env.bastion.options.loadbalancer.public_ip** | (Only required if env.bastion.options.loadbalancer.on_bastion is True). The public IPv4 address for your environment's loadbalancer. api, apps, *.apps must use this. | 192.168.10.50
-**env.bastion.options.loadbalancer.private_ip** | (Only required if env.bastion.options.loadbalancer.on_bastion is True). The private IPv4 address for your environment's loadbalancer. api-int must use this. | 10.24.17.12
+**bastion_nodes** | Top-level list of bastion node names. Each entry must match a file in `inventories/default/host_vars/<name>.yaml` and an entry in the `[bastion]` inventory group. Supports both KVM and z/VM bastions. | `- bastion-lp59`
+
+Each bastion `host_vars` file contains all former `env.bastion.*` variables (now under
+the `bastion.*` key) plus:
+
+* `bastion.type` — `kvm` or `zvm`, selects the creation/power role.
+* `bastion.hypervisor_host` — the KVM or z/VM host that will run this bastion.
+
+Template files:
+
+* **KVM**: `inventories/default/host_vars/bastion-kvm-example.yaml.template`
+* **z/VM**: `inventories/default/host_vars/bastion-zvm-example.yaml.template`
+
+For the full per-bastion variable reference see the
+[Bastion on z/VM Feature Guide](bastion-on-zvm.md) and
+[Step 3: Set Variables (host_vars)](set-variables-host-vars.md).
 
 ## 6 - Cluster Networking
 **Variable Name** | **Description** | **Example**

@@ -1,0 +1,18 @@
+---
+# roles/bastion_dispatch/tasks/check_zvm_bastion.yaml
+#
+# Called in a loop from 0_setup.yaml.
+# For each bastion name in bastion_nodes, loads its host_vars and sets
+# _has_zvm_bastion=true if bastion.type == 'zvm'.
+#
+# Loop variable: _bn_item (the bastion name, e.g. 'a3e17008')
+
+- name: "Load host_vars for bastion '{{ _bn_item }}'"
+  ansible.builtin.include_vars:
+    file: "{{ inventory_dir }}/host_vars/{{ _bn_item }}.yaml"
+    name: _bn_vars
+
+- name: "Set _has_zvm_bastion=true for '{{ _bn_item }}'"
+  ansible.builtin.set_fact:
+    _has_zvm_bastion: true
+  when: _bn_vars.bastion.type | lower == 'zvm'

@@ -1,0 +1,73 @@
+---
+# power_bastion_zvm/tasks/stop.yaml
+#
+# Stop a z/VM guest bastion gracefully via SSH, with forced tessia-baselib
+# stop() as fallback.  All tasks run on localhost (the Ansible controller).
+# tessia-baselib connects to z/VM over the network — no SSH to z/VM host needed.
+
+# ── Step 1: install tessia-baselib on localhost if not present ────────────────
+- name: Install tessia-baselib on localhost
+  ansible.builtin.include_role:
+    name: install_tessia_baselib
+
+# ── Step 2: attempt graceful OS shutdown via SSH ─────────────────────────────
+- name: Check if bastion SSH port is reachable
+  ansible.builtin.wait_for:
+    host: "{{ bastion.networking.ip }}"
+    port: 22
+    timeout: 10
+    state: started
+  register: _ssh_check
+  ignore_errors: true
+  delegate_to: localhost
+
+- name: Graceful OS shutdown via SSH (systemctl poweroff)
+  ansible.builtin.command:
+    argv:
+      - ssh
+      - -o StrictHostKeyChecking=no
+      - -o BatchMode=yes
+      - -o ConnectTimeout=10
+      - "-i"
+      - "{{ path_to_key_pair | replace('.pub', '') }}"
+      - "{{ bastion.access.user }}@{{ bastion.networking.ip }}"
+      - sudo systemctl poweroff
+  delegate_to: localhost
+  ignore_errors: true
+  changed_when: true
+  when: not _ssh_check.failed
+
+# ── Step 3: wait for SSH to disappear (OS has powered down) ──────────────────
+- name: "Wait up to {{ zvm_shutdown_timeout }}s for SSH to disappear"
+  ansible.builtin.wait_for:
+    host: "{{ bastion.networking.ip }}"
+    port: 22
+    timeout: "{{ zvm_shutdown_timeout }}"
+    state: stopped
+  register: _ssh_gone
+  ignore_errors: true
+  delegate_to: localhost
+
+# ── Step 4: force-stop via tessia-baselib if graceful shutdown timed out ─────
+- name: Generate tessia-baselib stop script on localhost
+  ansible.builtin.template:
+    src: stop_bastion_zvm.py.j2
+    dest: "/tmp/stop_bastion_{{ bastion.zvm_name | lower }}.py"
+    mode: "0755"
+  when: _ssh_gone.failed
+
+- name: "Force stop z/VM guest {{ bastion.zvm_name }} via tessia-baselib"
+  ansible.builtin.command:
+    argv:
+      - "{{ tessia_python }}"
+      - "/tmp/stop_bastion_{{ bastion.zvm_name | lower }}.py"
+  environment:
+    ZVM_PASS: "{{ bastion.zvm_pass }}"
+  register: _zvm_stop_result
+  changed_when: true
+  when: _ssh_gone.failed
+
+- name: Show force-stop output
+  ansible.builtin.debug:
+    var: _zvm_stop_result.stdout_lines
+  when: _ssh_gone.failed and _zvm_stop_result is defined

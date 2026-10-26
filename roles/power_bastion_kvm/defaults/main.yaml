@@ -1,0 +1,9 @@
+---
+bastion: {}
+bastion_action: start
+
+# Seconds to wait for VM to come up and SSH to be reachable after start
+kvm_start_timeout: 300
+
+# Seconds to wait for graceful OS shutdown before forcing virsh destroy
+kvm_shutdown_timeout: 120

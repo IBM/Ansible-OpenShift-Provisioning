@@ -1,0 +1,78 @@
+---
+# create_bastion_zvm/tasks/boot_zvm_guest.yaml
+#
+# Runs the generated tessia-baselib boot script on localhost (the Ansible controller).
+# The script connects to the z/VM hypervisor over the network and boots the guest
+# into the kickstart installer.
+#
+# NOTE: vmcp / smcli are NOT used here. Storage attachment is handled inside the
+# Python script by passing disk arguments to HypervisorZvm.start() via
+# storage_volumes — tessia-baselib manages the attachment.
+
+# ---------------------------------------------------------------------------
+# Build the argument list for the boot script
+# ---------------------------------------------------------------------------
+- name: Build base boot script arguments
+  ansible.builtin.set_fact:
+    _boot_cmd_args:
+      - "{{ tessia_python }}"
+      - "/tmp/boot_bastion_{{ bastion.zvm_name | lower }}.py"
+      - --zvmname
+      - "{{ bastion.zvm_name }}"
+      - --zvmhost
+      - "{{ bastion.zvm_host }}"
+      - --zvmuser
+      - "{{ bastion.zvm_user }}"
+      # --zvmpass is intentionally absent from argv — passed via ZVM_PASS env var
+      # so it never appears in Ansible logs or process listings.
+      - --cpu
+      - "{{ bastion.resources.vcpu | string }}"
+      - --memory
+      - "{{ bastion.resources.ram | string }}"
+      - --kernel
+      - "{{ _ks_kernel_url }}"
+      - --initrd
+      - "{{ _ks_initrd_url }}"
+      - --cmdline
+      - "{{ _ks_cmdline }}"
+      - --network
+      # tessia-baselib ifaces type: user sets bastion.networking.interface.network_mode
+      # Valid values: osa, vswitch, hipersockets, roce
+      - "{{ bastion.networking.interface.network_mode }}"
+      - --znet_id
+      - "{{ bastion.networking.interface.subchannels.split(',') | map('regex_replace', '^0\\.0\\.', '') | join(',') }}"
+      - --disk_type
+      - "{{ 'ECKD' if bastion.disk_type | lower == 'dasd' else 'FCP' }}"
+
+- name: Add DASD disk argument
+  ansible.builtin.set_fact:
+    _boot_cmd_args: "{{ _boot_cmd_args + ['--disk_dev', bastion.dasd.disk_id] }}"
+  when: bastion.disk_type | lower == 'dasd'
+
+- name: Add FCP disk arguments (one entry per path)
+  ansible.builtin.set_fact:
+    _boot_cmd_args: >-
+      {{ _boot_cmd_args
+         + ['--disk_dev', '0.0.' + _fcp_path.fcp,
+            '--fcp_rport', '0x' + _fcp_path.wwpn,
+            '--fcp_lun', '0x' + bastion.fcp.lun[0].id] }}
+  loop: "{{ bastion.fcp.lun[0].paths }}"
+  loop_control:
+    loop_var: _fcp_path
+  when: bastion.disk_type | lower == 'fcp'
+
+# ---------------------------------------------------------------------------
+# Execute boot script on localhost
+# ---------------------------------------------------------------------------
+- name: "Boot z/VM guest {{ bastion.zvm_name }} via tessia-baselib"
+  ansible.builtin.command:
+    argv: "{{ _boot_cmd_args }}"
+  environment:
+    ZVM_PASS: "{{ bastion.zvm_pass }}"
+  register: _zvm_boot_result
+  changed_when: true
+  no_log: false
+
+- name: Show boot result
+  ansible.builtin.debug:
+    var: _zvm_boot_result.stdout_lines

@@ -1,0 +1,9 @@
+---
+bastion: {}
+bastion_action: start
+
+# Seconds to wait for SSH to become reachable after z/VM guest IPL
+zvm_start_timeout: 600
+
+# Seconds to wait for graceful OS shutdown before forcing tessia-baselib stop()
+zvm_shutdown_timeout: 120

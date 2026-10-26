@@ -1,0 +1,69 @@
+---
+# create_bastion_zvm/tasks/wait_for_ssh.yaml
+#
+# Wait for the bastion kickstart installation to finish and the installed
+# RHEL system to come up.
+#
+# Stage 1 — wait for port 22 to open (Anaconda opens SSH during installation).
+#            This confirms the guest has booted and kickstart is running.
+#
+# Stage 2 — loop: SSH in and run a command that only succeeds on the installed
+#            OS, not inside Anaconda.  We check for /etc/os-release which exists
+#            on the installed RHEL but not in the Anaconda environment.
+#            Retries every zvm_poll_interval seconds up to zvm_install_timeout.
+#
+# Stage 3 — final gate: wait_for confirms port 22 is open before handing off
+#            to 5_setup_bastion.yaml.
+
+- name: "Stage 1 — wait up to {{ zvm_boot_timeout }}s for Anaconda SSH to open on {{ bastion.networking.ip }}"
+  ansible.builtin.wait_for:
+    host: "{{ bastion.networking.ip }}"
+    port: 22
+    delay: 60
+    timeout: "{{ zvm_boot_timeout }}"
+    state: started
+  delegate_to: localhost
+
+# ---------------------------------------------------------------------------
+# Stage 2 — loop until the installed OS is reachable via SSH
+#
+# /run/install/ is created by Anaconda at boot and is present throughout the
+# installation.  It does not exist on an installed RHEL system.
+# We test for its ABSENCE: rc=0 means we are on the installed OS.
+# ---------------------------------------------------------------------------
+- name: "Stage 2 — check for installed RHEL (not Anaconda) via SSH on {{ bastion.networking.ip }}"
+  ansible.builtin.command:
+    argv:
+      - ssh
+      - -o StrictHostKeyChecking=no
+      - -o BatchMode=yes
+      - -o ConnectTimeout=10
+      - -i
+      - "{{ path_to_key_pair | replace('.pub', '') }}"
+      - "root@{{ bastion.networking.ip }}"
+      - test ! -d /run/install
+  delegate_to: localhost
+  register: _os_probe
+  ignore_errors: true
+  changed_when: false
+  retries: "{{ (zvm_install_timeout | int // zvm_poll_interval | int) }}"
+  delay: "{{ zvm_poll_interval }}"
+  until: _os_probe.rc == 0
+
+- name: "Stage 2 — fail if installed RHEL SSH never appeared within {{ zvm_install_timeout }}s"
+  ansible.builtin.fail:
+    msg: >
+      Bastion at {{ bastion.networking.ip }} did not come up as an installed RHEL
+      system within {{ zvm_install_timeout }}s. The Anaconda installer may still
+      be running or the kickstart may have failed.
+      Check the z/VM guest console for installation errors.
+  when: _os_probe.rc != 0
+
+- name: "Stage 3 — confirm port 22 is open on the installed RHEL bastion"
+  ansible.builtin.wait_for:
+    host: "{{ bastion.networking.ip }}"
+    port: 22
+    delay: 0
+    timeout: "{{ zvm_boot_timeout }}"
+    state: started
+  delegate_to: localhost

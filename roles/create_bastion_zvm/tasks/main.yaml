@@ -1,0 +1,19 @@
+---
+# create_bastion_zvm/tasks/main.yaml
+#
+# Creates a bastion as a z/VM guest using tessia-baselib and a RHEL kickstart.
+# Expects the 'bastion' variable to be passed in from the calling playbook
+# (loaded from the bastion's host_vars file).
+
+- name: Install tessia-baselib on the zVM host
+  ansible.builtin.include_role:
+    name: install_tessia_baselib
+
+- name: Prepare kickstart file and boot script
+  ansible.builtin.include_tasks: prepare_kickstart.yaml
+
+- name: Boot z/VM guest into kickstart installer
+  ansible.builtin.include_tasks: boot_zvm_guest.yaml
+
+- name: Wait for bastion SSH to become reachable
+  ansible.builtin.include_tasks: wait_for_ssh.yaml
