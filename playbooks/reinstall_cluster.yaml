@@ -11,7 +11,7 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   vars:
-    ssh_target: ["{{ env.bastion.networking.ip }}", "{{ env.bastion.access.user }}", "{{ env.bastion.access.pass }}","{{ path_to_key_pair }}"]
+    ssh_target: ["{{ hostvars[bastion_nodes[0]]['bastion']['networking']['ip'] }}", "{{ hostvars[bastion_nodes[0]]['bastion']['access']['user'] }}", "{{ hostvars[bastion_nodes[0]]['bastion']['access']['pass'] }}", "{{ path_to_key_pair }}"]
   roles:
     - ssh_copy_id
 
@@ -88,10 +88,13 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  pre_tasks:
+    - name: Merge bastion host_vars into env.bastion for backward compatibility
+      ansible.builtin.include_tasks: ../roles/bastion_dispatch/tasks/set_bastion_env_compat.yaml
   roles:
     - common
     - get_ocp
-    - { role: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
+    - { role: haproxy, when: bastion.options.loadbalancer.on_bastion }
 
 - import_playbook: 6_create_nodes.yaml
 - import_playbook: 7_ocp_verification.yaml

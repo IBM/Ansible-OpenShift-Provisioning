@@ -1,0 +1,10 @@
+---
+# power_bastion_zvm/tasks/restart.yaml
+#
+# Restart a z/VM guest bastion: stop then start.
+
+- name: Stop zVM bastion
+  ansible.builtin.include_tasks: stop.yaml
+
+- name: Start zVM bastion
+  ansible.builtin.include_tasks: start.yaml

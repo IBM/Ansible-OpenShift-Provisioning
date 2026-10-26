@@ -1,0 +1,67 @@
+---
+# power_bastion_kvm/tasks/stop.yaml
+#
+# Stop a KVM bastion VM gracefully, with forced virsh destroy as fallback.
+# Idempotent — no error if already stopped.
+
+# ── Step 1: check whether the VM is running at all ──────────────────────────
+- name: Get current state of bastion VM
+  community.libvirt.virt:
+    name: "{{ bastion.vm_name }}"
+    command: info
+  register: _vm_info
+  ignore_errors: true
+
+# NOTE: the community.libvirt.virt module returns state "shutdown" for a stopped VM,
+# not "shut off" (as virsh list --all shows in the terminal). All comparisons below
+# include all three variants for safety.
+
+- name: Skip stop — VM is already shut off
+  ansible.builtin.meta: end_host
+  when:
+    - not _vm_info.failed
+    - _vm_info[bastion.vm_name].state in ['shutdown', 'shut off', 'shutoff']
+
+# ── Step 2: attempt graceful OS shutdown via libvirt ACPI signal ─────────────
+# Use virsh shutdown (ACPI power button) rather than SSH + systemctl poweroff.
+# This runs on the KVM host where the bastion IP is reachable and does not
+# require SSH access from the Ansible controller (which cannot reach the NAT IP).
+- name: Request graceful ACPI shutdown of bastion VM
+  community.libvirt.virt:
+    name: "{{ bastion.vm_name }}"
+    state: shutdown
+  ignore_errors: true
+
+# ── Step 3: wait for graceful shutdown to complete ───────────────────────────
+- name: "Wait up to {{ kvm_shutdown_timeout }}s for VM to reach shut-off state"
+  community.libvirt.virt:
+    name: "{{ bastion.vm_name }}"
+    command: info
+  register: _vm_state
+  retries: "{{ (kvm_shutdown_timeout / 10) | int }}"
+  delay: 10
+  until: >
+    _vm_state.failed or
+    _vm_state[bastion.vm_name].state in ['shutdown', 'shut off', 'shutoff']
+  ignore_errors: true
+
+# ── Step 4: force destroy if graceful shutdown did not complete in time ───────
+- name: Force destroy VM (graceful shutdown timed out)
+  community.libvirt.virt:
+    name: "{{ bastion.vm_name }}"
+    state: destroyed
+  when: >
+    _vm_state.failed or
+    _vm_state[bastion.vm_name].state not in ['shutdown', 'shut off', 'shutoff']
+
+# ── Step 5: verify final state ───────────────────────────────────────────────
+- name: Verify bastion VM is now shut off
+  community.libvirt.virt:
+    name: "{{ bastion.vm_name }}"
+    command: info
+  register: _final_state
+
+- name: Fail if VM is still running after stop attempt
+  ansible.builtin.fail:
+    msg: "Bastion VM {{ bastion.vm_name }} is still in state '{{ _final_state[bastion.vm_name].state }}' after stop"
+  when: _final_state[bastion.vm_name].state not in ['shutdown', 'shut off', 'shutoff']

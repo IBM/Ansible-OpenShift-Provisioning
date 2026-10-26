@@ -1,0 +1,27 @@
+---
+# power_bastion_kvm/tasks/start.yaml
+#
+# Start a KVM bastion VM. Idempotent — no error if already running.
+
+- name: Get current state of bastion VM
+  community.libvirt.virt:
+    name: "{{ bastion.vm_name }}"
+    command: info
+  register: _vm_info
+  ignore_errors: true
+
+- name: Start bastion VM (skipped if already running)
+  community.libvirt.virt:
+    name: "{{ bastion.vm_name }}"
+    state: running
+  when: _vm_info.failed or _vm_info[bastion.vm_name].state != 'running'
+
+- name: "Wait up to {{ kvm_start_timeout }}s for bastion SSH on {{ bastion.networking.ip }}"
+  ansible.builtin.wait_for:
+    host: "{{ bastion.networking.ip }}"
+    port: 22
+    delay: 10
+    timeout: "{{ kvm_start_timeout }}"
+    state: started
+  # Run on the KVM host — the bastion IP is on an internal NAT network
+  # reachable only from the hypervisor, not from the Ansible controller.

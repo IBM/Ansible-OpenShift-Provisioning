@@ -18,16 +18,21 @@
 {% if ( installation_type | lower == 'zvm' ) %}
 {{ '[zvm_host]' }}
 {% for item in range( zvm.nodes | length ) %}
+{%   if zvm.nodes[item].name is defined and zvm.nodes[item].name %}
 {{ zvm.nodes[item].name | string + ' ansible_host=' + zvm.nodes[item].interface.ip | string + ' ansible_user=' +  zvm.nodes[item].user | string + ' ansible_become_password=' +  zvm.nodes[item].password | string }}
+{%   endif %}
 {% endfor %}
 {% endif %}
 
 [bastion]
-{% if ( env.network_mode | upper == 'NAT' ) and ( env.jumphost.name is not none ) %}
-{{ env.bastion.networking.hostname }} ansible_host={{ env.bastion.networking.ip }} ansible_user={{ env.bastion.access.user }} ansible_become_password='{{ '{{' }} env.bastion.access.pass {{ '}}' }}' ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyCommand="ssh -i ~/.ssh/{{ env.ansible_key_name }} -o StrictHostKeyChecking=no -W %h:%p {{ env.jumphost.user }}@{{ env.jumphost.ip }}"'
-{% else %}
-{{ env.bastion.networking.hostname }} ansible_host={{ env.bastion.networking.ip }} ansible_user={{ env.bastion.access.user }} ansible_become_password='{{ '{{' }} env.bastion.access.pass {{ '}}' }}'
-{% endif %}
+{% for _bn in bastion_nodes | default([]) %}
+{%   set _bv = lookup('file', inventory_dir + '/host_vars/' + _bn + '.yaml') | from_yaml %}
+{%   if ( env.network_mode | upper == 'NAT' ) and ( env.jumphost.name is not none ) and ( env.jumphost.ip is not none ) %}
+{{ _bv.bastion.networking.hostname }} ansible_host={{ _bv.bastion.networking.ip }} ansible_user={{ _bv.bastion.access.user }} ansible_become_password='{{ _bv.bastion.access.pass }}' ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyCommand="ssh -i ~/.ssh/{{ env.ansible_key_name }} -o StrictHostKeyChecking=no -W %h:%p {{ env.jumphost.user }}@{{ env.jumphost.ip }}"'
+{%   else %}
+{{ _bv.bastion.networking.hostname }} ansible_host={{ _bv.bastion.networking.ip }} ansible_user={{ _bv.bastion.access.user }} ansible_become_password='{{ _bv.bastion.access.pass }}'
+{%   endif %}
+{% endfor %}
 
 {% if ( env.network_mode | upper == 'NAT' ) and ( env.jumphost.name is not none ) and ( env.jumphost.ip is not none ) and ( env.jumphost.user is not none ) and ( env.jumphost.pass is not none ) -%}
 {{ '[jumphost]' }}

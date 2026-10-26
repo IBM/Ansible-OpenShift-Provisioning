@@ -5,11 +5,14 @@
   hosts: bastion
   become: true
   environment:
-    KUBECONFIG: "{{ '/home/' if (env.bastion.access.user != 'root') else '/'}}{{ env.bastion.access.user }}/.kube/config"
+    KUBECONFIG: "{{ '/home/' if (bastion.access.user != 'root') else '/' }}{{ bastion.access.user }}/.kube/config"
   gather_facts: true
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  pre_tasks:
+    - name: Merge bastion host_vars into env.bastion for backward compatibility
+      ansible.builtin.include_tasks: ../roles/bastion_dispatch/tasks/set_bastion_env_compat.yaml
   roles:
     - approve_certs
     - check_nodes

@@ -17,6 +17,8 @@ nav:
       - Run the Playbooks (Disconnected): 'run-the-playbooks-for-disconnected.md'
       - Run the Playbooks (HostedControlPlane): 'run-the-playbooks-for-hcp.md'
       - ABI LPAR Configuration: 'abi-lpar-configuration.md'
+  - Features:
+      - Bastion on z/VM (and KVM): 'bastion-on-zvm.md'
   - Misc:
       - Troubleshooting: 'troubleshooting.md'
       - Acknowledgements: 'acknowledgements.md'

@@ -1,11 +1,61 @@
-# Assume we have an existing ftp/http server already
-- name: 4 create bastion
-  hosts: kvm_host[0]
+---
+# 4_create_bastion.yaml
+#
+# Creates bastion nodes listed in bastion_nodes (all.yaml).
+# Each bastion is defined in its own host_vars file.
+# The 'bastion.type' key in the host_vars file ('kvm' or 'zvm') determines
+# which role is executed.
+#
+# KVM bastions  : created via virt-install on the designated kvm_host.
+# zVM bastions  : created via tessia-baselib running on localhost (the Ansible
+#                 controller). tessia-baselib speaks to the z/VM hypervisor over
+#                 the network using the credentials in the bastion's host_vars
+#                 file — no SSH connection to the z/VM host is required.
+
+# ---------------------------------------------------------------------------
+# KVM pass: run on every kvm_host; only act when a bastion targets this host
+# ---------------------------------------------------------------------------
+- name: 4 create bastion on KVM hypervisor
+  hosts: kvm_host
   become: false
+  gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
-    - "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
-  roles:
-    - common
-    - { role: create_bastion, when: env.bastion.create == True }
+  tasks:
+    - name: Gather facts on KVM host
+      ansible.builtin.gather_facts:
+      when: "{{ installation_type | upper == 'KVM' }}" 
+
+    - name: Process each bastion node declared in bastion_nodes
+      ansible.builtin.include_tasks: ../roles/bastion_dispatch/tasks/create_bastion_dispatch.yaml
+      vars:
+        _bastion_name: "{{ item }}"
+        _bastion_type: kvm
+      loop: "{{ bastion_nodes }}"
+      loop_control:
+        loop_var: item
+      when: "{{ installation_type | upper == 'KVM' }}" 
+
+# ---------------------------------------------------------------------------
+# zVM pass: always runs on localhost (the Ansible controller).
+# tessia-baselib connects to the z/VM hypervisor over the network using
+# the credentials stored in each bastion's host_vars file.
+# No [zvm_host] inventory entry is required for bastion creation.
+# ---------------------------------------------------------------------------
+- name: 4 create bastion on zVM hypervisor
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  tasks:
+    - name: Process each bastion node declared in bastion_nodes
+      ansible.builtin.include_tasks: ../roles/bastion_dispatch/tasks/create_bastion_dispatch.yaml
+      vars:
+        _bastion_name: "{{ item }}"
+        _bastion_type: zvm
+      loop: "{{ bastion_nodes }}"
+      loop_control:
+        loop_var: item
+      when: "{{ installation_type | upper == 'ZVM' }}" 
