@@ -100,3 +100,76 @@
 **lpar.livedisk.wwpn** | <b>(Required if livedisktype is scsi)</b> World-wide port number when livedisktype is SCSI. | 500507630a1b50a4
 **lpar.livedisk.devicenr** | <b>(Optional)</b> the device no of the live disk | c6h1
 **lpar.livedisk.livedisk_root_pass** | <b>(Optional)</b> root password for the livedisk | p@ssword
+
+## 8 - Bastion Node (KVM)
+
+Each bastion listed in `bastion_nodes` (all.yaml) must have a corresponding
+`host_vars` file. Copy `bastion-kvm-example.yaml.template` from the `host_vars`
+directory to `<your-bastion-hostname>.yaml` in the same directory and fill in all
+values marked `#X`.
+
+> **Note** — `ansible_become_password` and `ansible_password` must live in the
+> `host_vars` file. They reference vault variables and Ansible cannot evaluate
+> Jinja2 expressions inside the static `hosts` inventory file.
+
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**ansible_become_password** | Sudo password for Ansible on the bastion (vault reference). | `"{{ vault_bastion_pass }}"`
+**ansible_password** | SSH password for Ansible on the bastion (vault reference). | `"{{ vault_bastion_pass }}"`
+**bastion.type** | Dispatcher key. `kvm` for a KVM-hosted bastion. | `kvm`
+**bastion.create** | Create the VM? `false` to use a pre-existing bastion. | `true`
+**bastion.hypervisor_host** | KVM host that will run this bastion. Must match a host in `[kvm_host]`. | `a311lp59`
+**bastion.vm_name** | Libvirt domain name for the bastion VM. | `bastion-lp59`
+**bastion.resources.disk_size** | Root disk size in GB. Recommended 100 or more. | `500`
+**bastion.resources.ram** | RAM in MB. Recommended 8192 or more. | `8192`
+**bastion.resources.swap** | Swap in MB. | `4096`
+**bastion.resources.vcpu** | Virtual CPUs. Recommended 4 or more. | `4`
+**bastion.resources.vcpu_model_option** | CPU model option passed to `virt-install`. | `--cpu host`
+**bastion.networking.ip** | IPv4 address of the bastion. | `192.168.122.2`
+**bastion.networking.internal_ip** | **(Optional)** Private IPv4 for HiperSocket LPAR clusters. | `10.42.16.1`
+**bastion.networking.ipv6** | **(Optional)** IPv6 address. | `fd00::2`
+**bastion.networking.mac** | **(Optional)** MAC address when using DHCP. | `52:54:00:18:1A:2B`
+**bastion.networking.hostname** | Bastion short hostname. Combined with `base_domain` → FQDN. | `bastion-lp59`
+**bastion.networking.base_domain** | DNS base domain. | `example.com`
+**bastion.networking.subnetmask** | IPv4 subnet mask. | `255.255.255.0`
+**bastion.networking.gateway** | IPv4 gateway. | `192.168.122.1`
+**bastion.networking.ipv6_gateway** | **(Optional)** IPv6 gateway. | `fd00::1`
+**bastion.networking.ipv6_prefix** | **(Optional)** IPv6 prefix length. | `64`
+**bastion.networking.nameserver1** | Primary DNS resolver for the bastion. | `192.168.10.200`
+**bastion.networking.nameserver2** | **(Optional)** Secondary DNS resolver. | `192.168.10.201`
+**bastion.networking.forwarder** | External DNS forwarder. | `1.1.1.1`
+**bastion.networking.interface** | Linux network interface name (simple string for KVM). | `enc1`
+**bastion.access.user** | Admin username on the bastion. | `root`
+**bastion.access.pass** | Admin password (vault reference). | `"{{ vault_bastion_pass }}"`
+**bastion.access.root_pass** | Root password (vault reference). | `"{{ vault_bastion_root_pass }}"`
+**bastion.options.dns** | Host DNS for the cluster on this bastion. | `true`
+**bastion.options.loadbalancer.on_bastion** | Run HAProxy load balancer on the bastion. | `true`
+**bastion.options.loadbalancer.public_ip** | **(Optional)** External LB IP when `on_bastion: false`. | `192.168.10.50`
+**bastion.options.loadbalancer.private_ip** | **(Optional)** Internal LB IP when `on_bastion: false`. | `10.24.17.12`
+
+## 9 - Bastion Node (z/VM)
+
+For a bastion to be created as a z/VM guest, copy `bastion-zvm-example.yaml.template`
+to `<zvm-guest-name-lowercase>.yaml` (e.g. `a3e06001.yaml`) and fill in all `#X` values.
+All common variables from section 8 apply. The z/VM-specific additions are:
+
+**Variable Name** | **Description** | **Example**
+:--- | :--- | :---
+**bastion.type** | Dispatcher key. Must be `zvm`. | `zvm`
+**bastion.hypervisor_host** | z/VM host that manages this guest. Must match a host in `[zvm_host]`. | `zvm-host1`
+**bastion.zvm_name** | z/VM user ID — uppercase, max 8 characters. | `A3E06001`
+**bastion.zvm_host** | IP or hostname of the z/VM hypervisor. | `10.10.10.5`
+**bastion.zvm_user** | z/VM administrative user. | `hscroot`
+**bastion.zvm_pass** | z/VM admin password (vault reference). | `"{{ vault_zvm_pass }}"`
+**bastion.networking.interface.ifname** | Linux interface name inside the guest. | `enc1000`
+**bastion.networking.interface.nettype** | z/VM network type. | `qeth`
+**bastion.networking.interface.subchannels** | Three OSA subchannel device numbers (comma-separated). | `0.0.1000,0.0.1001,0.0.1002`
+**bastion.networking.interface.options** | QETH options string. | `layer2=1`
+**bastion.disk_type** | Storage type: `dasd` or `fcp`. | `dasd`
+**bastion.dasd.disk_id** | DASD device number *(when `disk_type: dasd`)*. | `0B00`
+**bastion.fcp.lun[].id** | FCP LUN ID *(when `disk_type: fcp`)*. | `0x4000000000000000`
+**bastion.fcp.lun[].paths[].wwpn** | FCP WWPN for a path. | `0x500507680b2a5f7e`
+**bastion.fcp.lun[].paths[].fcp** | FCP device number for a path. | `0x1a00`
+
+See [Bastion on z/VM Feature Guide](bastion-on-zvm.md) for full context, inventory requirements,
+and playbook descriptions.

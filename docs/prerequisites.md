@@ -83,6 +83,36 @@ ansible-galaxy collection install ibm.ibm_zhmc
 ```
 xcode-select --install
 ```
+## Inventory Configuration (schema v2 required)
+
+This project requires inventory files in **schema version 2** format. The
+`all.yaml` file must contain `schema_version: 2` at the top level, and bastion
+configuration must live in per-bastion `host_vars` files rather than in the
+`env.bastion` block used in earlier releases.
+
+**If you are starting fresh**, copy `inventories/default/group_vars/all.yaml.template`
+to `inventories/default/group_vars/all.yaml` — it is already in v2 format.
+
+**If you have an existing `all.yaml` from a previous release** (no `schema_version`
+key, or `schema_version: 1`), you must migrate it before running any playbooks:
+
+```bash
+ansible-playbook migration/migrate_to_v2.yaml \
+  -e "inventory_dir=inventories/default"
+```
+
+The migration playbook will:
+
+1. Back up your original `all.yaml` as `all.yaml.v1.bak`.
+2. Extract the `env.bastion` block into a new `host_vars/<vm_name>.yaml` file.
+3. Add `bastion_nodes:` and `schema_version: 2` to `all.yaml`.
+4. Remove the now-redundant `env.bastion` block from `all.yaml`.
+
+See [`migration/README.md`](../migration/README.md) for full details.
+
+> **Note:** Running playbooks with a v1 `all.yaml` (missing `schema_version: 2`)
+> will fail. The migration step is mandatory for all existing inventories.
+
 ## Jumphost for NAT network
 * If for KVM network NAT is used, instead of macvtap, a ssh tunnel using a jumphost is required to access the OCP cluster. To configure the ssh tunnel expect is required on the jumphost. Expect will be installed during the setup of the bastion (4_setup_bastion.yaml playbook). In case of missing access to install additional packages, install it manually on the jumphost by executing following command:
 ```

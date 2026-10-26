@@ -33,8 +33,8 @@ timezone {{ env.timezone }}
 eula --agreed
 
 # Network information
-network --bootproto=static --device={{ env.bastion.networking.interface }} --ip={{ env.bastion.networking.ip }} --gateway={{ env.bastion.networking.gateway }} --netmask={{ env.bastion.networking.subnetmask }} {{'--ipv6=' + env.bastion.networking.ipv6 if env.use_ipv6 else '--noipv6' }} {{'--ipv6gateway=' + env.bastion.networking.ipv6_gateway if env.use_ipv6 else ''}} --nameserver={{ env.bastion.networking.nameserver1 }}{{ (',' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined else '' }} --activate
-network --hostname={{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}
+network --bootproto=static --device={{ bastion.networking.interface }} --ip={{ bastion.networking.ip }} --gateway={{ bastion.networking.gateway }} --netmask={{ bastion.networking.subnetmask }} {{'--ipv6=' + bastion.networking.ipv6 if env.use_ipv6 else '--noipv6' }} {{'--ipv6gateway=' + bastion.networking.ipv6_gateway if env.use_ipv6 else ''}} --nameserver={{ bastion.networking.nameserver1 }}{{ (',' + bastion.networking.nameserver2) if bastion.networking.nameserver2 is defined else '' }} --activate
+network --hostname={{ bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}
 
 # Firewall and SELinux
 firewall --enabled --http --ftp --smtp --ssh --port=443,9090
@@ -64,7 +64,7 @@ autopart
 part /boot --fstype="xfs" --asprimary --ondisk=vda --size=1024
 part pv.01 --fstype="lvmpv" --grow --size=1 --ondisk=vda
 volgroup vgsystem --pesize=4096 pv.01
-logvol swap --fstype=swap --name=swap --vgname=vgsystem --size={{ env.bastion.resources.swap }}
+logvol swap --fstype=swap --name=swap --vgname=vgsystem --size={{ bastion.resources.swap }}
 logvol / --fstype=xfs --name=root --vgname=vgsystem --size=1 --grow
 {% endif %}
 

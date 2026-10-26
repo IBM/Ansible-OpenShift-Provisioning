@@ -84,15 +84,29 @@ Configures the RHEL server(s) installed natively on the LPAR(s) to act as virtua
 * If you're using a pre-existing LPAR, take a look at roles/configure_storage/tasks/main.yaml to make sure that the commands that will be run to extend the logical volume will work. Storage configurations can vary widely. The values there are the defaults from using autopart during kickstart. Also be aware that if lpar.storage_group_2.auto_config is True, the role roles/configure_storage/tasks/main.yaml will be non-idempotent. Meaning, it will fail if you run it twice.
 ## 4 Create Bastion Playbook
 ### Overview
-Creates the bastion KVM guest on the first KVM host. The bastion hosts essential services for the cluster. If you already have a bastion server, that can be used instead of running this playbook.
+Creates bastion nodes listed in `bastion_nodes` (all.yaml). Each bastion is defined by its own
+`host_vars` file. The playbook inspects each bastion's `bastion.type` key and dispatches to the
+correct role automatically — `create_bastion` for KVM bastions and `create_bastion_zvm` for
+z/VM bastions. Multiple bastions and multiple hypervisor hosts are all handled in a single run.
+
+See [Bastion on z/VM Feature Guide](bastion-on-zvm.md) for full variable reference and
+configuration details.
 ### Outcomes
-* Bastion configs are templated out to the file server.
-* Bastion is booted using virt-install.
-* Bastion is kickstarted for fully automated setup of the operating system.
+* **KVM bastions**: kickstart configuration files are templated to the file server; `virt-install`
+  creates and boots the VM on the designated KVM host; SSH connectivity is verified.
+* **z/VM bastions**: a kickstart file and a Python boot script (tessia-baselib) are generated and
+  executed on the designated z/VM host; the guest is booted from the RHEL ISO; SSH connectivity
+  is verified.
+* Bastion VM(s) are left running and ready for `5_setup_bastion.yaml`.
 ### Notes
-* This can be a particularly sticky part of the process.
-* If any of the variables used in the virt-install or kickstart are off, the bastion won't be able to boot.
-* Recommend watching it come up from the first KVM host's cockpit. Go to http://kvm-ip-here:9090 via web-browser to view it. You'll have to sign in, enable administrative access (top right), and then click on the virtual machines tab on the left-hand toolbar.
+* Set `bastion.create: false` in a bastion's `host_vars` file to skip creation and use a
+  pre-existing server instead.
+* For KVM bastions, Cockpit on the KVM host (`http://<kvm-ip>:9090`) is useful for watching
+  the VM come up. Sign in, enable administrative access, then click the Virtual Machines tab.
+* For z/VM bastions, `tessia-baselib` and its Python dependencies must be installed on the
+  z/VM host (included in `pkgs_zvm`, installed during `3_setup_kvm_host.yaml` or separately).
+* If any kickstart or network variable is wrong, the bastion won't boot — double-check
+  the `bastion.*` values in the host_vars file before running.
 ## 5 Setup Bastion Playbook
 ### Overview
 Configuration of the bastion to host essential infrastructure services for the cluster. Can be first-time setup or use an existing server.
@@ -142,6 +156,33 @@ Final steps of waiting for and verifying the OpenShift cluster to complete its i
 * To install a new cluster, copy your inventory directory, change the default in the ansible.cfg, change the variables, and start again. With all the customizations to the playbooks you made along the way still intact.
 
 # Additional Playbooks
+
+## Power Bastion Playbook (power_bastion.yaml)
+### Overview
+Start, stop, or restart bastion VMs without re-creating them. Works for both KVM and z/VM
+bastions. The action is controlled by the `bastion_action` extra variable.
+### Usage
+```
+# Start all bastions listed in bastion_nodes
+ansible-playbook playbooks/power_bastion.yaml --ask-vault-pass \
+  --extra-vars "bastion_action=start"
+
+# Stop all bastions
+ansible-playbook playbooks/power_bastion.yaml --ask-vault-pass \
+  --extra-vars "bastion_action=stop"
+
+# Restart all bastions
+ansible-playbook playbooks/power_bastion.yaml --ask-vault-pass \
+  --extra-vars "bastion_action=restart"
+```
+`bastion_action` must be one of `start`, `stop`, or `restart`. The default is `start`.
+### Outcomes
+* **start**: KVM bastions started with `virsh start`; z/VM guests booted from disk via tessia-baselib. SSH connectivity waited for in both cases.
+* **stop**: KVM bastions gracefully shut down (with `virsh destroy` fallback); z/VM guests stopped via `systemctl poweroff` (with `vmcp force logoff` fallback).
+* **restart**: stop followed by start as above.
+### Notes
+* The playbook is idempotent — starting an already-running VM or stopping an already-stopped VM is handled gracefully.
+* See [Bastion on z/VM Feature Guide](bastion-on-zvm.md) for full details.
 
 ## Delete Cluster Nodes Playbook (delete_cluster_nodes.yaml)
 ### Overview

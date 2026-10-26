@@ -2,13 +2,23 @@
 #
 # For a comprehensive description of each variable, please see documentation here:
 # https://ibm.github.io/Ansible-OpenShift-Provisioning/set-variables-group-vars/
+#
+# Schema version — used by the migration playbook to detect which format this file uses.
+# Do NOT change this value.
+schema_version: 2
 
 # Section 1 - Ansible Controller
 installation_type: kvm
 controller_sudo_pass: "{{ vault_ctl_host_sudo_pass }}"
 
-env:
+# Section 5 - Bastion nodes
+# List the host_vars file names (without .yaml extension) for each bastion to create/configure.
+# Each entry must have a matching file in inventories/default/host_vars/.
+# Use bastion-kvm-example.yaml.template or bastion-zvm-example.yaml.template as a starting point.
+bastion_nodes:
+  - #X                        # e.g. bastion-lp59
 
+env:
 # Section 2 - LPAR(s)
   z:
     high_availability: False
@@ -48,7 +58,7 @@ env:
     pass: "{{ vault_file_server_pass }}"
     protocol: #X
     iso_mount_dir: #X
-    iso_os_variant: #X
+    iso_os_variant: rhel9-unknown   # safe fallback for RHEL 9.x; run 'osinfo-query os -f short-id | grep rhel9' on KVM host for available values
     cfgs_dir: #X
 
 # Section 4 - Red Hat
@@ -60,42 +70,6 @@ env:
     manage_subscription: True
     # Make sure to enclose pull_secret in 'single quotes'
     pull_secret: #'X'
-
-# Section 5 - Bastion
-  bastion:
-    create: True
-    vm_name: #X
-    resources:
-      disk_size: 30
-      ram: 4096
-      swap: 4096
-      vcpu: 4
-      vcpu_model_option: "--cpu host"
-    networking:
-      ip: #X
-      internal_ip: #X Required only when creating LPAR cluster with HiperSocket.
-      ipv6: #X
-      mac: #X
-      hostname: #X
-      base_domain: #X
-      subnetmask: #X
-      gateway: #X
-      ipv6_gateway: #X
-      ipv6_prefix: #X
-      nameserver1: #X
-#      nameserver2:
-      forwarder: 1.1.1.1
-      interface: #X
-    access:
-      user: #X
-      pass: "{{ vault_bastion_pass }}"
-      root_pass: "{{ vault_bastion_pass }}"
-    options:
-      dns: True
-      loadbalancer:
-        on_bastion: True
-#        public_ip:
-#        private_ip:
 
 # Section 6 - Cluster Networking
   cluster:

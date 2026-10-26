@@ -1,0 +1,10 @@
+---
+# power_bastion_kvm/tasks/restart.yaml
+#
+# Restart a KVM bastion VM: stop then start.
+
+- name: Stop KVM bastion
+  ansible.builtin.include_tasks: stop.yaml
+
+- name: Start KVM bastion
+  ansible.builtin.include_tasks: start.yaml

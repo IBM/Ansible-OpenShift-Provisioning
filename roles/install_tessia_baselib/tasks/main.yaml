@@ -1,26 +1,261 @@
 ---
-- name: Install Packages on host
-  yum:
-    name:
-      - "{{ item }}"
-    state: present
-  loop: "{{ pkgs_zvm }}"
+# install_tessia_baselib/tasks/main.yaml
+#
+# Ensures tessia-baselib is available on the target host and sets the
+# 'tessia_python' fact pointing to the Python interpreter that has it.
+#
+# Supports two target environments:
+#
+#   1. macOS Ansible controller (Darwin):
+#      - tessia-baselib may be installed in one of these venvs (checked in order):
+#        a) ~/tessia_baselib_venv  — manually created venv (e.g. via pip install)
+#        b) ~/.local/pipx/venvs/tessia-baselib  — pipx-managed venv
+#      - If neither venv is found the role FAILS with a clear message.
+#        There is no pip3 --user fallback — macOS system Python rejects that.
+#
+#   2. RHEL/CentOS Ansible controller or dedicated zvm_host:
+#      - Install OS prerequisites via yum (git, python3-pip, openssl-devel, etc.)
+#      - Clone + pip3 install from GitLab (system-wide, run as root)
+#        → tessia_python = python3
+#
+#   3. Any host where tessia-baselib is already importable (idempotent):
+#      - All install steps are skipped.
+#      - tessia_python is resolved and verified.
+#
+# The role is idempotent — calling it multiple times in a playbook is safe.
 
-- name: Install setuptools_rust using pip
-  pip:
+# ── Step 1: gather minimum facts if not already present ──────────────────────
+# 'min' includes: platform, hardware, distribution, cmdline, env, facter, ohai
+# We need ansible_os_family (from 'platform') and ansible_env.HOME (from 'env').
+- name: Gather minimum platform facts
+  ansible.builtin.setup:
+    gather_subset:
+      - "!all"
+      - min
+  when: ansible_os_family is not defined or ansible_env is not defined
+
+# ── Step 2: probe candidate Python interpreters for existing installation ─────
+# Check known locations in order:
+#   1. ~/tessia_baselib_venv  (manually created venv — preferred on macOS)
+#   2. ~/.local/pipx/venvs/tessia-baselib  (pipx-managed venv)
+#   3. system python3  (works on RHEL/CentOS after pip install)
+# Whichever answers first becomes tessia_python and skips the install steps.
+
+- name: Probe ~/tessia_baselib_venv for existing tessia-baselib (all platforms)
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/tessia_baselib_venv/bin/python3"
+  register: _venv_py
+
+- name: Test tessia-baselib import via ~/tessia_baselib_venv python
+  ansible.builtin.command:
+    argv:
+      - "{{ ansible_env.HOME }}/tessia_baselib_venv/bin/python3"
+      - -c
+      - "from tessia.baselib.hypervisors.zvm.zvm import HypervisorZvm; print('OK')"
+  register: _venv_import
+  changed_when: false
+  failed_when: false
+  when: _venv_py.stat.exists
+
+- name: Set tessia_python from ~/tessia_baselib_venv (already installed)
+  ansible.builtin.set_fact:
+    tessia_python: "{{ ansible_env.HOME }}/tessia_baselib_venv/bin/python3"
+  when:
+    - _venv_py.stat.exists
+    - _venv_import.rc is defined and _venv_import.rc == 0
+
+- name: Probe pipx venv for existing tessia-baselib (all platforms)
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.local/pipx/venvs/tessia-baselib/bin/python3"
+  register: _pipx_py
+  when: tessia_python is not defined
+
+- name: Test tessia-baselib import via pipx venv python
+  ansible.builtin.command:
+    argv:
+      - "{{ ansible_env.HOME }}/.local/pipx/venvs/tessia-baselib/bin/python3"
+      - -c
+      - "from tessia.baselib.hypervisors.zvm.zvm import HypervisorZvm; print('OK')"
+  register: _pipx_import
+  changed_when: false
+  failed_when: false
+  when:
+    - tessia_python is not defined
+    - _pipx_py.stat is defined and _pipx_py.stat.exists
+
+- name: Set tessia_python from pipx venv (already installed)
+  ansible.builtin.set_fact:
+    tessia_python: "{{ ansible_env.HOME }}/.local/pipx/venvs/tessia-baselib/bin/python3"
+  when:
+    - tessia_python is not defined
+    - _pipx_py.stat is defined and _pipx_py.stat.exists
+    - _pipx_import.rc is defined and _pipx_import.rc == 0
+
+- name: Test tessia-baselib import via system python3 (already installed)
+  ansible.builtin.command:
+    argv:
+      - python3
+      - -c
+      - "from tessia.baselib.hypervisors.zvm.zvm import HypervisorZvm; print('OK')"
+  register: _sys_import
+  changed_when: false
+  failed_when: false
+  when: tessia_python is not defined
+
+- name: Set tessia_python from system python3 (already installed)
+  ansible.builtin.set_fact:
+    tessia_python: python3
+  when:
+    - tessia_python is not defined
+    - _sys_import.rc is defined and _sys_import.rc == 0
+
+# ── Step 3: install on RHEL/CentOS if not yet found ──────────────────────────
+#
+# setuptools compatibility matrix:
+#   RHEL 8  — ships setuptools < 66; legacy setup.py egg_info works fine.
+#             Use plain 'pip3 install -U .'
+#   RHEL 9  — system setuptools is compatible, BUT any prior 'pip3 install'
+#             may have upgraded setuptools ≥ 66 as a side effect, which breaks
+#             tessia-baselib's legacy setup.py (canonicalize_version error).
+#             Use '--use-pep517' to bypass setup.py entirely.
+#   RHEL 10 — ships setuptools 78.x by default (always ≥ 66).
+#             '--use-pep517' is mandatory.
+#
+# '--use-pep517' is safe on all versions; it simply uses the modern build
+# frontend and ignores setup.py egg_info. We apply it for RHEL 9+.
+
+- name: Install OS prerequisites on RHEL/CentOS (skipped on macOS / already-installed)
+  ansible.builtin.package:
+    name: "{{ _pkg }}"
+    state: present
+  loop: "{{ pkgs_zvm_common }}"
+  loop_control:
+    loop_var: _pkg
+  when:
+    - tessia_python is not defined
+    - ansible_os_family | default('') in ['RedHat', 'CentOS']
+
+# python39 package only exists on RHEL 8 — on RHEL 9+ Python 3.9 is the default.
+- name: Install python39 package on RHEL 8
+  ansible.builtin.package:
+    name: "{{ _pkg }}"
+    state: present
+  loop: "{{ pkgs_zvm_rhel8_extra }}"
+  loop_control:
+    loop_var: _pkg
+  when:
+    - tessia_python is not defined
+    - ansible_os_family | default('') in ['RedHat', 'CentOS']
+    - (ansible_distribution_major_version | int) < 9
+
+- name: Install setuptools_rust via pip3 (RHEL/CentOS)
+  ansible.builtin.pip:
     name: setuptools_rust
     executable: pip3
+    extra_args: >-
+      {{ '--use-pep517' if (ansible_distribution_major_version | int) >= 9 else '' }}
+  when:
+    - tessia_python is not defined
+    - ansible_os_family | default('') in ['RedHat', 'CentOS']
 
-- name: Install cryptography using pip
-  pip:
+- name: Install cryptography via pip3 (RHEL/CentOS)
+  ansible.builtin.pip:
     name: cryptography
     executable: pip3
+    extra_args: >-
+      {{ '--use-pep517' if (ansible_distribution_major_version | int) >= 9 else '' }}
+  when:
+    - tessia_python is not defined
+    - ansible_os_family | default('') in ['RedHat', 'CentOS']
 
-- name: Clone tessia-baselib repository
-  git:
+- name: Clone tessia-baselib repository (RHEL/CentOS)
+  ansible.builtin.git:
     repo: https://gitlab.com/tessia-project/tessia-baselib.git
-    dest: /root/ansible_workdir/tessia-baselib
+    dest: "{{ tessia_baselib_workdir }}"
+  when:
+    - tessia_python is not defined
+    - ansible_os_family | default('') in ['RedHat', 'CentOS']
 
-- name: Change directory to tessia-baselib and install dependencies using pip3
-  shell: cd /root/ansible_workdir/tessia-baselib ; pip3 install -U .
+# RHEL 8: setup.py egg_info works with the system setuptools — use plain install.
+- name: Install tessia-baselib from cloned source via pip3 (RHEL 8)
+  ansible.builtin.shell: |
+    pip3 install -U .
+  args:
+    chdir: "{{ tessia_baselib_workdir }}"
+  changed_when: true
+  when:
+    - tessia_python is not defined
+    - ansible_os_family | default('') in ['RedHat', 'CentOS']
+    - (ansible_distribution_major_version | int) < 9
 
+# RHEL 9+: setuptools ≥ 66 may be present (always so on RHEL 10).
+# --use-pep517 bypasses setup.py egg_info and avoids the
+# canonicalize_version() 'strip_trailing_zero' TypeError.
+- name: Install tessia-baselib from cloned source via pip3 with PEP 517 (RHEL 9+)
+  ansible.builtin.shell: |
+    pip3 install -U --use-pep517 .
+  args:
+    chdir: "{{ tessia_baselib_workdir }}"
+  changed_when: true
+  when:
+    - tessia_python is not defined
+    - ansible_os_family | default('') in ['RedHat', 'CentOS']
+    - (ansible_distribution_major_version | int) >= 9
+
+- name: Set tessia_python = system python3 (after RHEL install)
+  ansible.builtin.set_fact:
+    tessia_python: python3
+  when:
+    - tessia_python is not defined
+    - ansible_os_family | default('') in ['RedHat', 'CentOS']
+
+# ── Step 4: fail loudly if nothing worked ────────────────────────────────────
+# On macOS there is no automatic install fallback — pipx is required.
+# On RHEL the yum+pip path above should always succeed; if it didn't the
+# error will appear in the earlier task output.
+
+- name: Fail — tessia-baselib not found on macOS (no known venv found)
+  ansible.builtin.fail:
+    msg: |
+      tessia-baselib is not installed in any known venv on this macOS controller.
+
+      Install it in one of these locations (checked in order):
+
+        Option A — manual venv (used during Bobathon testing):
+          python3 -m venv ~/tessia_baselib_venv
+          ~/tessia_baselib_venv/bin/pip install git+https://gitlab.com/tessia-project/tessia-baselib.git
+
+        Option B — pipx:
+          pipx install git+https://gitlab.com/tessia-project/tessia-baselib.git
+
+      Then re-run the playbook.
+  when:
+    - tessia_python is not defined
+    - ansible_os_family | default('') == 'Darwin'
+
+- name: Fail — tessia-baselib could not be located or installed
+  ansible.builtin.fail:
+    msg: >
+      Could not locate or install tessia-baselib on {{ ansible_hostname }}
+      (OS family: {{ ansible_os_family | default('unknown') }}).
+      On RHEL/CentOS: ensure yum/dnf, git, and pip3 are available and the host
+      has network access to gitlab.com/tessia-project/tessia-baselib.git.
+  when:
+    - tessia_python is not defined
+    - ansible_os_family | default('') not in ['Darwin']
+
+# ── Step 6: verify and report ────────────────────────────────────────────────
+
+- name: "Verify tessia-baselib import via {{ tessia_python }}"
+  ansible.builtin.command:
+    argv:
+      - "{{ tessia_python }}"
+      - -c
+      - "from tessia.baselib.hypervisors.zvm.zvm import HypervisorZvm; print('OK')"
+  register: _final_check
+  changed_when: false
+  failed_when: _final_check.rc != 0 or 'OK' not in _final_check.stdout
+
+- name: Show resolved tessia_python
+  ansible.builtin.debug:
+    msg: "tessia-baselib ready — interpreter: {{ tessia_python }}"

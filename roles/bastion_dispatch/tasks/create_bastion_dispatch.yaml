@@ -1,0 +1,49 @@
+---
+# roles/bastion_dispatch/tasks/create_bastion_dispatch.yaml
+#
+# Called from 4_create_bastion.yaml for each entry in bastion_nodes.
+# Variables expected:
+#   _bastion_name  - host_vars file name (without .yaml) for this bastion
+#   _bastion_type  - 'kvm' or 'zvm' — which pass is currently running
+#
+# KVM bastions:  play runs on kvm_host; guard on hypervisor_host == inventory_hostname
+#                ensures we only act on the correct KVM host.
+# zVM bastions:  play runs on localhost; no inventory_hostname guard needed —
+#                tessia-baselib addresses the z/VM hypervisor by network directly.
+
+# Load the bastion's host_vars into _bvars
+- name: "Load host_vars for bastion '{{ _bastion_name }}'"
+  ansible.builtin.include_vars:
+    file: "{{ inventory_dir }}/host_vars/{{ _bastion_name }}.yaml"
+    name: _bvars
+
+# KVM: only act on the KVM host that this bastion belongs to
+- name: "Create KVM bastion '{{ _bastion_name }}' on {{ inventory_hostname }}"
+  when:
+    - _bvars.bastion.type | lower == 'kvm'
+    - _bastion_type == 'kvm'
+    - _bvars.bastion.hypervisor_host == inventory_hostname
+    - _bvars.bastion.create | bool
+  block:
+    - name: "Include common role for '{{ _bastion_name }}'"
+      ansible.builtin.include_role:
+        name: common
+
+    - name: "Create KVM bastion '{{ _bastion_name }}' via virt-install"
+      ansible.builtin.include_role:
+        name: create_bastion
+      vars:
+        bastion: "{{ _bvars.bastion }}"
+
+# zVM: runs on localhost — no inventory_hostname guard
+- name: "Create zVM bastion '{{ _bastion_name }}' via tessia-baselib"
+  when:
+    - _bvars.bastion.type | lower == 'zvm'
+    - _bastion_type == 'zvm'
+    - _bvars.bastion.create | bool
+  block:
+    - name: "Create zVM bastion '{{ _bastion_name }}' via tessia-baselib"
+      ansible.builtin.include_role:
+        name: create_bastion_zvm
+      vars:
+        bastion: "{{ _bvars.bastion }}"

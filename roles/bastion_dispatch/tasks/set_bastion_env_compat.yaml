@@ -1,0 +1,22 @@
+---
+# roles/bastion_dispatch/tasks/set_bastion_env_compat.yaml
+#
+# Compatibility shim: merges bastion.* (from host_vars) back into env.bastion
+# so that downstream roles (dns, check_dns, haproxy, create_*_nodes, etc.)
+# that still reference env.bastion.* continue to work without modification.
+#
+# Include this as a pre_task in any play that:
+#   a) targets 'bastion' hosts and calls roles that use env.bastion.*, OR
+#   b) targets 'kvm_host' and uses env.bastion.ip for node bootstrap URLs.
+#
+# The 'bastion' variable is loaded from the host's host_vars automatically
+# by Ansible when the play targets that host.
+#
+# Usage:
+#   pre_tasks:
+#     - ansible.builtin.include_tasks: "{{ role_path }}/../bastion_dispatch/tasks/set_bastion_env_compat.yaml"
+
+- name: Set env.bastion from bastion host_vars (backward compatibility)
+  ansible.builtin.set_fact:
+    env: "{{ env | combine({'bastion': bastion}, recursive=True) }}"
+  when: bastion is defined and bastion | length > 0
