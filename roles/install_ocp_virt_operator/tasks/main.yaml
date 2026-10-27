@@ -50,43 +50,38 @@
       OpenShift Virtualization on s390x requires OCP 4.19 or later.
 
 # --- 6. All cluster operators healthy ---
-- name: "Preflight | gather cluster operator status"
-  ansible.builtin.command: oc get co -o json
+- name: "Preflight | gather degraded cluster operators"
+  ansible.builtin.shell: >-
+    oc get co
+    -o jsonpath='{range .items[*]}{range .status.conditions[?(@.type=="Degraded")]}{.status}{","}{.end}{.metadata.name}{"\n"}{end}'
+    | awk -F, '$1=="True"{print $2}'
   changed_when: false
   register: _co_raw
 
 - name: "Preflight | assert all cluster operators healthy"
   ansible.builtin.assert:
     that:
-      - >-
-        (_co_raw.stdout | from_json).items
-        | selectattr('status.conditions', 'defined')
-        | map(attribute='status.conditions')
-        | map('selectattr', 'type', 'equalto', 'Degraded')
-        | map('first', default={'status': 'False'})
-        | map(attribute='status')
-        | select('equalto', 'True')
-        | list | length == 0
-    fail_msg: "One or more cluster operators are degraded. Resolve before installing OCP Virt."
+      - _co_raw.stdout | trim | length == 0
+    fail_msg: >-
+      Cluster operator(s) are degraded: {{ _co_raw.stdout_lines | join(', ') }}.
+      Resolve before installing OCP Virt.
 
 # --- 7. All nodes Ready ---
-- name: "Preflight | gather node status"
-  ansible.builtin.command: oc get nodes -o json
+- name: "Preflight | gather not-ready nodes"
+  ansible.builtin.shell: >-
+    oc get nodes
+    -o jsonpath='{range .items[*]}{range .status.conditions[?(@.type=="Ready")]}{.status}{","}{.end}{.metadata.name}{"\n"}{end}'
+    | awk -F, '$1!="True"{print $2}'
   changed_when: false
   register: _nodes_raw
 
 - name: "Preflight | assert all nodes Ready"
   ansible.builtin.assert:
     that:
-      - >-
-        (_nodes_raw.stdout | from_json).items
-        | map(attribute='status.conditions')
-        | map('selectattr', 'type', 'equalto', 'Ready')
-        | map('first')
-        | map(attribute='status')
-        | select('ne', 'True')
-        | list | length == 0
-    fail_msg: "One or more nodes are not Ready. Resolve before installing OCP Virt."
+      - _nodes_raw.stdout | trim | length == 0
+    fail_msg: >-
+      Node(s) are not Ready: {{ _nodes_raw.stdout_lines | join(', ') }}.
+      Resolve before installing OCP Virt.
 
 # --- 8. Architecture check (warn only) ---
 - name: "Preflight | check node architecture"
@@ -140,11 +135,12 @@
 
 - name: "Preflight | warn if insufficient resource headroom"
   vars:
-    _nodes_list: "{{ (_nodes_resources_raw.stdout | from_json).items }}"
+    _nodes_list: "{{ (_nodes_resources_raw.stdout | from_json)['items'] }}"
     _total_cpu: >-
       {{ _nodes_list
          | map(attribute='status.allocatable.cpu')
-         | map('regex_replace', 'm$', '')
+         | map('regex_replace', '^(\d+)m$', '\1')
+         | map('regex_replace', '^(\d+)$', '\1000')
          | map('int')
          | sum }}
     _total_mem_ki: >-

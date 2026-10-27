@@ -255,7 +255,7 @@
 - name: "Verify | [12] parse allocatable CPU (normalise to millicores)"
   ansible.builtin.set_fact:
     _v_total_cpu: >-
-      {{ (_v_nodes_json.stdout | from_json).items
+      {{ (_v_nodes_json.stdout | from_json)['items']
          | map(attribute='status.allocatable.cpu')
          | map('regex_replace', '^(\d+)m$', '\1')
          | map('regex_replace', '^(\d+)$', '\1000')
@@ -266,7 +266,7 @@
 - name: "Verify | [12] parse allocatable memory"
   ansible.builtin.set_fact:
     _v_total_mem_ki: >-
-      {{ (_v_nodes_json.stdout | from_json).items
+      {{ (_v_nodes_json.stdout | from_json)['items']
          | map(attribute='status.allocatable.memory')
          | map('regex_replace', 'Ki$', '')
          | map('int')
