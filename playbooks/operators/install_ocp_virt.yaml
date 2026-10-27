@@ -55,5 +55,7 @@
     KUBECONFIG: "{{ ocp_virt_kubeconfig }}"
   roles:
     - role: install_nfd_operator
+      when: nfd_install | default(true) | bool
     - role: install_cert_manager_operator
+      when: cert_manager_install | default(true) | bool
     - role: install_ocp_virt_operator

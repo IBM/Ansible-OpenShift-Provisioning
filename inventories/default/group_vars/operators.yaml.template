@@ -17,6 +17,19 @@
 ocp_virt_kubeconfig: ~/ocpinst/auth/kubeconfig
 
 # ---------------------------------------------------------------------------
+# Optional component toggles
+# ---------------------------------------------------------------------------
+# NFD labels nodes with CPU model capabilities (gen15b, gen16a, etc.).
+# Required only if you want VM scheduling to respect CPU model affinity.
+# On homogeneous clusters (all nodes the same hardware generation) it adds
+# no practical value. Set to false to skip NFD installation.
+nfd_install: true
+
+# cert-manager is required only for IBM Secure Execution (SE) encrypted VMs.
+# For plain VM workloads it is not needed. Set to false to skip.
+cert_manager_install: true
+
+# ---------------------------------------------------------------------------
 # Catalog source overrides — for RC / pre-release clusters
 # ---------------------------------------------------------------------------
 # On GA clusters all three operators are in 'redhat-operators'. On release
