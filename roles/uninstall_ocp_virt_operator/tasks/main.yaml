@@ -36,7 +36,9 @@
       the cluster. Delete all VMs and VMIs before uninstalling OpenShift
       Virtualization:
       {{ _existing_vms.stdout }}
-  when: _existing_vms.stdout | trim | length > 0
+  when:
+    - _existing_vms.rc == 0
+    - _existing_vms.stdout | trim | length > 0
 
 ###############################################################################
 # OCP Virt — HyperConverged CR, Subscription, CSV, CRDs, namespace
@@ -89,6 +91,7 @@
 ###############################################################################
 
 - name: "Uninstall | delete cert-manager Subscription"
+  when: cert_manager_install | default(true) | bool
   ansible.builtin.command: >-
     oc delete subscription openshift-cert-manager-operator
     -n {{ cert_manager_namespace }}
@@ -102,11 +105,13 @@
     -l operators.coreos.com/openshift-cert-manager-operator.{{ cert_manager_namespace }}
     --ignore-not-found
   changed_when: true
+  when: cert_manager_install | default(true) | bool
 
 - name: "Uninstall | delete cert-manager-operator namespace"
   ansible.builtin.command: >-
     oc delete namespace {{ cert_manager_namespace }} --ignore-not-found
   changed_when: true
+  when: cert_manager_install | default(true) | bool
 
 - name: "Uninstall | wait for cert-manager-operator namespace to terminate"
   ansible.builtin.command: >-
@@ -114,11 +119,13 @@
     --for=delete --timeout={{ ocp_virt_uninstall_ns_timeout }}s
   changed_when: false
   failed_when: false
+  when: cert_manager_install | default(true) | bool
 
 - name: "Uninstall | delete cert-manager namespace"
   ansible.builtin.command: >-
     oc delete namespace cert-manager --ignore-not-found
   changed_when: true
+  when: cert_manager_install | default(true) | bool
 
 - name: "Uninstall | wait for cert-manager namespace to terminate"
   ansible.builtin.command: >-
@@ -126,12 +133,14 @@
     --for=delete --timeout={{ ocp_virt_uninstall_ns_timeout }}s
   changed_when: false
   failed_when: false
+  when: cert_manager_install | default(true) | bool
 
 ###############################################################################
 # NFD — NodeFeatureDiscovery CR, Subscription, CSV, namespace
 ###############################################################################
 
 - name: "Uninstall | delete NodeFeatureDiscovery CR"
+  when: nfd_install | default(true) | bool
   ansible.builtin.command: >-
     oc delete nodefeaturediscovery nfd-instance
     -n {{ nfd_namespace }}
@@ -145,6 +154,7 @@
     -n {{ nfd_namespace }}
     --ignore-not-found
   changed_when: true
+  when: nfd_install | default(true) | bool
 
 - name: "Uninstall | delete NFD CSV"
   ansible.builtin.command: >-
@@ -153,11 +163,13 @@
     -l operators.coreos.com/nfd.{{ nfd_namespace }}
     --ignore-not-found
   changed_when: true
+  when: nfd_install | default(true) | bool
 
 - name: "Uninstall | delete openshift-nfd namespace"
   ansible.builtin.command: >-
     oc delete namespace {{ nfd_namespace }} --ignore-not-found
   changed_when: true
+  when: nfd_install | default(true) | bool
 
 - name: "Uninstall | wait for openshift-nfd namespace to terminate"
   ansible.builtin.command: >-
@@ -165,6 +177,7 @@
     --for=delete --timeout={{ ocp_virt_uninstall_ns_timeout }}s
   changed_when: false
   failed_when: false
+  when: nfd_install | default(true) | bool
 
 ###############################################################################
 # Summary
