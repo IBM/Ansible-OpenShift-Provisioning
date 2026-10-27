@@ -15,9 +15,9 @@ spec:
 {% endif %}
 {% if ocp_virt.hyperconverged.infra_node_placement is defined %}
   infra:
-    nodePlacement: {{ ocp_virt.hyperconverged.infra_node_placement | to_nice_yaml(indent=6) | indent(4) }}
+    nodePlacement: {{ ocp_virt.hyperconverged.infra_node_placement | to_json }}
 {% endif %}
 {% if ocp_virt.hyperconverged.workloads_node_placement is defined %}
   workloads:
-    nodePlacement: {{ ocp_virt.hyperconverged.workloads_node_placement | to_nice_yaml(indent=6) | indent(4) }}
+    nodePlacement: {{ ocp_virt.hyperconverged.workloads_node_placement | to_json }}
 {% endif %}

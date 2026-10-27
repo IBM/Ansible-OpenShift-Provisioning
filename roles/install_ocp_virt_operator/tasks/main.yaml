@@ -5,6 +5,7 @@
 # Phase 1 — Preflight checks
 # Phase 2 — Operator installation
 # Phase 3 — HyperConverged CR
+#           + virtctl CLI download/install on the bastion (ocp_virt.virtctl.install)
 # Phase 4 — Optional test VM (when ocp_virt.test_vm.create is true)
 
 ###############################################################################
@@ -51,10 +52,12 @@
 
 # --- 6. All cluster operators healthy ---
 - name: "Preflight | gather degraded cluster operators"
-  ansible.builtin.shell: >-
-    oc get co
-    -o jsonpath='{range .items[*]}{range .status.conditions[?(@.type=="Degraded")]}{.status}{","}{.end}{.metadata.name}{"\n"}{end}'
-    | awk -F, '$1=="True"{print $2}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get co -o jsonpath='{range .items[*]}{range .status.conditions[?(@.type=="Degraded")]}{.status}{","}{.end}{.metadata.name}{"\n"}{end}' \
+      | awk -F, '$1=="True"{print $2}'
+  args:
+    executable: /bin/bash
   changed_when: false
   register: _co_raw
 
@@ -68,10 +71,12 @@
 
 # --- 7. All nodes Ready ---
 - name: "Preflight | gather not-ready nodes"
-  ansible.builtin.shell: >-
-    oc get nodes
-    -o jsonpath='{range .items[*]}{range .status.conditions[?(@.type=="Ready")]}{.status}{","}{.end}{.metadata.name}{"\n"}{end}'
-    | awk -F, '$1!="True"{print $2}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get nodes -o jsonpath='{range .items[*]}{range .status.conditions[?(@.type=="Ready")]}{.status}{","}{.end}{.metadata.name}{"\n"}{end}' \
+      | awk -F, '$1!="True"{print $2}'
+  args:
+    executable: /bin/bash
   changed_when: false
   register: _nodes_raw
 
@@ -128,18 +133,22 @@
 
 # --- 12. Resource headroom check (warn only) ---
 - name: "Preflight | sum allocatable CPU in millicores across all nodes"
-  ansible.builtin.shell: >-
-    oc get nodes
-    -o jsonpath='{range .items[*]}{.status.allocatable.cpu}{"\n"}{end}'
-    | awk '{v=$1; if(v~/m$/) {sub(/m$/,"",v); s+=v} else {s+=v*1000}} END{print s+0}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get nodes -o jsonpath='{range .items[*]}{.status.allocatable.cpu}{"\n"}{end}' \
+      | awk '{v=$1; if(v~/m$/) {sub(/m$/,"",v); s+=v} else {s+=v*1000}} END{print s+0}'
+  args:
+    executable: /bin/bash
   changed_when: false
   register: _nodes_cpu_sum
 
 - name: "Preflight | sum allocatable memory in KiB across all nodes"
-  ansible.builtin.shell: >-
-    oc get nodes
-    -o jsonpath='{range .items[*]}{.status.allocatable.memory}{"\n"}{end}'
-    | awk '{v=$1; sub(/Ki$/,"",v); s+=v} END{print s+0}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get nodes -o jsonpath='{range .items[*]}{.status.allocatable.memory}{"\n"}{end}' \
+      | awk '{v=$1; sub(/Ki$/,"",v); s+=v} END{print s+0}'
+  args:
+    executable: /bin/bash
   changed_when: false
   register: _nodes_mem_sum
 
@@ -185,7 +194,8 @@
 
 - name: "OCP Virt | Apply Namespace"
   ansible.builtin.command: oc apply -f /root/ansible_workdir/ocp-virt-Namespace.yaml
-  changed_when: true
+  register: _ocp_virt_apply_namespace
+  changed_when: "'unchanged' not in _ocp_virt_apply_namespace.stdout"
 
 - name: "OCP Virt | Create OperatorGroup manifest"
   ansible.builtin.template:
@@ -195,7 +205,8 @@
 
 - name: "OCP Virt | Apply OperatorGroup"
   ansible.builtin.command: oc apply -f /root/ansible_workdir/ocp-virt-OperatorGroup.yaml
-  changed_when: true
+  register: _ocp_virt_apply_operatorgroup
+  changed_when: "'unchanged' not in _ocp_virt_apply_operatorgroup.stdout"
 
 - name: "OCP Virt | Create Subscription manifest"
   ansible.builtin.template:
@@ -205,7 +216,8 @@
 
 - name: "OCP Virt | Apply Subscription"
   ansible.builtin.command: oc apply -f /root/ansible_workdir/ocp-virt-Subscription.yaml
-  changed_when: true
+  register: _ocp_virt_apply_subscription
+  changed_when: "'unchanged' not in _ocp_virt_apply_subscription.stdout"
 
 - name: "OCP Virt | Wait for kubevirt-hyperconverged operator pod to be Running"
   ansible.builtin.shell: |
@@ -215,18 +227,25 @@
       | awk '$3=="Running"' | wc -l
   register: _hco_pod_running
   until: _hco_pod_running.stdout | int >= 1
-  retries: "{{ (ocp_virt.pod_timeout | int / 10) | int }}"
+  retries: "{{ [((ocp_virt.pod_timeout | int) / 10) | round(0, 'ceil') | int, 1] | max }}"
   delay: 10
   changed_when: false
 
-- name: "OCP Virt | Wait for CSV to reach Succeeded"
+# Check the CSV that this Subscription installed (status.installedCSV), not any
+# CSV in the namespace, so stale CSVs from earlier installs cannot satisfy it.
+- name: "OCP Virt | Wait for the Subscription's CSV to reach Succeeded"
   ansible.builtin.shell: |
-    set -o pipefail
-    oc get csv -n "{{ ocp_virt.hyperconverged.namespace }}" --no-headers 2>/dev/null \
-      | awk '{print $NF}' | grep -c Succeeded || true
-  register: _ocp_virt_csv_succeeded
-  until: _ocp_virt_csv_succeeded.stdout | int >= 1
-  retries: "{{ (ocp_virt.csv_timeout | int / 10) | int }}"
+    csv=$(oc get subscription kubevirt-hyperconverged \
+      -n "{{ ocp_virt.hyperconverged.namespace }}" \
+      -o jsonpath='{.status.installedCSV}' 2>/dev/null)
+    [ -n "$csv" ] || exit 0
+    oc get csv "$csv" -n "{{ ocp_virt.hyperconverged.namespace }}" \
+      -o jsonpath='{.status.phase}' 2>/dev/null
+  args:
+    executable: /bin/bash
+  register: _ocp_virt_csv_phase
+  until: _ocp_virt_csv_phase.stdout | trim == 'Succeeded'
+  retries: "{{ [((ocp_virt.csv_timeout | int) / 10) | round(0, 'ceil') | int, 1] | max }}"
   delay: 10
   changed_when: false
 
@@ -242,7 +261,8 @@
 
 - name: "OCP Virt | Apply HyperConverged CR"
   ansible.builtin.command: oc apply -f /root/ansible_workdir/ocp-virt-HyperConverged.yaml
-  changed_when: true
+  register: _ocp_virt_apply_hco
+  changed_when: "'unchanged' not in _ocp_virt_apply_hco.stdout"
 
 - name: "OCP Virt | Wait for HyperConverged to reach Available"
   ansible.builtin.command: >-
@@ -259,7 +279,7 @@
       | grep 'virt-operator' | awk '$3=="Running"' | wc -l
   register: _virt_operator_pods
   until: _virt_operator_pods.stdout | int >= 1
-  retries: "{{ (ocp_virt.pod_timeout | int / 10) | int }}"
+  retries: "{{ [((ocp_virt.pod_timeout | int) / 10) | round(0, 'ceil') | int, 1] | max }}"
   delay: 10
   changed_when: false
 
@@ -280,92 +300,15 @@
       - "Installed CSV: {{ _installed_csv.stdout | trim }}"
       - "virt-operator pods running: {{ _virt_operator_pods.stdout | trim }}"
 
+- name: "OCP Virt | Download and install virtctl on the bastion"
+  ansible.builtin.include_tasks: install_virtctl.yaml
+  when: ocp_virt.virtctl.install | default(true) | bool
+
 ###############################################################################
 # Phase 4 — Optional test VM
 ###############################################################################
 
-- name: "Test VM | Validate image_url is set"
-  ansible.builtin.assert:
-    that:
-      - ocp_virt.test_vm.image_url | default('') | length > 0
-    fail_msg: >-
-      ocp_virt.test_vm.create is true but ocp_virt.test_vm.image_url is empty.
-      Provide an HTTP(S) URL to an s390x qcow2 guest image before running the playbook.
+- name: "Phase 4 | Run test VM role"
+  ansible.builtin.include_role:
+    name: create_ocp_virt_test_vm
   when: ocp_virt.test_vm.create | bool
-
-- name: "Test VM | Check image URL is reachable from bastion"
-  ansible.builtin.uri:
-    url: "{{ ocp_virt.test_vm.image_url }}"
-    method: HEAD
-    status_code: [200, 206]
-  when: ocp_virt.test_vm.create | bool
-
-- name: "Test VM block"
-  when: ocp_virt.test_vm.create | bool
-  block:
-
-    - name: "Test VM | Create test namespace"
-      kubernetes.core.k8s:
-        state: present
-        definition:
-          apiVersion: v1
-          kind: Namespace
-          metadata:
-            name: "{{ ocp_virt.test_vm.namespace }}"
-
-    - name: "Test VM | Create VirtualMachine manifest"
-      ansible.builtin.template:
-        src: VirtualMachine.yaml.j2
-        dest: /root/ansible_workdir/ocp-virt-TestVM.yaml
-        mode: '0644'
-
-    - name: "Test VM | Apply VirtualMachine"
-      ansible.builtin.command: oc apply -f /root/ansible_workdir/ocp-virt-TestVM.yaml
-      changed_when: true
-
-    - name: "Test VM | Wait for DataVolume import to finish"
-      ansible.builtin.command: >-
-        oc wait dv {{ ocp_virt.test_vm.name }}-root
-        -n {{ ocp_virt.test_vm.namespace }}
-        --for condition=Ready
-        --timeout={{ ocp_virt.test_vm.dv_timeout }}s
-      changed_when: false
-
-    - name: "Test VM | Wait for VM to become Ready"
-      ansible.builtin.command: >-
-        oc wait vm {{ ocp_virt.test_vm.name }}
-        -n {{ ocp_virt.test_vm.namespace }}
-        --for condition=Ready
-        --timeout={{ ocp_virt.test_vm.vm_timeout }}s
-      changed_when: false
-
-    - name: "Test VM | Gather VMI status"
-      ansible.builtin.command: >-
-        oc get vmi {{ ocp_virt.test_vm.name }}
-        -n {{ ocp_virt.test_vm.namespace }}
-        -o jsonpath='{.status.phase}{" "}{.status.nodeName}{" "}{.status.interfaces[0].ipAddress}'
-      register: _vmi_status
-      changed_when: false
-
-    - name: "Test VM | Print VM status summary"
-      ansible.builtin.debug:
-        msg:
-          - "Test VM '{{ ocp_virt.test_vm.name }}' is Ready."
-          - "VMI phase / node / IP: {{ _vmi_status.stdout }}"
-          - "keep: {{ ocp_virt.test_vm.keep | bool }}"
-
-  always:
-
-    - name: "Test VM | Cleanup — delete VirtualMachine and namespace"
-      ansible.builtin.command: >-
-        oc delete namespace {{ ocp_virt.test_vm.namespace }} --ignore-not-found
-      changed_when: true
-      when: not (ocp_virt.test_vm.keep | bool)
-
-    - name: "Test VM | Wait for test namespace to be removed"
-      ansible.builtin.command: >-
-        oc wait namespace {{ ocp_virt.test_vm.namespace }}
-        --for=delete --timeout=120s
-      changed_when: false
-      failed_when: false
-      when: not (ocp_virt.test_vm.keep | bool)

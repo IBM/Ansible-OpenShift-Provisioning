@@ -20,6 +20,7 @@ nav:
   - Operators (Day-2):
       - Verify OCP Virt Prerequisites: 'run-the-playbooks.md#verify-ocp-virtualization-prerequisites-playbooksoperatorsverify_ocp_virt_prereqsyaml'
       - Install OpenShift Virtualization: 'run-the-playbooks.md#install-openshift-virtualization-playbooksoperatorsinstall_ocp_virtyaml'
+      - Create Test VM: 'run-the-playbooks.md#create-ocp-virt-test-vm-playbooksoperatorscreate_test_vmyaml'
       - Uninstall OpenShift Virtualization: 'run-the-playbooks.md#uninstall-openshift-virtualization-playbooksoperatorsuninstall_ocp_virtyaml'
   - Misc:
       - Troubleshooting: 'troubleshooting.md'

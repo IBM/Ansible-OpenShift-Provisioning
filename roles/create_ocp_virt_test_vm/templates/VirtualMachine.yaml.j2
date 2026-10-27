@@ -1,3 +1,7 @@
+{% set _dd = ocp_virt.test_vm.data_disk | default({}) %}
+{% set _dd_enabled = _dd.create | default(false) | bool %}
+{% set _dd_sc = _dd.storage_class | default(ocp_virt.test_vm.storage_class | default('', true), true) %}
+{% set _mig_enabled = (ocp_virt.test_vm.migration | default({})).enabled | default(false) | bool %}
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
@@ -16,9 +20,31 @@ spec:
 {% if ocp_virt.test_vm.storage_class | default('') | length > 0 %}
         storageClassName: {{ ocp_virt.test_vm.storage_class }}
 {% endif %}
+{% if _mig_enabled %}
+        accessModes:
+        - ReadWriteMany
+{% endif %}
         resources:
           requests:
             storage: {{ ocp_virt.test_vm.disk_size }}
+{% if _dd_enabled %}
+  - metadata:
+      name: {{ ocp_virt.test_vm.name }}-data
+    spec:
+      source:
+        blank: {}
+      storage:
+{% if _dd_sc | length > 0 %}
+        storageClassName: {{ _dd_sc }}
+{% endif %}
+{% if _mig_enabled %}
+        accessModes:
+        - ReadWriteMany
+{% endif %}
+        resources:
+          requests:
+            storage: {{ _dd.size | default('10Gi', true) }}
+{% endif %}
   template:
     metadata:
       labels:
@@ -37,6 +63,12 @@ spec:
           - name: rootdisk
             disk:
               bus: virtio
+{% if _dd_enabled %}
+          - name: datadisk
+            serial: datadisk
+            disk:
+              bus: virtio
+{% endif %}
           - name: cloudinit
             disk:
               bus: virtio
@@ -50,6 +82,11 @@ spec:
       - name: rootdisk
         dataVolume:
           name: {{ ocp_virt.test_vm.name }}-root
+{% if _dd_enabled %}
+      - name: datadisk
+        dataVolume:
+          name: {{ ocp_virt.test_vm.name }}-data
+{% endif %}
       - name: cloudinit
         cloudInitNoCloud:
           userData: |

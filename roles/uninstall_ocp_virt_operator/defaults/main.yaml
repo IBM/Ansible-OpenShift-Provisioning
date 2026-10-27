@@ -3,12 +3,12 @@
 # Overridden in operators.yaml by ocp_virt_kubeconfig.
 ocp_virt_kubeconfig: ~/ocpinst/auth/kubeconfig
 
-# Safety guard — must be overridden on the command line to allow the uninstall
-# to proceed. Prevents accidental runs.
+# Safety guard — ocp_virt_uninstall_confirm is intentionally NOT defined here.
+# It must be passed on the command line (-e) to allow the uninstall to proceed;
+# do not set it in operators.yaml or any other vars file.
 #
 #   ansible-playbook playbooks/operators/uninstall_ocp_virt.yaml \
 #     -e ocp_virt_uninstall_confirm=true --ask-vault-pass
-ocp_virt_uninstall_confirm: false
 
 # Seconds to wait for each namespace to fully terminate after deletion.
 ocp_virt_uninstall_ns_timeout: 300
@@ -18,3 +18,4 @@ ocp_virt_uninstall_ns_timeout: 300
 # install_cert_manager_operator roles so the uninstall role is self-contained.
 nfd_namespace: openshift-nfd
 cert_manager_namespace: cert-manager-operator
+cert_manager_operand_namespace: cert-manager

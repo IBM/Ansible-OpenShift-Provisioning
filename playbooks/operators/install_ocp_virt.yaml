@@ -10,6 +10,10 @@
 #      inventories/default/group_vars/operators.yaml
 #   # Edit operators.yaml and configure the ocp_virt: variables.
 #
+# After the HyperConverged CR is Available, the virtctl CLI is downloaded from the
+# cluster (ConsoleCLIDownload) and installed on the bastion
+# (ocp_virt.virtctl.install, default true).
+#
 # Usage:
 #   ansible-playbook playbooks/operators/install_ocp_virt.yaml --ask-vault-pass
 
@@ -21,14 +25,14 @@
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
     - "{{ inventory_dir }}/group_vars/operators.yaml"
   pre_tasks:
-    - name: Resolve ocp_virt_kubeconfig tilde on the bastion
-      ansible.builtin.shell: "echo {{ ocp_virt_kubeconfig }}"
+    - name: Get the home directory of the bastion user
+      ansible.builtin.command: printenv HOME
       changed_when: false
-      register: _kc_resolved
+      register: _bastion_home
 
     - name: Set ocp_virt_kubeconfig to absolute path
       ansible.builtin.set_fact:
-        ocp_virt_kubeconfig: "{{ _kc_resolved.stdout | trim }}"
+        ocp_virt_kubeconfig: "{{ ocp_virt_kubeconfig | regex_replace('^~', _bastion_home.stdout | trim) }}"
 
     - name: Read bastion SSH public key (used when test_vm.ssh_public_key is empty)
       ansible.builtin.shell: |

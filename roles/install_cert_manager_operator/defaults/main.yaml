@@ -2,6 +2,8 @@
 # Default values for the cert-manager Operator for Red Hat OpenShift installation.
 
 cert_manager_namespace: cert-manager-operator
+# Namespace where the operator deploys the cert-manager operand pods
+cert_manager_operand_namespace: cert-manager
 cert_manager_channel: stable-v1
 # GA clusters: redhat-operators
 # RC / pre-release clusters: set to your pre-release CatalogSource name

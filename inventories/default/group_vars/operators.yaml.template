@@ -108,6 +108,13 @@ ocp_virt:
   hco_timeout: 900    # Wait for HyperConverged CR to reach Available
   pod_timeout: 300    # Wait for the kubevirt-hyperconverged operator pod
 
+  # virtctl CLI: after the HyperConverged CR is Available, download virtctl from the
+  # cluster (ConsoleCLIDownload) and install it on the bastion. Skipped if already present.
+  virtctl:
+    install: true
+    install_dir: /usr/local/bin
+    validate_certs: false   # The download route is served with the cluster's own CA
+
   test_vm:
     # Set create: true to deploy a test VM after the operator is installed.
     # The VM proves the full stack end-to-end: HyperConverged → CDI import →
@@ -143,6 +150,26 @@ ocp_virt:
     # If no key is found and this is empty, the VM boots but is only
     # accessible via 'virtctl console'.
     ssh_public_key: ""
+
+    # Optional blank data disk attached to the test VM as a second virtio disk
+    # (serial "datadisk", appears in the guest as /dev/disk/by-id/virtio-datadisk).
+    # The disk is raw/unformatted; partition and mount it inside the guest.
+    data_disk:
+      create: false
+      size: 10Gi
+      # Leave empty to use the same storage class as the root disk.
+      storage_class: ""
+
+    # Live migration test (optional). After the VM is Ready, a
+    # VirtualMachineInstanceMigration is created and the playbook verifies the VM
+    # moved to a different node and is still Running/Ready.
+    # Purpose: verify OCP Virt live migration AND the underlying storage provider
+    # (migration requires ReadWriteMany/shared storage). When enabled, the test VM
+    # PVCs are requested with accessMode ReadWriteMany.
+    # Requires at least two schedulable worker nodes.
+    migration:
+      enabled: false
+      timeout: 600     # Seconds to wait for the migration to finish
 
     dv_timeout: 1800   # Seconds to wait for the DataVolume (CDI image import) to finish
     vm_timeout: 600    # Seconds to wait for the VM to become Ready

@@ -107,3 +107,8 @@ ansible-galaxy collection install kubernetes.core
 ```
 * For the optional test VM, an s390x qcow2 guest image (e.g. RHEL 9 KVM Guest Image for
   s390x) must be reachable over HTTP(S) from the cluster nodes.
+* The install playbook downloads the `virtctl` CLI from the cluster's download route and
+  installs it on the bastion (`ocp_virt.virtctl.install`). The bastion therefore needs HTTPS
+  access to the cluster's `*.apps` routes, `tar` or `unzip`, and write access to
+  `ocp_virt.virtctl.install_dir` (default `/usr/local/bin`). Set `ocp_virt.virtctl.install: false`
+  to skip this.

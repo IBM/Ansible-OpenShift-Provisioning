@@ -108,10 +108,12 @@
 ###############################################################################
 
 - name: "Verify | [6] oc get co — degraded names via jsonpath"
-  ansible.builtin.shell: >-
-    oc get co
-    -o jsonpath='{range .items[*]}{range .status.conditions[?(@.type=="Degraded")]}{.status}{","}{.end}{.metadata.name}{"\n"}{end}'
-    | awk -F, '$1=="True"{print $2}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get co -o jsonpath='{range .items[*]}{range .status.conditions[?(@.type=="Degraded")]}{.status}{","}{.end}{.metadata.name}{"\n"}{end}' \
+      | awk -F, '$1=="True"{print $2}'
+  args:
+    executable: /bin/bash
   changed_when: false
   register: _v_co_raw
   failed_when: false
@@ -136,10 +138,12 @@
 ###############################################################################
 
 - name: "Verify | [7] oc get nodes — not-ready names via jsonpath"
-  ansible.builtin.shell: >-
-    oc get nodes
-    -o jsonpath='{range .items[*]}{range .status.conditions[?(@.type=="Ready")]}{.status}{","}{.end}{.metadata.name}{"\n"}{end}'
-    | awk -F, '$1!="True"{print $2}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get nodes -o jsonpath='{range .items[*]}{range .status.conditions[?(@.type=="Ready")]}{.status}{","}{.end}{.metadata.name}{"\n"}{end}' \
+      | awk -F, '$1!="True"{print $2}'
+  args:
+    executable: /bin/bash
   changed_when: false
   register: _v_nodes_raw
   failed_when: false
@@ -184,23 +188,36 @@
 # Check 9 — Nodes are bare-metal LPARs (warn only)
 ###############################################################################
 
-- name: "Verify | [9] gather node provider IDs"
+# spec.providerID is not a reliable signal (it is empty on bare-metal/UPI
+# clusters). /proc/sysinfo on s390x lists a "VM00 Control Program" line only
+# when the OS runs as a guest (z/VM or KVM), never directly in an LPAR.
+- name: "Verify | [9] gather node names"
   ansible.builtin.command: >-
-    oc get nodes -o jsonpath='{range .items[*]}{.spec.providerID}{"\n"}{end}'
+    oc get nodes -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'
   changed_when: false
-  register: _v_provider_ids
+  register: _v_node_names
   failed_when: false
+
+- name: "Verify | [9] read guest control program from /proc/sysinfo on each node"
+  ansible.builtin.command: >-
+    oc debug node/{{ item }} --quiet --
+    chroot /host grep -i 'VM[0-9]* Control Program' /proc/sysinfo
+  changed_when: false
+  failed_when: false
+  register: _v_sysinfo
+  loop: "{{ _v_node_names.stdout_lines | default([]) }}"
+  when: _v_node_names.rc == 0
 
 - name: "Verify | [9] record hypervisor guest warning"
   ansible.builtin.set_fact:
     _prereq_warnings: >-
-      {{ _prereq_warnings + ['[WARN] One or more nodes appear to be z/VM or KVM guests '
-         + '(providerID contains zvm/kvm). OCP Virt requires hardware virtualisation '
+      {{ _prereq_warnings + ['[WARN] Node ' + item.item + ' runs as a guest ('
+         + (item.stdout | trim) + '). OCP Virt requires hardware virtualisation '
          + 'at the LPAR level.'] }}
-  when: >-
-    _v_provider_ids.rc == 0 and
-    (_v_provider_ids.stdout | lower is search('zvm') or
-     _v_provider_ids.stdout | lower is search('kvm'))
+  loop: "{{ _v_sysinfo.results | default([]) }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: item.rc | default(1) == 0 and item.stdout | default('') | trim | length > 0
 
 ###############################################################################
 # Check 10 — redhat-operators catalog source READY
@@ -247,19 +264,23 @@
 ###############################################################################
 
 - name: "Verify | [12] sum allocatable CPU in millicores across all nodes"
-  ansible.builtin.shell: >-
-    oc get nodes
-    -o jsonpath='{range .items[*]}{.status.allocatable.cpu}{"\n"}{end}'
-    | awk '{v=$1; if(v~/m$/) {sub(/m$/,"",v); s+=v} else {s+=v*1000}} END{print s+0}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get nodes -o jsonpath='{range .items[*]}{.status.allocatable.cpu}{"\n"}{end}' \
+      | awk '{v=$1; if(v~/m$/) {sub(/m$/,"",v); s+=v} else {s+=v*1000}} END{print s+0}'
+  args:
+    executable: /bin/bash
   changed_when: false
   register: _v_cpu_sum
   failed_when: false
 
 - name: "Verify | [12] sum allocatable memory in KiB across all nodes"
-  ansible.builtin.shell: >-
-    oc get nodes
-    -o jsonpath='{range .items[*]}{.status.allocatable.memory}{"\n"}{end}'
-    | awk '{v=$1; sub(/Ki$/,"",v); s+=v} END{print s+0}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get nodes -o jsonpath='{range .items[*]}{.status.allocatable.memory}{"\n"}{end}' \
+      | awk '{v=$1; sub(/Ki$/,"",v); s+=v} END{print s+0}'
+  args:
+    executable: /bin/bash
   changed_when: false
   register: _v_mem_sum
   failed_when: false

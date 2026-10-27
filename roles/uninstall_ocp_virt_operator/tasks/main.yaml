@@ -12,6 +12,7 @@
 - name: "Uninstall | confirm intent"
   ansible.builtin.assert:
     that:
+      - ocp_virt_uninstall_confirm is defined
       - ocp_virt_uninstall_confirm | bool
     fail_msg: >-
       Refusing to uninstall. Pass -e ocp_virt_uninstall_confirm=true on the
@@ -22,6 +23,7 @@
 # Pre-flight: no running workloads
 ###############################################################################
 
+# rc != 0 is expected when the VM CRDs are already gone (nothing to check).
 - name: "Uninstall | check for existing VMs and VMIs"
   ansible.builtin.command: >-
     oc get vm,vmi --all-namespaces --no-headers
@@ -50,8 +52,11 @@
     -n {{ ocp_virt.hyperconverged.namespace }}
     --ignore-not-found
     --timeout={{ ocp_virt_uninstall_ns_timeout }}s
+  register: _del_hco
+  failed_when:
+    - _del_hco.rc != 0
+    - "'have a resource type' not in _del_hco.stderr"
   changed_when: true
-  failed_when: false
 
 - name: "Uninstall | delete OCP Virt Subscription"
   ansible.builtin.command: >-
@@ -59,7 +64,6 @@
     -n {{ ocp_virt.hyperconverged.namespace }}
     --ignore-not-found
   changed_when: true
-  failed_when: false
 
 - name: "Uninstall | delete OCP Virt CSV"
   ansible.builtin.command: >-
@@ -68,7 +72,6 @@
     -l operators.coreos.com/kubevirt-hyperconverged.{{ ocp_virt.hyperconverged.namespace }}
     --ignore-not-found
   changed_when: true
-  failed_when: false
 
 - name: "Uninstall | delete OCP Virt CRDs"
   ansible.builtin.command: >-
@@ -76,13 +79,11 @@
     -l operators.coreos.com/kubevirt-hyperconverged.{{ ocp_virt.hyperconverged.namespace }}
     --ignore-not-found
   changed_when: true
-  failed_when: false
 
 - name: "Uninstall | delete openshift-cnv namespace"
   ansible.builtin.command: >-
     oc delete namespace {{ ocp_virt.hyperconverged.namespace }} --ignore-not-found
   changed_when: true
-  failed_when: false
 
 - name: "Uninstall | wait for openshift-cnv namespace to terminate"
   ansible.builtin.command: >-
@@ -101,7 +102,6 @@
     -n {{ cert_manager_namespace }}
     --ignore-not-found
   changed_when: true
-  failed_when: false
   when: cert_manager_install | default(true) | bool
 
 - name: "Uninstall | delete cert-manager CSV"
@@ -111,14 +111,12 @@
     -l operators.coreos.com/openshift-cert-manager-operator.{{ cert_manager_namespace }}
     --ignore-not-found
   changed_when: true
-  failed_when: false
   when: cert_manager_install | default(true) | bool
 
 - name: "Uninstall | delete cert-manager-operator namespace"
   ansible.builtin.command: >-
     oc delete namespace {{ cert_manager_namespace }} --ignore-not-found
   changed_when: true
-  failed_when: false
   when: cert_manager_install | default(true) | bool
 
 - name: "Uninstall | wait for cert-manager-operator namespace to terminate"
@@ -131,13 +129,13 @@
 
 - name: "Uninstall | delete cert-manager namespace"
   ansible.builtin.command: >-
-    oc delete namespace cert-manager --ignore-not-found
+    oc delete namespace {{ cert_manager_operand_namespace }} --ignore-not-found
   changed_when: true
   when: cert_manager_install | default(true) | bool
 
 - name: "Uninstall | wait for cert-manager namespace to terminate"
   ansible.builtin.command: >-
-    oc wait namespace cert-manager
+    oc wait namespace {{ cert_manager_operand_namespace }}
     --for=delete --timeout={{ ocp_virt_uninstall_ns_timeout }}s
   changed_when: false
   failed_when: false
@@ -153,8 +151,11 @@
     -n {{ nfd_namespace }}
     --ignore-not-found
     --timeout={{ ocp_virt_uninstall_ns_timeout }}s
+  register: _del_nfd_cr
+  failed_when:
+    - _del_nfd_cr.rc != 0
+    - "'have a resource type' not in _del_nfd_cr.stderr"
   changed_when: true
-  failed_when: false
   when: nfd_install | default(true) | bool
 
 - name: "Uninstall | delete NFD Subscription"
@@ -163,7 +164,6 @@
     -n {{ nfd_namespace }}
     --ignore-not-found
   changed_when: true
-  failed_when: false
   when: nfd_install | default(true) | bool
 
 - name: "Uninstall | delete NFD CSV"
@@ -173,14 +173,12 @@
     -l operators.coreos.com/nfd.{{ nfd_namespace }}
     --ignore-not-found
   changed_when: true
-  failed_when: false
   when: nfd_install | default(true) | bool
 
 - name: "Uninstall | delete openshift-nfd namespace"
   ansible.builtin.command: >-
     oc delete namespace {{ nfd_namespace }} --ignore-not-found
   changed_when: true
-  failed_when: false
   when: nfd_install | default(true) | bool
 
 - name: "Uninstall | wait for openshift-nfd namespace to terminate"

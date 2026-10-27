@@ -1,0 +1,62 @@
+---
+# Collect and print diagnostics when the test VM flow fails, so the root cause
+# (storage provisioning, volume attach/mount, image pull, scheduling, ...) is
+# visible in the playbook output without logging in to the cluster.
+# Included from the rescue section of tasks/main.yaml. Never fails by itself.
+
+- name: "Test VM | diagnostics | collect cluster state"
+  ansible.builtin.command: "{{ item.cmd }}"
+  loop:
+    - title: "Resources in namespace {{ ocp_virt.test_vm.namespace }}"
+      cmd: >-
+        oc get vm,vmi,dv,pvc,pods -n {{ ocp_virt.test_vm.namespace }} -o wide
+    - title: "DataVolume details"
+      cmd: "oc describe dv -n {{ ocp_virt.test_vm.namespace }}"
+    - title: "Warning events (oldest first)"
+      cmd: >-
+        oc get events -n {{ ocp_virt.test_vm.namespace }}
+        --field-selector type=Warning --sort-by=.lastTimestamp
+    - title: "All events (oldest first)"
+      cmd: >-
+        oc get events -n {{ ocp_virt.test_vm.namespace }}
+        --sort-by=.lastTimestamp
+    - title: "Pod status and conditions"
+      cmd: >-
+        oc get pods -n {{ ocp_virt.test_vm.namespace }}
+        -o custom-columns=NAME:.metadata.name,PHASE:.status.phase,NODE:.spec.nodeName,REASON:.status.containerStatuses[0].state.waiting.reason
+    - title: "Storage class used by the test VM"
+      cmd: >-
+        oc get storageclass {{ ocp_virt.test_vm.storage_class | default('', true) }}
+  loop_control:
+    label: "{{ item.title }}"
+  register: _diag
+  changed_when: false
+  failed_when: false
+
+- name: "Test VM | diagnostics | print collected output"
+  ansible.builtin.debug:
+    msg: "{{ ['===== ' ~ item.item.title ~ ' ====='] + (item.stdout_lines | default([])) + (item.stderr_lines | default([])) }}"
+  loop: "{{ _diag.results }}"
+  loop_control:
+    label: "{{ item.item.title }}"
+
+- name: "Test VM | diagnostics | common causes"
+  vars:
+    _diag_text: "{{ _diag.results | map(attribute='stdout') | join('\n') }}"
+  ansible.builtin.debug:
+    msg: >-
+      {{
+        (['The test VM did not become ready. Review the output above. Likely cause based on the cluster events:'])
+        + (['- FailedAttachVolume / FailedMount: the CSI driver of the storage class could not attach or mount the volume on the node. '
+            'Check the CSI controller and node pod logs of the storage provider.']
+           if ('FailedAttachVolume' in _diag_text or 'FailedMount' in _diag_text) else [])
+        + (['- ProvisioningFailed / Pending PVC: the storage class could not provision the volume (check the provisioner and the access mode, '
+            'live migration needs ReadWriteMany).']
+           if ('ProvisioningFailed' in _diag_text and 'Error saving claim' not in _diag_text) else [])
+        + (['- ErrImagePull / ImagePullBackOff: a container image (for example the CDI importer) could not be pulled.']
+           if ('ErrImagePull' in _diag_text or 'ImagePullBackOff' in _diag_text) else [])
+        + (['- FailedScheduling: no node can host the pod (taints, resources or storage topology).']
+           if ('FailedScheduling' in _diag_text) else [])
+        + (['- ImportFailed: check that the image URL is reachable from the cluster nodes (ocp_virt.test_vm.image_url).']
+           if ('ImportFailed' in _diag_text) else [])
+      }}

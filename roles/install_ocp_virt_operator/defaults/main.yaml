@@ -33,6 +33,11 @@ ocp_virt:
   hco_timeout: 900
   pod_timeout: 300
 
+  virtctl:
+    install: true          # true = download virtctl from the cluster and install it on the bastion
+    install_dir: /usr/local/bin
+    validate_certs: false  # The download route is served with the cluster's own CA
+
   test_vm:
     create: false          # true = create the test VM after the HyperConverged CR is Available
     keep: false            # true = leave the VM in place; false = delete it after verification
@@ -44,5 +49,12 @@ ocp_virt:
     cpu_cores: 2
     memory: 4Gi
     ssh_public_key: ""     # Optional; injected via cloud-init for user 'cloud-user'
+    data_disk:
+      create: false        # true = create a blank data disk and attach it to the test VM
+      size: 10Gi
+      storage_class: ""    # Empty = use test_vm.storage_class
+    migration:
+      enabled: false       # true = live-migrate the test VM to another node after it is Ready
+      timeout: 600         # Seconds to wait for the migration to finish
     dv_timeout: 1800       # Seconds to wait for the image import (DataVolume) to finish
     vm_timeout: 600        # Seconds to wait for the VM to become Ready
