@@ -1,0 +1,352 @@
+---
+# Verify all prerequisites for the install_ocp_virt.yaml playbook.
+# Every check runs to completion (ignore_errors: true on data-gathering tasks).
+# Results are accumulated in _prereq_failures and _prereq_warnings lists.
+# A formatted summary is printed at the end; the play fails if any FAIL exists.
+#
+# This role is READ-ONLY — it never creates or modifies cluster resources.
+
+- name: "Verify | initialise result lists"
+  ansible.builtin.set_fact:
+    _prereq_failures: []
+    _prereq_warnings: []
+
+###############################################################################
+# Check 1 — kubeconfig present on bastion
+###############################################################################
+
+- name: "Verify | [1] stat kubeconfig"
+  ansible.builtin.stat:
+    path: "{{ ocp_virt_kubeconfig | expanduser }}"
+  register: _v_kubeconfig
+
+- name: "Verify | [1] record kubeconfig result"
+  ansible.builtin.set_fact:
+    _prereq_failures: >-
+      {{ _prereq_failures + ['[FAIL] kubeconfig not found at ' + ocp_virt_kubeconfig +
+         ' — set ocp_virt_kubeconfig in operators.yaml or copy the file.'] }}
+  when: not _v_kubeconfig.stat.exists
+
+###############################################################################
+# Check 2 — oc binary present
+###############################################################################
+
+- name: "Verify | [2] which oc"
+  ansible.builtin.command: which oc
+  changed_when: false
+  register: _v_oc
+  failed_when: false
+
+- name: "Verify | [2] record oc result"
+  ansible.builtin.set_fact:
+    _prereq_failures: >-
+      {{ _prereq_failures + ['[FAIL] oc binary not found in PATH on the bastion.'] }}
+  when: _v_oc.rc != 0
+
+###############################################################################
+# Check 3 — cluster API reachable
+###############################################################################
+
+- name: "Verify | [3] oc cluster-info"
+  ansible.builtin.command: oc cluster-info
+  changed_when: false
+  register: _v_cluster_info
+  failed_when: false
+
+- name: "Verify | [3] record API reachability"
+  ansible.builtin.set_fact:
+    _prereq_failures: >-
+      {{ _prereq_failures + ['[FAIL] Cluster API unreachable — oc cluster-info failed. '
+         + 'Check KUBECONFIG (' + ocp_virt_kubeconfig + ') and network connectivity.'] }}
+  when: _v_cluster_info.rc != 0
+
+###############################################################################
+# Check 4 — cluster-admin privileges
+###############################################################################
+
+- name: "Verify | [4] oc auth can-i"
+  ansible.builtin.command: oc auth can-i '*' '*' --all-namespaces
+  changed_when: false
+  register: _v_can_i
+  failed_when: false
+
+- name: "Verify | [4] record cluster-admin result"
+  ansible.builtin.set_fact:
+    _prereq_failures: >-
+      {{ _prereq_failures + ['[FAIL] Insufficient privileges — oc auth can-i returned: '
+         + (_v_can_i.stdout | trim) + '. cluster-admin role is required.'] }}
+  when: _v_can_i.stdout | trim != 'yes'
+
+###############################################################################
+# Check 5 — OCP version >= ocp_virt_min_version
+###############################################################################
+
+- name: "Verify | [5] oc version"
+  ansible.builtin.command: oc version -o json
+  changed_when: false
+  register: _v_version_raw
+  failed_when: false
+
+- name: "Verify | [5] parse OCP version"
+  ansible.builtin.set_fact:
+    _ocp_ver: >-
+      {{ (_v_version_raw.stdout | from_json).get('openshiftVersion', 'unknown')
+         if _v_version_raw.rc == 0 and _v_version_raw.stdout | length > 0
+         else 'unknown' }}
+
+- name: "Verify | [5] record OCP version result"
+  ansible.builtin.set_fact:
+    _prereq_failures: >-
+      {{ _prereq_failures + ['[FAIL] OCP version ' + _ocp_ver + ' is below the minimum '
+         + ocp_virt_min_version + ' required for OCP Virt GA on s390x.'] }}
+  when: >-
+    _ocp_ver == 'unknown' or
+    not (_ocp_ver is version(ocp_virt_min_version, '>='))
+
+###############################################################################
+# Check 6 — All cluster operators healthy
+###############################################################################
+
+- name: "Verify | [6] oc get co — degraded names via jsonpath"
+  ansible.builtin.shell: >-
+    oc get co
+    -o jsonpath='{range .items[*]}{range .status.conditions[?(@.type=="Degraded")]}{.status}{","}{.end}{.metadata.name}{"\n"}{end}'
+    | awk -F, '$1=="True"{print $2}'
+  changed_when: false
+  register: _v_co_raw
+  failed_when: false
+
+- name: "Verify | [6] record cluster operator health"
+  ansible.builtin.set_fact:
+    _prereq_failures: >-
+      {{ _prereq_failures + ['[FAIL] ' + (_v_co_raw.stdout_lines | length | string)
+         + ' cluster operator(s) are Degraded: '
+         + (_v_co_raw.stdout_lines | join(', '))
+         + '. Resolve before installing OCP Virt.'] }}
+  when: _v_co_raw.rc == 0 and _v_co_raw.stdout | trim | length > 0
+
+- name: "Verify | [6] record co API failure"
+  ansible.builtin.set_fact:
+    _prereq_failures: >-
+      {{ _prereq_failures + ['[FAIL] Could not retrieve cluster operator status (oc get co failed).'] }}
+  when: _v_co_raw.rc != 0
+
+###############################################################################
+# Check 7 — All nodes Ready
+###############################################################################
+
+- name: "Verify | [7] oc get nodes — not-ready names via jsonpath"
+  ansible.builtin.shell: >-
+    oc get nodes
+    -o jsonpath='{range .items[*]}{range .status.conditions[?(@.type=="Ready")]}{.status}{","}{.end}{.metadata.name}{"\n"}{end}'
+    | awk -F, '$1!="True"{print $2}'
+  changed_when: false
+  register: _v_nodes_raw
+  failed_when: false
+
+- name: "Verify | [7] oc get nodes -o json (for check 12 resource parsing)"
+  ansible.builtin.command: oc get nodes -o json
+  changed_when: false
+  register: _v_nodes_json
+  failed_when: false
+
+- name: "Verify | [7] record node readiness"
+  ansible.builtin.set_fact:
+    _prereq_failures: >-
+      {{ _prereq_failures + ['[FAIL] ' + (_v_nodes_raw.stdout_lines | length | string)
+         + ' node(s) are not Ready: '
+         + (_v_nodes_raw.stdout_lines | join(', '))
+         + '. Resolve before installing OCP Virt.'] }}
+  when: _v_nodes_raw.rc == 0 and _v_nodes_raw.stdout | trim | length > 0
+
+- name: "Verify | [7] record nodes API failure"
+  ansible.builtin.set_fact:
+    _prereq_failures: >-
+      {{ _prereq_failures + ['[FAIL] Could not retrieve node status (oc get nodes failed).'] }}
+  when: _v_nodes_raw.rc != 0
+
+###############################################################################
+# Check 8 — Node architecture (warn only)
+###############################################################################
+
+- name: "Verify | [8] node architecture"
+  ansible.builtin.command: >-
+    oc get nodes -o jsonpath='{range .items[*]}{.status.nodeInfo.architecture}{"\n"}{end}'
+  changed_when: false
+  register: _v_arch
+  failed_when: false
+
+- name: "Verify | [8] record architecture warning"
+  ansible.builtin.set_fact:
+    _prereq_warnings: >-
+      {{ _prereq_warnings + ['[WARN] Node architecture is '
+         + (_v_arch.stdout_lines | unique | join(', '))
+         + ' — not s390x. The defaultCPUModel in operators.yaml may need adjustment.'] }}
+  when: >-
+    _v_arch.rc == 0 and
+    _v_arch.stdout_lines | unique | difference(['s390x']) | length > 0
+
+###############################################################################
+# Check 9 — Nodes are bare-metal LPARs (warn only)
+###############################################################################
+
+- name: "Verify | [9] gather node provider IDs"
+  ansible.builtin.command: >-
+    oc get nodes -o jsonpath='{range .items[*]}{.spec.providerID}{"\n"}{end}'
+  changed_when: false
+  register: _v_provider_ids
+  failed_when: false
+
+- name: "Verify | [9] record hypervisor guest warning"
+  ansible.builtin.set_fact:
+    _prereq_warnings: >-
+      {{ _prereq_warnings + ['[WARN] One or more nodes appear to be z/VM or KVM guests '
+         + '(providerID contains zvm/kvm). OCP Virt requires hardware virtualisation '
+         + 'at the LPAR level.'] }}
+  when: >-
+    _v_provider_ids.rc == 0 and
+    (_v_provider_ids.stdout | lower is search('zvm') or
+     _v_provider_ids.stdout | lower is search('kvm'))
+
+###############################################################################
+# Check 10 — redhat-operators catalog source READY
+###############################################################################
+
+- name: "Verify | [10] redhat-operators catalog state"
+  ansible.builtin.command: >-
+    oc get catalogsource redhat-operators -n openshift-marketplace
+    -o jsonpath='{.status.connectionState.lastObservedState}'
+  changed_when: false
+  register: _v_catalog
+  failed_when: false
+
+- name: "Verify | [10] record catalog result"
+  ansible.builtin.set_fact:
+    _prereq_failures: >-
+      {{ _prereq_failures + ['[FAIL] redhat-operators CatalogSource is '
+         + (_v_catalog.stdout | trim | default('not found'))
+         + ' (expected READY). NFD, cert-manager, and OCP Virt all pull from it.'] }}
+  when: _v_catalog.rc != 0 or _v_catalog.stdout | trim != 'READY'
+
+###############################################################################
+# Check 11 — Default StorageClass exists
+###############################################################################
+
+- name: "Verify | [11] default StorageClass"
+  ansible.builtin.command: >-
+    oc get storageclass
+    -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}'
+  changed_when: false
+  register: _v_sc
+  failed_when: false
+
+- name: "Verify | [11] record StorageClass result"
+  ansible.builtin.set_fact:
+    _prereq_failures: >-
+      {{ _prereq_failures + ['[FAIL] No default StorageClass found. CDI (deployed by '
+         + 'HyperConverged) requires one for image import. Configure ODF/HPP and mark '
+         + 'a StorageClass as default before installing OCP Virt (OCP 4.22 §4.2.3).'] }}
+  when: _v_sc.rc != 0 or _v_sc.stdout | trim | length == 0
+
+###############################################################################
+# Check 12 — Resource headroom (warn only)
+###############################################################################
+
+- name: "Verify | [12] parse allocatable CPU (normalise to millicores)"
+  ansible.builtin.set_fact:
+    _v_total_cpu: >-
+      {{ (_v_nodes_json.stdout | from_json).items
+         | map(attribute='status.allocatable.cpu')
+         | map('regex_replace', '^(\d+)m$', '\1')
+         | map('regex_replace', '^(\d+)$', '\1000')
+         | map('int')
+         | sum }}
+  when: _v_nodes_json.rc == 0
+
+- name: "Verify | [12] parse allocatable memory"
+  ansible.builtin.set_fact:
+    _v_total_mem_ki: >-
+      {{ (_v_nodes_json.stdout | from_json).items
+         | map(attribute='status.allocatable.memory')
+         | map('regex_replace', 'Ki$', '')
+         | map('int')
+         | sum }}
+  when: _v_nodes_json.rc == 0
+
+- name: "Verify | [12] record resource warning"
+  ansible.builtin.set_fact:
+    _prereq_warnings: >-
+      {{ _prereq_warnings + ['[WARN] Low resource headroom: '
+         + (_v_total_cpu | int | string) + ' mCPU / '
+         + ((_v_total_mem_ki | int / 1048576) | round(1) | string) + ' GiB allocatable. '
+         + 'OCP Virt control-plane needs ~8 vCPU / 16 GiB cluster-wide.'] }}
+  when: >-
+    _v_nodes_json.rc == 0 and
+    ((_v_total_cpu | int) < (ocp_virt_min_vcpu | int) or
+     (_v_total_mem_ki | int) < (ocp_virt_min_mem_ki | int))
+
+###############################################################################
+# Check 13 — kubernetes.core collection on Ansible controller
+###############################################################################
+
+- name: "Verify | [13] kubernetes.core collection"
+  ansible.builtin.command: ansible-galaxy collection list kubernetes.core
+  changed_when: false
+  register: _v_collection
+  failed_when: false
+  delegate_to: localhost
+
+- name: "Verify | [13] record collection result"
+  ansible.builtin.set_fact:
+    _prereq_failures: >-
+      {{ _prereq_failures + ['[FAIL] kubernetes.core collection not found on the Ansible '
+         + 'controller. Install it with: '
+         + 'ansible-galaxy collection install kubernetes.core'] }}
+  when: _v_collection.rc != 0 or 'kubernetes.core' not in _v_collection.stdout
+
+###############################################################################
+# Check 14 — ocp_virt variable defined and operators.yaml loaded
+###############################################################################
+
+- name: "Verify | [14] ocp_virt variable defined"
+  ansible.builtin.set_fact:
+    _prereq_failures: >-
+      {{ _prereq_failures + ['[FAIL] Variable ocp_virt is not defined or incomplete. '
+         + 'Copy operators.yaml.template to operators.yaml and configure it before running.'] }}
+  when: >-
+    ocp_virt is not defined or
+    ocp_virt.hyperconverged.namespace | default('') | length == 0
+
+###############################################################################
+# Summary
+###############################################################################
+
+- name: "Verify | collect all findings"
+  ansible.builtin.set_fact:
+    _prereq_all: "{{ _prereq_failures + _prereq_warnings }}"
+
+- name: "Verify | print findings"
+  ansible.builtin.debug:
+    msg: "{{ _prereq_all }}"
+  when: _prereq_all | length > 0
+
+- name: "Verify | print PASS"
+  ansible.builtin.debug:
+    msg: >-
+      All prerequisite checks passed.
+      The cluster is ready to run playbooks/operators/install_ocp_virt.yaml.
+  when: _prereq_failures | length == 0 and _prereq_warnings | length == 0
+
+- name: "Verify | print PASS with warnings"
+  ansible.builtin.debug:
+    msg: >-
+      Prerequisite checks passed with {{ _prereq_warnings | length }} warning(s).
+      Review the warnings above before running install_ocp_virt.yaml.
+  when: _prereq_failures | length == 0 and _prereq_warnings | length > 0
+
+- name: "Verify | fail if any hard checks did not pass"
+  ansible.builtin.fail:
+    msg: >-
+      {{ _prereq_failures | length }} prerequisite check(s) FAILED.
+      Resolve the issues listed above before running install_ocp_virt.yaml.
+  when: _prereq_failures | length > 0

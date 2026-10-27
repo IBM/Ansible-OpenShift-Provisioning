@@ -4,7 +4,7 @@
 
 # Path to the cluster kubeconfig on the bastion.
 # Overridden in operators.yaml by ocp_virt_kubeconfig.
-ocp_virt_kubeconfig: ~/.kube/config
+ocp_virt_kubeconfig: ~/ocpinst/auth/kubeconfig
 
 ocp_virt:
   channel: stable

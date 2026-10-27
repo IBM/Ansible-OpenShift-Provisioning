@@ -249,6 +249,44 @@ In case the cluster needs to be completely reinstalled, run this playbook. It wi
 ### Overview
 * Use this playbook for your testing purposes, if needed.
 
+## Verify OCP Virtualization Prerequisites (playbooks/operators/verify_ocp_virt_prereqs.yaml)
+### Overview
+Read-only pre-flight check that verifies all 14 prerequisites required before running
+`install_ocp_virt.yaml`. Runs every check even if earlier ones fail, then prints a
+consolidated pass/fail/warn summary. Safe to run at any time — it never creates or
+modifies any cluster resources.
+### Usage
+```
+ansible-playbook playbooks/operators/verify_ocp_virt_prereqs.yaml --ask-vault-pass
+```
+### Outcomes
+* Prints `[FAIL]` for each hard prerequisite that is not met.
+* Prints `[WARN]` for advisory conditions (non-s390x architecture, possible guest nodes,
+  low resource headroom).
+* Exits 0 (pass) when all hard checks succeed, even if warnings are present.
+* Exits non-zero when one or more hard checks fail — resolve before installing.
+### Checks performed
+| # | Check | Result type |
+|---|---|---|
+| 1 | kubeconfig present at `ocp_virt_kubeconfig` | FAIL |
+| 2 | `oc` binary present on bastion | FAIL |
+| 3 | Cluster API reachable | FAIL |
+| 4 | `cluster-admin` privileges | FAIL |
+| 5 | OCP version ≥ 4.19 | FAIL |
+| 6 | All cluster operators healthy | FAIL |
+| 7 | All nodes Ready | FAIL |
+| 8 | Node architecture is s390x | WARN |
+| 9 | Nodes are bare-metal LPARs (not z/VM or KVM guests) | WARN |
+| 10 | `redhat-operators` CatalogSource is READY | FAIL |
+| 11 | Default StorageClass exists | FAIL |
+| 12 | Sufficient CPU / memory headroom (≥ 16 vCPU / 32 GiB) | WARN |
+| 13 | `kubernetes.core` collection installed on Ansible controller | FAIL |
+| 14 | `ocp_virt` variable defined in `operators.yaml` | FAIL |
+### Notes
+* `operators.yaml` must be present (copy from `operators.yaml.template`) before running,
+  as check 14 reads variables from it.
+* Run this playbook first, fix all `[FAIL]` items, then run `install_ocp_virt.yaml`.
+
 ## Install OpenShift Virtualization (playbooks/operators/install_ocp_virt.yaml)
 ### Overview
 Installs OpenShift Virtualization as a day-2 operator on a running OCP 4.19+ cluster on IBM Z / LinuxONE (s390x).

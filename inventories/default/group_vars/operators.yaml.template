@@ -10,11 +10,11 @@
 # operators.yaml is gitignored; this template is tracked by git.
 
 # Path to the cluster kubeconfig on the bastion.
-# The 5_setup_bastion.yaml playbook copies it to ~/.kube/config automatically.
-# Override if your bastion stores it elsewhere, e.g.:
-#   /root/ocpinst/auth/kubeconfig  (raw install directory)
-#   /home/myuser/.kube/config      (non-root bastion user)
-ocp_virt_kubeconfig: ~/.kube/config
+# Common locations:
+#   /root/ocpinst/auth/kubeconfig   — default after UPI/ABI install
+#   ~/.kube/config                  — after 5_setup_bastion.yaml symlinks it
+#   /home/<user>/.kube/config       — non-root bastion user
+ocp_virt_kubeconfig: ~/ocpinst/auth/kubeconfig
 
 ocp_virt:
   # Subscription channel for the kubevirt-hyperconverged operator.
