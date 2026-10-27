@@ -16,7 +16,35 @@
 #   /home/<user>/.kube/config       — non-root bastion user
 ocp_virt_kubeconfig: ~/ocpinst/auth/kubeconfig
 
+# ---------------------------------------------------------------------------
+# Catalog source overrides — for RC / pre-release clusters
+# ---------------------------------------------------------------------------
+# On GA clusters all three operators are in 'redhat-operators'. On release
+# candidate clusters that catalog may not yet contain these packages. In that
+# case:
+#   1. Add a pre-release CatalogSource to openshift-marketplace, e.g.:
+#        oc apply -f - <<EOF
+#        apiVersion: operators.coreos.com/v1alpha1
+#        kind: CatalogSource
+#        metadata:
+#          name: redhat-operators-prerelease
+#          namespace: openshift-marketplace
+#        spec:
+#          sourceType: grpc
+#          image: <your-prerelease-index-image>
+#          displayName: "Red Hat Operators (pre-release)"
+#          publisher: Red Hat
+#        EOF
+#   2. Set the three variables below to 'redhat-operators-prerelease'.
+#      (or to whatever name you gave your CatalogSource)
+# On GA clusters leave all three as 'redhat-operators'.
+nfd_catalog_source: redhat-operators
+cert_manager_catalog_source: redhat-operators
+
 ocp_virt:
+  # OLM CatalogSource that contains the kubevirt-hyperconverged package.
+  catalog_source: redhat-operators
+
   # Subscription channel for the kubevirt-hyperconverged operator.
   # 'stable' always resolves to the version matching the cluster (recommended).
   # Pin to a specific release with e.g. 'stable-4.22'.

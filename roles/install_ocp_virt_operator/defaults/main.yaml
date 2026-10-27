@@ -9,6 +9,9 @@ ocp_virt_kubeconfig: ~/ocpinst/auth/kubeconfig
 ocp_virt:
   channel: stable
   install_plan_approval: Automatic
+  # GA clusters: redhat-operators
+  # RC / pre-release clusters: set to your pre-release CatalogSource name
+  catalog_source: redhat-operators
 
   hyperconverged:
     name: kubevirt-hyperconverged

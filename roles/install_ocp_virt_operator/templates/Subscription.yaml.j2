@@ -7,5 +7,5 @@ spec:
   channel: "{{ ocp_virt.channel }}"
   installPlanApproval: "{{ ocp_virt.install_plan_approval }}"
   name: kubevirt-hyperconverged
-  source: redhat-operators
+  source: "{{ ocp_virt.catalog_source | default('redhat-operators') }}"
   sourceNamespace: openshift-marketplace

@@ -3,6 +3,8 @@
 
 cert_manager_namespace: cert-manager-operator
 cert_manager_channel: stable-v1
+# GA clusters: redhat-operators
+# RC / pre-release clusters: set to your pre-release CatalogSource name
 cert_manager_catalog_source: redhat-operators
 cert_manager_csv_timeout: 300   # Seconds to wait for the cert-manager CSV to reach Succeeded
 cert_manager_pod_timeout: 120   # Seconds to wait for cert-manager pods to become Running
