@@ -12,3 +12,9 @@ ocp_virt_uninstall_confirm: false
 
 # Seconds to wait for each namespace to fully terminate after deletion.
 ocp_virt_uninstall_ns_timeout: 300
+
+# Namespace defaults — must match the values used during installation.
+# These mirror the defaults in install_nfd_operator and
+# install_cert_manager_operator roles so the uninstall role is self-contained.
+nfd_namespace: openshift-nfd
+cert_manager_namespace: cert-manager-operator

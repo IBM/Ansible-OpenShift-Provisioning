@@ -199,6 +199,5 @@
   ansible.builtin.debug:
     msg:
       - "OpenShift Virtualization uninstall complete."
-      - "Removed: {{ ocp_virt.hyperconverged.namespace }}, {{ cert_manager_namespace }}, cert-manager, {{ nfd_namespace }} namespaces."
       - "OCP Virt CRDs removed. Cluster operators and compute nodes are unchanged."
       - "Note: StorageClasses, PVCs, and NFD node labels are not removed by this playbook."
