@@ -95,8 +95,12 @@ ocp_virt:
     cpu_cores: 2
     memory: 4Gi
 
-    # Optional SSH public key injected via cloud-init for user 'cloud-user'.
-    # Without this key, the VM boots but is only accessible via 'virtctl console'.
+    # SSH public key injected via cloud-init for user 'cloud-user'.
+    # Leave empty ("") to automatically use the bastion's first available key
+    # (~/.ssh/id_ed25519.pub, id_ecdsa.pub, or id_rsa.pub).
+    # Set explicitly to use a specific key, or set to a literal key string.
+    # If no key is found and this is empty, the VM boots but is only
+    # accessible via 'virtctl console'.
     ssh_public_key: ""
 
     dv_timeout: 1800   # Seconds to wait for the DataVolume (CDI image import) to finish
