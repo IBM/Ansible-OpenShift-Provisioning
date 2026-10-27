@@ -127,28 +127,26 @@
       playbook.
 
 # --- 12. Resource headroom check (warn only) ---
-- name: "Preflight | gather allocatable resources"
-  ansible.builtin.command: >-
-    oc get nodes -o json
+- name: "Preflight | sum allocatable CPU in millicores across all nodes"
+  ansible.builtin.shell: >-
+    oc get nodes
+    -o jsonpath='{range .items[*]}{.status.allocatable.cpu}{"\n"}{end}'
+    | awk '{v=$1; if(v~/m$/) {sub(/m$/,"",v); s+=v} else {s+=v*1000}} END{print s+0}'
   changed_when: false
-  register: _nodes_resources_raw
+  register: _nodes_cpu_sum
+
+- name: "Preflight | sum allocatable memory in KiB across all nodes"
+  ansible.builtin.shell: >-
+    oc get nodes
+    -o jsonpath='{range .items[*]}{.status.allocatable.memory}{"\n"}{end}'
+    | awk '{v=$1; sub(/Ki$/,"",v); s+=v} END{print s+0}'
+  changed_when: false
+  register: _nodes_mem_sum
 
 - name: "Preflight | warn if insufficient resource headroom"
   vars:
-    _nodes_list: "{{ (_nodes_resources_raw.stdout | from_json)['items'] }}"
-    _total_cpu: >-
-      {{ _nodes_list
-         | map(attribute='status.allocatable.cpu')
-         | map('regex_replace', '^(\d+)m$', '\1')
-         | map('regex_replace', '^(\d+)$', '\1000')
-         | map('int')
-         | sum }}
-    _total_mem_ki: >-
-      {{ _nodes_list
-         | map(attribute='status.allocatable.memory')
-         | map('regex_replace', 'Ki$', '')
-         | map('int')
-         | sum }}
+    _total_cpu: "{{ _nodes_cpu_sum.stdout | trim | int }}"
+    _total_mem_ki: "{{ _nodes_mem_sum.stdout | trim | int }}"
   ansible.builtin.debug:
     msg: >-
       WARNING: total allocatable resources appear low

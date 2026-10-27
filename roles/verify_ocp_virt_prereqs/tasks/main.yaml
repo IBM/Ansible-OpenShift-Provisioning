@@ -144,12 +144,6 @@
   register: _v_nodes_raw
   failed_when: false
 
-- name: "Verify | [7] oc get nodes -o json (for check 12 resource parsing)"
-  ansible.builtin.command: oc get nodes -o json
-  changed_when: false
-  register: _v_nodes_json
-  failed_when: false
-
 - name: "Verify | [7] record node readiness"
   ansible.builtin.set_fact:
     _prereq_failures: >-
@@ -252,26 +246,29 @@
 # Check 12 — Resource headroom (warn only)
 ###############################################################################
 
-- name: "Verify | [12] parse allocatable CPU (normalise to millicores)"
-  ansible.builtin.set_fact:
-    _v_total_cpu: >-
-      {{ (_v_nodes_json.stdout | from_json)['items']
-         | map(attribute='status.allocatable.cpu')
-         | map('regex_replace', '^(\d+)m$', '\1')
-         | map('regex_replace', '^(\d+)$', '\1000')
-         | map('int')
-         | sum }}
-  when: _v_nodes_json.rc == 0
+- name: "Verify | [12] sum allocatable CPU in millicores across all nodes"
+  ansible.builtin.shell: >-
+    oc get nodes
+    -o jsonpath='{range .items[*]}{.status.allocatable.cpu}{"\n"}{end}'
+    | awk '{v=$1; if(v~/m$/) {sub(/m$/,"",v); s+=v} else {s+=v*1000}} END{print s+0}'
+  changed_when: false
+  register: _v_cpu_sum
+  failed_when: false
 
-- name: "Verify | [12] parse allocatable memory"
+- name: "Verify | [12] sum allocatable memory in KiB across all nodes"
+  ansible.builtin.shell: >-
+    oc get nodes
+    -o jsonpath='{range .items[*]}{.status.allocatable.memory}{"\n"}{end}'
+    | awk '{v=$1; sub(/Ki$/,"",v); s+=v} END{print s+0}'
+  changed_when: false
+  register: _v_mem_sum
+  failed_when: false
+
+- name: "Verify | [12] set resource totals"
   ansible.builtin.set_fact:
-    _v_total_mem_ki: >-
-      {{ (_v_nodes_json.stdout | from_json)['items']
-         | map(attribute='status.allocatable.memory')
-         | map('regex_replace', 'Ki$', '')
-         | map('int')
-         | sum }}
-  when: _v_nodes_json.rc == 0
+    _v_total_cpu: "{{ _v_cpu_sum.stdout | trim | int }}"
+    _v_total_mem_ki: "{{ _v_mem_sum.stdout | trim | int }}"
+  when: _v_cpu_sum.rc == 0 and _v_mem_sum.rc == 0
 
 - name: "Verify | [12] record resource warning"
   ansible.builtin.set_fact:
@@ -281,7 +278,7 @@
          + ((_v_total_mem_ki | int / 1048576) | round(1) | string) + ' GiB allocatable. '
          + 'OCP Virt control-plane needs ~8 vCPU / 16 GiB cluster-wide.'] }}
   when: >-
-    _v_nodes_json.rc == 0 and
+    _v_cpu_sum.rc == 0 and _v_mem_sum.rc == 0 and
     ((_v_total_cpu | int) < (ocp_virt_min_vcpu | int) or
      (_v_total_mem_ki | int) < (ocp_virt_min_mem_ki | int))
 
