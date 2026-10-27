@@ -1,0 +1,61 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: {{ ocp_virt.test_vm.name }}
+  namespace: {{ ocp_virt.test_vm.namespace }}
+spec:
+  runStrategy: Always
+  dataVolumeTemplates:
+  - metadata:
+      name: {{ ocp_virt.test_vm.name }}-root
+    spec:
+      source:
+        http:
+          url: "{{ ocp_virt.test_vm.image_url }}"
+      storage:
+{% if ocp_virt.test_vm.storage_class | default('') | length > 0 %}
+        storageClassName: {{ ocp_virt.test_vm.storage_class }}
+{% endif %}
+        resources:
+          requests:
+            storage: {{ ocp_virt.test_vm.disk_size }}
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: {{ ocp_virt.test_vm.name }}
+    spec:
+      architecture: s390x
+      domain:
+        machine:
+          type: s390-ccw-virtio
+        cpu:
+          cores: {{ ocp_virt.test_vm.cpu_cores }}
+        memory:
+          guest: {{ ocp_virt.test_vm.memory }}
+        devices:
+          disks:
+          - name: rootdisk
+            disk:
+              bus: virtio
+          - name: cloudinit
+            disk:
+              bus: virtio
+          interfaces:
+          - name: default
+            masquerade: {}
+      networks:
+      - name: default
+        pod: {}
+      volumes:
+      - name: rootdisk
+        dataVolume:
+          name: {{ ocp_virt.test_vm.name }}-root
+      - name: cloudinit
+        cloudInitNoCloud:
+          userData: |
+            #cloud-config
+            user: cloud-user
+{% if ocp_virt.test_vm.ssh_public_key | default('') | length > 0 %}
+            ssh_authorized_keys:
+            - {{ ocp_virt.test_vm.ssh_public_key }}
+{% endif %}

@@ -17,6 +17,8 @@ nav:
       - Run the Playbooks (Disconnected): 'run-the-playbooks-for-disconnected.md'
       - Run the Playbooks (HostedControlPlane): 'run-the-playbooks-for-hcp.md'
       - ABI LPAR Configuration: 'abi-lpar-configuration.md'
+  - Operators (Day-2):
+      - Install OpenShift Virtualization: 'run-the-playbooks.md#install-openshift-virtualization-playbooksoperatorsinstall_ocp_virtyaml'
   - Misc:
       - Troubleshooting: 'troubleshooting.md'
       - Acknowledgements: 'acknowledgements.md'

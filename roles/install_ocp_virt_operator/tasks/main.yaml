@@ -1,0 +1,377 @@
+---
+# Install the OpenShift Virtualization (OCP Virt) operator and create the
+# HyperConverged CR that activates the full virtualization stack.
+#
+# Phase 1 — Preflight checks
+# Phase 2 — Operator installation
+# Phase 3 — HyperConverged CR
+# Phase 4 — Optional test VM (when ocp_virt.test_vm.create is true)
+
+###############################################################################
+# Phase 1 — Preflight checks
+###############################################################################
+
+# --- 1. kubeconfig exists ---
+- name: "Preflight | kubeconfig present on bastion"
+  ansible.builtin.stat:
+    path: "{{ ocp_virt_kubeconfig }}"
+  register: _kubeconfig_stat
+  failed_when: not _kubeconfig_stat.stat.exists
+
+# --- 2. oc binary present ---
+- name: "Preflight | oc binary present"
+  ansible.builtin.command: which oc
+  changed_when: false
+
+# --- 3. API server reachable ---
+- name: "Preflight | cluster API reachable"
+  ansible.builtin.command: oc cluster-info
+  changed_when: false
+
+# --- 4. cluster-admin privileges ---
+- name: "Preflight | cluster-admin access confirmed"
+  ansible.builtin.command: oc auth can-i '*' '*' --all-namespaces
+  changed_when: false
+  register: _can_i
+  failed_when: _can_i.stdout | trim != 'yes'
+
+# --- 5. OCP version >= 4.19 ---
+- name: "Preflight | gather cluster version"
+  ansible.builtin.command: oc version -o json
+  changed_when: false
+  register: _oc_version_raw
+
+- name: "Preflight | assert OCP >= 4.19"
+  ansible.builtin.assert:
+    that:
+      - (_oc_version_raw.stdout | from_json).openshiftVersion is version('4.19', '>=')
+    fail_msg: >-
+      OCP version {{ (_oc_version_raw.stdout | from_json).openshiftVersion }} is too old.
+      OpenShift Virtualization on s390x requires OCP 4.19 or later.
+
+# --- 6. All cluster operators healthy ---
+- name: "Preflight | gather cluster operator status"
+  ansible.builtin.command: oc get co -o json
+  changed_when: false
+  register: _co_raw
+
+- name: "Preflight | assert all cluster operators healthy"
+  ansible.builtin.assert:
+    that:
+      - >-
+        (_co_raw.stdout | from_json).items
+        | selectattr('status.conditions', 'defined')
+        | map(attribute='status.conditions')
+        | map('selectattr', 'type', 'equalto', 'Degraded')
+        | map('first', default={'status': 'False'})
+        | map(attribute='status')
+        | select('equalto', 'True')
+        | list | length == 0
+    fail_msg: "One or more cluster operators are degraded. Resolve before installing OCP Virt."
+
+# --- 7. All nodes Ready ---
+- name: "Preflight | gather node status"
+  ansible.builtin.command: oc get nodes -o json
+  changed_when: false
+  register: _nodes_raw
+
+- name: "Preflight | assert all nodes Ready"
+  ansible.builtin.assert:
+    that:
+      - >-
+        (_nodes_raw.stdout | from_json).items
+        | map(attribute='status.conditions')
+        | map('selectattr', 'type', 'equalto', 'Ready')
+        | map('first')
+        | map(attribute='status')
+        | select('ne', 'True')
+        | list | length == 0
+    fail_msg: "One or more nodes are not Ready. Resolve before installing OCP Virt."
+
+# --- 8. Architecture check (warn only) ---
+- name: "Preflight | check node architecture"
+  ansible.builtin.command: >-
+    oc get nodes -o jsonpath='{range .items[*]}{.status.nodeInfo.architecture}{"\n"}{end}'
+  changed_when: false
+  register: _arch_raw
+
+- name: "Preflight | warn if not s390x"
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: node architecture '{{ _arch_raw.stdout_lines | unique | join(", ") }}'
+      is not s390x. The defaultCPUModel '{{ ocp_virt.hyperconverged.default_cpu_model }}'
+      in ocp_virt.hyperconverged is s390x-specific and must be adjusted for other architectures.
+  when: _arch_raw.stdout_lines | unique | difference(['s390x']) | length > 0
+
+# --- 10. redhat-operators catalog source ready ---
+- name: "Preflight | redhat-operators catalog source ready"
+  ansible.builtin.command: >-
+    oc get catalogsource redhat-operators -n openshift-marketplace
+    -o jsonpath='{.status.connectionState.lastObservedState}'
+  changed_when: false
+  register: _catalog_state
+  failed_when: _catalog_state.stdout | trim != 'READY'
+
+# --- 11. Default StorageClass exists (OCP 4.22 §4.2.3 "must") ---
+- name: "Preflight | gather default StorageClass"
+  ansible.builtin.command: >-
+    oc get storageclass
+    -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}'
+  changed_when: false
+  register: _default_sc
+
+- name: "Preflight | assert default StorageClass exists"
+  ansible.builtin.assert:
+    that:
+      - _default_sc.stdout | trim | length > 0
+    fail_msg: >-
+      No default StorageClass found. OCP 4.22 section 4.2.3 requires a default storage
+      class before installing OpenShift Virtualization. CDI (installed by HyperConverged)
+      needs it for scratch space and boot-source image import. Configure a storage
+      provisioner (e.g. ODF, HPP) and set a default StorageClass before running this
+      playbook.
+
+# --- 12. Resource headroom check (warn only) ---
+- name: "Preflight | gather allocatable resources"
+  ansible.builtin.command: >-
+    oc get nodes -o json
+  changed_when: false
+  register: _nodes_resources_raw
+
+- name: "Preflight | warn if insufficient resource headroom"
+  vars:
+    _nodes_list: "{{ (_nodes_resources_raw.stdout | from_json).items }}"
+    _total_cpu: >-
+      {{ _nodes_list
+         | map(attribute='status.allocatable.cpu')
+         | map('regex_replace', 'm$', '')
+         | map('int')
+         | sum }}
+    _total_mem_ki: >-
+      {{ _nodes_list
+         | map(attribute='status.allocatable.memory')
+         | map('regex_replace', 'Ki$', '')
+         | map('int')
+         | sum }}
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: total allocatable resources appear low
+      ({{ _total_cpu }} CPUs / {{ (_total_mem_ki | int / 1048576) | round(1) }} GiB).
+      OCP Virt control-plane pods require approximately 8 vCPU / 16 GiB cluster-wide.
+  when: >-
+    (_total_cpu | int < 16000) or
+    (_total_mem_ki | int < 33554432)
+
+# --- 13. kubernetes.core collection installed ---
+- name: "Preflight | kubernetes.core collection installed on the Ansible controller"
+  ansible.builtin.command: ansible-galaxy collection list kubernetes.core
+  changed_when: false
+  delegate_to: localhost
+
+# --- 14. ocp_virt variable defined ---
+- name: "Preflight | ocp_virt variable defined and complete"
+  ansible.builtin.assert:
+    that:
+      - ocp_virt is defined
+      - ocp_virt.hyperconverged.namespace | default('') | length > 0
+    fail_msg: >-
+      Variable 'ocp_virt' is not defined or is incomplete.
+      Copy inventories/default/group_vars/operators.yaml.template to operators.yaml
+      and set the required values before running this playbook.
+
+###############################################################################
+# Phase 2 — Operator installation
+###############################################################################
+
+- name: "OCP Virt | Create Namespace manifest"
+  ansible.builtin.template:
+    src: Namespace.yaml.j2
+    dest: /root/ansible_workdir/ocp-virt-Namespace.yaml
+    mode: '0644'
+
+- name: "OCP Virt | Apply Namespace"
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/ocp-virt-Namespace.yaml
+  changed_when: true
+
+- name: "OCP Virt | Create OperatorGroup manifest"
+  ansible.builtin.template:
+    src: OperatorGroup.yaml.j2
+    dest: /root/ansible_workdir/ocp-virt-OperatorGroup.yaml
+    mode: '0644'
+
+- name: "OCP Virt | Apply OperatorGroup"
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/ocp-virt-OperatorGroup.yaml
+  changed_when: true
+
+- name: "OCP Virt | Create Subscription manifest"
+  ansible.builtin.template:
+    src: Subscription.yaml.j2
+    dest: /root/ansible_workdir/ocp-virt-Subscription.yaml
+    mode: '0644'
+
+- name: "OCP Virt | Apply Subscription"
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/ocp-virt-Subscription.yaml
+  changed_when: true
+
+- name: "OCP Virt | Wait for kubevirt-hyperconverged operator pod to be Running"
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get pods -n "{{ ocp_virt.hyperconverged.namespace }}" --no-headers 2>/dev/null \
+      | grep -i 'hco-operator\|kubevirt-hyperconverged-operator' \
+      | awk '$3=="Running"' | wc -l
+  register: _hco_pod_running
+  until: _hco_pod_running.stdout | int >= 1
+  retries: "{{ (ocp_virt.pod_timeout | int / 10) | int }}"
+  delay: 10
+  changed_when: false
+
+- name: "OCP Virt | Wait for CSV to reach Succeeded"
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get csv -n "{{ ocp_virt.hyperconverged.namespace }}" --no-headers 2>/dev/null \
+      | awk '{print $NF}' | grep -c Succeeded || true
+  register: _ocp_virt_csv_succeeded
+  until: _ocp_virt_csv_succeeded.stdout | int >= 1
+  retries: "{{ (ocp_virt.csv_timeout | int / 10) | int }}"
+  delay: 10
+  changed_when: false
+
+###############################################################################
+# Phase 3 — HyperConverged CR
+###############################################################################
+
+- name: "OCP Virt | Create HyperConverged manifest"
+  ansible.builtin.template:
+    src: HyperConverged.yaml.j2
+    dest: /root/ansible_workdir/ocp-virt-HyperConverged.yaml
+    mode: '0644'
+
+- name: "OCP Virt | Apply HyperConverged CR"
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/ocp-virt-HyperConverged.yaml
+  changed_when: true
+
+- name: "OCP Virt | Wait for HyperConverged to reach Available"
+  ansible.builtin.command: >-
+    oc wait hyperconverged {{ ocp_virt.hyperconverged.name }}
+    -n {{ ocp_virt.hyperconverged.namespace }}
+    --for condition=Available
+    --timeout={{ ocp_virt.hco_timeout }}s
+  changed_when: false
+
+- name: "OCP Virt | Verify virt-operator pods are Running"
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get pods -n "{{ ocp_virt.hyperconverged.namespace }}" --no-headers 2>/dev/null \
+      | grep 'virt-operator' | awk '$3=="Running"' | wc -l
+  register: _virt_operator_pods
+  until: _virt_operator_pods.stdout | int >= 1
+  retries: "{{ (ocp_virt.pod_timeout | int / 10) | int }}"
+  delay: 10
+  changed_when: false
+
+- name: "OCP Virt | Gather installed CSV version"
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get csv -n "{{ ocp_virt.hyperconverged.namespace }}" --no-headers 2>/dev/null \
+      | awk '/kubevirt-hyperconverged/{print $1}'
+  register: _installed_csv
+  changed_when: false
+
+- name: "OCP Virt | Print installation status summary"
+  ansible.builtin.debug:
+    msg:
+      - "OpenShift Virtualization installation complete."
+      - "Namespace:    {{ ocp_virt.hyperconverged.namespace }}"
+      - "HyperConverged CR: {{ ocp_virt.hyperconverged.name }} (Available)"
+      - "Installed CSV: {{ _installed_csv.stdout | trim }}"
+      - "virt-operator pods running: {{ _virt_operator_pods.stdout | trim }}"
+
+###############################################################################
+# Phase 4 — Optional test VM
+###############################################################################
+
+- name: "Test VM | Validate image_url is set"
+  ansible.builtin.assert:
+    that:
+      - ocp_virt.test_vm.image_url | default('') | length > 0
+    fail_msg: >-
+      ocp_virt.test_vm.create is true but ocp_virt.test_vm.image_url is empty.
+      Provide an HTTP(S) URL to an s390x qcow2 guest image before running the playbook.
+  when: ocp_virt.test_vm.create | bool
+
+- name: "Test VM | Check image URL is reachable from bastion"
+  ansible.builtin.uri:
+    url: "{{ ocp_virt.test_vm.image_url }}"
+    method: HEAD
+    status_code: [200, 206]
+  when: ocp_virt.test_vm.create | bool
+
+- name: "Test VM block"
+  when: ocp_virt.test_vm.create | bool
+  block:
+
+    - name: "Test VM | Create test namespace"
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ ocp_virt.test_vm.namespace }}"
+
+    - name: "Test VM | Create VirtualMachine manifest"
+      ansible.builtin.template:
+        src: VirtualMachine.yaml.j2
+        dest: /root/ansible_workdir/ocp-virt-TestVM.yaml
+        mode: '0644'
+
+    - name: "Test VM | Apply VirtualMachine"
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/ocp-virt-TestVM.yaml
+      changed_when: true
+
+    - name: "Test VM | Wait for DataVolume import to finish"
+      ansible.builtin.command: >-
+        oc wait dv {{ ocp_virt.test_vm.name }}-root
+        -n {{ ocp_virt.test_vm.namespace }}
+        --for condition=Ready
+        --timeout={{ ocp_virt.test_vm.dv_timeout }}s
+      changed_when: false
+
+    - name: "Test VM | Wait for VM to become Ready"
+      ansible.builtin.command: >-
+        oc wait vm {{ ocp_virt.test_vm.name }}
+        -n {{ ocp_virt.test_vm.namespace }}
+        --for condition=Ready
+        --timeout={{ ocp_virt.test_vm.vm_timeout }}s
+      changed_when: false
+
+    - name: "Test VM | Gather VMI status"
+      ansible.builtin.command: >-
+        oc get vmi {{ ocp_virt.test_vm.name }}
+        -n {{ ocp_virt.test_vm.namespace }}
+        -o jsonpath='{.status.phase}{" "}{.status.nodeName}{" "}{.status.interfaces[0].ipAddress}'
+      register: _vmi_status
+      changed_when: false
+
+    - name: "Test VM | Print VM status summary"
+      ansible.builtin.debug:
+        msg:
+          - "Test VM '{{ ocp_virt.test_vm.name }}' is Ready."
+          - "VMI phase / node / IP: {{ _vmi_status.stdout }}"
+          - "keep: {{ ocp_virt.test_vm.keep | bool }}"
+
+  always:
+
+    - name: "Test VM | Cleanup — delete VirtualMachine and namespace"
+      ansible.builtin.command: >-
+        oc delete namespace {{ ocp_virt.test_vm.namespace }} --ignore-not-found
+      changed_when: true
+      when: not (ocp_virt.test_vm.keep | bool)
+
+    - name: "Test VM | Wait for test namespace to be removed"
+      ansible.builtin.command: >-
+        oc wait namespace {{ ocp_virt.test_vm.namespace }}
+        --for=delete --timeout=120s
+      changed_when: false
+      failed_when: false
+      when: not (ocp_virt.test_vm.keep | bool)

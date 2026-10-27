@@ -1,0 +1,23 @@
+apiVersion: hco.kubevirt.io/v1beta1
+kind: HyperConverged
+metadata:
+  name: {{ ocp_virt.hyperconverged.name }}
+  namespace: {{ ocp_virt.hyperconverged.namespace }}
+spec:
+{% if ocp_virt.hyperconverged.default_cpu_model | default('') | length > 0 %}
+  defaultCPUModel: {{ ocp_virt.hyperconverged.default_cpu_model }}
+{% endif %}
+{% if ocp_virt.hyperconverged.feature_gates %}
+  featureGates:
+{% for gate, enabled in ocp_virt.hyperconverged.feature_gates.items() %}
+    {{ gate }}: {{ enabled | lower }}
+{% endfor %}
+{% endif %}
+{% if ocp_virt.hyperconverged.infra_node_placement is defined %}
+  infra:
+    nodePlacement: {{ ocp_virt.hyperconverged.infra_node_placement | to_nice_yaml(indent=6) | indent(4) }}
+{% endif %}
+{% if ocp_virt.hyperconverged.workloads_node_placement is defined %}
+  workloads:
+    nodePlacement: {{ ocp_virt.hyperconverged.workloads_node_placement | to_nice_yaml(indent=6) | indent(4) }}
+{% endif %}

@@ -1,0 +1,28 @@
+---
+# playbooks/operators/install_ocp_virt.yaml
+#
+# Installs OpenShift Virtualization (OCP Virt) on a running OCP 4.19+ cluster.
+# Requires: cluster verified (7_ocp_verification.yaml completed).
+# Runs on:  bastion (oc + kubeconfig available).
+#
+# Before running:
+#   cp inventories/default/group_vars/operators.yaml.template \
+#      inventories/default/group_vars/operators.yaml
+#   # Edit operators.yaml and configure the ocp_virt: variables.
+#
+# Usage:
+#   ansible-playbook playbooks/operators/install_ocp_virt.yaml --ask-vault-pass
+
+- name: Install OpenShift Virtualization
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/operators.yaml"
+  environment:
+    KUBECONFIG: "{{ ocp_virt_kubeconfig }}"
+  roles:
+    - role: install_nfd_operator
+    - role: install_cert_manager_operator
+    - role: install_ocp_virt_operator

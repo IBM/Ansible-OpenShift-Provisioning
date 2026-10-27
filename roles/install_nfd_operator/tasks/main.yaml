@@ -1,0 +1,64 @@
+---
+# Install the Node Feature Discovery (NFD) Operator.
+# NFD labels cluster nodes with hardware capability data used by OCP Virt
+# to schedule VMs on nodes with the correct CPU features (e.g. gen15b on s390x).
+
+- name: NFD | Create Namespace manifest
+  ansible.builtin.template:
+    src: Namespace.yaml.j2
+    dest: /root/ansible_workdir/nfd-Namespace.yaml
+    mode: '0644'
+
+- name: NFD | Apply Namespace
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/nfd-Namespace.yaml
+  changed_when: true
+
+- name: NFD | Create OperatorGroup manifest
+  ansible.builtin.template:
+    src: OperatorGroup.yaml.j2
+    dest: /root/ansible_workdir/nfd-OperatorGroup.yaml
+    mode: '0644'
+
+- name: NFD | Apply OperatorGroup
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/nfd-OperatorGroup.yaml
+  changed_when: true
+
+- name: NFD | Create Subscription manifest
+  ansible.builtin.template:
+    src: Subscription.yaml.j2
+    dest: /root/ansible_workdir/nfd-Subscription.yaml
+    mode: '0644'
+
+- name: NFD | Apply Subscription
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/nfd-Subscription.yaml
+  changed_when: true
+
+- name: NFD | Wait for CSV to reach Succeeded
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get csv -n openshift-nfd --no-headers 2>/dev/null \
+      | awk '{print $NF}' | grep -c Succeeded || true
+  register: _nfd_csv_succeeded
+  until: _nfd_csv_succeeded.stdout | int >= 1
+  retries: "{{ (nfd_csv_timeout | int / 10) | int }}"
+  delay: 10
+  changed_when: false
+
+- name: NFD | Create NodeFeatureDiscovery CR
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: nfd.openshift.io/v1
+      kind: NodeFeatureDiscovery
+      metadata:
+        name: nfd-instance
+        namespace: openshift-nfd
+      spec:
+        instance: ""
+        topologyupdater: false
+
+- name: NFD | Wait for nfd-worker DaemonSet rollout
+  ansible.builtin.command: >-
+    oc rollout status daemonset nfd-worker -n openshift-nfd
+    --timeout={{ nfd_csv_timeout }}s
+  changed_when: false

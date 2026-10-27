@@ -1,0 +1,103 @@
+---
+# Day-2 operator variables for OpenShift Virtualization.
+#
+# Usage:
+#   cp inventories/default/group_vars/operators.yaml.template \
+#      inventories/default/group_vars/operators.yaml
+#   # Edit operators.yaml and fill in your values.
+#   ansible-playbook playbooks/operators/install_ocp_virt.yaml --ask-vault-pass
+#
+# operators.yaml is gitignored; this template is tracked by git.
+
+# Path to the cluster kubeconfig on the bastion.
+# The 5_setup_bastion.yaml playbook copies it to ~/.kube/config automatically.
+# Override if your bastion stores it elsewhere, e.g.:
+#   /root/ocpinst/auth/kubeconfig  (raw install directory)
+#   /home/myuser/.kube/config      (non-root bastion user)
+ocp_virt_kubeconfig: ~/.kube/config
+
+ocp_virt:
+  # Subscription channel for the kubevirt-hyperconverged operator.
+  # 'stable' always resolves to the version matching the cluster (recommended).
+  # Pin to a specific release with e.g. 'stable-4.22'.
+  channel: stable
+
+  # Automatic: the cluster applies InstallPlans without manual approval.
+  # Manual: an administrator must approve each InstallPlan before upgrades proceed.
+  install_plan_approval: Automatic
+
+  hyperconverged:
+    # Name and namespace of the HyperConverged CR. These values must not be changed
+    # once the operator is installed — OLM hard-codes them.
+    name: kubevirt-hyperconverged
+    namespace: openshift-cnv
+
+    # CPU model exposed to VMs.
+    # IBM Z / LinuxONE values (QEMU cpu_models.c name → hardware):
+    #   gen15a  — z15 T01 / LinuxONE III (model 8561)
+    #   gen15b  — z15 T02 / LinuxONE III (model 8562)   ← OCP 4.22 documented default
+    #   gen16a  — z16 (model 3931)
+    #   gen16b  — z16 / LinuxONE 4 (model 3932)
+    #   gen17a  — z17 (model 9175)
+    #   gen17b  — z17 / LinuxONE 5 (model 9176)          ← requires QEMU >= 9.2 on nodes
+    # x86 clusters: set to '' (empty string) to use the cluster default.
+    default_cpu_model: gen15b
+
+    # Extra feature gates (map of gate-name: true/false).
+    # Leave empty ({}) to use HCO defaults.
+    feature_gates: {}
+
+    # Uncomment and configure to pin virt infrastructure pods (virt-controller,
+    # virt-api, CDI pods) to specific nodes.
+    # infra_node_placement:
+    #   nodeSelector:
+    #     node-role.kubernetes.io/infra: ""
+    #   tolerations:
+    #   - key: node-role.kubernetes.io/infra
+    #     effect: NoSchedule
+
+    # Uncomment and configure to pin VM workload pods (virt-launcher) to
+    # specific nodes.
+    # workloads_node_placement:
+    #   nodeSelector:
+    #     node-role.kubernetes.io/worker: ""
+
+  # Timeout values (seconds). Increase on slow networks or large clusters.
+  csv_timeout: 600    # Wait for each CSV to reach Succeeded
+  hco_timeout: 900    # Wait for HyperConverged CR to reach Available
+  pod_timeout: 300    # Wait for the kubevirt-hyperconverged operator pod
+
+  test_vm:
+    # Set create: true to deploy a test VM after the operator is installed.
+    # The VM proves the full stack end-to-end: HyperConverged → CDI import →
+    # default StorageClass → VM boot.
+    create: false
+
+    # keep: true  — leave the VM, its PVC, and namespace in place after verification.
+    # keep: false — delete all test resources after the VM is verified Running (smoke test).
+    keep: false
+
+    # Unique name (used for the VirtualMachine, DataVolume, and test namespace).
+    name: ocp-virt-test
+    namespace: ocp-virt-test
+
+    # Required when create: true.
+    # An s390x qcow2 guest image reachable over HTTP(S) from the cluster nodes.
+    # Example: http://<file_server_ip>:<port>/pub/rhel-9-s390x-kvm.qcow2
+    image_url: ""
+
+    disk_size: 20Gi
+
+    # Storage class for the root disk PVC.
+    # Leave empty to use the cluster's default StorageClass.
+    storage_class: ""
+
+    cpu_cores: 2
+    memory: 4Gi
+
+    # Optional SSH public key injected via cloud-init for user 'cloud-user'.
+    # Without this key, the VM boots but is only accessible via 'virtctl console'.
+    ssh_public_key: ""
+
+    dv_timeout: 1800   # Seconds to wait for the DataVolume (CDI image import) to finish
+    vm_timeout: 600    # Seconds to wait for the VM to become Ready

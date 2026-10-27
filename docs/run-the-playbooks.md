@@ -248,3 +248,67 @@ In case the cluster needs to be completely reinstalled, run this playbook. It wi
 ## Test Playbook (test.yaml)
 ### Overview
 * Use this playbook for your testing purposes, if needed.
+
+## Install OpenShift Virtualization (playbooks/operators/install_ocp_virt.yaml)
+### Overview
+Installs OpenShift Virtualization as a day-2 operator on a running OCP 4.19+ cluster on IBM Z / LinuxONE (s390x).
+Runs on the bastion after `7_ocp_verification.yaml` has completed.
+Installs Node Feature Discovery, cert-manager, and the OpenShift Virtualization operator
+in sequence. Creates the `HyperConverged` CR to activate the full virtualization stack.
+### Usage
+Before running, copy the template and configure your variables:
+```
+cp inventories/default/group_vars/operators.yaml.template \
+   inventories/default/group_vars/operators.yaml
+# Edit operators.yaml — at minimum set ocp_virt.hyperconverged.default_cpu_model
+```
+Then run the playbook:
+```
+ansible-playbook playbooks/operators/install_ocp_virt.yaml --ask-vault-pass
+```
+### Outcomes
+* NFD Operator installed and node labelling active (CPU model labels on each node).
+* cert-manager Operator installed.
+* OpenShift Virtualization Operator installed in `openshift-cnv` namespace.
+* `HyperConverged` CR created — virtualization stack active.
+* `virt-operator`, `virt-controller`, `virt-handler` pods running.
+* Optional: a test VM is created and verified `Running` (`ocp_virt.test_vm.create: true`)
+  and either kept or removed again (`ocp_virt.test_vm.keep`).
+### Notes
+* Requires OCP 4.19 or later (s390x GA release for OpenShift Virtualization). The playbook
+  fails with a clear message on older versions.
+* The cluster must be installed on LPAR nodes. VM scheduling requires hardware virtualisation
+  at the LPAR level.
+* A default StorageClass must exist before running. Storage provisioner setup (ODF, HPP, etc.)
+  is out of scope — complete it first, then run this playbook.
+* The `stable` channel always resolves to the OCP Virt version matching the cluster.
+  Pin to a specific release with `ocp_virt.channel: stable-4.22`.
+* The test VM requires an s390x qcow2 guest image (e.g. RHEL 9 KVM Guest Image for s390x)
+  reachable over HTTP(S) from the cluster nodes, for example hosted on the bastion file server.
+* Copy `operators.yaml.template` to `operators.yaml` and configure `ocp_virt:` variables
+  before running (see `inventories/default/group_vars/operators.yaml.template`).
+
+## Uninstall OpenShift Virtualization (playbooks/operators/uninstall_ocp_virt.yaml)
+### Overview
+Removes OpenShift Virtualization, cert-manager, and NFD from the cluster in reverse
+installation order. Follows the OCP 4.22 uninstall procedure. All `VirtualMachine`
+and `VirtualMachineInstance` objects must be deleted before running — the playbook
+aborts with a clear message if any remain.
+### Usage
+```
+ansible-playbook playbooks/operators/uninstall_ocp_virt.yaml \
+  -e ocp_virt_uninstall_confirm=true --ask-vault-pass
+```
+### Outcomes
+* `HyperConverged` CR deleted — virtualization stack deactivated.
+* OpenShift Virtualization Operator, CSV, and CRDs removed.
+* `openshift-cnv` namespace deleted.
+* cert-manager Operator, CSV, and `cert-manager` namespaces deleted.
+* NFD `NodeFeatureDiscovery` CR, Operator, CSV, and `openshift-nfd` namespace deleted.
+### Notes
+* **Requires `-e ocp_virt_uninstall_confirm=true`** — the play aborts immediately
+  without this flag to prevent accidental runs.
+* Will abort with a clear message if any VMs or VMIs still exist on the cluster.
+* Cluster operators and compute nodes are not affected.
+* StorageClasses, PVCs, and NFD node labels are **not** removed by this playbook.
+* `operators.yaml` must still be present (same requirement as the install playbook).

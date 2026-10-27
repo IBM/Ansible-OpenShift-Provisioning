@@ -1,0 +1,14 @@
+---
+# Path to the cluster kubeconfig on the bastion.
+# Overridden in operators.yaml by ocp_virt_kubeconfig.
+ocp_virt_kubeconfig: ~/.kube/config
+
+# Safety guard — must be overridden on the command line to allow the uninstall
+# to proceed. Prevents accidental runs.
+#
+#   ansible-playbook playbooks/operators/uninstall_ocp_virt.yaml \
+#     -e ocp_virt_uninstall_confirm=true --ask-vault-pass
+ocp_virt_uninstall_confirm: false
+
+# Seconds to wait for each namespace to fully terminate after deletion.
+ocp_virt_uninstall_ns_timeout: 300

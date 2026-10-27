@@ -1,0 +1,179 @@
+---
+# Uninstall OpenShift Virtualization and its prerequisite operators
+# (cert-manager, NFD) in reverse installation order.
+#
+# DESTRUCTIVE — all VMs and VMIs must be removed before running.
+# Pass -e ocp_virt_uninstall_confirm=true to proceed.
+
+###############################################################################
+# Safety guard
+###############################################################################
+
+- name: "Uninstall | confirm intent"
+  ansible.builtin.assert:
+    that:
+      - ocp_virt_uninstall_confirm | bool
+    fail_msg: >-
+      Refusing to uninstall. Pass -e ocp_virt_uninstall_confirm=true on the
+      ansible-playbook command line to confirm you want to remove OpenShift
+      Virtualization, cert-manager, and NFD from the cluster.
+
+###############################################################################
+# Pre-flight: no running workloads
+###############################################################################
+
+- name: "Uninstall | check for existing VMs and VMIs"
+  ansible.builtin.command: >-
+    oc get vm,vmi --all-namespaces --no-headers
+  changed_when: false
+  register: _existing_vms
+  failed_when: false
+
+- name: "Uninstall | fail if VMs or VMIs still exist"
+  ansible.builtin.fail:
+    msg: >-
+      Found VirtualMachine or VirtualMachineInstance objects still present on
+      the cluster. Delete all VMs and VMIs before uninstalling OpenShift
+      Virtualization:
+      {{ _existing_vms.stdout }}
+  when: _existing_vms.stdout | trim | length > 0
+
+###############################################################################
+# OCP Virt — HyperConverged CR, Subscription, CSV, CRDs, namespace
+###############################################################################
+
+- name: "Uninstall | delete HyperConverged CR"
+  ansible.builtin.command: >-
+    oc delete hyperconverged {{ ocp_virt.hyperconverged.name }}
+    -n {{ ocp_virt.hyperconverged.namespace }}
+    --ignore-not-found
+    --timeout={{ ocp_virt_uninstall_ns_timeout }}s
+  changed_when: true
+
+- name: "Uninstall | delete OCP Virt Subscription"
+  ansible.builtin.command: >-
+    oc delete subscription kubevirt-hyperconverged
+    -n {{ ocp_virt.hyperconverged.namespace }}
+    --ignore-not-found
+  changed_when: true
+
+- name: "Uninstall | delete OCP Virt CSV"
+  ansible.builtin.command: >-
+    oc delete csv
+    -n {{ ocp_virt.hyperconverged.namespace }}
+    -l operators.coreos.com/kubevirt-hyperconverged.{{ ocp_virt.hyperconverged.namespace }}
+    --ignore-not-found
+  changed_when: true
+
+- name: "Uninstall | delete OCP Virt CRDs"
+  ansible.builtin.command: >-
+    oc delete crd
+    -l operators.coreos.com/kubevirt-hyperconverged.{{ ocp_virt.hyperconverged.namespace }}
+    --ignore-not-found
+  changed_when: true
+
+- name: "Uninstall | delete openshift-cnv namespace"
+  ansible.builtin.command: >-
+    oc delete namespace {{ ocp_virt.hyperconverged.namespace }} --ignore-not-found
+  changed_when: true
+
+- name: "Uninstall | wait for openshift-cnv namespace to terminate"
+  ansible.builtin.command: >-
+    oc wait namespace {{ ocp_virt.hyperconverged.namespace }}
+    --for=delete --timeout={{ ocp_virt_uninstall_ns_timeout }}s
+  changed_when: false
+  failed_when: false
+
+###############################################################################
+# cert-manager — Subscription, CSV, namespaces
+###############################################################################
+
+- name: "Uninstall | delete cert-manager Subscription"
+  ansible.builtin.command: >-
+    oc delete subscription openshift-cert-manager-operator
+    -n {{ cert_manager_namespace }}
+    --ignore-not-found
+  changed_when: true
+
+- name: "Uninstall | delete cert-manager CSV"
+  ansible.builtin.command: >-
+    oc delete csv
+    -n {{ cert_manager_namespace }}
+    -l operators.coreos.com/openshift-cert-manager-operator.{{ cert_manager_namespace }}
+    --ignore-not-found
+  changed_when: true
+
+- name: "Uninstall | delete cert-manager-operator namespace"
+  ansible.builtin.command: >-
+    oc delete namespace {{ cert_manager_namespace }} --ignore-not-found
+  changed_when: true
+
+- name: "Uninstall | wait for cert-manager-operator namespace to terminate"
+  ansible.builtin.command: >-
+    oc wait namespace {{ cert_manager_namespace }}
+    --for=delete --timeout={{ ocp_virt_uninstall_ns_timeout }}s
+  changed_when: false
+  failed_when: false
+
+- name: "Uninstall | delete cert-manager namespace"
+  ansible.builtin.command: >-
+    oc delete namespace cert-manager --ignore-not-found
+  changed_when: true
+
+- name: "Uninstall | wait for cert-manager namespace to terminate"
+  ansible.builtin.command: >-
+    oc wait namespace cert-manager
+    --for=delete --timeout={{ ocp_virt_uninstall_ns_timeout }}s
+  changed_when: false
+  failed_when: false
+
+###############################################################################
+# NFD — NodeFeatureDiscovery CR, Subscription, CSV, namespace
+###############################################################################
+
+- name: "Uninstall | delete NodeFeatureDiscovery CR"
+  ansible.builtin.command: >-
+    oc delete nodefeaturediscovery nfd-instance
+    -n {{ nfd_namespace }}
+    --ignore-not-found
+    --timeout={{ ocp_virt_uninstall_ns_timeout }}s
+  changed_when: true
+
+- name: "Uninstall | delete NFD Subscription"
+  ansible.builtin.command: >-
+    oc delete subscription nfd
+    -n {{ nfd_namespace }}
+    --ignore-not-found
+  changed_when: true
+
+- name: "Uninstall | delete NFD CSV"
+  ansible.builtin.command: >-
+    oc delete csv
+    -n {{ nfd_namespace }}
+    -l operators.coreos.com/nfd.{{ nfd_namespace }}
+    --ignore-not-found
+  changed_when: true
+
+- name: "Uninstall | delete openshift-nfd namespace"
+  ansible.builtin.command: >-
+    oc delete namespace {{ nfd_namespace }} --ignore-not-found
+  changed_when: true
+
+- name: "Uninstall | wait for openshift-nfd namespace to terminate"
+  ansible.builtin.command: >-
+    oc wait namespace {{ nfd_namespace }}
+    --for=delete --timeout={{ ocp_virt_uninstall_ns_timeout }}s
+  changed_when: false
+  failed_when: false
+
+###############################################################################
+# Summary
+###############################################################################
+
+- name: "Uninstall | print completion summary"
+  ansible.builtin.debug:
+    msg:
+      - "OpenShift Virtualization uninstall complete."
+      - "Removed: {{ ocp_virt.hyperconverged.namespace }}, {{ cert_manager_namespace }}, cert-manager, {{ nfd_namespace }} namespaces."
+      - "OCP Virt CRDs removed. Cluster operators and compute nodes are unchanged."
+      - "Note: StorageClasses, PVCs, and NFD node labels are not removed by this playbook."

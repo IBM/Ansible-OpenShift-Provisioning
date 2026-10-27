@@ -1,0 +1,56 @@
+---
+# Install the cert-manager Operator for Red Hat OpenShift.
+# cert-manager handles internal TLS certificate management for OCP Virtualization
+# and is required for IBM Secure Execution (SE) VM deployments on s390x.
+
+- name: cert-manager | Create Namespace manifest
+  ansible.builtin.template:
+    src: Namespace.yaml.j2
+    dest: /root/ansible_workdir/cert-manager-Namespace.yaml
+    mode: '0644'
+
+- name: cert-manager | Apply Namespace
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/cert-manager-Namespace.yaml
+  changed_when: true
+
+- name: cert-manager | Create OperatorGroup manifest
+  ansible.builtin.template:
+    src: OperatorGroup.yaml.j2
+    dest: /root/ansible_workdir/cert-manager-OperatorGroup.yaml
+    mode: '0644'
+
+- name: cert-manager | Apply OperatorGroup
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/cert-manager-OperatorGroup.yaml
+  changed_when: true
+
+- name: cert-manager | Create Subscription manifest
+  ansible.builtin.template:
+    src: Subscription.yaml.j2
+    dest: /root/ansible_workdir/cert-manager-Subscription.yaml
+    mode: '0644'
+
+- name: cert-manager | Apply Subscription
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/cert-manager-Subscription.yaml
+  changed_when: true
+
+- name: cert-manager | Wait for CSV to reach Succeeded
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get csv -n "{{ cert_manager_namespace }}" --no-headers 2>/dev/null \
+      | awk '{print $NF}' | grep -c Succeeded || true
+  register: _cert_manager_csv_succeeded
+  until: _cert_manager_csv_succeeded.stdout | int >= 1
+  retries: "{{ (cert_manager_csv_timeout | int / 10) | int }}"
+  delay: 10
+  changed_when: false
+
+- name: cert-manager | Wait for cert-manager pods to be Running
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get pods -n cert-manager --no-headers 2>/dev/null \
+      | awk '$3=="Running"' | wc -l
+  register: _cert_manager_pods_running
+  until: _cert_manager_pods_running.stdout | int >= 3
+  retries: "{{ (cert_manager_pod_timeout | int / 10) | int }}"
+  delay: 10
+  changed_when: false

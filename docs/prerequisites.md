@@ -92,3 +92,18 @@ In addition make sure that python3 is installed on the jumphost otherwise ansibl
 ```
 yum install python3 
 ```
+
+## OpenShift Virtualization (day-2 operator)
+* Requires **OCP 4.19 or later** on IBM Z / LinuxONE (s390x GA release).
+* The cluster nodes must be installed on **bare-metal LPARs** — not z/VM guests or KVM VMs.
+  Hardware virtualisation at the LPAR level is required.
+* A **default StorageClass must exist** before running the install playbook.
+  CDI (deployed by the `HyperConverged` CR) requires it for scratch space and boot-source
+  image import. Set up a storage provisioner (ODF, HPP, etc.) and mark a StorageClass as
+  default before running `playbooks/operators/install_ocp_virt.yaml`.
+* The `kubernetes.core` Ansible collection must be installed on the Ansible controller:
+```
+ansible-galaxy collection install kubernetes.core
+```
+* For the optional test VM, an s390x qcow2 guest image (e.g. RHEL 9 KVM Guest Image for
+  s390x) must be reachable over HTTP(S) from the cluster nodes.

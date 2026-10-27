@@ -3,6 +3,7 @@
 !all.yaml.template
 !secrets.yaml.template
 !hcp.yaml.template
+!operators.yaml.template
 !disconnected.yaml
 !zvm.yaml
 
