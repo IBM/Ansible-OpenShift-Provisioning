@@ -11,7 +11,8 @@
         name: "{{ hcp.mgmt_cluster_bastion.ip }}"
         groups: mgmt_bastion
         ansible_user: root
-        ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}"
+        ansible_ssh_private_key_file: >-
+          {{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}
         ansible_connection: ssh
         inventory_dir: "{{ playbook_dir }}/../inventories/default"
 
@@ -24,7 +25,8 @@
     - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
     - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   vars:
-    infra_ns_ip: "{{ (hcp.external_infra | default({})).nameserver | default(hcp.infra_cluster_nameserver | default('', true), true) }}"
+    ext_ns: "{{ (hcp.external_infra | default({})).nameserver | default('', true) }}"
+    infra_ns_ip: "{{ ext_ns | default(hcp.infra_cluster_nameserver | default('', true), true) }}"
   tasks:
     - name: Configure external infra nameserver as forwarder in named.conf
       when: infra_ns_ip is defined and infra_ns_ip | trim | length > 0

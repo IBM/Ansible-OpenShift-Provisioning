@@ -40,7 +40,8 @@
   ansible.builtin.shell: |
     set -o pipefail
     total=$(oc get po -n {{ metallb_ns }} --no-headers 2>/dev/null | wc -l)
-    not_running=$(oc get po -n {{ metallb_ns }} --no-headers 2>/dev/null | awk '{print $3}' | grep -vE '^(Running|Completed|Succeeded)$' | wc -l)
+    not_running=$(oc get po -n {{ metallb_ns }} --no-headers 2>/dev/null \
+      | awk '{print $3}' | grep -vE '^(Running|Completed|Succeeded)$' | wc -l)
     echo "${total} ${not_running}"
   register: metallb_pods_status
   until: >
@@ -278,7 +279,8 @@
   ansible.builtin.shell: |
     set -o pipefail
     total=$(oc get po -n {{ ocpvirt_ns }} --no-headers 2>/dev/null | wc -l)
-    not_running=$(oc get po -n {{ ocpvirt_ns }} --no-headers 2>/dev/null | awk '{print $3}' | grep -vE '^(Running|Completed|Succeeded)$' | wc -l)
+    not_running=$(oc get po -n {{ ocpvirt_ns }} --no-headers 2>/dev/null \
+      | awk '{print $3}' | grep -vE '^(Running|Completed|Succeeded)$' | wc -l)
     echo "${total} ${not_running}"
   register: ocpvirt_pods_status
   until: >

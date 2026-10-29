@@ -29,7 +29,9 @@
 
 - name: Skip MetalLB install when already present
   ansible.builtin.debug:
-    msg: "MetalLB subscription already exists in {{ hcp.metallb.namespace | default('metallb-system', true) }}, skipping install_metallb_operator role."
+    msg: >-
+      MetalLB subscription already exists in {{ hcp.metallb.namespace | default('metallb-system', true) }},
+      skipping install_metallb_operator role.
   when: metallb_already_present
 
 - name: Install and configure MetalLB
@@ -39,7 +41,9 @@
       vars:
         active_ip_pool: "{{ metallb_ip_pool | default(hcp.metallb.ip_pool) }}"
       ansible.builtin.fail:
-        msg: "Set hcp.metallb.ip_pool or hcp.metallb.infra_ip_pool (string range or list of ranges), for example 172.23.232.141-172.23.232.142."
+        msg: >-
+          Set hcp.metallb.ip_pool or hcp.metallb.infra_ip_pool (string range or list of ranges),
+          for example 172.23.232.141-172.23.232.142.
       when: >
         active_ip_pool is not defined or
         (

@@ -11,16 +11,21 @@
         name: "{{ hcp.mgmt_cluster_bastion.ip }}"
         groups: mgmt_bastion
         ansible_user: root
-        ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}"
+        ansible_ssh_private_key_file: >-
+          {{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}
         ansible_connection: ssh
         inventory_dir: "{{ playbook_dir }}/../inventories/default"
 
     - name: Add infra bastion dynamically
+      vars:
+        ext_infra_ip: "{{ ((hcp.external_infra | default({})).bastion | default({})).ip | default('', true) }}"
+        legacy_infra_ip: "{{ (hcp.infra_cluster_bastion | default({})).ip | default('', true) }}"
       ansible.builtin.add_host:
-        name: "{{ ((hcp.external_infra | default({})).bastion | default({})).ip | default((hcp.infra_cluster_bastion | default({})).ip | default(hcp.mgmt_cluster_bastion.ip, true)) }}"
+        name: "{{ ext_infra_ip | default(legacy_infra_ip, true) | default(hcp.mgmt_cluster_bastion.ip, true) }}"
         groups: infra_bastion
         ansible_user: root
-        ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}"
+        ansible_ssh_private_key_file: >-
+          {{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}
         ansible_connection: ssh
         inventory_dir: "{{ playbook_dir }}/../inventories/default"
 
@@ -33,7 +38,8 @@
     - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
     - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   vars:
-    infra_ns_ip: "{{ (hcp.external_infra | default({})).nameserver | default(hcp.infra_cluster_nameserver | default('', true), true) }}"
+    ext_ns: "{{ (hcp.external_infra | default({})).nameserver | default('', true) }}"
+    infra_ns_ip: "{{ ext_ns | default(hcp.infra_cluster_nameserver | default('', true), true) }}"
   tasks:
     - name: Configure external infra nameserver as forwarder in named.conf
       when: infra_ns_ip is defined and infra_ns_ip | trim | length > 0
@@ -124,11 +130,17 @@
     - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
     - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   vars:
-    vault_api_server: "{{ (hcp.external_infra | default({})).oc_url | default(hcp.infra_oc_url | default(hcp.oc_url, true), true) }}"
+    ext_oc_url: "{{ (hcp.external_infra | default({})).oc_url | default('', true) }}"
+    vault_api_server: >-
+      {{ ext_oc_url | default(hcp.infra_oc_url | default('', true), true) | default(hcp.oc_url, true) }}
     vault_user_name: "{{ vault_infra_ocp_user | default(vault_ocp_user) }}"
     vault_password: "{{ vault_infra_ocp_password | default(vault_ocp_password) }}"
-    infra_kubeconfig: "{{ (hcp.external_infra | default({})).kubeconfig_path | default(hcp.infra_kubeconfig_path | default('/root/infra-cluster-kubeconfig', true), true) }}"
-    infra_vm_namespace: "{{ (hcp.external_infra | default({})).namespace | default(hcp.infra_namespace | default('ext-infra-vms-ns', true), true) }}"
+    ext_kc_path: "{{ (hcp.external_infra | default({})).kubeconfig_path | default('', true) }}"
+    infra_kubeconfig: >-
+      {{ ext_kc_path | default(hcp.infra_kubeconfig_path | default('/root/infra-cluster-kubeconfig', true), true) }}
+    ext_vm_ns: "{{ (hcp.external_infra | default({})).namespace | default('', true) }}"
+    infra_vm_namespace: >-
+      {{ ext_vm_ns | default(hcp.infra_namespace | default('ext-infra-vms-ns', true), true) }}
   roles:
     - login_to_mgmt_cluster
   tasks:
@@ -169,7 +181,9 @@
     - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
     - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   vars:
-    infra_kubeconfig: "{{ (hcp.external_infra | default({})).kubeconfig_path | default(hcp.infra_kubeconfig_path | default('/root/infra-cluster-kubeconfig', true), true) }}"
+    ext_kc_path: "{{ (hcp.external_infra | default({})).kubeconfig_path | default('', true) }}"
+    infra_kubeconfig: >-
+      {{ ext_kc_path | default(hcp.infra_kubeconfig_path | default('/root/infra-cluster-kubeconfig', true), true) }}
   tasks:
     - name: Write infra cluster kubeconfig on management cluster bastion
       ansible.builtin.copy:
