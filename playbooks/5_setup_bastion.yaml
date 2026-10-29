@@ -68,16 +68,16 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   vars:
-    ssh_target: >-
-      [
-        "{{ env.bastion.networking.ip }}",
-        "{{ env.bastion.access.user }}",
-        "{{ env.bastion.access.pass }}",
-        "{{ path_to_key_pair }}",
-        "{{ (env.jumphost.user + '@' + env.jumphost.ip) if (env.network_mode | upper == 'NAT' and env.jumphost.ip is not none) else '' }}"
-      ]
+    is_nat: "{{ env.network_mode | upper == 'NAT' }}"
+    jumphost_proxy: "{{ is_nat | bool | ternary(env.jumphost.user ~ '@' ~ env.jumphost.ip, '') }}"
+    ssh_target:
+      - "{{ env.bastion.networking.ip }}"
+      - "{{ env.bastion.access.user }}"
+      - "{{ env.bastion.access.pass }}"
+      - "{{ path_to_key_pair }}"
+      - "{{ jumphost_proxy }}"
   roles:
-    - role: ssh_copy_id
+    - { role: ssh_copy_id }
 
 - name: 5 setup bastion - copy SSH key from jumphost to bastion (NAT only).
   hosts: jumphost
