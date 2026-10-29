@@ -28,7 +28,12 @@ hcp:
   metallb:
     version: stable
     delete: false
-    ip_pool: #minimum 2 free IPs are required in the subnet for MetalLB to work properly. You can provide a single IP or IP ranges. For example:
+    # IP pool for Management Cluster (minimum 2 free IPs are required in the subnet for MetalLB to work properly)
+    ip_pool: # For example:
+    #- x.x.x.x-x.x.x.x
+    #- x.x.x.x-x.x.x.y
+    # IP pool for External Infra Cluster (if using external infra cluster)
+    infra_ip_pool: # For example:
     #- x.x.x.x-x.x.x.x
     #- x.x.x.x-x.x.x.y
     catalogsource_image: ""  # Required only if we need to create the Catalogsource for installing metallb operator

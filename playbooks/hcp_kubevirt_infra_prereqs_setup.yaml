@@ -122,7 +122,9 @@
         - disconnected_catalogsource_name is defined
 
   roles:
-    - install_metallb_operator
+    - role: install_metallb_operator
+      vars:
+        metallb_ip_pool: "{{ (hcp.metallb | default({})).infra_ip_pool | default(hcp.metallb.ip_pool) }}"
     - install_ocpvirt_operator
     - role: install_lso_operator
       when: ((hcp.storage_for_infra | default({})).type | default(hcp.storage.type)) == "odf"

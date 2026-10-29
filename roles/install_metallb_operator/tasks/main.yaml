@@ -36,16 +36,18 @@
   when: not metallb_already_present
   block:
     - name: Validate MetalLB address pool input
+      vars:
+        active_ip_pool: "{{ metallb_ip_pool | default(hcp.metallb.ip_pool) }}"
       ansible.builtin.fail:
-        msg: "Set hcp.metallb.ip_pool (string range or list of ranges), for example 172.23.232.141-172.23.232.142."
+        msg: "Set hcp.metallb.ip_pool or hcp.metallb.infra_ip_pool (string range or list of ranges), for example 172.23.232.141-172.23.232.142."
       when: >
-        hcp.metallb.ip_pool is not defined or
+        active_ip_pool is not defined or
         (
-          (hcp.metallb.ip_pool is string and hcp.metallb.ip_pool | trim | length == 0) or
+          (active_ip_pool is string and active_ip_pool | trim | length == 0) or
           (
-            hcp.metallb.ip_pool is sequence and hcp.metallb.ip_pool is not string and
+            active_ip_pool is sequence and active_ip_pool is not string and
             (
-              hcp.metallb.ip_pool | reject('equalto', None) | map('string') | map('trim') | reject('equalto', '') | list | length == 0
+              active_ip_pool | reject('equalto', None) | map('string') | map('trim') | reject('equalto', '') | list | length == 0
             )
           )
         )
