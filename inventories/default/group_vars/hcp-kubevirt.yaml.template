@@ -7,13 +7,17 @@ hcp:
     ip:               # Your bastion IP
     root_password: "{{ vault_bastion_root_pass }}"
 
-  # External Infra Cluster Parameters for oc login (if using external infra cluster)
-  infra_cluster_nameserver:
-  infra_oc_url:
-
-  infra_cluster_bastion:
-    ip:               # Your infra cluster bastion IP (leave empty if same as mgmt_cluster_bastion)
-    root_password: "{{ vault_infra_bastion_root_pass }}"
+  # ============================================================================
+  # External Infrastructure Cluster Parameters (HCP KubeVirt with External Infra)
+  # ============================================================================
+  external_infra:
+    nameserver:       # Nameserver IP of external infra cluster (added as forwarder in mgmt cluster named.conf)
+    oc_url:           # API server URL of external infra cluster
+    namespace: ext-infra-vms-ns  # Namespace created on external infra cluster for KubeVirt worker VMs
+    kubeconfig_path: /root/infra-cluster-kubeconfig  # Location to store infra cluster kubeconfig on mgmt bastion
+    bastion:
+      ip:             # Infra bastion IP (leave empty if same as mgmt_cluster_bastion)
+      root_password: "{{ vault_infra_bastion_root_pass }}"
 
   ansible_key_name:
 

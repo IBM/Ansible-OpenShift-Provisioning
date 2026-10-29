@@ -15,6 +15,52 @@
         ansible_connection: ssh
         inventory_dir: "{{ playbook_dir }}/../inventories/default"
 
+# Configure DNS Forwarder on Management Cluster Bastion (if external infra configured)
+- name: Configure DNS Forwarder on Management Cluster Bastion
+  hosts: mgmt_bastion
+  become: true
+  gather_facts: false
+  vars_files:
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+  vars:
+    infra_ns_ip: "{{ (hcp.external_infra | default({})).nameserver | default(hcp.infra_cluster_nameserver | default('', true), true) }}"
+  tasks:
+    - name: Configure external infra nameserver as forwarder in named.conf
+      when: infra_ns_ip is defined and infra_ns_ip | trim | length > 0
+      block:
+        - name: Check if /etc/named.conf exists
+          ansible.builtin.stat:
+            path: /etc/named.conf
+          register: mgmt_named_conf
+
+        - name: Check if infra nameserver is already configured in named.conf
+          ansible.builtin.command: grep -q "{{ infra_ns_ip }}" /etc/named.conf
+          register: mgmt_fwd_check
+          changed_when: false
+          failed_when: false
+          when: mgmt_named_conf.stat.exists
+
+        - name: Add forwarders block to options if missing
+          ansible.builtin.replace:
+            path: /etc/named.conf
+            regexp: '(options\s*\{(?:\s*\n)?)'
+            replace: '\1\tforwarders { {{ infra_ns_ip }}; };\n'
+          when:
+            - mgmt_named_conf.stat.exists
+            - mgmt_fwd_check.rc != 0
+          register: mgmt_named_updated
+
+        - name: Restart named service on management bastion
+          ansible.builtin.systemd:
+            name: named
+            state: restarted
+          when:
+            - mgmt_named_conf.stat.exists
+            - mgmt_named_updated is defined
+            - mgmt_named_updated.changed
+          failed_when: false
+
 # Login to OCP Management Cluster (from bastion)
 - name: Login to OCP Management Cluster
   hosts: mgmt_bastion

@@ -1,35 +1,194 @@
 ---
-# Dynamically Add Infra Bastion Host
-- name: Add Infra Bastion Host to Inventory
+# Dynamically Add Bastion Hosts to Inventory
+- name: Add Bastion Hosts to Inventory
   hosts: localhost
   vars_files:
     - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
     - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   tasks:
+    - name: Add management bastion dynamically
+      ansible.builtin.add_host:
+        name: "{{ hcp.mgmt_cluster_bastion.ip }}"
+        groups: mgmt_bastion
+        ansible_user: root
+        ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}"
+        ansible_connection: ssh
+        inventory_dir: "{{ playbook_dir }}/../inventories/default"
+
     - name: Add infra bastion dynamically
       ansible.builtin.add_host:
-        name: "{{ (hcp.infra_cluster_bastion | default({})).ip | default(hcp.mgmt_cluster_bastion.ip, true) }}"
+        name: "{{ ((hcp.external_infra | default({})).bastion | default({})).ip | default((hcp.infra_cluster_bastion | default({})).ip | default(hcp.mgmt_cluster_bastion.ip, true)) }}"
         groups: infra_bastion
         ansible_user: root
         ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') + '/.ssh/' + (hcp.ansible_key_name | default('ansible-ocpz', true)) }}"
         ansible_connection: ssh
         inventory_dir: "{{ playbook_dir }}/../inventories/default"
 
-# Login to OCP External Infra Cluster (from bastion)
-- name: Login to OCP External Infra Cluster
-  hosts: infra_bastion
+# Configure DNS Forwarder on Management Cluster Bastion
+- name: Configure DNS Forwarder on Management Cluster Bastion
+  hosts: mgmt_bastion
+  become: true
+  gather_facts: false
   vars_files:
     - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
     - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
   vars:
-    vault_api_server: "{{ hcp.infra_oc_url | default(hcp.oc_url, true) }}"
+    infra_ns_ip: "{{ (hcp.external_infra | default({})).nameserver | default(hcp.infra_cluster_nameserver | default('', true), true) }}"
+  tasks:
+    - name: Configure external infra nameserver as forwarder in named.conf
+      when: infra_ns_ip is defined and infra_ns_ip | trim | length > 0
+      block:
+        - name: Check if /etc/named.conf exists
+          ansible.builtin.stat:
+            path: /etc/named.conf
+          register: mgmt_named_conf
+
+        - name: Check if infra nameserver is already configured in named.conf
+          ansible.builtin.command: grep -q "{{ infra_ns_ip }}" /etc/named.conf
+          register: mgmt_fwd_check
+          changed_when: false
+          failed_when: false
+          when: mgmt_named_conf.stat.exists
+
+        - name: Add forwarders block to options if missing
+          ansible.builtin.replace:
+            path: /etc/named.conf
+            regexp: '(options\s*\{(?:\s*\n)?)'
+            replace: '\1\tforwarders { {{ infra_ns_ip }}; };\n'
+          when:
+            - mgmt_named_conf.stat.exists
+            - mgmt_fwd_check.rc != 0
+          register: mgmt_named_updated
+
+        - name: Restart named service on management bastion
+          ansible.builtin.systemd:
+            name: named
+            state: restarted
+          when:
+            - mgmt_named_conf.stat.exists
+            - mgmt_named_updated is defined
+            - mgmt_named_updated.changed
+          failed_when: false
+
+# Configure DNS Forwarder on External Infra Cluster Bastion
+- name: Configure DNS Forwarder on External Infra Cluster Bastion
+  hosts: infra_bastion
+  become: true
+  gather_facts: false
+  vars_files:
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+  vars:
+    mgmt_ns_ip: "{{ hcp.mgmt_cluster_nameserver | default('', true) }}"
+  tasks:
+    - name: Configure management cluster nameserver as forwarder in named.conf
+      when: mgmt_ns_ip is defined and mgmt_ns_ip | trim | length > 0
+      block:
+        - name: Check if /etc/named.conf exists
+          ansible.builtin.stat:
+            path: /etc/named.conf
+          register: infra_named_conf
+
+        - name: Check if mgmt nameserver is already configured in named.conf
+          ansible.builtin.command: grep -q "{{ mgmt_ns_ip }}" /etc/named.conf
+          register: infra_fwd_check
+          changed_when: false
+          failed_when: false
+          when: infra_named_conf.stat.exists
+
+        - name: Add forwarders block to options if missing
+          ansible.builtin.replace:
+            path: /etc/named.conf
+            regexp: '(options\s*\{(?:\s*\n)?)'
+            replace: '\1\tforwarders { {{ mgmt_ns_ip }}; };\n'
+          when:
+            - infra_named_conf.stat.exists
+            - infra_fwd_check.rc != 0
+          register: infra_named_updated
+
+        - name: Restart named service on infra bastion
+          ansible.builtin.systemd:
+            name: named
+            state: restarted
+          when:
+            - infra_named_conf.stat.exists
+            - infra_named_updated is defined
+            - infra_named_updated.changed
+          failed_when: false
+
+# Login to OCP External Infra Cluster, Create Namespace and Generate Kubeconfig
+- name: Login to OCP External Infra Cluster and Setup Kubeconfig
+  hosts: infra_bastion
+  become: true
+  vars_files:
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+  vars:
+    vault_api_server: "{{ (hcp.external_infra | default({})).oc_url | default(hcp.infra_oc_url | default(hcp.oc_url, true), true) }}"
     vault_user_name: "{{ vault_infra_ocp_user | default(vault_ocp_user) }}"
     vault_password: "{{ vault_infra_ocp_password | default(vault_ocp_password) }}"
+    infra_kubeconfig: "{{ (hcp.external_infra | default({})).kubeconfig_path | default(hcp.infra_kubeconfig_path | default('/root/infra-cluster-kubeconfig', true), true) }}"
+    infra_vm_namespace: "{{ (hcp.external_infra | default({})).namespace | default(hcp.infra_namespace | default('ext-infra-vms-ns', true), true) }}"
   roles:
     - login_to_mgmt_cluster
+  tasks:
+    - name: Generate infra cluster kubeconfig file
+      ansible.builtin.command: >
+        oc login {{ vault_api_server }}
+        -u {{ vault_user_name }}
+        -p {{ vault_password }}
+        --insecure-skip-tls-verify=true
+        --kubeconfig={{ infra_kubeconfig }}
+      changed_when: false
 
-# Check Node Resources
-- name: Check OCP Node Resource Usage
+    - name: Set permissions on infra cluster kubeconfig
+      ansible.builtin.file:
+        path: "{{ infra_kubeconfig }}"
+        mode: '0600'
+        state: file
+
+    - name: Create namespace for KubeVirt worker nodes on external infrastructure cluster
+      ansible.builtin.shell: |
+        oc get project {{ infra_vm_namespace }} 2>/dev/null || \
+        oc new-project {{ infra_vm_namespace }} || \
+        oc create namespace {{ infra_vm_namespace }}
+      register: infra_ns_create
+      changed_when: "'created' in infra_ns_create.stdout or 'Now using project' in infra_ns_create.stdout"
+      failed_when: infra_ns_create.rc != 0 and 'already exists' not in infra_ns_create.stderr
+
+    - name: Read infra kubeconfig content for placement on management bastion
+      ansible.builtin.slurp:
+        src: "{{ infra_kubeconfig }}"
+      register: infra_kubeconfig_slurp
+
+# Ensure Infra Cluster Kubeconfig is Present on Management Cluster Bastion
+- name: Ensure Infra Cluster Kubeconfig is Available on Management Bastion
+  hosts: mgmt_bastion
+  become: true
+  vars_files:
+    - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
+    - "{{ playbook_dir }}/../inventories/default/group_vars/hcp-kubevirt.yaml"
+  vars:
+    infra_kubeconfig: "{{ (hcp.external_infra | default({})).kubeconfig_path | default(hcp.infra_kubeconfig_path | default('/root/infra-cluster-kubeconfig', true), true) }}"
+  tasks:
+    - name: Write infra cluster kubeconfig on management cluster bastion
+      ansible.builtin.copy:
+        content: "{{ hostvars[groups['infra_bastion'][0]]['infra_kubeconfig_slurp']['content'] | b64decode }}"
+        dest: "{{ infra_kubeconfig }}"
+        mode: '0600'
+      when: hostvars[groups['infra_bastion'][0]]['infra_kubeconfig_slurp'] is defined
+
+    - name: Verify infra cluster connectivity from management cluster bastion
+      ansible.builtin.command: oc --kubeconfig={{ infra_kubeconfig }} get nodes
+      register: infra_nodes_check
+      changed_when: false
+
+    - name: Display external infrastructure cluster nodes from management bastion
+      ansible.builtin.debug:
+        var: infra_nodes_check.stdout_lines
+
+# Check Node Resources on External Infra Cluster
+- name: Check OCP Node Resource Usage on External Infra Cluster
   hosts: infra_bastion
   vars_files:
     - "{{ playbook_dir }}/../inventories/default/group_vars/secrets.yaml"
