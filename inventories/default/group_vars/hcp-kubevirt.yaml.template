@@ -1,13 +1,25 @@
 hcp:
   # Parameters for oc login
-  mgmt_cluster_nameserver:  
-  oc_url: 
+  mgmt_cluster_nameserver:
+  oc_url:
 
   mgmt_cluster_bastion:
     ip:               # Your bastion IP
     root_password: "{{ vault_bastion_root_pass }}"
 
-  ansible_key_name: 
+  # ============================================================================
+  # External Infrastructure Cluster Parameters (HCP KubeVirt with External Infra)
+  # ============================================================================
+  external_infra:
+    nameserver:       # Nameserver IP of external infra cluster (added as forwarder in mgmt cluster named.conf)
+    oc_url:           # API server URL of external infra cluster
+    namespace: ext-infra-vms-ns  # Namespace created on external infra cluster for KubeVirt worker VMs
+    kubeconfig_path: /root/infra-cluster-kubeconfig  # Location to store infra cluster kubeconfig on mgmt bastion
+    bastion:
+      ip:             # Infra bastion IP (leave empty if same as mgmt_cluster_bastion)
+      root_password: "{{ vault_infra_bastion_root_pass }}"
+
+  ansible_key_name:
 
   # MultiClusterEngine Parameters
   mce:
@@ -20,7 +32,12 @@ hcp:
   metallb:
     version: stable
     delete: false
-    ip_pool: #minimum 2 free IPs are required in the subnet for MetalLB to work properly. You can provide a single IP or IP ranges. For example:
+    # IP pool for Management Cluster (minimum 2 free IPs are required in the subnet for MetalLB to work properly)
+    ip_pool: # For example:
+    #- x.x.x.x-x.x.x.x
+    #- x.x.x.x-x.x.x.y
+    # IP pool for External Infra Cluster (if using external infra cluster)
+    infra_ip_pool: # For example:
     #- x.x.x.x-x.x.x.x
     #- x.x.x.x-x.x.x.y
     catalogsource_image: ""  # Required only if we need to create the Catalogsource for installing metallb operator
@@ -45,7 +62,12 @@ hcp:
         - #disk3
     catalogsource_image: ""  # Required only if we need to create the Catalogsource for installing lso operator
 
+  # Storage for management cluster
   storage:
+    type:    # odf | hpp
+
+  # Storage for external infra cluster (if using external infra cluster)
+  storage_for_infra:
     type:    # odf | hpp
       
   #ODF Parameters
