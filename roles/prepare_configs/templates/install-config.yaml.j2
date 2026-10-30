@@ -33,7 +33,12 @@ networking:
   serviceNetwork:
   - {{ install_config_vars.service_network }}
 platform:
+{% if install_config_vars.platform.type | lower == 'external' %}
+  external:
+    platformName: {{ install_config_vars.platform.platform_name }}
+{% else %}
   none: {}
+{% endif %}
 sshKey: >
   {{ ssh_key.stdout }}
 pullSecret: '{{ env.redhat.pull_secret if not disconnected.enabled else disconnected.registry.pull_secret }}'
