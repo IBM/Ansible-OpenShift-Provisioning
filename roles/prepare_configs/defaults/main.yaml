@@ -14,3 +14,9 @@ install_config_defaults:
   service_network: 172.30.0.0/16
   machine_network: 192.168.122.0/24
   fips: false
+  # Platform for install-config.yaml: 'none' (default) or 'external'
+  platform:
+    type: none
+    # platform_name is only used when type is 'external'
+    platform_name: ibmz
+

@@ -305,6 +305,9 @@ If those nodes use new hypervisors that must be prepared first, temporarily add 
 **install_config.service_network** | The IP address block for services. The default value is 172.30.0.0/16. The OpenShift SDN and OVN-Kubernetes network providers support only a single IP address block for the service network. An array with an IP address block in CIDR format. | 172.30.0.0/16
 **install_config.machine_network** | The IP address block for Nodes IP Pool. The default value is 192.168.122.0/24 For NAT Network Mode. In case of MacvTap it will be depend on Inteface IP assignment. An array with an IP address block in CIDR format. | 192.168.122.0/24
 **install_config.fips** | true or false (boolean) for whether or not to use the United States' Federal Information Processing Standards (FIPS). Not yet certified on IBM zSystems. | false
+**install_config.platform.type** | (ABI only) Platform section of the generated install-config.yaml. Either `none` (default) or `external`. | none
+**install_config.platform.platform_name** | (ABI only) Value for `platform.external.platformName`. Only used when `install_config.platform.type` is `external`. | ibmz
+
 
 ## Packages (Optional)
 * Packages are installed based on the executed playbooks based on the given requirements. This means that these variables have default values which can be overwritten in all.yaml file.
