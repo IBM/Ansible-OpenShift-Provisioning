@@ -5,17 +5,16 @@
   tags: create_compute_node
   ansible.builtin.fail:
     msg: "Error: too many hosts defined in ansible play: {{ ansible_play_hosts }}"
-  when: ((ansible_play_hosts | length)  > 1)
+  when: ((ansible_play_hosts | length) > 1)
 
-- name: "If not available, download Red Hat CoreOS rootfs for {{ param_compute_node.host_arch }}"
+- name: "If not available, download Red Hat CoreOS rootfs for {{ param_compute_node.hypervisor_arch }}"
   tags: create_compute_node
-  when: param_compute_node.vm_name is defined
+  when: param_compute_node.node_vm_name is defined
   delegate_to: "{{ groups['bastion'][0] }}"
-  # Need sudo or root access to write the file
   become: true
   block:
     - name: Load variables based on target architecture
-      ansible.builtin.include_vars: "{{ role_path }}/../common/vars/{{ param_compute_node.host_arch }}/vars.yaml"
+      ansible.builtin.include_vars: "{{ role_path }}/../common/vars/{{ param_compute_node.hypervisor_arch }}/vars.yaml"
 
     - name: Ensure /var/www/html/bin directory exists
       ansible.builtin.file:
@@ -32,17 +31,17 @@
         - { baseurl: "{{ rhcos_download_url }}", file: "{{ rhcos_live_rootfs }}" }
         - { baseurl: "{{ rhcos_download_url }}", file: "{{ rhcos_live_iso }}" }
 
-- name: "Create compute node on KVM host {{ param_compute_node.hostname }}"
+- name: "Create compute node on KVM host {{ param_compute_node.hypervisor_name }}"
   tags: create_compute_node
-  when: param_compute_node.vm_name is defined
-  remote_user: "{{ param_compute_node.host_user }}"
-  delegate_to: "{{ param_compute_node.hostname }}"
+  when: param_compute_node.node_vm_name is defined
+  remote_user: "{{ param_compute_node.hypervisor_user }}"
+  delegate_to: "{{ param_compute_node.hypervisor_name }}"
   block:
     - name: Delete compute node VM, if already exists
       tags: create_compute_node
       ansible.builtin.shell: |
-        virsh destroy {{ param_compute_node.vm_name }} || true
-        virsh undefine {{ param_compute_node.vm_name }} --remove-all-storage --nvram || true
+        virsh destroy {{ param_compute_node.node_vm_name }} || true
+        virsh undefine {{ param_compute_node.node_vm_name }} --remove-all-storage --nvram || true
 
     - name: Get and print virsh list
       block:
@@ -57,61 +56,77 @@
     - name: Create compute node VM and print results
       block:
         - name: Load variables based on architecture
-          ansible.builtin.include_vars: "{{ role_path }}/../common/vars/{{ param_compute_node.host_arch }}/vars.yaml"
+          ansible.builtin.include_vars: "{{ role_path }}/../common/vars/{{ param_compute_node.hypervisor_arch }}/vars.yaml"
 
-        - name: Set network extra-args for compute node VM
-          ansible.builtin.set_fact:
-            _compute_static_ip_args: >-
-              ip={{ param_compute_node.vm_ip }}::{{ env.bastion.networking.gateway }}:{{
-              env.bastion.networking.subnetmask }}:{{ param_compute_node.vm_hostname }}.{{
-              env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:{{
-              param_compute_node.vm_interface }}:none:1500
-            _compute_ipv6_args: >-
-              {{ ('ip=[' + param_compute_node.vm_ipv6 + ']::[' + env.cluster.networking.ipv6_gateway + ']:' +
-              env.cluster.networking.ipv6_prefix | string + '::' + param_compute_node.vm_interface + ':none')
-              if env.use_ipv6 == True else '' }}
-            _compute_nameserver_args: >-
-              nameserver={{ env.cluster.networking.nameserver1 }}{{
-              (' nameserver=' + env.cluster.networking.nameserver2)
-              if env.cluster.networking.nameserver2 is defined else '' }}
-
-        - name: "Create compute node VM on {{ param_compute_node.host_arch }}"
+        - name: "Create compute node VM on {{ param_compute_node.hypervisor_arch }}"
           ansible.builtin.shell: |
-            CPU_MODEL="--cpu host"
-            # CPU host model is not supported on arm64 yet, we need to disable it
-            {{ ("CPU_MODEL=''") if param_compute_node.host_arch == 'aarch64' }}
+            set -o errexit -o nounset -o pipefail
+            CPU_MODEL="{{ param_compute_node.vcpu_model_option | default('--cpu host') }}"
+            NETWORK_MAC_OPTION=",mac={{ param_compute_node.networking.mac_address | default('') }}"
+            STORAGE_POOL_NAME="{{ param_compute_node.storage.pool_name | default(env.cluster.networking.metadata_name ~ '-vdisk') }}"
+            DISK_SIZE="{{ param_compute_node.disk_size | default(env.cluster.nodes.compute.disk_size) }}"
+            NODE_FQDN="{{ param_compute_node.node_vm_hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
+            USE_DHCP="{{ param_compute_node.networking.dhcp | default(false) | bool | ternary('True', 'False') }}"
+            GUEST_BOOT_INTERFACE="{{ param_compute_node.networking.device | default('') }}"
+            if [ -z "${GUEST_BOOT_INTERFACE}" ]; then
+              GUEST_BOOT_INTERFACE="ens2"
+            fi
+            IPV4_BOOT_ARG="ip={{ param_compute_node.networking.ip }}::{{
+              param_compute_node.networking.gateway
+            }}:{{ param_compute_node.networking.subnetmask }}:${NODE_FQDN}:${GUEST_BOOT_INTERFACE}:none:1500"
+            IPV6_BOOT_ARG="{{
+              ('ip=[' + param_compute_node.networking.ipv6 + ']::['
+              + param_compute_node.networking.ipv6_gateway + ']:'
+              + param_compute_node.networking.ipv6_prefix | string
+              + '::${GUEST_BOOT_INTERFACE}:none')
+              if env.use_ipv6 == True else ''
+            }}"
+            NAMESERVER_BOOT_ARG="nameserver={{ env.cluster.networking.nameserver1 }}{{
+              ',' + env.cluster.networking.nameserver2
+              if env.cluster.networking.nameserver2 is defined else ''
+            }}"
+            if [ "{{ param_compute_node.hypervisor_arch }}" = "aarch64" ]; then
+              CPU_MODEL=""
+            fi
+            if [ -z "{{ param_compute_node.networking.mac_address | default('') }}" ]; then
+              NETWORK_MAC_OPTION=""
+            fi
             virt-install \
-            --name {{ param_compute_node.vm_name }} \
-            --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
-            --autostart \
-            {% if param_compute_node.host_arch == 's390x' %}
-            --disk pool={{ param_compute_node.disk_pool | default(env.cluster.networking.metadata_name + '-vdisk') }},size={{ env.cluster.nodes.compute.disk_size }},cache=none,io=native \
+              --name {{ param_compute_node.node_vm_name }} \
+              --osinfo detect=on,name={{ ('rhel8.6') if rhcos_os_variant is not defined else (rhcos_os_variant) }} \
+              --autostart \
+              --disk pool=${STORAGE_POOL_NAME},size=${DISK_SIZE},cache=none,io=native,bus=virtio \
+              --ram {{ param_compute_node.memory }} \
+              ${CPU_MODEL} \
+              --vcpus {{ param_compute_node.vcpu }} \
+              --network network={{ env.vnet_name }}${NETWORK_MAC_OPTION} \
+              --memballoon none \
+              --graphics none \
+              --serial pty \
+              --console pty,target_type=serial \
+              --wait -1 \
+              --noautoconsole \
+              --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
+              --extra-args "rd.neednet=1 coreos.inst.install_dev=/dev/{{ param_compute_node.install_dev | default('vda') }}" \
+            {% if param_compute_node.networking.dhcp | default(false) | bool %}
+              --extra-args "ip=dhcp" \
             {% else %}
-            --disk pool={{ param_compute_node.disk_pool | default('default') }},size={{ env.cluster.nodes.compute.disk_size }},discard=unmap,bus=virtio \
+              --extra-args "${IPV4_BOOT_ARG}" \
+            {% if env.use_ipv6 == True and (param_compute_node.networking.ipv6 | default('') | length > 0) %}
+              --extra-args "${IPV6_BOOT_ARG}" \
             {% endif %}
-            --ram {{ env.cluster.nodes.compute.ram }} \
-            ${CPU_MODEL} \
-            --vcpus {{ env.cluster.nodes.compute.vcpu }} \
-            --network network={{ env.vnet_name }}{{ (',mac=' + param_compute_node.vm_mac) if (param_compute_node.vm_mac is defined and env.use_dhcp) }} \
-            --memballoon none \
-            --graphics none \
-            --console pty,target_type=serial \
-            --wait -1 \
-            --noautoconsole \
-            --location {{ rhcos_download_url }},kernel={{ rhcos_live_kernel }},initrd={{ rhcos_live_initrd }} \
-            --extra-args "rd.neednet=1 coreos.inst=yes coreos.inst.install_dev={{ param_compute_node.install_dev | default('vda') }}" \
-            {% if (param_compute_node.vm_mac is defined and env.use_dhcp) %}
-            --extra-args "ip=dhcp" \
-            {% else %}
-            --extra-args "{{ _compute_static_ip_args }}" \
-            --extra-args "{{ _compute_ipv6_args }}" \
             {% endif %}
-            --extra-args "{{ _compute_nameserver_args }}" \
-            --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }}" \
-            --extra-args "coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
-            --extra-args "{{ _vm_console }}"
+              --extra-args "${NAMESERVER_BOOT_ARG}" \
+              --extra-args "coreos.live.rootfs_url=http://{{ env.bastion.networking.ip }}:8080/bin/{{ rhcos_live_rootfs }}" \
+              --extra-args "coreos.inst.ignition_url=http://{{ env.bastion.networking.ip }}:8080/ignition/worker.ign" \
+              --extra-args "{{ _vm_console }}" \
+              --extra-args "console=tty0 console=ttyS0,115200n8" \
+              --boot hd,menu=on
           timeout: 360
           register: cmd_output
+
         - name: Debug, print above command output
           ansible.builtin.debug:
             var: cmd_output
+
+# Made with Bob

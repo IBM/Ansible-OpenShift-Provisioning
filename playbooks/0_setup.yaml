@@ -39,29 +39,38 @@
         extra_args: --upgrade
       when: env.z.lpar1.create or env.z.lpar2.create or env.z.lpar3.create
 
-    - name: Check to make sure that the KVM host has a corresponding inventory host_vars file named with matching hostname and .yaml extension.
+    - name: Check to make sure that the first KVM host has a corresponding inventory host_vars file named with matching hostname and .yaml extension
       tags: lpar_check
       ansible.builtin.stat:
         path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar1.hostname }}.yaml"
-      when: env.z.lpar1.hostname is defined
-      register: lpar_host_vars
-      failed_when: not lpar_host_vars.stat.exists
+      when:
+        - env.z.lpar1.hostname is defined
+        - env.z.lpar1.hostname is not none
+        - env.z.lpar1.hostname | string | trim | length > 0
+      register: lpar1_host_vars
+      failed_when: not lpar1_host_vars.stat.exists
 
-    - name: Check to make sure the second KVM hosts have a corresponding inventory host_vars file named with matching hostname and .yaml extension, if defined.
+    - name: Check to make sure the second KVM host has a corresponding inventory host_vars file named with matching hostname and .yaml extension
       tags: lpar_check
       ansible.builtin.stat:
         path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar2.hostname }}.yaml"
-      when: env.z.lpar2.hostname is defined and env.z.lpar2.hostname is not none and env.z.lpar2.hostname | length > 0
-      register: lpar_host_vars
-      failed_when: not lpar_host_vars.stat.exists
+      when:
+        - env.z.lpar2.hostname is defined
+        - env.z.lpar2.hostname is not none
+        - env.z.lpar2.hostname | string | trim | length > 0
+      register: lpar2_host_vars
+      failed_when: not lpar2_host_vars.stat.exists
 
-    - name: Check to make sure the third KVM hosts have a corresponding inventory host_vars file named with matching hostname and .yaml extension, if defined.
+    - name: Check to make sure the third KVM host has a corresponding inventory host_vars file named with matching hostname and .yaml extension
       tags: lpar_check
       ansible.builtin.stat:
         path: "{{ inventory_dir }}/host_vars/{{ env.z.lpar3.hostname }}.yaml"
-      when: env.z.lpar3.hostname is defined and env.z.lpar3.hostname is not none and env.z.lpar3.hostname | length > 0
-      register: lpar_host_vars
-      failed_when: not lpar_host_vars.stat.exists
+      when:
+        - env.z.lpar3.hostname is defined
+        - env.z.lpar3.hostname is not none
+        - env.z.lpar3.hostname | string | trim | length > 0
+      register: lpar3_host_vars
+      failed_when: not lpar3_host_vars.stat.exists
 
 - name: "Install packages and cfg ssh"
   hosts: localhost

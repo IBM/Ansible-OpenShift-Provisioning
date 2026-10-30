@@ -1,42 +1,49 @@
-# Step 4: Run the Playbooks
+# Run the Playbooks
+
 ## Overview
-* To ensure the passwords there is a secrets.yaml.template (inside the inventories/default/group_vars directory) file to be copied to secrets.yaml and put the necessary passwords to. After that you need to encrypt the secrets.yaml by running the command:
-```
-ansible-vault encrypt secrets.yaml  
-```
-* To use the encrypted secrets.yaml you need to add --ask-vault-pass (you need to enter the decryption key) or --vault-password-file path_to/vault_secret.sh (this file contains the decryption key) to the ansible-playbook calls.
-* Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
-* Run this shell command:
-```
-ansible-playbook playbooks/0_setup.yaml
+
+This document describes the typical execution flow for provisioning and for day-2 compute-node operations.
+
+The standard cluster creation flow remains:
+
+1. Run [`playbooks/0_setup.yaml`](../playbooks/0_setup.yaml)
+2. Run [`playbooks/1_create_lpar.yaml`](../playbooks/1_create_lpar.yaml) if new LPARs are required
+3. Run [`playbooks/2_create_kvm_host.yaml`](../playbooks/2_create_kvm_host.yaml) if new KVM hosts are required
+4. Run [`playbooks/3_setup_kvm_host.yaml`](../playbooks/3_setup_kvm_host.yaml)
+5. Run [`playbooks/4_create_bastion.yaml`](../playbooks/4_create_bastion.yaml)
+6. Run [`playbooks/5_setup_bastion.yaml`](../playbooks/5_setup_bastion.yaml)
+7. Run [`playbooks/6_create_nodes.yaml`](../playbooks/6_create_nodes.yaml)
+8. Run [`playbooks/7_ocp_verification.yaml`](../playbooks/7_ocp_verification.yaml)
+
+## Standard cluster creation flow
+
+### 1. Initial setup
+
+Run [`playbooks/0_setup.yaml`](../playbooks/0_setup.yaml) first.
+
+This playbook:
+- validates the inventory input
+- installs required controller dependencies
+- generates [`inventories/default/hosts`](../inventories/default/hosts)
+- adds eligible day-2 hypervisors to the [`day2_hosts`](../inventories/default/hosts) section when [`day2_compute_node`](../inventories/default/group_vars/all.yaml) is defined and the referenced host_vars files have `setup_host: true`
+
+Example:
+
+```bash
+ansible-playbook -i inventories/default playbooks/0_setup.yaml
 ```
 
-* Run each part step-by-step by running one playbook at a time, or all at once using [playbooks/site.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/site.yaml).
-* Here's the full list of playbooks to be run in order, full descriptions of each can be found further down the page:
-    * 0_setup.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/0_setup.yaml))
-    * 1_create_lpar.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/1_create_lpar.yaml))
-    * 2_create_kvm_host.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/2_create_kvm_host.yaml))
-    * 3_setup_kvm_host.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml))
-    * 4_create_bastion.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/4_create_bastion.yaml))
-    * 5_setup_bastion.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/5_setup_bastion.yaml))
-    * 6_create_nodes.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/6_create_nodes.yaml))
-    * 7_ocp_verification.yaml ([code](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/7_ocp_verification.yaml))
-* Watch Ansible as it completes the installation, correcting errors if they arise.
-* To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml
-* Alternatively, to run all the playbooks at once, start the master playbook by running this shell command:
+If no eligible day-2 hypervisors are defined, the [`day2_hosts`](../inventories/default/hosts) section is omitted.
 
-```
-ansible-playbook playbooks/site.yaml
+### 2. Create LPARs if needed
+
+If your KVM hosts must be created first, run [`playbooks/1_create_lpar.yaml`](../playbooks/1_create_lpar.yaml).
+
+```bash
+ansible-playbook -i inventories/default playbooks/1_create_lpar.yaml
 ```
 
-* If the process fails in error, go through the steps in the [troubleshooting](troubleshooting.md) page.
-* At the end of the the last playbook, follow the printed instructions for first-time login to the cluster.
-* If you make cluster configuration changes in all.yaml file, like increased number of nodes or
-a new bastion setup, after you have successfully installed a OCP cluster,
-then you just need to run these playbooks in order:
-  * 5_setup_bastion.yaml
-  * 6_create_nodes.yaml
-  * 7_ocp_verification.yaml
+### 3. Create KVM hosts if needed
 
 ## 0 Setup Playbook
 ### Overview
@@ -183,68 +190,148 @@ ansible-playbook playbooks/delete_cluster_nodes.yaml --tags kvm_host_3
 run these playbooks. Currently we support only **env.network_mode** `macvtap` for these two playbooks.
 We recommand to create a new config file for the additional compute node with such parameters:
 
+```bash
+ansible-playbook -i inventories/default playbooks/2_create_kvm_host.yaml
 ```
+
+### 4. Configure KVM hosts
+
+Run [`playbooks/3_setup_kvm_host.yaml`](../playbooks/3_setup_kvm_host.yaml).
+
+This playbook configures:
+- the primary KVM hosts from the main inventory
+- any eligible day-2 hypervisors listed in [`day2_hosts`](../inventories/default/hosts)
+
+Example:
+
+```bash
+ansible-playbook -i inventories/default playbooks/3_setup_kvm_host.yaml
+```
+
+### 5. Create the bastion
+
+Run [`playbooks/4_create_bastion.yaml`](../playbooks/4_create_bastion.yaml).
+
+```bash
+ansible-playbook -i inventories/default playbooks/4_create_bastion.yaml
+```
+
+### 6. Configure the bastion
+
+Run [`playbooks/5_setup_bastion.yaml`](../playbooks/5_setup_bastion.yaml).
+
+This playbook configures bastion services such as DNS, HAProxy, HTTPD, and firewall rules.
+
+Example:
+
+```bash
+ansible-playbook -i inventories/default playbooks/5_setup_bastion.yaml
+```
+
+### 7. Create cluster nodes
+
+Run [`playbooks/6_create_nodes.yaml`](../playbooks/6_create_nodes.yaml).
+
+```bash
+ansible-playbook -i inventories/default playbooks/6_create_nodes.yaml
+```
+
+### 8. Verify the cluster
+
+Run [`playbooks/7_ocp_verification.yaml`](../playbooks/7_ocp_verification.yaml).
+
+```bash
+ansible-playbook -i inventories/default playbooks/7_ocp_verification.yaml
+```
+
+## Day-2 compute-node workflow
+
+Day-2 compute nodes are defined through host_vars files referenced by [`day2_compute_node`](../inventories/default/group_vars/all.yaml).
+
+Example in [`inventories/default/group_vars/all.yaml`](../inventories/default/group_vars/all.yaml):
+
+```yaml
 day2_compute_node:
-  vm_name: control-4
-  vm_hostname: control-4
-  vm_ip: 172.192.100.101
-  hostname: kvm01
-  host_arch: s390x
-
-# rhcos_download_url with '/' at the end !
-rhcos_download_url: "https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.15/4.15.0/"
-# RHCOS live image filenames
-rhcos_live_kernel: "rhcos-4.15.0-s390x-live-kernel-s390x"
-rhcos_live_initrd: "rhcos-4.15.0-s390x-live-initramfs.s390x.img"
-rhcos_live_rootfs: "rhcos-4.15.0-s390x-live-rootfs.s390x.img"
+  - example-day2-node
 ```
 
-Make sure that the hostname where you want to create the additional compute node is defined in the `inventories/default/hosts` file.
-Now you can execute the `add_compute_node` playbook with this command and parameter:
+The referenced file must exist in [`inventories/default/host_vars`](../inventories/default/host_vars), for example:
+- [`inventories/default/host_vars/compute-day2.yaml.template`](../inventories/default/host_vars/compute-day2.yaml.template)
+- [`inventories/default/host_vars/example-day2-node.yaml`](../inventories/default/host_vars/example-day2-node.yaml)
 
+### Day-2 preparation flow
+
+If the day-2 node uses a hypervisor that must be prepared, run these playbooks in order:
+
+1. [`playbooks/0_setup.yaml`](../playbooks/0_setup.yaml)
+2. [`playbooks/3_setup_kvm_host.yaml`](../playbooks/3_setup_kvm_host.yaml)
+3. [`playbooks/5_setup_bastion.yaml`](../playbooks/5_setup_bastion.yaml)
+
+Why this is required:
+- [`playbooks/0_setup.yaml`](../playbooks/0_setup.yaml) refreshes [`inventories/default/hosts`](../inventories/default/hosts) and rebuilds [`day2_hosts`](../inventories/default/hosts)
+- [`playbooks/3_setup_kvm_host.yaml`](../playbooks/3_setup_kvm_host.yaml) configures the hypervisor when `setup_host: true`
+- [`playbooks/5_setup_bastion.yaml`](../playbooks/5_setup_bastion.yaml) reconciles bastion DNS and HAProxy entries for the day-2 nodes when:
+  - `dns: true`
+  - `loadbalancer.on_bastion: true`
+
+If a day-2 node is removed from [`day2_compute_node`](../inventories/default/group_vars/all.yaml) and [`playbooks/5_setup_bastion.yaml`](../playbooks/5_setup_bastion.yaml) is rerun, the bastion reconciliation removes obsolete DNS and HAProxy entries.
+
+### Create a single day-2 compute node
+
+After the preparation flow is complete, create the node with [`playbooks/create_compute_node.yaml`](../playbooks/create_compute_node.yaml).
+
+```bash
+ansible-playbook -i inventories/default playbooks/create_compute_node.yaml
 ```
-ansible-playbook playbooks/add_compute_node.yaml --extra-vars "@compute-node.yaml"
+
+This playbook:
+- loads the first entry from [`day2_compute_node`](../inventories/default/group_vars/all.yaml)
+- reads the matching host_vars file
+- creates the VM on the referenced hypervisor
+- uses `disk_size` when defined
+- otherwise falls back to [`env.cluster.nodes.compute.disk_size`](../inventories/default/group_vars/all.yaml)
+- uses `storage.pool_name` when defined
+- otherwise falls back to `{{ env.cluster.networking.metadata_name }}-vdisk`
+- uses `networking.dhcp: true` to boot the day-2 node with DHCP and apply the configured guest MAC address
+- uses `networking.dhcp: false` to boot the day-2 node with static network kernel arguments from the host_vars file
+
+### Create multiple day-2 compute nodes
+
+For multiple nodes, use [`playbooks/create_multiple_compute_nodes.yaml`](../playbooks/create_multiple_compute_nodes.yaml) with an extra-vars file.
+
+Example extra-vars file:
+
+```yaml
+day2_compute_nodes:
+  - example-day2-node
+  - another-day2-node
 ```
 
-### Outcomes
-* The defind compute node will be added or deleted, depends which playbook you have executed.
+Run:
 
-## Download Kubeconfig Playbook (download_kubeconfig.yaml)
-### Overview
-* Use this playbook to download the kubeconfig file from the bastion to your local machine.
-* For detailed information, see the [Download Kubeconfig Playbook documentation](download-kubeconfig-playbook.md).
+```bash
+ansible-playbook -i inventories/default playbooks/create_multiple_compute_nodes.yaml -e @day2-nodes.yaml
+```
 
-## Master Playbook (site.yaml)
-### Overview
-* Use this playbook to run all required playbooks (0-7) all at once.
-### Outcomes
-* Same as all the above outcomes for all required playbooks.
-* At the end you will have an OpenShift cluster deployed and first-time login credentials.
+If those nodes require new hypervisors to be configured first, temporarily add the relevant host_vars entry names to [`day2_compute_node`](../inventories/default/group_vars/all.yaml), rerun:
+- [`playbooks/0_setup.yaml`](../playbooks/0_setup.yaml)
+- [`playbooks/3_setup_kvm_host.yaml`](../playbooks/3_setup_kvm_host.yaml)
+- [`playbooks/5_setup_bastion.yaml`](../playbooks/5_setup_bastion.yaml)
 
-## Pre-Existing Host Master Playbook (pre-existing_site.yaml)
-### Overview
-* Use this version of the master playbook if you are using a pre-existing LPAR(s) with RHEL already installed.
-### Outcomes
-* Same as all the above outcomes for all playbooks excluding 1 & 2.
-* This will not create LPAR(s) nor boot your RHEL KVM host(s).
-* At the end you will have an OpenShift cluster deployed and first-time login credentials.
+and then run [`playbooks/create_multiple_compute_nodes.yaml`](../playbooks/create_multiple_compute_nodes.yaml).
 
-## Reinstall Cluster Playbook (reinstall_cluster.yaml)
-### Overview
-In case the cluster needs to be completely reinstalled, run this playbook. It will refresh the ingitions that expire after 24 hours, teardown the nodes and re-create them, and then verify the installation.
-### Outcomes
-* get_ocp role runs.
-    * Delete the folders /var/www/html/bin and /var/www/html/ignition.
-    * CoreOS roofts is pulled to the bastion.
-    * OCP client and installer are pulled down.
-    * oc, kubectl and openshift-install binaries are installed.
-    * OCP install-config is created from scratch, templated and backed up.
-    * Manfifests are created.
-    * OCP install directory found at /root/ocpinst/ is deleted, re-created and populated with necessary files.
-    * Ignition files for the bootstrap, control, and compute nodes are transferred to HTTP-accessible directory for booting nodes.
-* 6 Create Nodes playbook runs, tearing down and recreating cluster nodes.
-* 7 OCP Verification playbook runs, verifying new deployment.
+### Delete a day-2 compute node
 
-## Test Playbook (test.yaml)
-### Overview
-* Use this playbook for your testing purposes, if needed.
+To delete a day-2 node, keep the matching host_vars entry available and run [`playbooks/delete_compute_node.yaml`](../playbooks/delete_compute_node.yaml).
+
+```bash
+ansible-playbook -i inventories/default playbooks/delete_compute_node.yaml
+```
+
+This playbook loads the same host_vars-based node definition and removes the VM from the referenced hypervisor.
+
+## Notes
+
+- [`playbooks/0_setup.yaml`](../playbooks/0_setup.yaml) should be rerun whenever you change inventory-relevant variables such as [`day2_compute_node`](../inventories/default/group_vars/all.yaml).
+- [`playbooks/3_setup_kvm_host.yaml`](../playbooks/3_setup_kvm_host.yaml) uses the generated [`day2_hosts`](../inventories/default/hosts) inventory group for day-2 hypervisor preparation.
+- [`playbooks/5_setup_bastion.yaml`](../playbooks/5_setup_bastion.yaml) is the reconciliation step for bastion DNS and HAProxy state related to day-2 nodes.
