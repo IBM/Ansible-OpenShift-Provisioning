@@ -115,7 +115,14 @@
     # MCE; all other operators use the first remaining catalog. With a single catalog, it is used for all.
     - name: Set disconnected CatalogSource name facts
       ansible.builtin.set_fact:
-        disconnected_catalogsource_names: "{{ cs_names_raw.results | map(attribute='stdout') | map('trim') | select | list }}"
+        disconnected_catalogsource_names: >-
+          {{
+            cs_names_raw.results
+            | map(attribute='stdout')
+            | map('trim')
+            | select
+            | list
+          }}
       when:
         - disconnected.enabled | default(false)
         - cs_names_raw.results is defined
@@ -123,14 +130,38 @@
     - name: Resolve CatalogSource names per operator
       ansible.builtin.set_fact:
         disconnected_catalogsource_name: >-
-          {{ (disconnected_catalogsource_names | reject('search', mce_match) | list | first)
-             | default(disconnected_catalogsource_names | first) }}
+          {{
+            (
+              disconnected_catalogsource_names
+              | reject('search', mce_match)
+              | list
+              | first
+            ) | default(
+              disconnected_catalogsource_names | first
+            )
+          }}
         disconnected_mce_catalogsource_name: >-
-          {{ (disconnected_catalogsource_names | select('search', mce_match) | list | first)
-             | default(disconnected_catalogsource_names | reject('search', mce_match) | list | first)
-             | default(disconnected_catalogsource_names | first) }}
+          {{
+            (
+              disconnected_catalogsource_names
+              | select('search', mce_match)
+              | list
+              | first
+            ) | default(
+              disconnected_catalogsource_names
+              | reject('search', mce_match)
+              | list
+              | first
+            ) | default(
+              disconnected_catalogsource_names | first
+            )
+          }}
       vars:
-        mce_match: "{{ disconnected.mirroring.mce_catalogsource_match | default('mce-dev-catalog', true) }}"
+        mce_match: >-
+          {{
+            disconnected.mirroring.mce_catalogsource_match
+            | default('mce-dev-catalog', true)
+          }}
       when:
         - disconnected.enabled | default(false)
         - disconnected_catalogsource_names is defined
