@@ -96,27 +96,51 @@
       register: cs_file_find
       when: disconnected.enabled | default(false)
 
-    - name: Read CatalogSource name from oc-mirror output
+    - name: Read CatalogSource names from oc-mirror output
       ansible.builtin.shell: |
         set -o pipefail
-        grep '^  name:' {{ cs_file_find.files[0].path }} | awk '{print $2}'
-      register: cs_name_raw
+        grep -m1 '^  name:' {{ item.path }} | awk '{print $2}'
+      register: cs_names_raw
       changed_when: false
+      loop: "{{ cs_file_find.files }}"
+      loop_control:
+        label: "{{ item.path }}"
       when:
         - disconnected.enabled | default(false)
         - cs_file_find.matched > 0
 
-    - name: Set disconnected CatalogSource name fact
+    # With several catalogs in the ImageSetConfiguration (e.g. redhat-operator-index plus an
+    # MCE nightly catalog such as mce-dev-catalog), oc-mirror writes one cs-*.yaml per catalog.
+    # The catalog whose name matches disconnected.mirroring.mce_catalogsource_match is used for
+    # MCE; all other operators use the first remaining catalog. With a single catalog, it is used for all.
+    - name: Set disconnected CatalogSource name facts
       ansible.builtin.set_fact:
-        disconnected_catalogsource_name: "{{ cs_name_raw.stdout | trim }}"
+        disconnected_catalogsource_names: "{{ cs_names_raw.results | map(attribute='stdout') | map('trim') | select | list }}"
       when:
         - disconnected.enabled | default(false)
-        - cs_name_raw.stdout is defined
-        - cs_name_raw.stdout | trim | length > 0
+        - cs_names_raw.results is defined
 
-    - name: Display resolved CatalogSource name
+    - name: Resolve CatalogSource names per operator
+      ansible.builtin.set_fact:
+        disconnected_catalogsource_name: >-
+          {{ (disconnected_catalogsource_names | reject('search', mce_match) | list | first)
+             | default(disconnected_catalogsource_names | first) }}
+        disconnected_mce_catalogsource_name: >-
+          {{ (disconnected_catalogsource_names | select('search', mce_match) | list | first)
+             | default(disconnected_catalogsource_names | reject('search', mce_match) | list | first)
+             | default(disconnected_catalogsource_names | first) }}
+      vars:
+        mce_match: "{{ disconnected.mirroring.mce_catalogsource_match | default('mce-dev-catalog', true) }}"
+      when:
+        - disconnected.enabled | default(false)
+        - disconnected_catalogsource_names is defined
+        - disconnected_catalogsource_names | length > 0
+
+    - name: Display resolved CatalogSource names
       ansible.builtin.debug:
-        msg: "Using CatalogSource '{{ disconnected_catalogsource_name }}' for disconnected operator installs"
+        msg: >-
+          Using CatalogSource '{{ disconnected_catalogsource_name }}' for disconnected operator installs
+          and '{{ disconnected_mce_catalogsource_name }}' for MCE
       when:
         - disconnected.enabled | default(false)
         - disconnected_catalogsource_name is defined
