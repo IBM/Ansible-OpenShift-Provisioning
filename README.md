@@ -4,12 +4,20 @@ The documentation for this project can be found [here](https://ibm.github.io/Ans
 **Supported Hypervisors:** KVM, LPAR, z/VM  
 **Installation Methods:** User-Provisioned Infrastructure (UPI), Agent-Based Installer (ABI), Hosted Control Plane (HCP)
 
-Release v2.4.0:
+Release v2.5.0:
 This README contains the information for the current release only.
 The whole history of the releases can be found [here](https://github.com/IBM/Ansible-OpenShift-Provisioning/releases).
-This release was tested with OpenShift v4.21 and below.
+This release was tested with OpenShift v4.22 and below.
 
 ## What's new:
+* **OpenShift Virtualization day-2 operator playbook** — new `playbooks/operators/install_ocp_virt.yaml`
+  installs Node Feature Discovery, cert-manager, and OpenShift Virtualization in sequence on a
+  running OCP 4.19+ cluster on IBM Z / LinuxONE (s390x). Creates the `HyperConverged` CR to
+  activate the full KVM-based virtualization stack alongside containers in the same OCP cluster.
+  Includes 14 preflight checks, fully configurable `HyperConverged` spec, and an optional
+  end-to-end test VM. See [`docs/run-the-playbooks.md`](docs/run-the-playbooks.md) and
+  [`inventories/default/group_vars/operators.yaml.template`](inventories/default/group_vars/operators.yaml.template)
+  for usage and configuration.
 * Enable CEX based LUKS encryption
 * Updated hcp.yaml with CatalogSource image parameter for MCE installation
 * Added workflows to integrate github actions for PR validations

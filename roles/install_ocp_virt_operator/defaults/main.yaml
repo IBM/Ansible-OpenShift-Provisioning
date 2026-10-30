@@ -1,0 +1,60 @@
+---
+# Default values for OpenShift Virtualization installation.
+# Override in inventories/default/group_vars/operators.yaml under the ocp_virt: key.
+
+# Path to the cluster kubeconfig on the bastion.
+# Overridden in operators.yaml by ocp_virt_kubeconfig.
+ocp_virt_kubeconfig: ~/ocpinst/auth/kubeconfig
+
+ocp_virt:
+  channel: stable
+  install_plan_approval: Automatic
+  # GA clusters: redhat-operators
+  # RC / pre-release clusters: set to your pre-release CatalogSource name
+  catalog_source: redhat-operators
+
+  hyperconverged:
+    name: kubevirt-hyperconverged
+    namespace: openshift-cnv
+    # s390x CPU model (QEMU cpu_models.c name → hardware):
+    #   gen15a = z15 T01 / LinuxONE III (model 8561)
+    #   gen15b = z15 T02 / LinuxONE III (model 8562)   — OCP 4.22 documented default
+    #   gen16a = z16 (model 3931)
+    #   gen16b = z16 / LinuxONE 4 (model 3932)
+    #   gen17a = z17 (model 9175)
+    #   gen17b = z17 / LinuxONE 5 (model 9176)         — requires QEMU >= 9.2 on nodes
+    # x86 clusters should set this to an empty string or omit it.
+    default_cpu_model: gen15b
+    feature_gates: {}
+    # infra_node_placement: {}   # Uncomment to pin infra components to specific nodes
+    # workloads_node_placement: {} # Uncomment to pin VM workloads to specific nodes
+
+  csv_timeout: 600
+  hco_timeout: 900
+  pod_timeout: 300
+
+  virtctl:
+    install: true          # true = download virtctl from the cluster and install it on the bastion
+    install_dir: /usr/local/bin
+    validate_certs: false  # The download route is served with the cluster's own CA
+
+  test_vm:
+    create: false          # true = create the test VM after the HyperConverged CR is Available
+    keep: false            # true = leave the VM in place; false = delete it after verification
+    name: ocp-virt-test
+    namespace: ocp-virt-test
+    image_url: ""          # Required when create is true, e.g. http://<file_server.ip>:<port>/pub/rhel-9-s390x-kvm.qcow2
+    disk_size: 20Gi
+    storage_class: ""      # Empty = use the default StorageClass
+    cpu_cores: 2
+    memory: 4Gi
+    ssh_public_key: ""     # Optional; injected via cloud-init for user 'cloud-user'
+    data_disk:
+      create: false        # true = create a blank data disk and attach it to the test VM
+      size: 10Gi
+      storage_class: ""    # Empty = use test_vm.storage_class
+    migration:
+      enabled: false       # true = live-migrate the test VM to another node after it is Ready
+      timeout: 600         # Seconds to wait for the migration to finish
+    dv_timeout: 1800       # Seconds to wait for the image import (DataVolume) to finish
+    vm_timeout: 600        # Seconds to wait for the VM to become Ready
