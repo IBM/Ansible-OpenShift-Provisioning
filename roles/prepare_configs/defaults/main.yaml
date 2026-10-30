@@ -19,4 +19,3 @@ install_config_defaults:
     type: none
     # platform_name is only used when type is 'external'
     platform_name: ibmz
-
