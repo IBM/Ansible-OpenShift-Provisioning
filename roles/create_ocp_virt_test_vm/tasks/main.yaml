@@ -1,0 +1,265 @@
+---
+# Create and optionally verify an OCP Virt test VM.
+# Can be called standalone (create_test_vm.yaml playbook) or from
+# the install_ocp_virt_operator role after the HyperConverged CR is Available.
+
+- name: "Test VM | validate image_url is set"
+  ansible.builtin.assert:
+    that:
+      - ocp_virt.test_vm.image_url | default('') | length > 0
+    fail_msg: >-
+      ocp_virt.test_vm.image_url is empty.
+      Provide an HTTP(S) URL to an s390x qcow2 guest image in operators.yaml.
+
+# Advisory only: this runs on the bastion, but CDI downloads the image from a
+# pod on the cluster network, which can have different DNS, proxy and firewall
+# rules. A failure here does not stop the play; an import problem on the cluster
+# is reported by the failure diagnostics instead.
+- name: "Test VM | check image URL is reachable from bastion (advisory)"
+  ansible.builtin.uri:
+    url: "{{ ocp_virt.test_vm.image_url }}"
+    method: HEAD
+    status_code: [200, 206]
+  register: _image_url_check
+  failed_when: false
+
+- name: "Test VM | warn if image URL is not reachable from bastion"
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: {{ ocp_virt.test_vm.image_url }} is not reachable from the bastion
+      (status {{ _image_url_check.status | default('none') }}). Continuing, because CDI
+      fetches the image from the cluster network, which may differ. A reachable URL
+      here does not guarantee the cluster can fetch it either.
+  when: _image_url_check.status | default(-1) not in [200, 206]
+
+- name: "Test VM block"
+  block:
+
+    - name: "Test VM | create test namespace"
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ ocp_virt.test_vm.namespace }}"
+
+    - name: "Test VM | render VirtualMachine manifest"
+      ansible.builtin.template:
+        src: VirtualMachine.yaml.j2
+        dest: /root/ansible_workdir/ocp-virt-TestVM.yaml
+        mode: '0644'
+
+    - name: "Test VM | apply VirtualMachine"
+      ansible.builtin.command: oc apply -f /root/ansible_workdir/ocp-virt-TestVM.yaml
+      register: _test_vm_apply
+      changed_when: "'unchanged' not in _test_vm_apply.stdout"
+
+    - name: "Test VM | wait for DataVolume import to finish"
+      ansible.builtin.command: >-
+        oc wait dv {{ ocp_virt.test_vm.name }}-root
+        -n {{ ocp_virt.test_vm.namespace }}
+        --for condition=Ready
+        --timeout={{ ocp_virt.test_vm.dv_timeout }}s
+      changed_when: false
+
+    - name: "Test VM | wait for data disk DataVolume to finish"
+      ansible.builtin.command: >-
+        oc wait dv {{ ocp_virt.test_vm.name }}-data
+        -n {{ ocp_virt.test_vm.namespace }}
+        --for condition=Ready
+        --timeout={{ ocp_virt.test_vm.dv_timeout }}s
+      changed_when: false
+      when: ocp_virt.test_vm.data_disk.create | default(false) | bool
+
+    - name: "Test VM | wait for VM to become Ready"
+      ansible.builtin.command: >-
+        oc wait vm {{ ocp_virt.test_vm.name }}
+        -n {{ ocp_virt.test_vm.namespace }}
+        --for condition=Ready
+        --timeout={{ ocp_virt.test_vm.vm_timeout }}s
+      changed_when: false
+
+    - name: "Test VM | gather VMI status"
+      ansible.builtin.command: >-
+        oc get vmi {{ ocp_virt.test_vm.name }}
+        -n {{ ocp_virt.test_vm.namespace }}
+        -o jsonpath='{.status.phase}{" "}{.status.nodeName}{" "}{.status.interfaces[0].ipAddress}'
+      register: _vmi_status
+      changed_when: false
+
+    - name: "Test VM | live migration"
+      when: ocp_virt.test_vm.migration.enabled | default(false) | bool
+      vars:
+        _mig_name: "{{ ocp_virt.test_vm.name }}-migration"
+        _mig_timeout: "{{ ocp_virt.test_vm.migration.timeout | default(600) | int }}"
+      block:
+
+        - name: "Test VM | migration | read VMI before migration"
+          ansible.builtin.command: >-
+            oc get vmi {{ ocp_virt.test_vm.name }}
+            -n {{ ocp_virt.test_vm.namespace }} -o json
+          register: _mig_vmi_before
+          changed_when: false
+
+        - name: "Test VM | migration | set source node and LiveMigratable condition"
+          ansible.builtin.set_fact:
+            _mig_source_node: "{{ (_mig_vmi_before.stdout | from_json).status.nodeName }}"
+            _mig_livemigratable: >-
+              {{ (_mig_vmi_before.stdout | from_json).status.conditions | default([])
+                 | selectattr('type', 'equalto', 'LiveMigratable') | list | first | default({}) }}
+
+        - name: "Test VM | migration | assert VM is live-migratable"
+          ansible.builtin.assert:
+            that:
+              - _mig_livemigratable.status | default('') == 'True'
+            fail_msg: >-
+              VMI is not live-migratable.
+              reason={{ _mig_livemigratable.reason | default('unknown') }},
+              message={{ _mig_livemigratable.message | default('n/a') }}.
+              Live migration needs ReadWriteMany (shared) storage; check that the
+              storage class supports RWX.
+
+        - name: "Test VM | migration | remove stale migration object (re-runs)"
+          ansible.builtin.command: >-
+            oc delete vmim {{ _mig_name }}
+            -n {{ ocp_virt.test_vm.namespace }} --ignore-not-found
+          changed_when: false
+
+        - name: "Test VM | migration | trigger live migration from {{ _mig_source_node }}"
+          ansible.builtin.command: oc create -f -
+          args:
+            stdin: |
+              apiVersion: kubevirt.io/v1
+              kind: VirtualMachineInstanceMigration
+              metadata:
+                name: {{ _mig_name }}
+                namespace: {{ ocp_virt.test_vm.namespace }}
+              spec:
+                vmiName: {{ ocp_virt.test_vm.name }}
+          changed_when: true
+
+        - name: "Test VM | migration | wait for migration to finish"
+          ansible.builtin.command: >-
+            oc get vmim {{ _mig_name }}
+            -n {{ ocp_virt.test_vm.namespace }}
+            -o jsonpath='{.status.phase}'
+          register: _mig_phase
+          until: _mig_phase.stdout | trim in ['Succeeded', 'Failed']
+          retries: "{{ (_mig_timeout | int / 10) | round(0, 'ceil') | int }}"
+          delay: 10
+          changed_when: false
+
+        - name: "Test VM | migration | assert migration phase is Succeeded"
+          ansible.builtin.assert:
+            that:
+              - _mig_phase.stdout | trim == 'Succeeded'
+            fail_msg: "VirtualMachineInstanceMigration ended in phase '{{ _mig_phase.stdout | trim }}'."
+
+        - name: "Test VM | migration | read VMI after migration"
+          ansible.builtin.command: >-
+            oc get vmi {{ ocp_virt.test_vm.name }}
+            -n {{ ocp_virt.test_vm.namespace }} -o json
+          register: _mig_vmi_after
+          changed_when: false
+
+        - name: "Test VM | migration | assert VM moved to a different node"
+          vars:
+            _after: "{{ _mig_vmi_after.stdout | from_json }}"
+          ansible.builtin.assert:
+            that:
+              - _after.status.phase == 'Running'
+              - _after.status.nodeName != _mig_source_node
+              - _after.status.migrationState.completed | default(false) | bool
+              - not (_after.status.migrationState.failed | default(false) | bool)
+            fail_msg: >-
+              Migration did not complete as expected:
+              source={{ _mig_source_node }}, node now={{ _after.status.nodeName }},
+              migrationState={{ _after.status.migrationState | default({}) }}
+            success_msg: >-
+              VM migrated {{ _mig_source_node }} -> {{ _after.status.nodeName }}.
+
+        - name: "Test VM | migration | wait for VM to be Ready after migration"
+          ansible.builtin.command: >-
+            oc wait vm {{ ocp_virt.test_vm.name }}
+            -n {{ ocp_virt.test_vm.namespace }}
+            --for condition=Ready --timeout=120s
+          changed_when: false
+
+        - name: "Test VM | migration | set result for summary"
+          ansible.builtin.set_fact:
+            _mig_result: "{{ _mig_source_node }} -> {{ (_mig_vmi_after.stdout | from_json).status.nodeName }}"
+
+      rescue:
+
+        - name: "Test VM | migration | collect diagnostics"
+          ansible.builtin.command: >-
+            oc describe vmim {{ _mig_name }} -n {{ ocp_virt.test_vm.namespace }}
+          register: _mig_diag
+          changed_when: false
+          failed_when: false
+
+        - name: "Test VM | migration | show diagnostics"
+          ansible.builtin.debug:
+            msg: "{{ _mig_diag.stdout_lines | default([]) }}"
+
+        - name: "Test VM | migration | fail"
+          ansible.builtin.fail:
+            msg: "Live migration test failed — see the output above."
+
+    - name: "Test VM | gather data disk PVC status"
+      ansible.builtin.command: >-
+        oc get pvc {{ ocp_virt.test_vm.name }}-data
+        -n {{ ocp_virt.test_vm.namespace }}
+        -o jsonpath='{.status.phase}{" "}{.status.capacity.storage}{" "}{.spec.storageClassName}'
+      register: _data_pvc_status
+      changed_when: false
+      when: ocp_virt.test_vm.data_disk.create | default(false) | bool
+
+    - name: "Test VM | print status summary"
+      ansible.builtin.debug:
+        msg:
+          - "Test VM '{{ ocp_virt.test_vm.name }}' is Ready."
+          - "VMI phase / node / IP: {{ _vmi_status.stdout }}"
+          - "Data disk PVC phase / size / storageclass: {{ _data_pvc_status.stdout | default('n/a (data_disk.create is false)') }}"
+          - "Live migration (source -> target node): {{ _mig_result | default('skipped (migration.enabled is false)') }}"
+          - "keep: {{ ocp_virt.test_vm.keep | bool }}"
+
+    - name: "Test VM | print login instructions"
+      ansible.builtin.debug:
+        msg:
+          - "Log in to the test VM from the bastion (user 'cloud-user', key-based; the VM IP is a pod IP and is not directly reachable):"
+          - "  export KUBECONFIG={{ ocp_virt_kubeconfig | default('<kubeconfig>') }}"
+          - "  virtctl ssh cloud-user@vmi/{{ ocp_virt.test_vm.name }} -n {{ ocp_virt.test_vm.namespace }} -i ~/.ssh/id_ed25519"
+          - "  (use the private key matching the injected public key)"
+          - "Serial console: virtctl console {{ ocp_virt.test_vm.name }} -n {{ ocp_virt.test_vm.namespace }}"
+          - "Manual live migration: virtctl migrate {{ ocp_virt.test_vm.name }} -n {{ ocp_virt.test_vm.namespace }}"
+      when: ocp_virt.test_vm.keep | bool
+
+  rescue:
+
+    - name: "Test VM | collect and print diagnostics"
+      ansible.builtin.include_tasks: diagnose_failure.yaml
+
+    - name: "Test VM | fail"
+      ansible.builtin.fail:
+        msg: >-
+          The test VM flow failed. See the diagnostics above (events, DataVolume,
+          PVC and pod status in namespace {{ ocp_virt.test_vm.namespace }}).
+
+  always:
+
+    - name: "Test VM | cleanup — delete namespace"
+      ansible.builtin.command: >-
+        oc delete namespace {{ ocp_virt.test_vm.namespace }} --ignore-not-found
+      register: _test_ns_delete
+      changed_when: "'deleted' in _test_ns_delete.stdout"
+      when: not (ocp_virt.test_vm.keep | bool)
+
+    - name: "Test VM | wait for test namespace to be removed"
+      ansible.builtin.command: >-
+        oc wait namespace {{ ocp_virt.test_vm.namespace }}
+        --for=delete --timeout=120s
+      changed_when: false
+      failed_when: false
+      when: not (ocp_virt.test_vm.keep | bool)

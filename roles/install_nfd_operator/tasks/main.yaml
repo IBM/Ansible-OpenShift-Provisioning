@@ -1,0 +1,72 @@
+---
+# Install the Node Feature Discovery (NFD) Operator.
+# NFD labels cluster nodes with hardware capability data used by OCP Virt
+# to schedule VMs on nodes with the correct CPU features (e.g. gen15b on s390x).
+
+- name: NFD | Create Namespace manifest
+  ansible.builtin.template:
+    src: Namespace.yaml.j2
+    dest: /root/ansible_workdir/nfd-Namespace.yaml
+    mode: '0644'
+
+- name: NFD | Apply Namespace
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/nfd-Namespace.yaml
+  register: _nfd_apply_namespace
+  changed_when: "'unchanged' not in _nfd_apply_namespace.stdout"
+
+- name: NFD | Create OperatorGroup manifest
+  ansible.builtin.template:
+    src: OperatorGroup.yaml.j2
+    dest: /root/ansible_workdir/nfd-OperatorGroup.yaml
+    mode: '0644'
+
+- name: NFD | Apply OperatorGroup
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/nfd-OperatorGroup.yaml
+  register: _nfd_apply_operatorgroup
+  changed_when: "'unchanged' not in _nfd_apply_operatorgroup.stdout"
+
+- name: NFD | Create Subscription manifest
+  ansible.builtin.template:
+    src: Subscription.yaml.j2
+    dest: /root/ansible_workdir/nfd-Subscription.yaml
+    mode: '0644'
+
+- name: NFD | Apply Subscription
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/nfd-Subscription.yaml
+  register: _nfd_apply_subscription
+  changed_when: "'unchanged' not in _nfd_apply_subscription.stdout"
+
+# Check the CSV that this Subscription installed (status.installedCSV), not any
+# CSV in the namespace, so stale CSVs from earlier installs cannot satisfy it.
+- name: NFD | Wait for the Subscription's CSV to reach Succeeded
+  ansible.builtin.shell: |
+    csv=$(oc get subscription nfd -n openshift-nfd \
+      -o jsonpath='{.status.installedCSV}' 2>/dev/null)
+    [ -n "$csv" ] || exit 0
+    oc get csv "$csv" -n openshift-nfd -o jsonpath='{.status.phase}' 2>/dev/null
+  args:
+    executable: /bin/bash
+  register: _nfd_csv_phase
+  until: _nfd_csv_phase.stdout | trim == 'Succeeded'
+  retries: "{{ [((nfd_csv_timeout | int) / 10) | round(0, 'ceil') | int, 1] | max }}"
+  delay: 10
+  changed_when: false
+
+- name: NFD | Create NodeFeatureDiscovery CR
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: nfd.openshift.io/v1
+      kind: NodeFeatureDiscovery
+      metadata:
+        name: nfd-instance
+        namespace: openshift-nfd
+      spec:
+        instance: ""
+        topologyupdater: false
+
+- name: NFD | Wait for nfd-worker DaemonSet rollout
+  ansible.builtin.command: >-
+    oc rollout status daemonset nfd-worker -n openshift-nfd
+    --timeout={{ nfd_csv_timeout }}s
+  changed_when: false
