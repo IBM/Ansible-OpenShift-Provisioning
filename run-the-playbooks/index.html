@@ -165,6 +165,17 @@
                   <li class="toctree-l1"><a class="reference internal" href="../abi-lpar-configuration/">ABI LPAR Configuration</a>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">Operators (Day-2)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#verify-ocp-virtualization-prerequisites-playbooksoperatorsverify_ocp_virt_prereqsyaml">Verify OCP Virt Prerequisites</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#install-openshift-virtualization-playbooksoperatorsinstall_ocp_virtyaml">Install OpenShift Virtualization</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#create-ocp-virt-test-vm-playbooksoperatorscreate_test_vmyaml">Create Test VM</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#uninstall-openshift-virtualization-playbooksoperatorsuninstall_ocp_virtyaml">Uninstall OpenShift Virtualization</a>
+                  </li>
+              </ul>
               <p class="caption"><span class="caption-text">Misc</span></p>
               <ul>
                   <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
@@ -500,15 +511,378 @@ We recommand to create a new config file for the additional compute node with su
 <p>and then run <a href="../playbooks/create_multiple_compute_nodes.yaml"><code>playbooks/create_multiple_compute_nodes.yaml</code></a>.</p>
 <h3 id="delete-a-day-2-compute-node">Delete a day-2 compute node<a class="headerlink" href="#delete-a-day-2-compute-node" title="Permanent link">#</a></h3>
 <p>To delete a day-2 node, keep the matching host_vars entry available and run <a href="../playbooks/delete_compute_node.yaml"><code>playbooks/delete_compute_node.yaml</code></a>.</p>
-<pre class="codehilite"><code class="language-bash">ansible-playbook -i inventories/default playbooks/delete_compute_node.yaml
+<h2 id="reinstall-cluster-playbook-reinstall_clusteryaml">Reinstall Cluster Playbook (reinstall_cluster.yaml)<a class="headerlink" href="#reinstall-cluster-playbook-reinstall_clusteryaml" title="Permanent link">#</a></h2>
+<h3 id="overview_11">Overview<a class="headerlink" href="#overview_11" title="Permanent link">#</a></h3>
+<p>In case the cluster needs to be completely reinstalled, run this playbook. It will refresh the ingitions that expire after 24 hours, teardown the nodes and re-create them, and then verify the installation.</p>
+<h3 id="outcomes_9">Outcomes<a class="headerlink" href="#outcomes_9" title="Permanent link">#</a></h3>
+<ul>
+<li>get_ocp role runs.<ul>
+<li>Delete the folders /var/www/html/bin and /var/www/html/ignition.</li>
+<li>CoreOS roofts is pulled to the bastion.</li>
+<li>OCP client and installer are pulled down.</li>
+<li>oc, kubectl and openshift-install binaries are installed.</li>
+<li>OCP install-config is created from scratch, templated and backed up.</li>
+<li>Manfifests are created.</li>
+<li>OCP install directory found at /root/ocpinst/ is deleted, re-created and populated with necessary files.</li>
+<li>Ignition files for the bootstrap, control, and compute nodes are transferred to HTTP-accessible directory for booting nodes.</li>
+</ul>
+</li>
+<li>6 Create Nodes playbook runs, tearing down and recreating cluster nodes.</li>
+<li>7 OCP Verification playbook runs, verifying new deployment.</li>
+</ul>
+<h2 id="test-playbook-testyaml">Test Playbook (test.yaml)<a class="headerlink" href="#test-playbook-testyaml" title="Permanent link">#</a></h2>
+<h3 id="overview_12">Overview<a class="headerlink" href="#overview_12" title="Permanent link">#</a></h3>
+<ul>
+<li>Use this playbook for your testing purposes, if needed.</li>
+</ul>
+<h2 id="verify-ocp-virtualization-prerequisites-playbooksoperatorsverify_ocp_virt_prereqsyaml">Verify OCP Virtualization Prerequisites (playbooks/operators/verify_ocp_virt_prereqs.yaml)<a class="headerlink" href="#verify-ocp-virtualization-prerequisites-playbooksoperatorsverify_ocp_virt_prereqsyaml" title="Permanent link">#</a></h2>
+<h3 id="overview_13">Overview<a class="headerlink" href="#overview_13" title="Permanent link">#</a></h3>
+<p>Read-only pre-flight check that verifies all 14 prerequisites required before running
+<code>install_ocp_virt.yaml</code>. Runs every check even if earlier ones fail, then prints a
+consolidated pass/fail/warn summary. Safe to run at any time — it never creates or
+modifies any cluster resources.</p>
+<h3 id="usage_1">Usage<a class="headerlink" href="#usage_1" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code>ansible-playbook playbooks/operators/verify_ocp_virt_prereqs.yaml --ask-vault-pass
 </code></pre>
 
-<p>This playbook loads the same host_vars-based node definition and removes the VM from the referenced hypervisor.</p>
-<h2 id="notes_9">Notes<a class="headerlink" href="#notes_9" title="Permanent link">#</a></h2>
+<h3 id="outcomes_10">Outcomes<a class="headerlink" href="#outcomes_10" title="Permanent link">#</a></h3>
 <ul>
-<li><a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a> should be rerun whenever you change inventory-relevant variables such as <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a>.</li>
-<li><a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a> uses the generated <a href="../inventories/default/hosts"><code>day2_hosts</code></a> inventory group for day-2 hypervisor preparation.</li>
-<li><a href="../playbooks/5_setup_bastion.yaml"><code>playbooks/5_setup_bastion.yaml</code></a> is the reconciliation step for bastion DNS and HAProxy state related to day-2 nodes.</li>
+<li>Prints <code>[FAIL]</code> for each hard prerequisite that is not met.</li>
+<li>Prints <code>[WARN]</code> for advisory conditions (non-s390x architecture, possible guest nodes,
+  low resource headroom).</li>
+<li>Exits 0 (pass) when all hard checks succeed, even if warnings are present.</li>
+<li>Exits non-zero when one or more hard checks fail — resolve before installing.</li>
+</ul>
+<h3 id="checks-performed">Checks performed<a class="headerlink" href="#checks-performed" title="Permanent link">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Check</th>
+<th>Result type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>kubeconfig present at <code>ocp_virt_kubeconfig</code></td>
+<td>FAIL</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>oc</code> binary present on bastion</td>
+<td>FAIL</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Cluster API reachable</td>
+<td>FAIL</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>cluster-admin</code> privileges</td>
+<td>FAIL</td>
+</tr>
+<tr>
+<td>5</td>
+<td>OCP version ≥ 4.19</td>
+<td>FAIL</td>
+</tr>
+<tr>
+<td>6</td>
+<td>All cluster operators healthy</td>
+<td>FAIL</td>
+</tr>
+<tr>
+<td>7</td>
+<td>All nodes Ready</td>
+<td>FAIL</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Node architecture is s390x</td>
+<td>WARN</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Nodes are bare-metal LPARs (not z/VM or KVM guests); read from <code>/proc/sysinfo</code> on each node via <code>oc debug</code></td>
+<td>WARN</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>redhat-operators</code> CatalogSource is READY</td>
+<td>FAIL</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Default StorageClass exists</td>
+<td>FAIL</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Sufficient CPU / memory headroom (≥ 16 vCPU / 32 GiB)</td>
+<td>WARN</td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>kubernetes.core</code> collection installed on Ansible controller</td>
+<td>FAIL</td>
+</tr>
+<tr>
+<td>14</td>
+<td><code>ocp_virt</code> variable defined in <code>operators.yaml</code></td>
+<td>FAIL</td>
+</tr>
+<tr>
+<td>### Notes</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>* <code>operators.yaml</code> must be present (copy from <code>operators.yaml.template</code>) before running,</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>as check 14 reads variables from it.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>* Run this playbook first, fix all <code>[FAIL]</code> items, then run <code>install_ocp_virt.yaml</code>.</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="install-openshift-virtualization-playbooksoperatorsinstall_ocp_virtyaml">Install OpenShift Virtualization (playbooks/operators/install_ocp_virt.yaml)<a class="headerlink" href="#install-openshift-virtualization-playbooksoperatorsinstall_ocp_virtyaml" title="Permanent link">#</a></h2>
+<h3 id="overview_14">Overview<a class="headerlink" href="#overview_14" title="Permanent link">#</a></h3>
+<p>Installs OpenShift Virtualization as a day-2 operator on a running OCP 4.19+ cluster on IBM Z / LinuxONE (s390x).
+Runs on the bastion after <code>7_ocp_verification.yaml</code> has completed.
+Installs Node Feature Discovery, cert-manager, and the OpenShift Virtualization operator
+in sequence. Creates the <code>HyperConverged</code> CR to activate the full virtualization stack.</p>
+<h3 id="usage_2">Usage<a class="headerlink" href="#usage_2" title="Permanent link">#</a></h3>
+<p>Before running, copy the template and configure your variables:</p>
+<pre class="codehilite"><code>cp inventories/default/group_vars/operators.yaml.template \
+   inventories/default/group_vars/operators.yaml
+# Edit operators.yaml — at minimum set ocp_virt.hyperconverged.default_cpu_model
+</code></pre>
+
+<p>Then run the playbook:</p>
+<pre class="codehilite"><code>ansible-playbook playbooks/operators/install_ocp_virt.yaml --ask-vault-pass
+</code></pre>
+
+<h3 id="outcomes_11">Outcomes<a class="headerlink" href="#outcomes_11" title="Permanent link">#</a></h3>
+<ul>
+<li>NFD Operator installed and node labelling active (CPU model labels on each node).</li>
+<li>cert-manager Operator installed.</li>
+<li>OpenShift Virtualization Operator installed in <code>openshift-cnv</code> namespace.</li>
+<li><code>HyperConverged</code> CR created — virtualization stack active.</li>
+<li><code>virt-operator</code>, <code>virt-controller</code>, <code>virt-handler</code> pods running.</li>
+<li><code>virtctl</code> downloaded from the cluster (<code>ConsoleCLIDownload</code>) and installed on the
+  bastion in <code>ocp_virt.virtctl.install_dir</code> (default <code>/usr/local/bin</code>). Skipped if
+  <code>virtctl</code> is already there or <code>ocp_virt.virtctl.install: false</code>.</li>
+<li>Optional: a test VM is created and verified <code>Running</code> (<code>ocp_virt.test_vm.create: true</code>)
+  and either kept or removed again (<code>ocp_virt.test_vm.keep</code>).</li>
+</ul>
+<h3 id="notes_9">Notes<a class="headerlink" href="#notes_9" title="Permanent link">#</a></h3>
+<ul>
+<li>Requires OCP 4.19 or later (s390x GA release for OpenShift Virtualization). The playbook
+  fails with a clear message on older versions.</li>
+<li>The cluster must be installed on LPAR nodes. VM scheduling requires hardware virtualisation
+  at the LPAR level.</li>
+<li>A default StorageClass must exist before running. Storage provisioner setup (ODF, HPP, etc.)
+  is out of scope — complete it first, then run this playbook.</li>
+<li>The <code>stable</code> channel always resolves to the OCP Virt version matching the cluster.
+  Pin to a specific release with <code>ocp_virt.channel: stable-4.22</code>.</li>
+<li>The test VM requires an s390x qcow2 guest image (e.g. RHEL 9 KVM Guest Image for s390x)
+  reachable over HTTP(S) from the cluster nodes, for example hosted on the bastion file server.
+  The playbook only checks reachability from the bastion and prints a warning if that fails;
+  CDI downloads the image from the cluster network, so a failed import is reported by the
+  failure diagnostics instead.</li>
+<li>Copy <code>operators.yaml.template</code> to <code>operators.yaml</code> and configure <code>ocp_virt:</code> variables
+  before running (see <code>inventories/default/group_vars/operators.yaml.template</code>).</li>
+<li><strong>virtctl installation</strong> (task file <code>roles/install_ocp_virt_operator/tasks/install_virtctl.yaml</code>)
+  runs after the HyperConverged CR is <code>Available</code> and before the optional test VM:<ul>
+<li>The Linux download link matching the bastion's architecture (<code>uname -m</code>: x86_64,
+  aarch64/arm64, s390x, ppc64le) is read from the <code>ConsoleCLIDownload</code> object
+  <code>virtctl-clidownloads-kubevirt-hyperconverged</code>, downloaded, extracted and copied to
+  <code>&lt;install_dir&gt;/virtctl</code>. The installed client version is printed.</li>
+<li>The bastion must be able to reach the cluster's download route over HTTPS, must have
+  <code>tar</code> (GNU) or <code>unzip</code> to unpack the archive, and the playbook user must be allowed to
+  write to <code>install_dir</code> (default <code>/usr/local/bin</code>, normally <code>root</code>).</li>
+<li>The playbook fails with a clear message if the cluster offers no <code>virtctl</code> for the
+  bastion's architecture. Set <code>ocp_virt.virtctl.install: false</code> and install it manually
+  in that case.</li>
+<li>An existing <code>&lt;install_dir&gt;/virtctl</code> is never overwritten. To upgrade, delete the old
+  binary and re-run the playbook.</li>
+</ul>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ocp_virt.virtctl.install</code></td>
+<td><code>true</code></td>
+<td><code>false</code> skips the download and installation.</td>
+</tr>
+<tr>
+<td><code>ocp_virt.virtctl.install_dir</code></td>
+<td><code>/usr/local/bin</code></td>
+<td>Directory the binary is installed into.</td>
+</tr>
+<tr>
+<td><code>ocp_virt.virtctl.validate_certs</code></td>
+<td><code>false</code></td>
+<td>Validate the TLS certificate of the download route (it is signed by the cluster's own CA).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="create-ocp-virt-test-vm-playbooksoperatorscreate_test_vmyaml">Create OCP Virt Test VM (playbooks/operators/create_test_vm.yaml)<a class="headerlink" href="#create-ocp-virt-test-vm-playbooksoperatorscreate_test_vmyaml" title="Permanent link">#</a></h2>
+<h3 id="overview_15">Overview<a class="headerlink" href="#overview_15" title="Permanent link">#</a></h3>
+<p>Creates a test VirtualMachine on an already-running OCP Virt cluster. Use this when
+<code>install_ocp_virt.yaml</code> was run with <code>test_vm.create: false</code> and you want to verify
+the full stack (CDI image import → VM boot) without re-running the operator install.</p>
+<p>Optionally, the playbook also attaches a blank <strong>data disk</strong> to the VM
+(<code>test_vm.data_disk.create: true</code>) and triggers a <strong>live migration</strong> of the VM to another
+node (<code>test_vm.migration.enabled: true</code>). The purpose of this use case is to verify the
+functionality of <strong>OpenShift Virtualization and the underlying storage provider</strong>: the
+storage provider must dynamically provision the root and data disks, and, because live
+migration requires the disks to be accessible from both the source and the target node,
+it must support shared <code>ReadWriteMany</code> volumes.</p>
+<h3 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h3>
+<ul>
+<li>OCP Virt (<code>kubevirt-hyperconverged</code>) already installed and HyperConverged Available</li>
+<li><code>ocp_virt.test_vm.image_url</code> set to an s390x qcow2 HTTP(S) URL in <code>operators.yaml</code></li>
+<li>Default StorageClass present (CDI needs it for the DataVolume), or
+  <code>ocp_virt.test_vm.storage_class</code> set</li>
+<li>For the migration test: at least two schedulable worker nodes with enough free memory
+  for a second <code>virt-launcher</code> pod, and a StorageClass that supports <code>ReadWriteMany</code></li>
+</ul>
+<h3 id="usage_3">Usage<a class="headerlink" href="#usage_3" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code>ansible-playbook playbooks/operators/create_test_vm.yaml --ask-vault-pass
+</code></pre>
+
+<p>Relevant settings in <code>operators.yaml</code>:</p>
+<pre class="codehilite"><code class="language-yaml">ocp_virt:
+  test_vm:
+    keep: true               # keep the VM so it can be inspected after the test
+    storage_class: &quot;&lt;rwx-capable-storageclass&gt;&quot;
+    data_disk:
+      create: true           # blank data disk, attached as a second virtio disk
+      size: 10Gi
+      storage_class: &quot;&quot;      # empty = same as root disk
+    migration:
+      enabled: true          # live-migrate the VM after it is Ready
+      timeout: 600           # seconds to wait for the migration to finish
+</code></pre>
+
+<h3 id="outcomes_12">Outcomes<a class="headerlink" href="#outcomes_12" title="Permanent link">#</a></h3>
+<ul>
+<li>Creates the VM namespace and VirtualMachine resource</li>
+<li>Waits for the DataVolume import to finish (up to <code>dv_timeout</code> seconds)</li>
+<li>If <code>data_disk.create: true</code>: creates a blank DataVolume <code>&lt;name&gt;-data</code>, attaches it to the
+  VM (serial <code>datadisk</code>, visible in the guest as <code>/dev/disk/by-id/virtio-datadisk</code>) and waits
+  for it to be ready. The disk is unformatted; partition and mount it inside the guest.</li>
+<li>Waits for the VM to reach Ready (up to <code>vm_timeout</code> seconds)</li>
+<li>If <code>migration.enabled: true</code>, after the VM is Ready the playbook:<ol>
+<li>Requests the VM disks with access mode <code>ReadWriteMany</code></li>
+<li>Checks the <code>LiveMigratable</code> condition of the VMI (fails with the reason if <code>False</code>)</li>
+<li>Creates a <code>VirtualMachineInstanceMigration</code> (<code>&lt;name&gt;-migration</code>)</li>
+<li>Waits for the migration phase <code>Succeeded</code> (up to <code>migration.timeout</code> seconds)</li>
+<li>Verifies the VMI is <code>Running</code>, <code>migrationState.completed</code> is true, the migration did
+   not fail, and the VM now runs on a <strong>different node</strong> than before</li>
+<li>Waits for the VM to be <code>Ready</code> again; on failure it prints <code>oc describe vmim</code></li>
+</ol>
+</li>
+<li>Prints the VMI phase, node name, IP address, data disk PVC status and the migration
+  result (<code>&lt;source node&gt; -&gt; &lt;target node&gt;</code>)</li>
+<li><strong>Deletes</strong> the namespace when <code>test_vm.keep: false</code> (default — smoke test behaviour)</li>
+<li><strong>Leaves</strong> the VM and namespace in place when <code>test_vm.keep: true</code></li>
+</ul>
+<h3 id="notes_10">Notes<a class="headerlink" href="#notes_10" title="Permanent link">#</a></h3>
+<ul>
+<li><code>test_vm.ssh_public_key</code> left empty → bastion's <code>~/.ssh/id_ed25519.pub</code> is injected automatically</li>
+<li>The playbook verifies HyperConverged is Available before creating the VM</li>
+<li>A migration failure usually means the storage class cannot provide <code>ReadWriteMany</code>
+  volumes (VMI condition <code>LiveMigratable</code> is <code>False</code>), or no other node can host the VM.
+  Check the StorageProfile of the class: <code>oc get storageprofile &lt;class&gt; -o yaml</code>.</li>
+<li>To manually verify data integrity across the migration, format and mount the data disk
+  in the guest and write a file before the test; it is still readable afterwards.</li>
+<li>Manual migration of a kept VM: <code>virtctl migrate &lt;vm&gt; -n &lt;namespace&gt;</code></li>
+<li><strong>Failure diagnostics:</strong> if any step of the test VM flow fails or times out (DataVolume
+  import, VM start, migration), the playbook prints the cluster state before it fails: the
+  VM, DataVolume, PVC and pod list, <code>oc describe dv</code>, the namespace events (warnings first),
+  the pod waiting reasons and the storage class. It also adds a hint for common causes
+  (<code>FailedAttachVolume</code>/<code>FailedMount</code> = storage CSI driver cannot attach or mount the volume,
+  <code>ProvisioningFailed</code>, <code>ErrImagePull</code>, <code>FailedScheduling</code>, <code>ImportFailed</code>). With
+  <code>test_vm.keep: false</code> the namespace is deleted afterwards; set <code>keep: true</code> to leave the
+  stuck resources in place for further debugging.</li>
+</ul>
+<h3 id="how-to-log-in-to-the-test-vm">How to log in to the test VM<a class="headerlink" href="#how-to-log-in-to-the-test-vm" title="Permanent link">#</a></h3>
+<p>The VM is only available after the run when <code>test_vm.keep: true</code>. When <code>keep: true</code>, the
+playbook prints the exact login commands at the end of the run.</p>
+<p>The VM is created for user <code>cloud-user</code> with the bastion's public key injected through
+cloud-init (no password is set). The VM sits on the pod network (masquerade), so its IP is
+a pod IP that the bastion cannot normally reach directly; log in with <code>virtctl</code> instead.</p>
+<p>On the bastion:</p>
+<pre class="codehilite"><code>export KUBECONFIG=&lt;ocp_virt_kubeconfig&gt;
+oc get vmi ocp-virt-test -n ocp-virt-test          # VM must be Running
+
+# SSH with the private key matching the injected public key
+virtctl ssh cloud-user@vmi/ocp-virt-test -n ocp-virt-test -i ~/.ssh/id_ed25519
+
+# Serial console (exit with Ctrl+]); needs a password, so SSH is preferred
+virtctl console ocp-virt-test -n ocp-virt-test
+</code></pre>
+
+<p>Replace <code>ocp-virt-test</code> with <code>test_vm.name</code> / <code>test_vm.namespace</code> if you changed them.</p>
+<ul>
+<li><code>install_ocp_virt.yaml</code> installs <code>virtctl</code> on the bastion (<code>ocp_virt.virtctl.install: true</code>).
+  If it is missing (for example when <code>install_ocp_virt.yaml</code> was run with
+  <code>virtctl.install: false</code>), download it from the cluster:
+  <code>oc get consoleclidownload virtctl-clidownloads-kubevirt-hyperconverged -o jsonpath='{.spec.links[*].href}'</code></li>
+<li>Without <code>virtctl</code>, SSH through the node running the VM:
+  <code>ssh -J core@&lt;node&gt; cloud-user@&lt;vmi-ip&gt;</code> (node and IP from <code>oc get vmi &lt;vm&gt; -n &lt;ns&gt; -o wide</code>).</li>
+<li>If no bastion public key was found and <code>test_vm.ssh_public_key</code> was empty, key login is
+  not possible. Set <code>test_vm.ssh_public_key</code> and recreate the VM.</li>
+<li>Inside the guest, the data disk is available as <code>/dev/disk/by-id/virtio-datadisk</code>.</li>
+</ul>
+<h2 id="uninstall-openshift-virtualization-playbooksoperatorsuninstall_ocp_virtyaml">Uninstall OpenShift Virtualization (playbooks/operators/uninstall_ocp_virt.yaml)<a class="headerlink" href="#uninstall-openshift-virtualization-playbooksoperatorsuninstall_ocp_virtyaml" title="Permanent link">#</a></h2>
+<h3 id="overview_16">Overview<a class="headerlink" href="#overview_16" title="Permanent link">#</a></h3>
+<p>Removes OpenShift Virtualization, cert-manager, and NFD from the cluster in reverse
+installation order. Follows the OCP 4.22 uninstall procedure. All <code>VirtualMachine</code>
+and <code>VirtualMachineInstance</code> objects must be deleted before running — the playbook
+aborts with a clear message if any remain.</p>
+<h3 id="usage_4">Usage<a class="headerlink" href="#usage_4" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code>ansible-playbook playbooks/operators/uninstall_ocp_virt.yaml \
+  -e ocp_virt_uninstall_confirm=true --ask-vault-pass
+</code></pre>
+
+<h3 id="outcomes_13">Outcomes<a class="headerlink" href="#outcomes_13" title="Permanent link">#</a></h3>
+<ul>
+<li><code>HyperConverged</code> CR deleted — virtualization stack deactivated.</li>
+<li>OpenShift Virtualization Operator, CSV, and CRDs removed.</li>
+<li><code>openshift-cnv</code> namespace deleted.</li>
+<li>cert-manager Operator, CSV, and the <code>cert-manager-operator</code> and <code>cert-manager</code> namespaces deleted.</li>
+<li>NFD <code>NodeFeatureDiscovery</code> CR, Operator, CSV, and <code>openshift-nfd</code> namespace deleted.</li>
+</ul>
+<h3 id="notes_11">Notes<a class="headerlink" href="#notes_11" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Requires <code>-e ocp_virt_uninstall_confirm=true</code></strong> — the play aborts immediately
+  without this flag to prevent accidental runs. The variable has no default; setting it in
+  <code>operators.yaml</code> or other vars files is not supported — pass it on the command line.</li>
+<li>Will abort with a clear message if any VMs or VMIs still exist on the cluster.</li>
+<li>Cluster operators and compute nodes are not affected.</li>
+<li>StorageClasses, PVCs, and NFD node labels are <strong>not</strong> removed by this playbook.</li>
+<li><code>operators.yaml</code> must still be present (same requirement as the install playbook).</li>
 </ul>
               
             </div>

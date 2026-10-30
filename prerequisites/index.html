@@ -61,6 +61,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#jumphost-for-nat-network">Jumphost for NAT network</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#openshift-virtualization-day-2-operator">OpenShift Virtualization (day-2 operator)</a>
+    </li>
     </ul>
                   </li>
               </ul>
@@ -81,6 +83,17 @@
                   <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hcp/">Run the Playbooks (HostedControlPlane)</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../abi-lpar-configuration/">ABI LPAR Configuration</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Operators (Day-2)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#verify-ocp-virtualization-prerequisites-playbooksoperatorsverify_ocp_virt_prereqsyaml">Verify OCP Virt Prerequisites</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#install-openshift-virtualization-playbooksoperatorsinstall_ocp_virtyaml">Install OpenShift Virtualization</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#create-ocp-virt-test-vm-playbooksoperatorscreate_test_vmyaml">Create Test VM</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#uninstall-openshift-virtualization-playbooksoperatorsuninstall_ocp_virtyaml">Uninstall OpenShift Virtualization</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Misc</span></p>
@@ -217,6 +230,30 @@
 <p>In addition make sure that python3 is installed on the jumphost otherwise ansible might fail to run the tasks. You can install python3 manually by executing the following command:</p>
 <pre class="codehilite"><code>yum install python3 
 </code></pre>
+
+<h2 id="openshift-virtualization-day-2-operator">OpenShift Virtualization (day-2 operator)<a class="headerlink" href="#openshift-virtualization-day-2-operator" title="Permanent link">#</a></h2>
+<ul>
+<li>Requires <strong>OCP 4.19 or later</strong> on IBM Z / LinuxONE (s390x GA release).</li>
+<li>The cluster nodes must be installed on <strong>bare-metal LPARs</strong> — not z/VM guests or KVM VMs.
+  Hardware virtualisation at the LPAR level is required.</li>
+<li>A <strong>default StorageClass must exist</strong> before running the install playbook.
+  CDI (deployed by the <code>HyperConverged</code> CR) requires it for scratch space and boot-source
+  image import. Set up a storage provisioner (ODF, HPP, etc.) and mark a StorageClass as
+  default before running <code>playbooks/operators/install_ocp_virt.yaml</code>.</li>
+<li>The <code>kubernetes.core</code> Ansible collection must be installed on the Ansible controller:</li>
+</ul>
+<pre class="codehilite"><code>ansible-galaxy collection install kubernetes.core
+</code></pre>
+
+<ul>
+<li>For the optional test VM, an s390x qcow2 guest image (e.g. RHEL 9 KVM Guest Image for
+  s390x) must be reachable over HTTP(S) from the cluster nodes.</li>
+<li>The install playbook downloads the <code>virtctl</code> CLI from the cluster's download route and
+  installs it on the bastion (<code>ocp_virt.virtctl.install</code>). The bastion therefore needs HTTPS
+  access to the cluster's <code>*.apps</code> routes, <code>tar</code> or <code>unzip</code>, and write access to
+  <code>ocp_virt.virtctl.install_dir</code> (default <code>/usr/local/bin</code>). Set <code>ocp_virt.virtctl.install: false</code>
+  to skip this.</li>
+</ul>
               
             </div>
           </div><footer>
