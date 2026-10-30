@@ -135,3 +135,4 @@ rm -f /etc/haproxy/haproxy.cfg.[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]
 
 #### Support for openvpn is being deprecated due to issues with RHEL9. It will be removed in one of the upcoming releases. For the time being this feature is disabled by setting setup_openvpn variable to False.
 #### Support for RHEL8. RHEL8 support will be removed in one of the upcoming releases.
+#### The host_vars templates `KVMhostname1-here.yaml.template`, `KVMhostname2-here.yaml.template` and `KVMhostname3-here.yaml.template` are deprecated and will be removed with upcoming PRs. They are replaced by the single template [`lpar.yaml.template`](inventories/default/host_vars/lpar.yaml.template), which covers KVM hosts, LPAR/ABI nodes and LPAR creation on DPM. Copy it and rename the copy to `<hostname>.yaml` (for a KVM host, the value of `env.z.lpar1.hostname`, `env.z.lpar2.hostname` or `env.z.lpar3.hostname`).
