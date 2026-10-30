@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/multi-architecture-compute-nodes/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Multi-Architecture Compute Node Addition - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../stylesheets/extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Multi-Architecture Compute Node Addition";
+        var mkdocs_page_input_path = "multi-architecture-compute-nodes.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/multi-architecture-compute-nodes/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/ansible-logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Read Me</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../before-you-begin/">Before You Begin</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../prerequisites/">Prerequisites</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation Instructions</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-abi/">Run the Playbooks (Agent-Based Installer)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hcp/">Run the Playbooks (HostedControlPlane)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../abi-lpar-configuration/">ABI LPAR Configuration</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Misc</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgements/">Acknowledgements</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Multi-Architecture Compute Node Addition</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/multi-architecture-compute-nodes.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="multi-architecture-compute-node-addition">Multi-Architecture Compute Node Addition<a class="headerlink" href="#multi-architecture-compute-node-addition" title="Permanent link">#</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<p>This document explains the current day-2 workflow for adding compute nodes to an existing OpenShift cluster, including:
+- adding a single node with <a href="../playbooks/create_compute_node.yaml"><code>playbooks/create_compute_node.yaml</code></a>
+- adding multiple nodes with <a href="../playbooks/create_multiple_compute_nodes.yaml"><code>playbooks/create_multiple_compute_nodes.yaml</code></a>
+- multi-architecture scenarios such as adding <a href="../inventories/default/host_vars/example-day2-node.yaml"><code>x86_64</code></a> compute nodes to an <a href="../inventories/default/host_vars/example-day2-node.yaml"><code>s390x</code></a> cluster</p>
+<p>The current implementation is <strong>host_vars-based</strong>. A day-2 node is no longer described inline as a nested object in <a href="../inventories/default/group_vars/all.yaml"><code>all.yaml</code></a>. Instead:</p>
+<ol>
+<li>create one host_vars file per day-2 node in <a href="../inventories/default/host_vars"><code>inventories/default/host_vars</code></a></li>
+<li>list the host_vars entry name in <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a> for single-node operations</li>
+<li>pass a list of host_vars entry names as <a href="../playbooks/create_multiple_compute_nodes.yaml"><code>day2_compute_nodes</code></a> for multi-node operations</li>
+</ol>
+<h2 id="current-day-2-data-model">Current Day-2 Data Model<a class="headerlink" href="#current-day-2-data-model" title="Permanent link">#</a></h2>
+<h3 id="single-node-flow">Single-node flow<a class="headerlink" href="#single-node-flow" title="Permanent link">#</a></h3>
+<p>For <a href="../playbooks/create_compute_node.yaml"><code>playbooks/create_compute_node.yaml</code></a>, define <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a> as a list containing exactly one host_vars entry name:</p>
+<pre class="codehilite"><code class="language-yaml">day2_compute_node:
+  - example-day2-node
+</code></pre>
+
+<p>The playbook loads the node definition from:</p>
+<ul>
+<li><a href="../inventories/default/host_vars/example-day2-node.yaml"><code>inventories/default/host_vars/example-day2-node.yaml</code></a> for a real example</li>
+<li><a href="../inventories/default/host_vars/compute-day2.yaml.template"><code>inventories/default/host_vars/compute-day2.yaml.template</code></a> as the template structure</li>
+</ul>
+<h3 id="multi-node-flow">Multi-node flow<a class="headerlink" href="#multi-node-flow" title="Permanent link">#</a></h3>
+<p>For <a href="../playbooks/create_multiple_compute_nodes.yaml"><code>playbooks/create_multiple_compute_nodes.yaml</code></a>, provide a list of host_vars entry names through extra vars:</p>
+<pre class="codehilite"><code class="language-yaml">day2_compute_nodes:
+  - example-day2-node
+  - another-day2-node
+</code></pre>
+
+<p>Each list item must match a file in <a href="../inventories/default/host_vars"><code>inventories/default/host_vars</code></a>.</p>
+<h3 id="host_vars-structure">Host_vars structure<a class="headerlink" href="#host_vars-structure" title="Permanent link">#</a></h3>
+<p>A day-2 host_vars file contains both:
+- the compute node definition
+- the hypervisor connection details used to create that node</p>
+<p>Example structure:</p>
+<pre class="codehilite"><code class="language-yaml">hypervisor_name: example-kvm-host
+hypervisor_host_ip: 192.168.100.10
+hypervisor_user: root
+hypervisor_user_pwd: &quot;{{ vault_host_user_pass }}&quot;
+hypervisor_arch: x86_64
+setup_host: true
+
+node_vm_name: worker-x64-example
+node_vm_hostname: worker-x64-example
+
+vcpu: 4
+memory: 16384
+disk_size: 120
+vcpu_model_option: &quot;--cpu host&quot;
+
+networking:
+  ip: 192.168.100.64
+  ipv6:
+  gateway: 192.168.100.1
+  ipv6_gateway:
+  subnetmask: 255.255.255.0
+  ipv6_prefix:
+  mac_address: &quot;52:54:00:00:01:41&quot;
+  device1: enp1s0
+  dhcp: false
+
+storage:
+  pool_path: /var/lib/libvirt/images/
+  pool_name: examplecluster-vdisk
+
+node_role: compute
+ignition_type: worker
+</code></pre>
+
+<h2 id="how-nodes-are-added-now">How Nodes Are Added Now<a class="headerlink" href="#how-nodes-are-added-now" title="Permanent link">#</a></h2>
+<h2 id="1-define-the-day-2-node-in-host_vars">1. Define the day-2 node in host_vars<a class="headerlink" href="#1-define-the-day-2-node-in-host_vars" title="Permanent link">#</a></h2>
+<p>Create a host_vars file for each additional compute node you want to add. Use <a href="../inventories/default/host_vars/compute-day2.yaml.template"><code>inventories/default/host_vars/compute-day2.yaml.template</code></a> as the starting point.</p>
+<p>Important fields:
+- <code>hypervisor_name</code>: inventory name of the target hypervisor
+- <code>hypervisor_host_ip</code>: IP address of the target hypervisor
+- <code>hypervisor_user</code>: SSH user for the hypervisor
+- <code>hypervisor_user_pwd</code>: password used for privilege escalation and setup
+- <code>hypervisor_arch</code>: architecture of the hypervisor and node image lookup
+- <code>setup_host</code>: whether <a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a> should configure this hypervisor as a day-2 host
+- <code>node_vm_name</code>: VM name to create
+- <code>node_vm_hostname</code>: hostname of the new OpenShift node
+- <code>vcpu</code>, <code>memory</code>, <code>disk_size</code>, <code>vcpu_model_option</code>: VM sizing
+- <code>networking.*</code>: DHCP/static selection, IP, gateway, subnet, MAC, and interface settings
+- <code>storage.pool_path</code>: libvirt storage pool path
+- <code>storage.pool_name</code>: optional libvirt storage pool name used for VM disk creation
+- <code>node_role</code> and <code>ignition_type</code>: node role metadata</p>
+<p>If <code>disk_size</code> is not set, the day-2 VM creation flow falls back to <a href="../inventories/default/group_vars/all.yaml"><code>env.cluster.nodes.compute.disk_size</code></a>.
+If <code>storage.pool_name</code> is not set, the day-2 VM creation flow falls back to <code>{{ env.cluster.networking.metadata_name }}-vdisk</code>.
+If <code>networking.dhcp: true</code>, the day-2 VM boots with DHCP and uses <code>networking.mac_address</code> for the guest NIC definition.
+If <code>networking.dhcp: false</code>, the day-2 VM boots with the static IPv4 settings from <code>networking.ip</code>, <code>networking.gateway</code>, <code>networking.subnetmask</code>, and <code>networking.device1</code>.</p>
+<h2 id="2-register-the-node-in-day2_compute_node">2. Register the node in <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a><a class="headerlink" href="#2-register-the-node-in-day2_compute_node" title="Permanent link">#</a></h2>
+<p>For the single-node workflow, add the host_vars entry name to <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a>:</p>
+<pre class="codehilite"><code class="language-yaml">day2_compute_node:
+  - example-day2-node
+</code></pre>
+
+<p>This variable is used by:
+- <a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a> to evaluate day-2 hypervisors for inventory generation
+- <a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a> to configure eligible day-2 hypervisors
+- <a href="../playbooks/create_compute_node.yaml"><code>playbooks/create_compute_node.yaml</code></a> to load the node definition and create the VM</p>
+<h2 id="3-re-run-playbooks0_setupyaml">3. Re-run <a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a><a class="headerlink" href="#3-re-run-playbooks0_setupyaml" title="Permanent link">#</a></h2>
+<p>When <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a> is defined, <a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a> regenerates <a href="../inventories/default/hosts"><code>inventories/default/hosts</code></a>.</p>
+<p>If a referenced host_vars file has <code>setup_host: true</code>, the hypervisor is added to the dedicated inventory group:</p>
+<pre class="codehilite"><code class="language-ini">[day2_hosts]
+example-kvm-host ansible_host=192.168.100.10 ansible_user=root ansible_become_password='...' ansible_python_interpreter=/usr/bin/python3
+</code></pre>
+
+<p>If no eligible day-2 nodes exist, the <a href="../inventories/default/hosts"><code>day2_hosts</code></a> section is omitted.</p>
+<p>This inventory-based approach is important because it avoids the delegation and interpreter-discovery problems that occur when trying to configure day-2 hypervisors only through ad-hoc delegated tasks.</p>
+<h2 id="4-configure-day-2-hypervisors-with-playbooks3_setup_kvm_hostyaml">4. Configure day-2 hypervisors with <a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a><a class="headerlink" href="#4-configure-day-2-hypervisors-with-playbooks3_setup_kvm_hostyaml" title="Permanent link">#</a></h2>
+<p>If <code>setup_host: true</code> is set in the day-2 node host_vars file, rerun <a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a>.</p>
+<p>The playbook now uses the <a href="../inventories/default/hosts"><code>day2_hosts</code></a> inventory group and configures those hosts in the same way as the primary KVM hosts, including:
+- SSH key distribution
+- package installation
+- libvirt preparation
+- storage configuration
+- macvtap configuration where applicable</p>
+<p>If <code>setup_host: false</code>, the hypervisor is not added to <a href="../inventories/default/hosts"><code>day2_hosts</code></a> and is not configured by <a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a>.</p>
+<h2 id="5-prepare-bastion-services-with-playbooks5_setup_bastionyaml">5. Prepare bastion services with <a href="../playbooks/5_setup_bastion.yaml"><code>playbooks/5_setup_bastion.yaml</code></a><a class="headerlink" href="#5-prepare-bastion-services-with-playbooks5_setup_bastionyaml" title="Permanent link">#</a></h2>
+<p>After inventory or cluster topology changes, rerun <a href="../playbooks/5_setup_bastion.yaml"><code>playbooks/5_setup_bastion.yaml</code></a> so bastion-side configuration is refreshed.</p>
+<p>This is especially relevant when:
+- DNS is hosted on the bastion
+- HAProxy is hosted on the bastion
+- ignition files need to be refreshed before adding nodes</p>
+<p>The bastion playbook prepares the services that the day-2 node creation flow depends on.</p>
+<h2 id="6-add-the-node">6. Add the node<a class="headerlink" href="#6-add-the-node" title="Permanent link">#</a></h2>
+<h3 id="single-node">Single node<a class="headerlink" href="#single-node" title="Permanent link">#</a></h3>
+<p>Run:</p>
+<pre class="codehilite"><code class="language-bash">ansible-playbook playbooks/create_compute_node.yaml
+</code></pre>
+
+<p><a href="../playbooks/create_compute_node.yaml"><code>playbooks/create_compute_node.yaml</code></a> performs the following high-level steps:
+- loads the host_vars file referenced by <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a>
+- queries the machine-config-operator for architecture-specific RHCOS artifacts using <code>hypervisor_arch</code>
+- refreshes ignition content
+- optionally updates DNS when <code>env.bastion.options.dns: true</code>
+- creates the VM on the target hypervisor
+- uses <code>disk_size</code> when defined, otherwise falls back to <a href="../inventories/default/group_vars/all.yaml"><code>env.cluster.nodes.compute.disk_size</code></a>
+- uses <code>storage.pool_name</code> when defined, otherwise falls back to <code>{{ env.cluster.networking.metadata_name }}-vdisk</code>
+- uses <code>networking.dhcp: true</code> to boot with DHCP and attach the configured MAC address
+- uses <code>networking.dhcp: false</code> to boot with static network arguments from the host_vars file
+- waits for the node to join
+- approves CSRs
+- optionally updates HAProxy when <code>env.bastion.options.loadbalancer.on_bastion: true</code></p>
+<h3 id="multiple-nodes">Multiple nodes<a class="headerlink" href="#multiple-nodes" title="Permanent link">#</a></h3>
+<p>Create an extra vars file such as:</p>
+<pre class="codehilite"><code class="language-yaml">day2_compute_nodes:
+  - example-day2-node
+  - another-day2-node
+</code></pre>
+
+<p>Then run:</p>
+<pre class="codehilite"><code class="language-bash">ansible-playbook playbooks/create_multiple_compute_nodes.yaml --extra-vars &quot;@extra-nodes.yml&quot;
+</code></pre>
+
+<p><a href="../playbooks/create_multiple_compute_nodes.yaml"><code>playbooks/create_multiple_compute_nodes.yaml</code></a> processes each host_vars entry sequentially by including <a href="../roles/create_compute_node/tasks/add_single_node.yaml"><code>roles/create_compute_node/tasks/add_single_node.yaml</code></a>.</p>
+<h2 id="automated-components">Automated Components<a class="headerlink" href="#automated-components" title="Permanent link">#</a></h2>
+<p>The day-2 node creation flow automatically handles the following tasks.</p>
+<h3 id="1-architecture-specific-rhcos-image-lookup">1. Architecture-specific RHCOS image lookup<a class="headerlink" href="#1-architecture-specific-rhcos-image-lookup" title="Permanent link">#</a></h3>
+<p><a href="../playbooks/create_compute_node.yaml"><code>playbooks/create_compute_node.yaml</code></a> queries the OpenShift machine-config-operator and selects the correct RHCOS artifacts based on <code>hypervisor_arch</code> from the loaded host_vars file.</p>
+<p>This supports mixed-architecture day-2 additions as long as the target architecture is available in the cluster's boot image metadata.</p>
+<h3 id="2-dns-updates">2. DNS updates<a class="headerlink" href="#2-dns-updates" title="Permanent link">#</a></h3>
+<p>When <code>env.bastion.options.dns: true</code>, <a href="../playbooks/create_compute_node.yaml"><code>playbooks/create_compute_node.yaml</code></a> calls the <a href="../roles/dns_update/tasks/add.yaml"><code>dns_update</code></a> role to add the new node's DNS records.</p>
+<p>The node IP used for DNS comes from <code>networking.ip</code> in the host_vars file.</p>
+<h3 id="3-haproxy-updates">3. HAProxy updates<a class="headerlink" href="#3-haproxy-updates" title="Permanent link">#</a></h3>
+<p>When <code>env.bastion.options.loadbalancer.on_bastion: true</code>, <a href="../playbooks/create_compute_node.yaml"><code>playbooks/create_compute_node.yaml</code></a> calls the <a href="../roles/haproxy_update/tasks/add.yaml"><code>haproxy_update</code></a> role to add the node to the bastion HAProxy configuration.</p>
+<h3 id="4-vm-creation-on-the-target-hypervisor">4. VM creation on the target hypervisor<a class="headerlink" href="#4-vm-creation-on-the-target-hypervisor" title="Permanent link">#</a></h3>
+<p><a href="../roles/create_compute_node/tasks/main.yaml"><code>roles/create_compute_node/tasks/main.yaml</code></a> uses the loaded host_vars structure to create the VM with:
+- <code>node_vm_name</code>
+- <code>node_vm_hostname</code>
+- <code>vcpu</code>
+- <code>memory</code>
+- <code>vcpu_model_option</code>
+- <code>networking.*</code>
+- <code>storage.pool_path</code>
+- <code>storage.pool_name</code> or the default <code>{{ env.cluster.networking.metadata_name }}-vdisk</code></p>
+<h3 id="5-certificate-approval-and-readiness-checks">5. Certificate approval and readiness checks<a class="headerlink" href="#5-certificate-approval-and-readiness-checks" title="Permanent link">#</a></h3>
+<p>The workflow automatically:
+- waits for the node to appear
+- approves CSRs
+- waits for the node to become ready</p>
+<h2 id="adding-multiple-nodes">Adding Multiple Nodes<a class="headerlink" href="#adding-multiple-nodes" title="Permanent link">#</a></h2>
+<h3 id="why-add-multiple-nodes-at-once">Why add multiple nodes at once?<a class="headerlink" href="#why-add-multiple-nodes-at-once" title="Permanent link">#</a></h3>
+<p>Benefits:
+- more efficient than running the single-node playbook repeatedly
+- consistent use of the same host_vars-based schema
+- easier tracking of a larger scale-out operation
+- supports mixed architectures by loading each node definition independently</p>
+<h3 id="example-multi-node-extra-vars-file">Example multi-node extra vars file<a class="headerlink" href="#example-multi-node-extra-vars-file" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-yaml">day2_compute_nodes:
+  - worker-x86-1
+  - worker-x86-2
+  - worker-s390x-4
+</code></pre>
+
+<p>Each of these names must correspond to:
+- <a href="../inventories/default/host_vars/worker-x86-1.yaml"><code>inventories/default/host_vars/worker-x86-1.yaml</code></a>
+- <a href="../inventories/default/host_vars/worker-x86-2.yaml"><code>inventories/default/host_vars/worker-x86-2.yaml</code></a>
+- <a href="../inventories/default/host_vars/worker-s390x-4.yaml"><code>inventories/default/host_vars/worker-s390x-4.yaml</code></a></p>
+<h3 id="what-happens-during-the-multi-node-run">What happens during the multi-node run<a class="headerlink" href="#what-happens-during-the-multi-node-run" title="Permanent link">#</a></h3>
+<p><a href="../playbooks/create_multiple_compute_nodes.yaml"><code>playbooks/create_multiple_compute_nodes.yaml</code></a> will:
+- display the list of nodes to be added
+- prompt for confirmation when more than one node is requested
+- process each node sequentially
+- display a summary at the end</p>
+<h2 id="single-vs-multiple-node-addition">Single vs Multiple Node Addition<a class="headerlink" href="#single-vs-multiple-node-addition" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Single Node</th>
+<th>Multiple Nodes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Playbook</td>
+<td><code>create_compute_node.yaml</code></td>
+<td><code>create_multiple_compute_nodes.yaml</code></td>
+</tr>
+<tr>
+<td>Input variable</td>
+<td><code>day2_compute_node</code></td>
+<td><code>day2_compute_nodes</code></td>
+</tr>
+<tr>
+<td>Input format</td>
+<td>list with one host_vars entry name</td>
+<td>list of host_vars entry names</td>
+</tr>
+<tr>
+<td>Node definition source</td>
+<td><code>inventories/default/host_vars/&lt;name&gt;.yaml</code></td>
+<td><code>inventories/default/host_vars/&lt;name&gt;.yaml</code></td>
+</tr>
+<tr>
+<td>Execution</td>
+<td>one node per run</td>
+<td>multiple nodes per run</td>
+</tr>
+<tr>
+<td>Confirmation</td>
+<td>no prompt</td>
+<td>prompts if more than one node</td>
+</tr>
+<tr>
+<td>Best for</td>
+<td>single additions, testing</td>
+<td>bulk additions, scaling</td>
+</tr>
+</tbody>
+</table>
+<h2 id="recommended-execution-order">Recommended Execution Order<a class="headerlink" href="#recommended-execution-order" title="Permanent link">#</a></h2>
+<p>For a new day-2 node on a new hypervisor:
+1. create the host_vars file
+2. add the host_vars entry name to <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a>
+3. run <a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a>
+4. if <code>setup_host: true</code>, run <a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a>
+5. run <a href="../playbooks/5_setup_bastion.yaml"><code>playbooks/5_setup_bastion.yaml</code></a>
+6. run <a href="../playbooks/create_compute_node.yaml"><code>playbooks/create_compute_node.yaml</code></a></p>
+<p>For multiple nodes:
+1. create one host_vars file per node
+2. if new hypervisors must be configured, temporarily list the relevant node names in <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a>
+3. run <a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a>
+4. if needed, run <a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a>
+5. run <a href="../playbooks/5_setup_bastion.yaml"><code>playbooks/5_setup_bastion.yaml</code></a>
+6. run <a href="../playbooks/create_multiple_compute_nodes.yaml"><code>playbooks/create_multiple_compute_nodes.yaml</code></a> with <code>day2_compute_nodes</code></p>
+<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">#</a></h2>
+<ul>
+<li>The day-2 workflow currently supports <code>macvtap</code> networking for compute-node creation.</li>
+<li>The host_vars-based model is the authoritative source for day-2 node definitions.</li>
+<li>If a day-2 hypervisor should no longer be configured through the inventory-based flow, remove the corresponding node from <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a> or set <code>setup_host: false</code> in its host_vars file and rerun <a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a>.</li>
+</ul>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright © 2022 IBM zSystems Washington Systems Center</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

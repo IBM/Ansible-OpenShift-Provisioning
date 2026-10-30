@@ -64,6 +64,16 @@
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#standard-cluster-creation-flow">Standard cluster creation flow</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#1-initial-setup">1. Initial setup</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2-create-lpars-if-needed">2. Create LPARs if needed</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-create-kvm-hosts-if-needed">3. Create KVM hosts if needed</a>
+    </li>
+        </ul>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#0-setup-playbook">0 Setup Playbook</a>
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#overview_1">Overview</a>
@@ -187,52 +197,39 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="step-4-run-the-playbooks">Step 4: Run the Playbooks<a class="headerlink" href="#step-4-run-the-playbooks" title="Permanent link">#</a></h1>
+                <h1 id="run-the-playbooks">Run the Playbooks<a class="headerlink" href="#run-the-playbooks" title="Permanent link">#</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
-<ul>
-<li>To ensure the passwords there is a secrets.yaml.template (inside the inventories/default/group_vars directory) file to be copied to secrets.yaml and put the necessary passwords to. After that you need to encrypt the secrets.yaml by running the command:</li>
-</ul>
-<pre class="codehilite"><code>ansible-vault encrypt secrets.yaml  
+<p>This document describes the typical execution flow for provisioning and for day-2 compute-node operations.</p>
+<p>The standard cluster creation flow remains:</p>
+<ol>
+<li>Run <a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a></li>
+<li>Run <a href="../playbooks/1_create_lpar.yaml"><code>playbooks/1_create_lpar.yaml</code></a> if new LPARs are required</li>
+<li>Run <a href="../playbooks/2_create_kvm_host.yaml"><code>playbooks/2_create_kvm_host.yaml</code></a> if new KVM hosts are required</li>
+<li>Run <a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a></li>
+<li>Run <a href="../playbooks/4_create_bastion.yaml"><code>playbooks/4_create_bastion.yaml</code></a></li>
+<li>Run <a href="../playbooks/5_setup_bastion.yaml"><code>playbooks/5_setup_bastion.yaml</code></a></li>
+<li>Run <a href="../playbooks/6_create_nodes.yaml"><code>playbooks/6_create_nodes.yaml</code></a></li>
+<li>Run <a href="../playbooks/7_ocp_verification.yaml"><code>playbooks/7_ocp_verification.yaml</code></a></li>
+</ol>
+<h2 id="standard-cluster-creation-flow">Standard cluster creation flow<a class="headerlink" href="#standard-cluster-creation-flow" title="Permanent link">#</a></h2>
+<h3 id="1-initial-setup">1. Initial setup<a class="headerlink" href="#1-initial-setup" title="Permanent link">#</a></h3>
+<p>Run <a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a> first.</p>
+<p>This playbook:
+- validates the inventory input
+- installs required controller dependencies
+- generates <a href="../inventories/default/hosts"><code>inventories/default/hosts</code></a>
+- adds eligible day-2 hypervisors to the <a href="../inventories/default/hosts"><code>day2_hosts</code></a> section when <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a> is defined and the referenced host_vars files have <code>setup_host: true</code></p>
+<p>Example:</p>
+<pre class="codehilite"><code class="language-bash">ansible-playbook -i inventories/default playbooks/0_setup.yaml
 </code></pre>
 
-<ul>
-<li>To use the encrypted secrets.yaml you need to add --ask-vault-pass (you need to enter the decryption key) or --vault-password-file path_to/vault_secret.sh (this file contains the decryption key) to the ansible-playbook calls.</li>
-<li>Navigate to the <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning">root folder of the cloned Git repository</a> in your terminal (<code>ls</code> should show <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg">ansible.cfg</a>).</li>
-<li>Run this shell command:</li>
-</ul>
-<pre class="codehilite"><code>ansible-playbook playbooks/0_setup.yaml
+<p>If no eligible day-2 hypervisors are defined, the <a href="../inventories/default/hosts"><code>day2_hosts</code></a> section is omitted.</p>
+<h3 id="2-create-lpars-if-needed">2. Create LPARs if needed<a class="headerlink" href="#2-create-lpars-if-needed" title="Permanent link">#</a></h3>
+<p>If your KVM hosts must be created first, run <a href="../playbooks/1_create_lpar.yaml"><code>playbooks/1_create_lpar.yaml</code></a>.</p>
+<pre class="codehilite"><code class="language-bash">ansible-playbook -i inventories/default playbooks/1_create_lpar.yaml
 </code></pre>
 
-<ul>
-<li>Run each part step-by-step by running one playbook at a time, or all at once using <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/site.yaml">playbooks/site.yaml</a>.</li>
-<li>Here's the full list of playbooks to be run in order, full descriptions of each can be found further down the page:<ul>
-<li>0_setup.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/0_setup.yaml">code</a>)</li>
-<li>1_create_lpar.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/1_create_lpar.yaml">code</a>)</li>
-<li>2_create_kvm_host.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/2_create_kvm_host.yaml">code</a>)</li>
-<li>3_setup_kvm_host.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/3_setup_kvm_host.yaml">code</a>)</li>
-<li>4_create_bastion.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/4_create_bastion.yaml">code</a>)</li>
-<li>5_setup_bastion.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/5_setup_bastion.yaml">code</a>)</li>
-<li>6_create_nodes.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/6_create_nodes.yaml">code</a>)</li>
-<li>7_ocp_verification.yaml (<a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/playbooks/7_ocp_verification.yaml">code</a>)</li>
-</ul>
-</li>
-<li>Watch Ansible as it completes the installation, correcting errors if they arise.</li>
-<li>To look at what tasks are running in detail, open the playbook or roles/role-name/tasks/main.yaml</li>
-<li>Alternatively, to run all the playbooks at once, start the master playbook by running this shell command:</li>
-</ul>
-<pre class="codehilite"><code>ansible-playbook playbooks/site.yaml
-</code></pre>
-
-<ul>
-<li>If the process fails in error, go through the steps in the <a href="../troubleshooting/">troubleshooting</a> page.</li>
-<li>At the end of the the last playbook, follow the printed instructions for first-time login to the cluster.</li>
-<li>If you make cluster configuration changes in all.yaml file, like increased number of nodes or
-a new bastion setup, after you have successfully installed a OCP cluster,
-then you just need to run these playbooks in order:</li>
-<li>5_setup_bastion.yaml</li>
-<li>6_create_nodes.yaml</li>
-<li>7_ocp_verification.yaml</li>
-</ul>
+<h3 id="3-create-kvm-hosts-if-needed">3. Create KVM hosts if needed<a class="headerlink" href="#3-create-kvm-hosts-if-needed" title="Permanent link">#</a></h3>
 <h2 id="0-setup-playbook">0 Setup Playbook<a class="headerlink" href="#0-setup-playbook" title="Permanent link">#</a></h2>
 <h3 id="overview_1">Overview<a class="headerlink" href="#overview_1" title="Permanent link">#</a></h3>
 <p>First-time setup of the Ansible Controller, the machine running Ansible.</p>
@@ -411,80 +408,107 @@ ansible-playbook playbooks/delete_cluster_nodes.yaml --tags kvm_host_3
 run these playbooks. Currently we support only <strong>env.network_mode</strong> <code>macvtap</code> for these two playbooks.
 We recommand to create a new config file for the additional compute node with such parameters:</li>
 </ul>
-<pre class="codehilite"><code>day2_compute_node:
-  vm_name: control-4
-  vm_hostname: control-4
-  vm_ip: 172.192.100.101
-  hostname: kvm01
-  host_arch: s390x
-
-# rhcos_download_url with '/' at the end !
-rhcos_download_url: &quot;https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.15/4.15.0/&quot;
-# RHCOS live image filenames
-rhcos_live_kernel: &quot;rhcos-4.15.0-s390x-live-kernel-s390x&quot;
-rhcos_live_initrd: &quot;rhcos-4.15.0-s390x-live-initramfs.s390x.img&quot;
-rhcos_live_rootfs: &quot;rhcos-4.15.0-s390x-live-rootfs.s390x.img&quot;
+<pre class="codehilite"><code class="language-bash">ansible-playbook -i inventories/default playbooks/2_create_kvm_host.yaml
 </code></pre>
 
-<p>Make sure that the hostname where you want to create the additional compute node is defined in the <code>inventories/default/hosts</code> file.
-Now you can execute the <code>add_compute_node</code> playbook with this command and parameter:</p>
-<pre class="codehilite"><code>ansible-playbook playbooks/add_compute_node.yaml --extra-vars &quot;@compute-node.yaml&quot;
+<h3 id="4-configure-kvm-hosts">4. Configure KVM hosts<a class="headerlink" href="#4-configure-kvm-hosts" title="Permanent link">#</a></h3>
+<p>Run <a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a>.</p>
+<p>This playbook configures:
+- the primary KVM hosts from the main inventory
+- any eligible day-2 hypervisors listed in <a href="../inventories/default/hosts"><code>day2_hosts</code></a></p>
+<p>Example:</p>
+<pre class="codehilite"><code class="language-bash">ansible-playbook -i inventories/default playbooks/3_setup_kvm_host.yaml
 </code></pre>
 
-<h3 id="outcomes_9">Outcomes<a class="headerlink" href="#outcomes_9" title="Permanent link">#</a></h3>
+<h3 id="5-create-the-bastion">5. Create the bastion<a class="headerlink" href="#5-create-the-bastion" title="Permanent link">#</a></h3>
+<p>Run <a href="../playbooks/4_create_bastion.yaml"><code>playbooks/4_create_bastion.yaml</code></a>.</p>
+<pre class="codehilite"><code class="language-bash">ansible-playbook -i inventories/default playbooks/4_create_bastion.yaml
+</code></pre>
+
+<h3 id="6-configure-the-bastion">6. Configure the bastion<a class="headerlink" href="#6-configure-the-bastion" title="Permanent link">#</a></h3>
+<p>Run <a href="../playbooks/5_setup_bastion.yaml"><code>playbooks/5_setup_bastion.yaml</code></a>.</p>
+<p>This playbook configures bastion services such as DNS, HAProxy, HTTPD, and firewall rules.</p>
+<p>Example:</p>
+<pre class="codehilite"><code class="language-bash">ansible-playbook -i inventories/default playbooks/5_setup_bastion.yaml
+</code></pre>
+
+<h3 id="7-create-cluster-nodes">7. Create cluster nodes<a class="headerlink" href="#7-create-cluster-nodes" title="Permanent link">#</a></h3>
+<p>Run <a href="../playbooks/6_create_nodes.yaml"><code>playbooks/6_create_nodes.yaml</code></a>.</p>
+<pre class="codehilite"><code class="language-bash">ansible-playbook -i inventories/default playbooks/6_create_nodes.yaml
+</code></pre>
+
+<h3 id="8-verify-the-cluster">8. Verify the cluster<a class="headerlink" href="#8-verify-the-cluster" title="Permanent link">#</a></h3>
+<p>Run <a href="../playbooks/7_ocp_verification.yaml"><code>playbooks/7_ocp_verification.yaml</code></a>.</p>
+<pre class="codehilite"><code class="language-bash">ansible-playbook -i inventories/default playbooks/7_ocp_verification.yaml
+</code></pre>
+
+<h2 id="day-2-compute-node-workflow">Day-2 compute-node workflow<a class="headerlink" href="#day-2-compute-node-workflow" title="Permanent link">#</a></h2>
+<p>Day-2 compute nodes are defined through host_vars files referenced by <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a>.</p>
+<p>Example in <a href="../inventories/default/group_vars/all.yaml"><code>inventories/default/group_vars/all.yaml</code></a>:</p>
+<pre class="codehilite"><code class="language-yaml">day2_compute_node:
+  - example-day2-node
+</code></pre>
+
+<p>The referenced file must exist in <a href="../inventories/default/host_vars"><code>inventories/default/host_vars</code></a>, for example:
+- <a href="../inventories/default/host_vars/compute-day2.yaml.template"><code>inventories/default/host_vars/compute-day2.yaml.template</code></a>
+- <a href="../inventories/default/host_vars/example-day2-node.yaml"><code>inventories/default/host_vars/example-day2-node.yaml</code></a></p>
+<h3 id="day-2-preparation-flow">Day-2 preparation flow<a class="headerlink" href="#day-2-preparation-flow" title="Permanent link">#</a></h3>
+<p>If the day-2 node uses a hypervisor that must be prepared, run these playbooks in order:</p>
+<ol>
+<li><a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a></li>
+<li><a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a></li>
+<li><a href="../playbooks/5_setup_bastion.yaml"><code>playbooks/5_setup_bastion.yaml</code></a></li>
+</ol>
+<p>Why this is required:
+- <a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a> refreshes <a href="../inventories/default/hosts"><code>inventories/default/hosts</code></a> and rebuilds <a href="../inventories/default/hosts"><code>day2_hosts</code></a>
+- <a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a> configures the hypervisor when <code>setup_host: true</code>
+- <a href="../playbooks/5_setup_bastion.yaml"><code>playbooks/5_setup_bastion.yaml</code></a> reconciles bastion DNS and HAProxy entries for the day-2 nodes when:
+  - <code>dns: true</code>
+  - <code>loadbalancer.on_bastion: true</code></p>
+<p>If a day-2 node is removed from <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a> and <a href="../playbooks/5_setup_bastion.yaml"><code>playbooks/5_setup_bastion.yaml</code></a> is rerun, the bastion reconciliation removes obsolete DNS and HAProxy entries.</p>
+<h3 id="create-a-single-day-2-compute-node">Create a single day-2 compute node<a class="headerlink" href="#create-a-single-day-2-compute-node" title="Permanent link">#</a></h3>
+<p>After the preparation flow is complete, create the node with <a href="../playbooks/create_compute_node.yaml"><code>playbooks/create_compute_node.yaml</code></a>.</p>
+<pre class="codehilite"><code class="language-bash">ansible-playbook -i inventories/default playbooks/create_compute_node.yaml
+</code></pre>
+
+<p>This playbook:
+- loads the first entry from <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a>
+- reads the matching host_vars file
+- creates the VM on the referenced hypervisor
+- uses <code>disk_size</code> when defined
+- otherwise falls back to <a href="../inventories/default/group_vars/all.yaml"><code>env.cluster.nodes.compute.disk_size</code></a>
+- uses <code>storage.pool_name</code> when defined
+- otherwise falls back to <code>{{ env.cluster.networking.metadata_name }}-vdisk</code>
+- uses <code>networking.dhcp: true</code> to boot the day-2 node with DHCP and apply the configured guest MAC address
+- uses <code>networking.dhcp: false</code> to boot the day-2 node with static network kernel arguments from the host_vars file</p>
+<h3 id="create-multiple-day-2-compute-nodes">Create multiple day-2 compute nodes<a class="headerlink" href="#create-multiple-day-2-compute-nodes" title="Permanent link">#</a></h3>
+<p>For multiple nodes, use <a href="../playbooks/create_multiple_compute_nodes.yaml"><code>playbooks/create_multiple_compute_nodes.yaml</code></a> with an extra-vars file.</p>
+<p>Example extra-vars file:</p>
+<pre class="codehilite"><code class="language-yaml">day2_compute_nodes:
+  - example-day2-node
+  - another-day2-node
+</code></pre>
+
+<p>Run:</p>
+<pre class="codehilite"><code class="language-bash">ansible-playbook -i inventories/default playbooks/create_multiple_compute_nodes.yaml -e @day2-nodes.yaml
+</code></pre>
+
+<p>If those nodes require new hypervisors to be configured first, temporarily add the relevant host_vars entry names to <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a>, rerun:
+- <a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a>
+- <a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a>
+- <a href="../playbooks/5_setup_bastion.yaml"><code>playbooks/5_setup_bastion.yaml</code></a></p>
+<p>and then run <a href="../playbooks/create_multiple_compute_nodes.yaml"><code>playbooks/create_multiple_compute_nodes.yaml</code></a>.</p>
+<h3 id="delete-a-day-2-compute-node">Delete a day-2 compute node<a class="headerlink" href="#delete-a-day-2-compute-node" title="Permanent link">#</a></h3>
+<p>To delete a day-2 node, keep the matching host_vars entry available and run <a href="../playbooks/delete_compute_node.yaml"><code>playbooks/delete_compute_node.yaml</code></a>.</p>
+<pre class="codehilite"><code class="language-bash">ansible-playbook -i inventories/default playbooks/delete_compute_node.yaml
+</code></pre>
+
+<p>This playbook loads the same host_vars-based node definition and removes the VM from the referenced hypervisor.</p>
+<h2 id="notes_9">Notes<a class="headerlink" href="#notes_9" title="Permanent link">#</a></h2>
 <ul>
-<li>The defind compute node will be added or deleted, depends which playbook you have executed.</li>
-</ul>
-<h2 id="download-kubeconfig-playbook-download_kubeconfigyaml">Download Kubeconfig Playbook (download_kubeconfig.yaml)<a class="headerlink" href="#download-kubeconfig-playbook-download_kubeconfigyaml" title="Permanent link">#</a></h2>
-<h3 id="overview_11">Overview<a class="headerlink" href="#overview_11" title="Permanent link">#</a></h3>
-<ul>
-<li>Use this playbook to download the kubeconfig file from the bastion to your local machine.</li>
-<li>For detailed information, see the <a href="../download-kubeconfig-playbook/">Download Kubeconfig Playbook documentation</a>.</li>
-</ul>
-<h2 id="master-playbook-siteyaml">Master Playbook (site.yaml)<a class="headerlink" href="#master-playbook-siteyaml" title="Permanent link">#</a></h2>
-<h3 id="overview_12">Overview<a class="headerlink" href="#overview_12" title="Permanent link">#</a></h3>
-<ul>
-<li>Use this playbook to run all required playbooks (0-7) all at once.</li>
-</ul>
-<h3 id="outcomes_10">Outcomes<a class="headerlink" href="#outcomes_10" title="Permanent link">#</a></h3>
-<ul>
-<li>Same as all the above outcomes for all required playbooks.</li>
-<li>At the end you will have an OpenShift cluster deployed and first-time login credentials.</li>
-</ul>
-<h2 id="pre-existing-host-master-playbook-pre-existing_siteyaml">Pre-Existing Host Master Playbook (pre-existing_site.yaml)<a class="headerlink" href="#pre-existing-host-master-playbook-pre-existing_siteyaml" title="Permanent link">#</a></h2>
-<h3 id="overview_13">Overview<a class="headerlink" href="#overview_13" title="Permanent link">#</a></h3>
-<ul>
-<li>Use this version of the master playbook if you are using a pre-existing LPAR(s) with RHEL already installed.</li>
-</ul>
-<h3 id="outcomes_11">Outcomes<a class="headerlink" href="#outcomes_11" title="Permanent link">#</a></h3>
-<ul>
-<li>Same as all the above outcomes for all playbooks excluding 1 &amp; 2.</li>
-<li>This will not create LPAR(s) nor boot your RHEL KVM host(s).</li>
-<li>At the end you will have an OpenShift cluster deployed and first-time login credentials.</li>
-</ul>
-<h2 id="reinstall-cluster-playbook-reinstall_clusteryaml">Reinstall Cluster Playbook (reinstall_cluster.yaml)<a class="headerlink" href="#reinstall-cluster-playbook-reinstall_clusteryaml" title="Permanent link">#</a></h2>
-<h3 id="overview_14">Overview<a class="headerlink" href="#overview_14" title="Permanent link">#</a></h3>
-<p>In case the cluster needs to be completely reinstalled, run this playbook. It will refresh the ingitions that expire after 24 hours, teardown the nodes and re-create them, and then verify the installation.</p>
-<h3 id="outcomes_12">Outcomes<a class="headerlink" href="#outcomes_12" title="Permanent link">#</a></h3>
-<ul>
-<li>get_ocp role runs.<ul>
-<li>Delete the folders /var/www/html/bin and /var/www/html/ignition.</li>
-<li>CoreOS roofts is pulled to the bastion.</li>
-<li>OCP client and installer are pulled down.</li>
-<li>oc, kubectl and openshift-install binaries are installed.</li>
-<li>OCP install-config is created from scratch, templated and backed up.</li>
-<li>Manfifests are created.</li>
-<li>OCP install directory found at /root/ocpinst/ is deleted, re-created and populated with necessary files.</li>
-<li>Ignition files for the bootstrap, control, and compute nodes are transferred to HTTP-accessible directory for booting nodes.</li>
-</ul>
-</li>
-<li>6 Create Nodes playbook runs, tearing down and recreating cluster nodes.</li>
-<li>7 OCP Verification playbook runs, verifying new deployment.</li>
-</ul>
-<h2 id="test-playbook-testyaml">Test Playbook (test.yaml)<a class="headerlink" href="#test-playbook-testyaml" title="Permanent link">#</a></h2>
-<h3 id="overview_15">Overview<a class="headerlink" href="#overview_15" title="Permanent link">#</a></h3>
-<ul>
-<li>Use this playbook for your testing purposes, if needed.</li>
+<li><a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a> should be rerun whenever you change inventory-relevant variables such as <a href="../inventories/default/group_vars/all.yaml"><code>day2_compute_node</code></a>.</li>
+<li><a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a> uses the generated <a href="../inventories/default/hosts"><code>day2_hosts</code></a> inventory group for day-2 hypervisor preparation.</li>
+<li><a href="../playbooks/5_setup_bastion.yaml"><code>playbooks/5_setup_bastion.yaml</code></a> is the reconciliation step for bastion DNS and HAProxy state related to day-2 nodes.</li>
 </ul>
               
             </div>
