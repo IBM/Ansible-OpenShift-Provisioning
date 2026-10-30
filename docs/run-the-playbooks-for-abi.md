@@ -19,7 +19,7 @@
 * Navigate to the [root folder of the cloned Git repository](https://github.com/IBM/Ansible-OpenShift-Provisioning) in your terminal (`ls` should show [ansible.cfg](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg)).
 * Update variables in Section (1 - 9) and OpenShift Settings with `machine_network`
 * Update variables in Section - 14 ( `Agent Based Installer` ) in [all.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template) before running the playbooks.
-* Section 7 - ( `Bootstrap Node` ) need to be comment or remove while using it for ABI.
+* Section 7 - ( `Bootstrap Node` ) **must be commented out or removed** for ABI installs. The Agent-Based Installer manages the bootstrap process internally — there is no separate bootstrap VM or LPAR. Leaving the section present with `#X` placeholder values will cause DNS and HAProxy configuration to fail because YAML interprets `#X` as a literal string value, not a missing value.
 * In case of SNO Section 8 - ( `Control Nodes` )  Virtual CPU should be 8 ( `vcpu: 8` )
 * In case of SNO Section 9 ( `Compute Nodes` ) need to be comment or remove
 * First playbook to be run is `0_setup.yaml` which will create inventory file for ABI and will add ssh key to the kvm host.
@@ -48,6 +48,8 @@ ansible-playbook playbooks/0_setup.yaml
 ```shell
 ansible-playbook playbooks/master_playbook_for_abi.yaml
 ```
+
+* The monitor playbook (`monitor_create_abi_cluster.yaml`) waits for the installation to complete for at most `abi.install_timeout` seconds (default 7200, i.e. 2 hours), checking every `abi.install_poll_delay` seconds (default 30). On slower environments (limited CPU, memory, disk or network speed, slow registry or mirror access, or many nodes) the installation can take longer. In that case increase `abi.install_timeout` in the `abi` block of [all.yaml](https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template) (see Section 14 in [set-variables-group-vars](set-variables-group-vars.md)) and run the monitor playbook again.
 
 * If the process fails in error, go through the steps in the [troubleshooting](troubleshooting.md) page.
 

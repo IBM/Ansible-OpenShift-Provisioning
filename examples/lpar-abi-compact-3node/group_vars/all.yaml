@@ -1,0 +1,157 @@
+# ==============================================================================
+# Example: 3-Node Compact OpenShift Cluster on Bare-Metal LPARs (Non-DPM / ABI)
+# ==============================================================================
+# Variables marked [MANDATORY] are required.
+# ==============================================================================
+
+# Section 1 - Ansible Controller & General Settings
+installation_type: lpar                          # [MANDATORY] Must be 'lpar' for bare-metal LPAR installation without KVM hypervisor.
+controller_sudo_pass: "{{ vault_ctl_sudo_pass }}"# [MANDATORY] Sudo password on the Ansible controller (localhost).
+disconnected_enabled: false                      # [MANDATORY] Set to 'true' if installing in a disconnected / restricted network.
+timeout_node_creation: 960                       # [OPTIONAL] Timeout in seconds for node provisioning tasks.
+
+env:
+# Section 2 - LPAR Definitions (Bare-Metal Hosts)
+  z:
+    high_availability: true                      # [MANDATORY] Set to 'true' when cluster spans multiple LPARs.
+    ip_forward: 1                                # [OPTIONAL] Enable IPv4 packet forwarding on the host.
+    lpar1:
+      create: false                              # [MANDATORY] Set 'false' if LPARs are already created on the CPC.
+      hostname: lpar-node-1                      # [MANDATORY] LPAR name / hostname on HMC.
+      ip: 192.168.10.11                          # [MANDATORY] IP address of the LPAR.
+      user: root                                 # [MANDATORY] SSH user for LPAR maintenance access.
+      pass: "{{ vault_lpar1_pass }}"             # [MANDATORY] SSH password for LPAR maintenance access.
+    lpar2:
+      create: false                              # [MANDATORY]
+      hostname: lpar-node-2                      # [MANDATORY]
+      ip: 192.168.10.12                          # [MANDATORY]
+      user: root                                 # [MANDATORY]
+      pass: "{{ vault_lpar2_pass }}"             # [MANDATORY]
+    lpar3:
+      create: false                              # [MANDATORY]
+      hostname: lpar-node-3                      # [MANDATORY]
+      ip: 192.168.10.13                          # [MANDATORY]
+      user: root                                 # [MANDATORY]
+      pass: "{{ vault_lpar3_pass }}"             # [MANDATORY]
+
+# Section 3 - File Server / HTTP Artifact Hosting
+  file_server:
+    ip: 192.168.10.10                            # [MANDATORY] IP address where ABI rootfs / kernel images are served via HTTP (bastion IP).
+    port: '8080'                                 # [OPTIONAL] HTTP port on file server (default: 8080).
+    user: root                                   # [MANDATORY] SSH user on file server.
+    pass: "{{ vault_file_server_pass }}"         # [MANDATORY] SSH password on file server.
+    protocol: http                               # [OPTIONAL] Protocol (http or https).
+    iso_mount_dir: RHEL-9.6.0                    # [OPTIONAL] Live disk image directory name.
+    iso_os_variant: rhel9                        # [OPTIONAL] OS variant for live disk.
+    cfgs_dir: /pub                               # [OPTIONAL] HTTP directory path.
+
+# Section 4 - Red Hat Credentials
+  redhat:
+    rhel_activation_key: "example-activation-key"# [MANDATORY if manage_subscription is true] RHSM activation key.
+    rhel_organization: "12345678"                # [MANDATORY if manage_subscription is true] RHSM organization ID.
+    manage_subscription: true                    # [MANDATORY] Set 'true' to register bastion with Red Hat Subscription Manager.
+    pull_secret: '{"auths":{"cloud.openshift.com":{"auth":"EXAMPLE_AUTH_TOKEN","email":"user@example.com"}}}' # [MANDATORY] OpenShift cluster pull secret (in single quotes).
+
+# Section 5 - Bastion Infrastructure Services
+  bastion:
+    create: false                                # [MANDATORY] Set 'false' if using an existing bastion server.
+    vm_name: bastion-01                          # [MANDATORY] Bastion hostname / VM identifier.
+    resources:
+      disk_size: 500                             # [OPTIONAL for existing bastion] Disk size in GB.
+      ram: 8192                                  # [OPTIONAL for existing bastion] RAM in MB.
+      swap: 4096                                 # [OPTIONAL for existing bastion] Swap in MB.
+      vcpu: 4                                    # [OPTIONAL for existing bastion] Virtual CPUs.
+      vcpu_model_option: "--cpu host"            # [OPTIONAL] CPU model flag.
+    networking:
+      ip: 192.168.10.10                          # [MANDATORY] Bastion static IP address.
+      hostname: bastion-01                       # [MANDATORY] Bastion short hostname.
+      base_domain: example.com                   # [MANDATORY] Cluster base domain.
+      subnetmask: 255.255.255.0                  # [MANDATORY] Bastion subnet mask.
+      gateway: 192.168.10.1                      # [MANDATORY] Default network gateway.
+      nameserver1: 192.168.10.10                 # [MANDATORY] Primary DNS server (bastion IP if running local DNS).
+      nameserver2: 192.168.10.1                  # [OPTIONAL] Upstream secondary DNS server.
+      forwarder: 1.1.1.1                         # [MANDATORY if dns: true] Upstream DNS forwarder.
+      interface: enc1                            # [MANDATORY] Bastion Linux network device name.
+    access:
+      user: root                                 # [MANDATORY] SSH login username for bastion.
+      pass: "{{ vault_bastion_pass }}"           # [MANDATORY] SSH login password for bastion.
+      root_pass: "{{ vault_bastion_root_pass }}" # [MANDATORY] Root password on bastion.
+    options:
+      dns: true                                  # [MANDATORY] Set 'true' to let setup_bastion_services configure BIND DNS.
+      loadbalancer:
+        on_bastion: true                         # [MANDATORY] Set 'true' to let setup_bastion_services configure HAProxy.
+
+# Section 6 - Cluster Networking
+  cluster:
+    networking:
+      metadata_name: ocp-compact                 # [MANDATORY] OpenShift cluster name (forms <metadata_name>.<base_domain>).
+      base_domain: example.com                   # [MANDATORY] Base DNS domain name.
+      subnetmask: 255.255.255.0                  # [MANDATORY] Subnet mask for cluster nodes.
+      gateway: 192.168.10.1                      # [MANDATORY] Gateway for cluster nodes.
+      nameserver1: 192.168.10.10                 # [MANDATORY] DNS server IP for cluster nodes.
+      nameserver2: 192.168.10.1                  # [OPTIONAL] Secondary DNS server IP.
+      forwarder: 1.1.1.1                         # [MANDATORY if dns: true] Upstream DNS forwarder.
+      interface: enc1                            # [MANDATORY] Interface device name.
+
+# Section 7 - Bootstrap Node
+# [NOTE] For ABI installations, DO NOT specify Section 7 (bootstrap).
+# ABI manages the bootstrap process in-memory.
+
+# Section 8 - Control Nodes (Compact 3-Node Cluster: Control + Worker)
+    nodes:
+      control:
+        disk_size: 100                           # [OPTIONAL for LPAR, storage is defined in host_vars]
+        ram: 16384                               # [OPTIONAL for LPAR, memory is defined in host_vars]
+        vcpu: 8                                  # [OPTIONAL for LPAR, IFLs are defined in host_vars]
+        vcpu_model_option: "--cpu host"          # [OPTIONAL]
+        vm_name:                                 # [MANDATORY] Filename stem of host_vars/<vm_name>.yaml (must match LPAR names in HMC).
+          - lpar-node-1
+          - lpar-node-2
+          - lpar-node-3
+        ip:                                      # [MANDATORY] Static IP for each control node.
+          - 192.168.10.11
+          - 192.168.10.12
+          - 192.168.10.13
+        mac:                                     # [MANDATORY] MAC address. For non-DPM non-RoCE (OSA/HiperSockets), use a random MAC.
+          - "52:54:00:1a:2b:01"
+          - "52:54:00:1a:2b:02"
+          - "52:54:00:1a:2b:03"
+        hostname:                                # [MANDATORY] Short OCP hostname used for DNS A/PTR records and HAProxy backends.
+          - control-01
+          - control-02
+          - control-03
+
+# Section 9 - Compute Nodes
+# [NOTE] For a 3-node compact cluster, compute nodes are omitted. The 3 control nodes host all workloads.
+
+# Section 11 - (Optional) Misc
+  language: en_US.UTF-8                          # [OPTIONAL] Default system locale.
+  timezone: Europe/Berlin                        # [OPTIONAL] System timezone.
+  keyboard: de                                   # [OPTIONAL] System keyboard layout.
+  root_access: true                              # [OPTIONAL] Allow root login via SSH.
+  ansible_key_name: ansible-ocpz                 # [OPTIONAL] Keypair name generated on controller.
+  ocp_ssh_key_comment: OpenShift key             # [OPTIONAL] Key comment for CoreOS authorized_keys.
+  vnet_name: macvtap                             # [OPTIONAL for LPAR]
+  network_mode: macvtap                          # [OPTIONAL for LPAR]
+  use_ipv6: false                                # [MANDATORY] Set 'false' for IPv4 only.
+  use_dhcp: false                                # [MANDATORY] Set 'false' for static IP configuration.
+  setup_openvpn: false                           # [MANDATORY] Set 'false' for LPAR installs on the same flat network.
+
+# Section 14 - Agent Based Installer (ABI)
+abi:
+  flag: true                                     # [MANDATORY] Must be 'true' to execute Agent-Based Installer flow.
+  ansible_workdir: 'ansible_workdir'             # [OPTIONAL] Work directory on bastion (default: ansible_workdir).
+  ocp_installer_version: '4.22.8'                # [MANDATORY] OpenShift release version to download.
+  ocp_installer_base_url: 'https://mirror.openshift.com/pub/openshift-v4' # [MANDATORY] OpenShift mirror base URL.
+  architecture: s390x                            # [MANDATORY] Target architecture ('s390x').
+  boot_method: pxe                               # [MANDATORY] Boot method ('pxe' for LPAR / genericdvd boot).
+  install_timeout: 7200                          # [OPTIONAL] Max timeout in seconds to wait for install-complete (default: 7200).
+  install_poll_delay: 30                         # [OPTIONAL] Polling interval in seconds (default: 30).
+
+# Section 15 - OpenShift Settings
+install_config:
+  machine_network: 192.168.10.0/24               # [MANDATORY] CIDR encompassing all node IPs and the default gateway.
+
+# Section 16 - Additional Options
+cex: false                                       # [OPTIONAL] Set 'true' if Crypto Express cards are enabled.
+patch_tessia_baselib: true                       # [MANDATORY] Patches tessia-baselib on bastion for RHEL 9 live disk support.

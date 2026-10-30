@@ -1,0 +1,71 @@
+# ==============================================================================
+# Host Variables: lpar-node-2 (Control Node 2)
+# ==============================================================================
+# Variables marked [MANDATORY] are required.
+# ==============================================================================
+
+# Section 1 - Network Configuration for Dracut / Kernel Boot
+networking:
+  mode: OSA                                      # [MANDATORY] Network type ('OSA', 'RoCE', or 'hipersocket').
+  hostname: lpar-node-2                          # [MANDATORY] LPAR short hostname.
+  ip: 192.168.10.12                              # [MANDATORY] Static IP for this LPAR.
+  subnetmask: 255.255.255.0                      # [MANDATORY] Subnet mask.
+  gateway: 192.168.10.1                          # [MANDATORY] Network gateway.
+  nameserver1: 192.168.10.10                     # [MANDATORY] Primary DNS server.
+  nameserver2: 192.168.10.1                      # [OPTIONAL] Secondary DNS server.
+  device1: enc1100                               # [MANDATORY] Network interface name generated from dev_num.
+
+# Section 2 - CPC & HMC Access
+cpc_name: CPC01                                  # [MANDATORY] Name of the CPC / Mainframe system in HMC.
+hmc:
+  host: hmc01.example.com                        # [MANDATORY] HMC hostname or IP address.
+  auth:
+    user: hmcuser                                # [MANDATORY] HMC user with Web Services API permission.
+    pass: "{{ vault_hmc_pass }}"                 # [MANDATORY] HMC password.
+
+# Section 3 - LPAR Identity & Access
+lpar:
+  name: lpar-node-2                              # [MANDATORY] Exact LPAR name as defined on the HMC.
+  access:
+    user: root                                   # [MANDATORY] SSH user for LPAR maintenance.
+    pass: "{{ vault_lpar2_user_pass }}"          # [MANDATORY] LPAR user password.
+    root_pass: "{{ vault_lpar2_root_pass }}"     # [MANDATORY] LPAR root password.
+
+# Section 4 - IFL & Memory (LPAR Profile Resources)
+  ifl:
+    count: 12                                    # [MANDATORY] Number of dedicated/shared IFL processors.
+    initial_memory: 131072                       # [MANDATORY] Initial RAM in MB (131072 MB = 128 GB).
+    max_memory: 131072                           # [MANDATORY] Maximum RAM in MB.
+    initial_weight: 50                           # [OPTIONAL] Initial processor weight.
+    min_weight: 10                               # [OPTIONAL] Minimum processor weight.
+    max_weight: 50                               # [OPTIONAL] Maximum processor weight.
+
+# Section 5 - LPAR Network Adapter Settings
+  networking:
+    subnet_cidr: 24                              # [MANDATORY] CIDR prefix length (e.g., 24 for 255.255.255.0).
+    nic:
+      card1:
+        adapter: enc1100                         # [MANDATORY] Network adapter identifier.
+        port: 0                                  # [MANDATORY] OSA port number (usually 0 or 1).
+        dev_num: 0.0.1100,0.0.1101,0.0.1102      # [MANDATORY] Read, write, and data CCW device numbers.
+
+# Section 6 - Storage (FCP Storage Group for Target Disk)
+# Used for agent-config.yaml rootDeviceHints and boot_LPAR rd.zfcp parameter
+  storage_group_1:
+    type: fcp                                    # [MANDATORY] Storage type ('fcp' or 'dasd').
+    storage_wwpn:                                # [MANDATORY] Target FCP WWPN list (hex formatted).
+      - "0x5005076300000001"
+      - "0x5005076300000002"
+    dev_num: "8000"                              # [MANDATORY] FCP CCW device number without '0.0.' prefix.
+    lun_name: "0x4002400000000000"               # [MANDATORY] Node 2 specific LUN ID.
+
+# Section 7 - Live Disk Info (SCSI Disk used to boot the installer agent)
+  livedisk:
+    livedisktype: scsi                           # [MANDATORY] Live disk type ('scsi' or 'dasd').
+    lun: "0x4002400000000000"                    # [MANDATORY] Live disk LUN ID.
+    wwpn: "0x5005076300000001"                   # [MANDATORY] Live disk FCP WWPN.
+    devicenr: "8000"                             # [MANDATORY] Live disk FCP device number.
+    livedisk_root_pass: "{{ vault_livedisk_pass }}" # [MANDATORY] Live disk root password.
+
+# Operating Mode
+  dpm_enabled: 'False'                           # [MANDATORY] 'False' for Classic PR/SM mode, 'True' for DPM.

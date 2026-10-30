@@ -1,0 +1,30 @@
+---
+# setup_bastion_services/tasks/initial_resolv.yaml
+# Templates out the initial resolv.conf and disables NetworkManager management
+# of it before named is started.  Called as import_role tasks_from in playbook
+# pre_tasks, exactly as the legacy 'dns' role was used.
+
+- name: Template out bastion's resolv.conf file for initial installation
+  tags: resolv
+  ansible.builtin.template:
+    src: initial-resolv.conf.j2
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+# NetworkManager modifies /etc/resolv.conf on next restart or reboot; disable it
+- name: Disable management of /etc/resolv.conf by NetworkManager
+  tags: resolv
+  ansible.builtin.copy:
+    src: 90-dns-none.conf
+    dest: /etc/NetworkManager/conf.d/90-dns-none.conf
+    group: root
+    owner: root
+    mode: "0644"
+
+- name: Restart network to update changes made to /etc/resolv.conf
+  tags: resolv
+  ansible.builtin.service:
+    name: NetworkManager
+    state: restarted

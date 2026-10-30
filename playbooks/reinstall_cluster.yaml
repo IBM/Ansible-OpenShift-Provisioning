@@ -91,7 +91,7 @@
   roles:
     - common
     - get_ocp
-    - { role: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
+    - { role: setup_bastion_services, bastion_services_mode: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
 
 - import_playbook: 6_create_nodes.yaml
 - import_playbook: 7_ocp_verification.yaml

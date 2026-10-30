@@ -1,0 +1,196 @@
+##############################################################
+# Host variables for an LPAR
+#
+# This template covers two use cases:
+#
+#   A) LPAR / ABI installation - the OpenShift node itself runs
+#      in this LPAR (installation_type: lpar).
+#   B) KVM installation - this LPAR is a KVM host (RHEL +
+#      libvirt) that runs the OpenShift nodes as KVM guests.
+#      Items marked [KVM] below are only needed for this case.
+#
+# LPAR creation on DPM: when Ansible creates the LPAR itself
+# (env.z.lpar1.create: True, role create_lpar), this template is
+# used to define it. The CPC must be DPM enabled; the role creates
+# a DPM partition on the HMC (zhmc_partition) with its IFL/memory
+# (Section 4), NICs (Section 5) and storage groups (Section 6),
+# using the HMC connection of Section 2. Items marked [DPM] are
+# only needed for this case. For a classic (PR/SM) LPAR that
+# already exists, they are not required.
+#
+# Copy this template and rename the copy to <vm_name>.yaml
+# in this directory. The file name (without .yaml) must match
+# the corresponding entry of
+#   env.cluster.nodes.control.vm_name  or
+#   env.cluster.nodes.compute.vm_name
+# in group_vars/all.yaml. For a KVM host the file name must match
+# env.z.lpar1.hostname, env.z.lpar2.hostname or env.z.lpar3.hostname.
+# This is NOT the OCP node hostname (env.cluster.nodes.*.hostname).
+# Create one file per LPAR (one per KVM host, up to three).
+#
+# Secrets: the vault_lpar1_* names below are for env.z.lpar1. For the
+# second and third KVM host use vault_lpar2_user_pass /
+# vault_lpar2_root_pass and vault_lpar3_user_pass / vault_lpar3_root_pass
+# instead. For LPAR / ABI nodes use the names defined in your
+# secrets.yaml.
+#
+# Values marked with #X must be filled in. Optional values are
+# commented out; remove the '#' to use them.
+# Secrets are referenced from group_vars/secrets.yaml (vault).
+#
+# See docs/set-variables-host-vars.md for a description of
+# every variable.
+##############################################################
+
+# Section 1 - Network configuration of the LPAR (used for kernel boot / dracut / kickstart)
+networking:
+  mode: #X                    # Network type: 'OSA', 'RoCE' or 'hipersocket'. Required for LPAR / ABI installation
+  internal_ip: #X             # Internal IP of the LPAR. Required only when booting with mode 'hipersocket'
+  hostname: #X                # LPAR short hostname
+  ip: #X                      # Static IPv4 address of this LPAR
+  ipv6: #X                    # (Optional) IPv6 address, only if env.use_ipv6 is True
+  subnetmask: #X              # Subnet mask (e.g. 255.255.255.0)
+  ipv6_prefix: #X             # (Optional) IPv6 prefix length, only if env.use_ipv6 is True
+  gateway: #X                 # IPv4 gateway
+  ipv6_gateway: #X            # (Optional) IPv6 gateway, only if env.use_ipv6 is True
+  nameserver1: #X             # Primary DNS server
+#  nameserver2:               # (Optional) Secondary DNS server
+  device1: #X                 # Network interface name used in the 'ip=' boot parameter (e.g. enc1100).
+                              # [KVM] When 'card2' is defined (bond), this is the name of the bond device
+#  device2:                   # (Optional) Not evaluated by the playbooks, kept for compatibility
+
+# Section 1a - [KVM] Storage pool of the KVM host
+# Directory on the KVM host in which the libvirt storage pool and the
+# qcow2 disks of the KVM guests are created. Not needed for LPAR / ABI installation.
+storage:
+  pool_path: #X               # [KVM] Absolute path, e.g. /var/lib/libvirt/images
+
+##############################################################
+# Variables below this point need to be filled out if        #
+#  - the LPAR is created by Ansible on DPM                   #
+#    (env.z.lpar1.create),                                   #
+#  - the KVM host is installed by Ansible (RHEL kickstart),  #
+#  - or you do an LPAR / ABI installation.                   #
+# If the LPAR used as KVM host already exists and already    #
+# has RHEL installed, these variables are not required.      #
+##############################################################
+
+# Section 2 - CPC & HMC
+cpc_name: #X                  # Name of the CPC (mainframe system) as shown in the HMC
+hmc:
+  host: #X                    # HMC hostname or IP (not a secret)
+  auth:
+    user: #X                  # HMC user with Web Services API permission (not a secret)
+    pass: "{{ vault_hmc_pass }}"  # HMC password (secret)
+
+# Section 3 - LPAR
+lpar:
+  name: #X                    # Exact LPAR name as defined on the HMC
+  description: #X             # [DPM] Description of the partition. Written to the HMC only when Ansible creates the LPAR
+  access:
+    user: #X                  # LPAR username (not a secret). [KVM] Created on the KVM host by the kickstart
+    pass: "{{ vault_lpar1_user_pass }}"       # LPAR user password (secret)
+    root_pass: "{{ vault_lpar1_root_pass }}"  # LPAR root password (secret). [KVM] Set as root password by the kickstart
+
+# (Optional) Timeout in seconds to wait for the HMC load status when loading
+# the live disk. Default is 300. Can also be set globally with
+# env.lpar_load_status_timeout in group_vars/all.yaml.
+#  load_status_timeout: 300
+
+# Section 4 - IFL & Memory (LPAR profile resources)
+# [DPM] Used only when Ansible creates the LPAR (DPM partition) on the HMC (env.z.lpar1.create).
+  ifl:
+    count: #X                 # Number of IFL processors
+    initial_memory: #X        # Initial memory in MB (e.g. 131072 = 128 GB)
+    max_memory: #X            # Maximum memory in MB
+    initial_weight: #X        # Initial processor weight
+    min_weight: #X            # Minimum processor weight
+    max_weight: #X            # Maximum processor weight
+
+# Section 5 - LPAR network adapter settings
+# The network of the LPAR is activated at boot with the kernel parameter
+#   rd.znet=qeth,<read>,<write>,<data>,layer2=1,portno=<port>
+# which is built from 'card1'. 'card1.dev_num' and 'card1.port' are therefore
+# REQUIRED for every LPAR installation (KVM host or LPAR / ABI node).
+# Only 'name' and 'adapter' are optional, they are needed solely to create the
+# NIC in the DPM partition when Ansible creates the LPAR (env.z.lpar1.create).
+  networking:
+    subnet_cidr: #X           # CIDR prefix length (e.g. 24 for 255.255.255.0). Used in the 'ip=' boot parameter of the KVM host
+
+    nic:
+      card1:
+        name: #X              # [DPM] NIC name in the HMC. Needed only if Ansible creates the LPAR
+        adapter: #X           # [DPM] HMC adapter name. Needed only if Ansible creates the LPAR
+        port: #X              # REQUIRED. OSA port number used for 'portno=' (usually 0 or 1)
+        # REQUIRED. Device number(s) of the network interface. The format depends on the use case:
+        #  - LPAR / ABI node (boot_LPAR, boot_LPAR_abi) and mode 'hipersocket':
+        #      the three CCW devices (read, write, data) as a comma separated string, e.g.
+        #      dev_num: 0.0.1100,0.0.1101,0.0.1102
+        #  - [KVM] KVM host install (update_cfgs) and LPAR creation (create_lpar):
+        #      only the first device number is given; the write and data devices are
+        #      derived as +1 and +2. It is evaluated as an integer and converted to
+        #      4 hex digits, so use unquoted YAML hex notation, e.g. dev_num: 0x1100 (-> 1100)
+        dev_num: #X
+
+      # (Optional) Second network card. If defined, Ansible also creates NIC2 in the HMC
+      # partition and the KVM host kickstart configures a bond of card1 and card2.
+#      card2:
+#        name:                # NIC name in the HMC. card1.name and card2.name are used as the bond slave interfaces
+#        adapter:             # HMC adapter name
+#        port:                # OSA port number
+#        dev_num:             # Device number, same format rules as card1 (hex integer, e.g. 0x1200)
+
+      # Only for networking.mode 'hipersocket': the OSA card that carries the external
+      # network (the HiperSockets interface is configured in 'card1'). When defined, its
+      # dev_num is passed as network device to the HMC load. Remove the '#' to use it.
+#      osa_card:
+#        dev_num:             # Comma separated CCW devices, e.g. 0.0.1100,0.0.1101,0.0.1102
+
+# Section 6 - Storage
+# For LPAR installations this storage configuration is used for:
+# 1. Booting the LPAR nodes (boot_LPAR / boot_LPAR_abi role)
+# 2. Agent-Based Installer (ABI) rootDeviceHints in agent-config.yaml
+# 3. [KVM] The boot disk of the KVM host (rd.zfcp= entries in the RHEL kickstart
+#    parameter file: one entry is added per WWPN listed below)
+#
+# With ABI and installation_type: lpar the rootDeviceHints are generated as:
+# deviceName: /dev/disk/by-path/ccw-0.0.{dev_num}-fc-{storage_wwpn[0]}-lun-{lun_name}
+#
+# Example values:
+#   dev_num: 1a00
+#   storage_wwpn[0]: 0x500507680b2a5f7e
+#   lun_name: 0x4000000000000000
+# Results in: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4000000000000000
+  storage_group_1:
+    name: #X                  # [DPM] Storage group name. Needed only if Ansible creates the LPAR
+    type: fcp                 # Storage type: 'fcp' or 'dasd'
+    storage_wwpn:             # Target FCP WWPN list (hex formatted, in quotes). One entry per path to the storage
+      - #X                    # For LPAR / ABI only the first entry is used.
+      - #X                    # [KVM] Each entry gets its own rd.zfcp= line (written with a '0x' prefix by the
+      - #X                    #       kickstart, so give the WWPN WITHOUT '0x' for the KVM host).
+      - #X                    # Remove unused entries.
+    dev_num: #X               # FCP CCW device number without the '0.0.' prefix (in quotes)
+    lun_name: #X              # Target LUN ID (hex formatted, in quotes)
+#  storage_group_2:           # [DPM] (Optional) Second storage group, attached to the partition when Ansible creates it
+#    auto_config: True
+#    name:
+#    type: fcp
+#    storage_wwpn:
+#      -
+#      -
+#      -
+#      -
+#    dev_num:
+#    lun_name:
+
+# Section 7 - Live disk info (disk used to boot the installer agent)
+  livedisk:
+    livedisktype: #X          # Live disk type: 'scsi' or 'dasd'
+    lun: #X                   # Live disk LUN ID. Required for 'scsi'
+    wwpn: #X                  # Live disk FCP WWPN. Required for 'scsi'
+    devicenr: #X              # Live disk device number
+    livediskuuid: #X          # Required only when 'dpm_enabled' is 'True'
+    livedisk_root_pass: "{{ vault_livedisk_root_pass }}"  # Live disk root password (secret)
+
+# Type of LPAR: 'True' for DPM, 'False' for classic PR/SM. Allowed values ['True', 'False']
+  dpm_enabled: 'False'

@@ -1,0 +1,55 @@
+---
+# setup_bastion_services/tasks/haproxy.yaml
+#
+# Configures haproxy on the bastion for this cluster.
+#
+# The full haproxy.cfg is always templated out (after a dated backup if the
+# file already exists).  Because HAProxy binds all ports to *, only one OCP
+# cluster can be served per bastion at a time.  The cluster's listen blocks
+# are wrapped in BEGIN/END markers so the file is idempotent on re-runs.
+
+- name: Change permissive domain for haproxy
+  tags: selinux, haproxy
+  community.general.selinux_permissive:
+    name: haproxy_t
+    permissive: true
+
+# ---- Back up existing config before overwriting ----
+
+- name: Back up existing haproxy.cfg with date suffix
+  tags: haproxy
+  ansible.builtin.copy:
+    src: /etc/haproxy/haproxy.cfg
+    dest: "/etc/haproxy/haproxy.cfg.{{ ansible_date_time.date }}"
+    remote_src: true
+    mode: "0644"
+  when: _haproxy_cfg_stat.stat.exists
+
+# ---- Always template the full config ----
+
+- name: Template haproxy config to bastion
+  tags: haproxy
+  ansible.builtin.template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    force: true
+    mode: "0644"
+
+# ---- Common: SELinux boolean, enable, restart ----
+
+- name: Set haproxy boolean to enable connections
+  tags: haproxy
+  ansible.builtin.command: setsebool -P haproxy_connect_any 1
+  changed_when: true
+
+- name: Enable haproxy
+  tags: haproxy
+  ansible.builtin.systemd:
+    name: haproxy
+    enabled: true
+
+- name: Restart haproxy
+  tags: haproxy
+  ansible.builtin.systemd:
+    state: restarted
+    name: haproxy

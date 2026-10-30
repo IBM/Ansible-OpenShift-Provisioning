@@ -9,6 +9,20 @@
     file: "{{ inventory_dir }}/host_vars/{{ item }}.yaml"
     name: node
 
+# Non-DPM LPARs get a new random layer2 MAC on every boot. The MAC from all.yaml
+# (env.cluster.nodes.*.mac, matched by vm_name) is therefore forced on the interface
+# via the last field of the dracut ip= parameter, so it matches agent-config.yaml.
+- name: Look up the configured MAC address for this node
+  ansible.builtin.set_fact:
+    node_mac: >-
+      {%- set ctrl = env.cluster.nodes.control -%}
+      {%- set comp = env.cluster.nodes.compute | default({}) -%}
+      {%- if ctrl.vm_name is defined and item in ctrl.vm_name and (ctrl.mac | default([])) | length > ctrl.vm_name.index(item) -%}
+      {{ ctrl.mac[ctrl.vm_name.index(item)] }}
+      {%- elif comp.vm_name is defined and item in comp.vm_name and (comp.mac | default([])) | length > comp.vm_name.index(item) -%}
+      {{ comp.mac[comp.vm_name.index(item)] }}
+      {%- endif -%}
+
 - name: Getting boot script for ABI
   ansible.builtin.template:
     src: boot_lpar.py
@@ -51,19 +65,49 @@
       if (node.lpar.livedisk.livediskuuid is defined and node.lpar.livedisk.livediskuuid is not none)
       else '' }}
 
-- name: Debug ABI boot command
+- name: Debug ABI boot command (password redacted)
   ansible.builtin.debug:
-    msg: "Booting LPAR {{ node.lpar.name }} with ABI agent"
+    msg:
+      python3 /root/ansible_workdir/boot_lpar_abi.py
+      --cpcname {{ node.cpc_name | upper }}
+      --lparname {{ node.lpar.name | upper }}
+      --hmchost {{ node.hmc.host }}
+      --hmcuser {{ node.hmc.auth.user }}
+      --hmcpass ******
+      --cpu {{ node.lpar.ifl.count }}
+      --memory {{ node.lpar.ifl.initial_memory }}
+      --kernel http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}-vmlinuz
+      --initrd http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}-initrd.img
+      --livedisktype {{ node.lpar.livedisk.livedisktype }}
+      --devicenr {{ node.lpar.livedisk.devicenr }}
+      {% if node.lpar.dpm_enabled == 'True' %}
+      --dpm_enabled {{ node.lpar.dpm_enabled }}
+      --livediskuuid {{ live_disk_uuid }}
+      {% endif %}
+      {% if node.lpar.livedisk.livedisktype | lower == 'scsi' %}
+      --livedisklun {{ live_disk_lun }}
+      --livediskwwpn {{ live_disk_wwpn }}
+      {% endif %}
+      --netset_ip {{ node.networking.ip }}
+      --netset_gateway {{ node.networking.gateway }}
+      --netset_network_type osa
+      --netset_network_device "{{ node.lpar.networking.nic.card1.dev_num }}"
+      --netset_password ******
+      --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}"
+      --status_timeout {{ node.lpar.load_status_timeout | default(env.lpar_load_status_timeout | default(300)) }}
+      --log_level DEBUG
+      {% if deactivate_lpar_before_boot | default(true) | bool %}--deactivate_first{% endif %}
+      --cmdline "{{ abi_cmdline }}"
 
 - name: Booting LPAR node with ABI agent
   ansible.builtin.shell: |
       set -o pipefail
       python3 /root/ansible_workdir/boot_lpar_abi.py \
-      --cpcname {{ node.cpc_name }} \
-      --lparname {{ node.lpar.name }} \
+      --cpcname {{ node.cpc_name | upper }} \
+      --lparname {{ node.lpar.name | upper }} \
       --hmchost {{ node.hmc.host }} \
       --hmcuser {{ node.hmc.auth.user }} \
-      --hmcpass {{ node.hmc.auth.pass }} \
+      --hmcpass '{{ node.hmc.auth.pass }}' \
       --cpu {{ node.lpar.ifl.count }} \
       --memory {{ node.lpar.ifl.initial_memory }} \
       --kernel http://{{ env.bastion.networking.ip }}:8080/agent.{{ ansible_architecture }}-vmlinuz \
@@ -82,19 +126,40 @@
       --netset_gateway {{ node.networking.gateway }} \
       --netset_network_type osa \
       --netset_network_device "{{ node.lpar.networking.nic.card1.dev_num }}" \
-      --netset_password {{ node.lpar.livedisk.livedisk_root_pass }} \
+      --netset_password '{{ node.lpar.livedisk.livedisk_root_pass }}' \
       --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
+      --status_timeout {{ node.lpar.load_status_timeout | default(env.lpar_load_status_timeout | default(300)) }} \
       --log_level DEBUG \
+      {% if deactivate_lpar_before_boot | default(true) | bool %}--deactivate_first \{% endif %}
       --cmdline "{{ abi_cmdline }}"
   register: boot_result
+  no_log: true
   changed_when: true
+  failed_when: false
   timeout: "{{ abi_lpar_boot_timeout | default(900) }}"
 
-- name: Pause after booting LPAR node with ABI agent
-  ansible.builtin.pause:
-    seconds: "{{ abi_lpar_boot_pause_seconds | default(90) }}"
-  when: abi_lpar_boot_pause_seconds | default(90) | int > 0
+- name: Display boot output (stderr/stdout only - command hidden)
+  ansible.builtin.debug:
+    msg:
+      rc: "{{ boot_result.rc }}"
+      stdout: "{{ boot_result.stdout }}"
+      stderr: "{{ boot_result.stderr }}"
+  when: boot_result.rc != 0
+
+- name: Fail if boot script returned non-zero
+  ansible.builtin.fail:
+    msg: "Booting LPAR {{ node.lpar.name }} failed with rc={{ boot_result.rc }}. See stderr above."
+  when: boot_result.rc != 0
+
+- name: Wait for LPAR node to become reachable after kexec
+  ansible.builtin.wait_for:
+    host: "{{ node.networking.ip }}"
+    port: 22
+    state: started
+    delay: 30
+    timeout: "{{ abi_lpar_boot_timeout | default(900) }}"
 
 - name: Display boot result
   ansible.builtin.debug:
-    var: boot_result
+    msg: "Boot completed for LPAR {{ node.lpar.name }} (rc={{ boot_result.rc }})"
+  when: boot_result.rc == 0
