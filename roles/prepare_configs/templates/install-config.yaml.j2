@@ -33,7 +33,12 @@ networking:
   serviceNetwork:
   - {{ install_config_vars.service_network }}
 platform:
+{% if (abi.platform | default('none') | lower) == 'external' %}
+  external:
+    platformName: {{ abi.platform_name | default('ibmz') }}
+{% else %}
   none: {}
+{% endif %}
 sshKey: >
   {{ ssh_key.stdout }}
 pullSecret: '{{ env.redhat.pull_secret if not disconnected.enabled else disconnected.registry.pull_secret }}'
