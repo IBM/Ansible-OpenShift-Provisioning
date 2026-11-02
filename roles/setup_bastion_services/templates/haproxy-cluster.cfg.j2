@@ -1,0 +1,50 @@
+listen {{ env.cluster.networking.metadata_name }}-api-6443
+  bind *:6443
+  mode tcp
+  balance source
+{% if env.cluster.nodes.bootstrap is defined %}
+  server {{ env.cluster.nodes.bootstrap.hostname }} {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:6443 check inter 1s backup
+{% endif %}
+{% for h in env.cluster.nodes.control.hostname %}
+  server {{ h }} {{ h }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:6443 check inter 1s
+{% endfor %}
+
+listen {{ env.cluster.networking.metadata_name }}-machine-config-22623
+  bind *:22623
+  mode tcp
+  balance source
+{% if env.cluster.nodes.bootstrap is defined %}
+  server {{ env.cluster.nodes.bootstrap.hostname }} {{ env.cluster.nodes.bootstrap.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:22623 check inter 1s backup
+{% endif %}
+{% for h in env.cluster.nodes.control.hostname %}
+  server {{ h }} {{ h }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:22623 check inter 1s
+{% endfor %}
+
+listen {{ env.cluster.networking.metadata_name }}-ingress-443
+  bind *:443
+  mode tcp
+  balance source
+{% set use_compute = env.cluster.nodes.compute.hostname | default([]) | select('string') | select('match', '^[a-zA-Z0-9]') | list %}
+{% if use_compute | length > 0 %}
+{% for h in use_compute %}
+  server {{ h }} {{ h }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:443 check inter 1s
+{% endfor %}
+{% else %}
+{% for h in env.cluster.nodes.control.hostname %}
+  server {{ h }} {{ h }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:443 check inter 1s
+{% endfor %}
+{% endif %}
+
+listen {{ env.cluster.networking.metadata_name }}-ingress-80
+  bind *:80
+  mode tcp
+  balance source
+{% if use_compute | length > 0 %}
+{% for h in use_compute %}
+  server {{ h }} {{ h }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:80 check inter 1s
+{% endfor %}
+{% else %}
+{% for h in env.cluster.nodes.control.hostname %}
+  server {{ h }} {{ h }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:80 check inter 1s
+{% endfor %}
+{% endif %}
