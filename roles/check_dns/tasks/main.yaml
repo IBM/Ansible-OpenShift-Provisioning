@@ -111,7 +111,7 @@
     - env.cluster.nodes.compute.hostname is defined
     - (env.cluster.nodes.compute.hostname | length) > 0
     - env.cluster.nodes.compute.hostname[i] is not none
-    - env.cluster.nodes.compute.hostname[i] | string | regex_search('^[a-zA-Z0-9]')
+    - env.cluster.nodes.compute.hostname[i] is match('^[a-zA-Z0-9]')
 
 - name: Check infrastructure nodes DNS resolution
   tags: check_dns, dns
