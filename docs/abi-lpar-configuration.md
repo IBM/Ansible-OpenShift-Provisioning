@@ -149,6 +149,27 @@ lpar:
     lun_name: "0x4002000000000000"  # Different LUN
 ```
 
+### 3. Configure MAC Addresses in Group Vars
+
+For LPAR ABI deployments, `env.cluster.nodes.*.mac` is **mandatory** in `inventories/default/group_vars/all.yaml`.
+
+#### MAC Address Rules by Environment and Adapter Type
+
+- **RoCE Adapters:** Use the actual physical MAC address assigned to the RoCE card.
+- **DPM Mode:** Use the MAC address configured/assigned to the network adapter in DPM.
+- **Non-DPM Mode with Non-RoCE Adapters (e.g., OSA-Express / HiperSockets):** Non-DPM LPARs using OSA or HiperSockets in Layer 2 mode do not have a fixed permanent MAC address; the Linux kernel generates a random MAC address on every boot by default. For these environments, specify a **randomly generated locally administered MAC address** (e.g. `52:54:00:xx:yy:zz` or `02:xx:yy:zz:aa:bb`) in `env.cluster.nodes.*.mac`.
+
+#### How the Parm File and Boot Process Handle the MAC Address
+
+During LPAR boot, the `boot_LPAR_abi` role generates the boot parameter file (`genericdvd.prm`) and appends the specified MAC address as the last field of dracut's `ip=` parameter:
+```text
+ip=<node_ip>::<gateway>:<subnetmask>::<device_name>:none::<node_mac>
+```
+This forces the Linux kernel / dracut to assign this specific MAC address to the network interface at boot time. Consequently:
+1. The LPAR boots with the exact MAC address specified in `all.yaml`.
+2. The Agent-Based Installer's `agent-config.yaml` matches this MAC address under `interfaces[].macAddress` and NMState `mac-address`.
+3. The Agent installer correctly identifies the host and assigns the static IP configuration.
+
 ## Generated agent-config.yaml Example
 
 ### For LPAR Installation
@@ -158,7 +179,7 @@ apiVersion: v1alpha1
 kind: AgentConfig
 metadata:
   name: ocp-cluster
-rendezvousIP: 
+rendezvousIP: 192.168.1.10
 
 hosts:
   - hostname: "control-1"
@@ -167,7 +188,7 @@ hosts:
       deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4000000000000000
     interfaces:
       - name: eth0
-        macAddress: ""
+        macAddress: "52:54:00:11:22:31"
     networkConfig:
       # ... network configuration ...
 
@@ -177,7 +198,7 @@ hosts:
       deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4001000000000000
     interfaces:
       - name: eth0
-        macAddress: ""
+        macAddress: "52:54:00:11:22:32"
     networkConfig:
       # ... network configuration ...
 
@@ -187,7 +208,7 @@ hosts:
       deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4002000000000000
     interfaces:
       - name: eth0
-        macAddress: ""
+        macAddress: "52:54:00:11:22:33"
     networkConfig:
       # ... network configuration ...
 ```

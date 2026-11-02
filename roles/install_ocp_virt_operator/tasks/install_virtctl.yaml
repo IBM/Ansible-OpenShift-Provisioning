@@ -1,0 +1,110 @@
+---
+# Download the virtctl CLI from the cluster (ConsoleCLIDownload) and install it
+# on the bastion. Included after the HyperConverged CR is Available.
+# Skipped when virtctl is already present in ocp_virt.virtctl.install_dir.
+
+- name: "virtctl | check if virtctl is already installed"
+  ansible.builtin.stat:
+    path: "{{ ocp_virt.virtctl.install_dir | default('/usr/local/bin') }}/virtctl"
+  register: _virtctl_stat
+
+- name: "virtctl | download and install"
+  when: not _virtctl_stat.stat.exists
+  vars:
+    _virtctl_install_dir: "{{ ocp_virt.virtctl.install_dir | default('/usr/local/bin') }}"
+    _virtctl_validate_certs: "{{ ocp_virt.virtctl.validate_certs | default(false) | bool }}"
+    _virtctl_workdir: /root/ansible_workdir/virtctl
+    _virtctl_archive: "{{ _virtctl_workdir }}/{{ (_virtctl_links | default(['virtctl.tar.gz']))[0] | basename }}"
+    _virtctl_arch_regex:
+      x86_64: 'amd64|x86_64'
+      aarch64: 'arm64|aarch64'
+      arm64: 'arm64|aarch64'
+      s390x: 's390x'
+      ppc64le: 'ppc64le'
+  block:
+
+    - name: "virtctl | detect bastion architecture"
+      ansible.builtin.command: uname -m
+      register: _virtctl_uname
+      changed_when: false
+
+    - name: "virtctl | read download links from ConsoleCLIDownload"
+      ansible.builtin.command: >-
+        oc get consoleclidownload virtctl-clidownloads-kubevirt-hyperconverged
+        -o json
+      register: _virtctl_ccd
+      changed_when: false
+
+    - name: "virtctl | select the Linux download link for this architecture"
+      ansible.builtin.set_fact:
+        _virtctl_links: >-
+          {{ (_virtctl_ccd.stdout | from_json).spec.links
+             | selectattr('href', 'search', 'linux')
+             | selectattr('href', 'search', _virtctl_arch_regex[_virtctl_uname.stdout | trim] | default('NO_MATCH'))
+             | map(attribute='href') | list }}
+
+    - name: "virtctl | assert a download link was found"
+      ansible.builtin.assert:
+        that:
+          - _virtctl_links | length > 0
+        fail_msg: >-
+          No virtctl download link for Linux / {{ _virtctl_uname.stdout | trim }} found in
+          ConsoleCLIDownload virtctl-clidownloads-kubevirt-hyperconverged.
+          Available links: {{ (_virtctl_ccd.stdout | from_json).spec.links | map(attribute='href') | list }}.
+          Install virtctl manually or set ocp_virt.virtctl.install: false.
+
+    - name: "virtctl | create work directory"
+      ansible.builtin.file:
+        path: "{{ _virtctl_workdir }}"
+        state: directory
+        mode: '0755'
+
+    - name: "virtctl | download archive"
+      ansible.builtin.get_url:
+        url: "{{ _virtctl_links[0] }}"
+        dest: "{{ _virtctl_archive }}"
+        mode: '0644'
+        validate_certs: "{{ _virtctl_validate_certs }}"
+        force: true
+
+    - name: "virtctl | extract archive"
+      ansible.builtin.unarchive:
+        src: "{{ _virtctl_archive }}"
+        dest: "{{ _virtctl_workdir }}"
+        remote_src: true
+
+    - name: "virtctl | locate the virtctl binary"
+      ansible.builtin.find:
+        paths: "{{ _virtctl_workdir }}"
+        patterns: '^virtctl(\.exe)?$'
+        use_regex: true
+        file_type: file
+        recurse: true
+      register: _virtctl_found
+
+    - name: "virtctl | assert the binary was extracted"
+      ansible.builtin.assert:
+        that:
+          - _virtctl_found.files | length > 0
+        fail_msg: "No virtctl binary found in the downloaded archive {{ _virtctl_links[0] }}."
+
+    - name: "virtctl | install binary"
+      ansible.builtin.copy:
+        src: "{{ _virtctl_found.files[0].path }}"
+        dest: "{{ _virtctl_install_dir }}/virtctl"
+        mode: '0755'
+        remote_src: true
+
+    - name: "virtctl | remove work directory"
+      ansible.builtin.file:
+        path: "{{ _virtctl_workdir }}"
+        state: absent
+
+- name: "virtctl | verify client version"
+  ansible.builtin.command: "{{ ocp_virt.virtctl.install_dir | default('/usr/local/bin') }}/virtctl version --client"
+  register: _virtctl_version
+  changed_when: false
+
+- name: "virtctl | print installed version"
+  ansible.builtin.debug:
+    msg: "{{ _virtctl_version.stdout_lines }}"

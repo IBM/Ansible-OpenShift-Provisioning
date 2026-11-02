@@ -1,0 +1,50 @@
+---
+# playbooks/operators/verify_ocp_virt_prereqs.yaml
+#
+# Verifies all prerequisites for installing OpenShift Virtualization.
+# READ-ONLY — never creates or modifies cluster resources.
+# Safe to run at any time before install_ocp_virt.yaml.
+#
+# Checks (all 14 from the install role preflight phase):
+#   1.  kubeconfig present at ocp_virt_kubeconfig path
+#   2.  oc binary present on bastion
+#   3.  Cluster API reachable
+#   4.  cluster-admin privileges
+#   5.  OCP version >= 4.19
+#   6.  All cluster operators healthy
+#   7.  All nodes Ready
+#   8.  Node architecture is s390x            (WARN only)
+#   9.  Nodes are bare-metal LPARs            (WARN only)
+#   10. redhat-operators CatalogSource READY
+#   11. Default StorageClass exists
+#   12. Sufficient CPU and memory headroom    (WARN only)
+#   13. kubernetes.core collection installed on Ansible controller
+#   14. ocp_virt variable defined in operators.yaml
+#
+# Usage:
+#   ansible-playbook playbooks/operators/verify_ocp_virt_prereqs.yaml --ask-vault-pass
+#
+# Exit codes:
+#   0 — all checks passed (warnings may be present)
+#   2 — one or more FAIL checks — resolve before running install_ocp_virt.yaml
+
+- name: Verify OCP Virtualization prerequisites
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/operators.yaml"
+  pre_tasks:
+    - name: Get the home directory of the bastion user
+      ansible.builtin.command: printenv HOME
+      changed_when: false
+      register: _bastion_home
+
+    - name: Set ocp_virt_kubeconfig to absolute path
+      ansible.builtin.set_fact:
+        ocp_virt_kubeconfig: "{{ ocp_virt_kubeconfig | regex_replace('^~', _bastion_home.stdout | trim) }}"
+  environment:
+    KUBECONFIG: "{{ ocp_virt_kubeconfig }}"
+  roles:
+    - role: verify_ocp_virt_prereqs

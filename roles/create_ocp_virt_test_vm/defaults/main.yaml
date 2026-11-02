@@ -1,0 +1,24 @@
+---
+# Defaults for the OCP Virt test VM role.
+# All values are overridden by ocp_virt.test_vm.* in operators.yaml.
+
+ocp_virt:
+  test_vm:
+    name: ocp-virt-test
+    namespace: ocp-virt-test
+    image_url: ""
+    disk_size: 20Gi
+    storage_class: ""
+    cpu_cores: 2
+    memory: 4Gi
+    ssh_public_key: ""
+    data_disk:
+      create: false
+      size: 10Gi
+      storage_class: ""
+    migration:
+      enabled: false
+      timeout: 600
+    keep: false
+    dv_timeout: 1800
+    vm_timeout: 600

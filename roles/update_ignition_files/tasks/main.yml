@@ -8,7 +8,10 @@
 - name: Disable UDP aggregation, because it is not supported on IBM Z
   # Requires sudo access
   become: true
-  when: day2_compute_node is defined and day2_compute_node.host_arch == "s390x"
+  when: >-
+    (day2_compute_node_vars is defined and day2_compute_node_vars.hypervisor_arch == "s390x")
+    or
+    (current_node_vars is defined and current_node_vars.hypervisor_arch == "s390x")
   block:
     - name: Disable UDP aggregation, copy required files to Bastion
       ansible.builtin.template:
@@ -26,6 +29,73 @@
         var: cmd_output.stdout_lines
 
 # Ignition file update
+- name: Set day-2 static networking ignition fragment
+  ansible.builtin.set_fact:
+    day2_static_network_ignition_fragment: >-
+      {{
+        {
+          "ignition": {
+            "version": "3.2.0"
+          },
+          "storage": {
+            "files": [
+              {
+                "path": "/etc/NetworkManager/system-connections/" ~ day2_network_config.node_vm_hostname ~ ".nmconnection",
+                "mode": 384,
+                "overwrite": true,
+                "contents": {
+                  "source": "data:text/plain;charset=utf-8;base64," ~ (day2_nmconnection_content | b64encode)
+                }
+              }
+            ]
+          }
+        } | to_json
+      }}
+  vars:
+    day2_network_config: >-
+      {{
+        current_node_vars
+        if current_node_vars is defined
+        else day2_compute_node_vars
+      }}
+    day2_network_interface: "{{ day2_network_config.networking.device | default('ens2') }}"
+    day2_nmconnection_content: |
+      [connection]
+      id={{ day2_network_config.node_vm_hostname }}
+      type=ethernet
+      interface-name={{ day2_network_interface }}
+      autoconnect=true
+
+      [ethernet]
+      {% if day2_network_config.networking.mac_address is defined and (day2_network_config.networking.mac_address | string | length > 0) %}
+      cloned-mac-address={{ day2_network_config.networking.mac_address }}
+      {% endif %}
+
+      [ipv4]
+      method=manual
+      address1={{ day2_network_config.networking.ip }}/{{ day2_network_config.networking.prefix | default('24') }},{{ day2_network_config.networking.gateway }}
+      dns={{ env.cluster.networking.nameserver1 }}{% if env.cluster.networking.nameserver2 is defined %};{{ env.cluster.networking.nameserver2 }}{% endif %}
+
+      dns-search={{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }};
+      may-fail=false
+
+      [ipv6]
+      {% if env.use_ipv6 == True and (day2_network_config.networking.ipv6 | default('') | length > 0) %}
+      method=manual
+      address1={{ day2_network_config.networking.ipv6 }}/{{ day2_network_config.networking.ipv6_prefix }},{{ day2_network_config.networking.ipv6_gateway }}
+      {% else %}
+      method=disabled
+      {% endif %}
+  when:
+    - (current_node_vars is defined or day2_compute_node_vars is defined)
+    - not (
+        (
+          current_node_vars
+          if current_node_vars is defined
+          else day2_compute_node_vars
+        ).networking.dhcp | default(false) | bool
+      )
+
 - name: Update worker ignition files on bastion host
   # Requires sudo access
   become: true
@@ -40,3 +110,16 @@
     - name: Print above command output
       ansible.builtin.debug:
         var: cmd_output.stdout_lines
+
+    - name: Merge day-2 static networking into worker ignition
+      ansible.builtin.shell: |
+        set -o errexit -o nounset -o pipefail
+        TMP_BASE="$(mktemp)"
+        TMP_NET="$(mktemp)"
+        TMP_OUT="$(mktemp)"
+        cp /var/www/html/ignition/worker.ign "${TMP_BASE}"
+        printf '%s\n' '{{ day2_static_network_ignition_fragment }}' > "${TMP_NET}"
+        jq -s '.[0] * .[1]' "${TMP_BASE}" "${TMP_NET}" > "${TMP_OUT}"
+        cp "${TMP_OUT}" /var/www/html/ignition/worker.ign
+        rm -f "${TMP_BASE}" "${TMP_NET}" "${TMP_OUT}"
+      when: day2_static_network_ignition_fragment is defined

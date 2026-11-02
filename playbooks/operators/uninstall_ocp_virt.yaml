@@ -1,0 +1,33 @@
+---
+# playbooks/operators/uninstall_ocp_virt.yaml
+#
+# Removes OpenShift Virtualization, cert-manager, and NFD from the cluster
+# in reverse installation order. Follows OCP 4.22 uninstall procedure (§4.3).
+#
+# DESTRUCTIVE — all VMs and VMIs must be deleted before running.
+# Requires: cluster accessible (oc + kubeconfig on bastion).
+#
+# Usage:
+#   ansible-playbook playbooks/operators/uninstall_ocp_virt.yaml \
+#     -e ocp_virt_uninstall_confirm=true --ask-vault-pass
+
+- name: Uninstall OpenShift Virtualization
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/operators.yaml"
+  pre_tasks:
+    - name: Get the home directory of the bastion user
+      ansible.builtin.command: printenv HOME
+      changed_when: false
+      register: _bastion_home
+
+    - name: Set ocp_virt_kubeconfig to absolute path
+      ansible.builtin.set_fact:
+        ocp_virt_kubeconfig: "{{ ocp_virt_kubeconfig | regex_replace('^~', _bastion_home.stdout | trim) }}"
+  environment:
+    KUBECONFIG: "{{ ocp_virt_kubeconfig }}"
+  roles:
+    - role: uninstall_ocp_virt_operator

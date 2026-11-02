@@ -1,0 +1,9 @@
+---
+# Command for node-level DNS operations: 'add' or 'delete'
+param_dns_cmd: add
+param_dns_ip:
+param_dns_hostname:
+
+# Command for node-level haproxy operations: 'add' or 'delete'
+param_haproxy_cmd: add
+param_haproxy_hostname:
