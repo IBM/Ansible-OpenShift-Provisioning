@@ -3,7 +3,7 @@
   tags: check_dns, dns
   ansible.builtin.shell: |
     set -o pipefail
-    dig @127.0.0.1 +short {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }} | tail -n1
+    dig @127.0.0.1 +short {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.bastion.networking.base_domain }} | tail -n1
   register: bastion_lookup
   failed_when: env.bastion.networking.ip != bastion_lookup.stdout
   when: env.bastion.networking.internal_ip is not defined or env.bastion.networking.internal_ip == none
@@ -12,7 +12,7 @@
   tags: check_dns, dns
   ansible.builtin.shell: |
     set -o pipefail
-    dig @127.0.0.1 +short {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }} | tail -n1
+    dig @127.0.0.1 +short {{ env.bastion.networking.hostname }}.{{ env.cluster.networking.metadata_name }}.{{ env.bastion.networking.base_domain }} | tail -n1
   register: bastion_lookup
   failed_when: env.bastion.networking.internal_ip != bastion_lookup.stdout
   when: env.bastion.networking.internal_ip is defined and env.bastion.networking.internal_ip != none
