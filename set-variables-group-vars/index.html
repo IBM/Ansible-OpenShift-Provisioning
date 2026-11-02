@@ -1264,6 +1264,16 @@
 <td style="text-align: left;">Specifies the boot type for Agent-based Installation (ABI). Users must choose either iso or pxe based on the deployment method. Note: iso boot is supported only on KVM platforms.</td>
 <td style="text-align: left;">'iso/pxe'</td>
 </tr>
+<tr>
+<td style="text-align: left;"><strong>abi.platform</strong></td>
+<td style="text-align: left;">Platform section of the generated install-config.yaml. Either <code>none</code> (default, also used when the variable is not set) or <code>external</code>.</td>
+<td style="text-align: left;">'none/external'</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>abi.platform_name</strong></td>
+<td style="text-align: left;">Value for <code>platform.external.platformName</code>. Only used when <code>abi.platform</code> is <code>external</code>. Defaults to <code>ibmz</code>.</td>
+<td style="text-align: left;">ibmz</td>
+</tr>
 </tbody>
 </table>
 <h2 id="openshift-settings">OpenShift Settings<a class="headerlink" href="#openshift-settings" title="Permanent link">#</a></h2>
