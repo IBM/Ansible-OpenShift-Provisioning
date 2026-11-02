@@ -96,6 +96,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#14-optional-agent-based-installer">14 - (Optional) Agent Based Installer</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#15-optional-cex-based-luks-encryption">15 - (Optional) CEX based LUKS encryption</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#openshift-settings">OpenShift Settings</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#packages-optional">Packages (Optional)</a>
@@ -103,6 +105,16 @@
     <li class="toctree-l2"><a class="reference internal" href="#proxy-optional">Proxy (Optional)</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#disconnected-cluster-setup-optional">Disconnected cluster setup (Optional)</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#hosted-control-plane-optional">Hosted Control Plane (Optional)</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#zvm-optional">ZVM (Optional)</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#additional-parameters-optional">Additional Parameters (optional)</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#download-kubeconfig">Download Kubeconfig</a>
+    </li>
+        </ul>
     </li>
     </ul>
                   </li>
@@ -169,7 +181,7 @@
 <li>all.yaml is your master variables file and you will likely reference it many times throughout the process. The default inventory can be found at <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default">inventories/default</a>.</li>
 <li>The variables marked with an <code>X</code> are required to be filled in. Many values are pre-filled or are optional. Optional values are commented out; in order to use them, remove the <code>#</code> and fill them in.</li>
 <li>This is the most important step in the process. Take the time to make sure everything here is correct.</li>
-<li><u>Note on YAML syntax</u>: Only the lowest value in each hierarchicy needs to be filled in. For example, at the top of the variables file env and z don't need to be filled in, but the cpc_name does. There are X's where input is required to help you with this.</li>
+<li><u>Note on YAML syntax</u>: Only the lowest value in each hierarchicy needs to be filled in. For example, at the top of the variables file env and z don't need to be filled in, but the hostname does. There are X's where input is required to help you with this.</li>
 <li>Scroll the table to the right to see examples for each variable.</li>
 </ul>
 <h2 id="1-controller">1 - Controller<a class="headerlink" href="#1-controller" title="Permanent link">#</a></h2>
@@ -193,11 +205,6 @@
 <td style="text-align: left;">Pas$w0rd!</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>cex_device</strong></td>
-<td style="text-align: left;">Specify the storage device type used for LUKS encryption. This setting determines enable cex MCO Ignition configuration will be applied. Use in combination with the cex parameter.  [dasd, fcp, virt]</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr>
 <td style="text-align: left;"><strong>regenerate_private_key</strong></td>
 <td style="text-align: left;"><b>(Optional)</b> Controls whether to regenerate SSH private keys during the setup process. Default value is 'full_idempotence'. For usage inside of pipelines where SSH keys already exist, this value should be set to 'never' to preserve existing keys. See detailed description <a href="https://docs.ansible.com/projects/ansible/latest/collections/community/crypto/openssh_keypair_module.html">here:</a></td>
 <td style="text-align: left;">full_idempotence</td>
@@ -209,8 +216,8 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>timeout_node_creation</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> Timeout in seconds for the virt-install command when creating control and compute nodes. Increase this value on slower environments where node creation takes longer than the default. Default value is 360 seconds.</td>
-<td style="text-align: left;">360</td>
+<td style="text-align: left;"><b>(Optional)</b> Timeout in seconds for the virt-install command when creating control and compute nodes. Increase this value on slower environments where node creation takes longer than the default. Role defaults are 360 seconds for control and compute nodes, 420 for the bootstrap node and 620 for the bastion; all.yaml.template sets 960.</td>
+<td style="text-align: left;">960</td>
 </tr>
 </tbody>
 </table>
@@ -419,7 +426,7 @@
 <td style="text-align: left;"><code>'RH_OCP_activation'</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>env.redaht.rhel_organization</strong></td>
+<td style="text-align: left;"><strong>env.redhat.rhel_organization</strong></td>
 <td style="text-align: left;"> In case that an activation key and organization instead of user and password exists, specify here the organization.</td>
 <td style="text-align: left;"><code>'an_organization_key'</code></td>
 </tr>
@@ -608,12 +615,22 @@
 <td style="text-align: left;">host.com</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>env.bastion.networking.ipv6_gateway</strong></td>
-<td style="text-align: left;">IPv6 of he bastion's gateway server.</td>
+<td style="text-align: left;"><strong>env.cluster.networking.subnetmask</strong></td>
+<td style="text-align: left;">Subnet mask of the cluster network. Used in the static <code>ip=</code> boot arguments of the cluster nodes.</td>
+<td style="text-align: left;">255.255.255.0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>env.cluster.networking.gateway</strong></td>
+<td style="text-align: left;">IPv4 address of the cluster's gateway server. Used in the static <code>ip=</code> boot arguments of the cluster nodes.</td>
+<td style="text-align: left;">192.168.10.0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>env.cluster.networking.ipv6_gateway</strong></td>
+<td style="text-align: left;">IPv6 of the cluster's gateway server.</td>
 <td style="text-align: left;">fd00::1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>env.bastion.networking.ipv6_prefix</strong></td>
+<td style="text-align: left;"><strong>env.cluster.networking.ipv6_prefix</strong></td>
 <td style="text-align: left;">IPv6 prefix.</td>
 <td style="text-align: left;">64</td>
 </tr>
@@ -691,7 +708,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.bootstrap.hostname</strong></td>
-<td style="text-align: left;">Hostname of the temporary boostrap node. If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN).</td>
+<td style="text-align: left;">Hostname of the temporary boostrap node. If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualified Domain Name (FQDN).</td>
 <td style="text-align: left;">bootstrap-ocpz</td>
 </tr>
 </tbody>
@@ -729,17 +746,17 @@
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.vm_name</strong></td>
 <td style="text-align: left;">Name of the control node VMs. Arbitrary values. Usually no more or less than 3 are used. Must match the total number of IP addresses and hostnames for control nodes. Use provided list format.</td>
-<td style="text-align: left;">control-1control-2control-3</td>
+<td style="text-align: left;">control-1, control-2, control-3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.ip</strong></td>
 <td style="text-align: left;">IPv4 address of the control nodes. Use provided list formatting.</td>
-<td style="text-align: left;">192.168.10.5192.168.10.6192.168.10.7</td>
+<td style="text-align: left;">192.168.10.5, 192.168.10.6, 192.168.10.7</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.ipv6</strong></td>
-<td style="text-align: left;">IPv6 address for the control nodes. Use iprovided list formatting (if use_ipv6 variable is 'True').</td>
-<td style="text-align: left;">fd00::5fd00::6fd00::7</td>
+<td style="text-align: left;">IPv6 address for the control nodes. Use provided list formatting (if use_ipv6 variable is 'True').</td>
+<td style="text-align: left;">fd00::5, fd00::6, fd00::7</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.mac</strong></td>
@@ -748,8 +765,8 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.control.hostname</strong></td>
-<td style="text-align: left;">Hostnames for control nodes. Must match the total number of IP addresses for control nodes (usually 3). If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN).</td>
-<td style="text-align: left;">control-01control-02control-03</td>
+<td style="text-align: left;">Hostnames for control nodes. Must match the total number of IP addresses for control nodes (usually 3). If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualified Domain Name (FQDN).</td>
+<td style="text-align: left;">control-01, control-02, control-03</td>
 </tr>
 </tbody>
 </table>
@@ -786,17 +803,17 @@
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.vm_name</strong></td>
 <td style="text-align: left;">Name of the compute node VMs. Arbitrary values. This list can be expanded to any number of nodes, minimum 2. Must match the total number of IP addresses and hostnames for compute nodes. Use provided list format.</td>
-<td style="text-align: left;">compute-1compute-2</td>
+<td style="text-align: left;">compute-1, compute-2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.ip</strong></td>
 <td style="text-align: left;">IPv4 address of the compute nodes. Must match the total number of VM names and hostnames for compute nodes. Use provided list formatting.</td>
-<td style="text-align: left;">192.168.10.8192.168.10.9</td>
+<td style="text-align: left;">192.168.10.8, 192.168.10.9</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>env.cluster.nodes.control.ipv6</strong></td>
-<td style="text-align: left;">IPv6 address for the compute nodes. Use iprovided list formatting (if use_ipv6 variable is 'True').</td>
-<td style="text-align: left;">fd00::8fd00::9</td>
+<td style="text-align: left;"><strong>env.cluster.nodes.compute.ipv6</strong></td>
+<td style="text-align: left;">IPv6 address for the compute nodes. Use provided list formatting (if use_ipv6 variable is 'True').</td>
+<td style="text-align: left;">fd00::8, fd00::9</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.mac</strong></td>
@@ -805,8 +822,8 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.compute.hostname</strong></td>
-<td style="text-align: left;">Hostnames for compute nodes. Must match the total number of IP addresses and VM names for compute nodes. If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN).</td>
-<td style="text-align: left;">compute-01compute-02</td>
+<td style="text-align: left;">Hostnames for compute nodes. Must match the total number of IP addresses and VM names for compute nodes. If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualified Domain Name (FQDN).</td>
+<td style="text-align: left;">compute-01, compute-02</td>
 </tr>
 </tbody>
 </table>
@@ -843,22 +860,27 @@
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.infra.vm_name</strong></td>
 <td style="text-align: left;"><b>(Optional)</b> Name of additional infra node VMs. Arbitrary values. This list can be expanded to any number of nodes, minimum 2. Must match the total number of IP addresses and hostnames for infra nodes. Use provided list format.</td>
-<td style="text-align: left;">infra-1infra-2</td>
+<td style="text-align: left;">infra-1, infra-2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.infra.ip</strong></td>
 <td style="text-align: left;"><b>(Optional)</b> IPv4 address of the infra nodes. This list can be expanded to any number of nodes, minimum 2. Use provided list formatting.</td>
-<td style="text-align: left;">192.168.10.10192.168.10.11</td>
+<td style="text-align: left;">192.168.10.10, 192.168.10.11</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.infra.ipv6</strong></td>
 <td style="text-align: left;"><b>(Optional)</b> IPv6 address of the infra nodes. iThis list can be expanded to any number of nodes, minimum 2. Use provided list formatting (if use_ipv6 variable is 'True').</td>
-<td style="text-align: left;">fd00::10fd00::11</td>
+<td style="text-align: left;">fd00::10, fd00::11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>env.cluster.nodes.infra.mac</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> MAC addresses for the infra nodes if use_dhcp variable is 'True'. Use provided list formatting.</td>
+<td style="text-align: left;">52:54:00:18:1A:2B, 52:54:00:18:1A:2C</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>env.cluster.nodes.infra.hostname</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> Hostnames for infra nodes. Must match the total number of IP addresses for infra nodes. If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualififed Domain Name (FQDN).</td>
-<td style="text-align: left;">infra-01infra-02</td>
+<td style="text-align: left;"><b>(Optional)</b> Hostnames for infra nodes. Must match the total number of IP addresses for infra nodes. If DNS is hosted on the bastion, this can be anything. If DNS is hosted elsewhere, this must match DNS definition. This will be combined with the metadata_name and base_domain to create a Fully Qualified Domain Name (FQDN).</td>
+<td style="text-align: left;">infra-01, infra-02</td>
 </tr>
 </tbody>
 </table>
@@ -893,7 +915,7 @@
 <td style="text-align: left;">ansible-ocpz</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>env.ocp_key_name</strong></td>
+<td style="text-align: left;"><strong>env.ocp_ssh_key_comment</strong></td>
 <td style="text-align: left;">Comment to describe the SSH key used for OCP. Arbitrary value.</td>
 <td style="text-align: left;">OCPZ-01 key</td>
 </tr>
@@ -947,6 +969,11 @@
 <td style="text-align: left;">(Optional) If IPSEC network configuration has to be enabled, this flag should be set to true</td>
 <td style="text-align: left;"></td>
 </tr>
+<tr>
+<td style="text-align: left;"><strong>env.lpar_load_status_timeout</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Timeout in seconds to wait for the HMC load status when loading a DASD or SCSI live disk during LPAR boot. Default is 300. Can be overridden per node with <code>lpar.load_status_timeout</code> in the node's host_vars file (see <a href="../set-variables-host-vars/">set-variables-host-vars</a>).</td>
+<td style="text-align: left;">300</td>
+</tr>
 </tbody>
 </table>
 <h2 id="12-ocp-and-rhcos-coreos">12 - OCP and RHCOS (CoreOS)<a class="headerlink" href="#12-ocp-and-rhcos-coreos" title="Permanent link">#</a></h2>
@@ -965,7 +992,7 @@
 <tr>
 <td style="text-align: left;"><strong>ocp_download_url</strong></td>
 <td style="text-align: left;">Link to the mirror for the OpenShift client and installer from Red Hat.</td>
-<td style="text-align: left;">https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/</td>
+<td style="text-align: left;">https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/latest/s390x/</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ocp_client_tgz</strong></td>
@@ -980,7 +1007,7 @@
 <tr>
 <td style="text-align: left;"><strong>rhcos_download_url</strong></td>
 <td style="text-align: left;">Link to the CoreOS files to be used for the bootstrap, control and compute nodes. Feel free to change to a different version.</td>
-<td style="text-align: left;">https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/latest/s390x/</td>
+<td style="text-align: left;">https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>rhcos_os_variant</strong></td>
@@ -1006,7 +1033,7 @@
 </table>
 <h2 id="13-optional-create-compute-node-in-a-day-2-operation">13 - (Optional) Create compute node in a day-2 operation<a class="headerlink" href="#13-optional-create-compute-node-in-a-day-2-operation" title="Permanent link">#</a></h2>
 <p>The day-2 workflow now uses a <strong>host_vars-based</strong> model.</p>
-<p>For a single-node day-2 operation, <a href="inventories/default/group_vars/all.yaml:235"><code>day2_compute_node</code></a> must be a list of host_vars entry names. Each entry must match a file in <a href="../inventories/default/host_vars"><code>inventories/default/host_vars</code></a>.</p>
+<p>For a single-node day-2 operation, <a href="../inventories/default/group_vars/all.yaml.template"><code>day2_compute_node</code></a> must be a list of host_vars entry names. Each entry must match a file in <a href="../inventories/default/host_vars"><code>inventories/default/host_vars</code></a>.</p>
 <p>Example in <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template"><code>all.yaml</code></a>:</p>
 <pre class="codehilite"><code class="language-yaml">day2_compute_node:
   - example-day2-node
@@ -1097,8 +1124,8 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypervisor_user_pwd</strong></td>
-<td style="text-align: left;">Password used for the hypervisor connection and privilege escalation. Usually sourced from vault variables.</td>
-<td style="text-align: left;"><code>"{{ vault_host_user_pass }}"</code></td>
+<td style="text-align: left;">Password used for the hypervisor connection and privilege escalation. Specify the name of the vault variable without <code>{{ }}</code>.</td>
+<td style="text-align: left;"><code>"vault_host_user_pass"</code> (name of the vault variable, without <code>{{ }}</code>)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>hypervisor_arch</strong></td>
@@ -1176,7 +1203,7 @@
 <td style="text-align: left;">52:54:00:00:01:41</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>networking.device1</strong></td>
+<td style="text-align: left;"><strong>networking.device</strong></td>
 <td style="text-align: left;">Guest network interface name used in static kernel boot arguments and host networking setup.</td>
 <td style="text-align: left;">enp1s0</td>
 </tr>
@@ -1207,23 +1234,23 @@
 </tr>
 </tbody>
 </table>
-<h3 id="how-day2_compute_node-is-used">How <a href="inventories/default/group_vars/all.yaml:235"><code>day2_compute_node</code></a> is used<a class="headerlink" href="#how-day2_compute_node-is-used" title="Permanent link">#</a></h3>
-<p><a href="inventories/default/group_vars/all.yaml:235"><code>day2_compute_node</code></a> is consumed by several playbooks:</p>
+<h3 id="how-day2_compute_node-is-used">How <a href="../inventories/default/group_vars/all.yaml.template"><code>day2_compute_node</code></a> is used<a class="headerlink" href="#how-day2_compute_node-is-used" title="Permanent link">#</a></h3>
+<p><a href="../inventories/default/group_vars/all.yaml.template"><code>day2_compute_node</code></a> is consumed by several playbooks:</p>
 <ul>
 <li><a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a> loads the referenced host_vars files and generates the <a href="../inventories/default/hosts"><code>day2_hosts</code></a> inventory section for eligible hypervisors.</li>
 <li><a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a> configures the hypervisors listed in <a href="../inventories/default/hosts"><code>day2_hosts</code></a> when <code>setup_host: true</code>.</li>
-<li><a href="../playbooks/create_compute_node.yaml"><code>playbooks/create_compute_node.yaml</code></a> loads the first entry from <a href="inventories/default/group_vars/all.yaml:235"><code>day2_compute_node</code></a> and creates the node.</li>
+<li><a href="../playbooks/create_compute_node.yaml"><code>playbooks/create_compute_node.yaml</code></a> loads the first entry from <a href="../inventories/default/group_vars/all.yaml.template"><code>day2_compute_node</code></a> and creates the node.</li>
 <li><a href="../playbooks/delete_compute_node.yaml"><code>playbooks/delete_compute_node.yaml</code></a> loads the same host_vars entry when deleting a day-2 node.</li>
 </ul>
 <h3 id="notes-for-multi-node-day-2-operations">Notes for multi-node day-2 operations<a class="headerlink" href="#notes-for-multi-node-day-2-operations" title="Permanent link">#</a></h3>
-<p><a href="../playbooks/create_multiple_compute_nodes.yaml"><code>playbooks/create_multiple_compute_nodes.yaml</code></a> does <strong>not</strong> use <a href="inventories/default/group_vars/all.yaml:235"><code>day2_compute_node</code></a> directly. Instead, it expects an extra-vars file containing <a href="../playbooks/create_multiple_compute_nodes.yaml:11"><code>day2_compute_nodes</code></a>, which is also a list of host_vars entry names.</p>
+<p><a href="../playbooks/create_multiple_compute_nodes.yaml"><code>playbooks/create_multiple_compute_nodes.yaml</code></a> does <strong>not</strong> use <a href="../inventories/default/group_vars/all.yaml.template"><code>day2_compute_node</code></a> directly. Instead, it expects an extra-vars file containing <a href="../playbooks/create_multiple_compute_nodes.yaml:11"><code>day2_compute_nodes</code></a>, which is also a list of host_vars entry names.</p>
 <p>Example:</p>
 <pre class="codehilite"><code class="language-yaml">day2_compute_nodes:
   - example-day2-node
   - another-day2-node
 </code></pre>
 
-<p>If those nodes use new hypervisors that must be prepared first, temporarily add the relevant host_vars entry names to <a href="inventories/default/group_vars/all.yaml:235"><code>day2_compute_node</code></a>, rerun <a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a>, and then run <a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a>.</p>
+<p>If those nodes use new hypervisors that must be prepared first, temporarily add the relevant host_vars entry names to <a href="../inventories/default/group_vars/all.yaml.template"><code>day2_compute_node</code></a>, rerun <a href="../playbooks/0_setup.yaml"><code>playbooks/0_setup.yaml</code></a>, and then run <a href="../playbooks/3_setup_kvm_host.yaml"><code>playbooks/3_setup_kvm_host.yaml</code></a>.</p>
 <h2 id="14-optional-agent-based-installer">14 - (Optional) Agent Based Installer<a class="headerlink" href="#14-optional-agent-based-installer" title="Permanent link">#</a></h2>
 <table>
 <thead>
@@ -1265,6 +1292,16 @@
 <td style="text-align: left;">'iso/pxe'</td>
 </tr>
 <tr>
+<td style="text-align: left;"><strong>abi.install_timeout</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Maximum number of seconds the monitor playbook (<code>monitor_create_abi_cluster.yaml</code>) waits for the installation to complete. Default is 7200 (2 hours). Increase it on slower environments.</td>
+<td style="text-align: left;">7200</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>abi.install_poll_delay</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> Number of seconds between two installation status checks. Default is 30.</td>
+<td style="text-align: left;">30</td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>abi.platform</strong></td>
 <td style="text-align: left;">Platform section of the generated install-config.yaml. Either <code>none</code> (default, also used when the variable is not set) or <code>external</code>.</td>
 <td style="text-align: left;">'none/external'</td>
@@ -1273,6 +1310,33 @@
 <td style="text-align: left;"><strong>abi.platform_name</strong></td>
 <td style="text-align: left;">Value for <code>platform.external.platformName</code>. Only used when <code>abi.platform</code> is <code>external</code>. Defaults to <code>ibmz</code>.</td>
 <td style="text-align: left;">ibmz</td>
+</tr>
+</tbody>
+</table>
+<h2 id="15-optional-cex-based-luks-encryption">15 - (Optional) CEX based LUKS encryption<a class="headerlink" href="#15-optional-cex-based-luks-encryption" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example/Default</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>cex</strong></td>
+<td style="text-align: left;">True or False. Whether to enable Crypto Express (CEX) based LUKS encryption. Default is false.</td>
+<td style="text-align: left;">false</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>cex_device</strong></td>
+<td style="text-align: left;">Storage device type used for LUKS encryption. It determines which MCO Ignition configuration from the defaults is applied. Do not override the default values. Use in combination with the <code>cex</code> parameter.</td>
+<td style="text-align: left;">dasd, fcp or virt</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>cex_uuid_map</strong></td>
+<td style="text-align: left;">Required only for KVM installations using a vfio_ap mediated device. Omit it for LPAR installations. Use in combination with <code>cex</code> and <code>cex_device</code>. Maps the VM name of each control and compute node (the <code>vm_name</code> value, which must match exactly) to <code>UUID:domain</code>. The UUID can be generated with <code>uuidgen</code> and the domain can be retrieved with <code>lszcrypt -V</code>.</td>
+<td style="text-align: left;">upi-cex-control-1: "68cd2d83-3eef-4e45-b22c-534f90b16cb9:00.0035"</td>
 </tr>
 </tbody>
 </table>
@@ -1378,7 +1442,7 @@
 <tr>
 <td style="text-align: left;"><strong>pkgs_kvm</strong></td>
 <td style="text-align: left;">A list of packages that will be installed on the KVM Host during the setup_kvm_host playbook.</td>
-<td style="text-align: left;">[ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2, httpd ]</td>
+<td style="text-align: left;">[ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, virt-top, qemu-kvm, python3-lxml, python3-libvirt, cockpit, lvm2, httpd, python3-policycoreutils, policycoreutils-python-utils, firewalld ]</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>pkgs_bastion</strong></td>
@@ -1404,12 +1468,12 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>use_proxy</strong></td>
-<td style="text-align: left;">(Optional) Use proxyx . Default value is 'False'. Possible values are 'True' or 'False'.</td>
+<td style="text-align: left;">(Optional) Use a proxy. Default value is 'False'. Possible values are 'True' or 'False'.</td>
 <td style="text-align: left;">False</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>proxy_http</strong></td>
-<td style="text-align: left;">(Optional) A proxy URL to use for creating HTTP connections outside the cluster. Will be used in the install-config and applied to other Ansible hosts unless set otherwise in no_proxy below. Must follow this pattern: http://username:pswd&gt;@ip:port</td>
+<td style="text-align: left;">(Optional) A proxy URL to use for creating HTTP connections outside the cluster. Will be used in the install-config and applied to other Ansible hosts unless set otherwise in no_proxy below. Must follow this pattern: http://username:pswd@ip:port</td>
 <td style="text-align: left;">http://ocp-admin:Pa$sw0rd@9.72.10.1:80</td>
 </tr>
 <tr>
@@ -1425,6 +1489,9 @@
 </tbody>
 </table>
 <h2 id="disconnected-cluster-setup-optional">Disconnected cluster setup (Optional)<a class="headerlink" href="#disconnected-cluster-setup-optional" title="Permanent link">#</a></h2>
+<ul>
+<li>These parameters are set in <a href="../inventories/default/group_vars/disconnected.yaml"><code>inventories/default/group_vars/disconnected.yaml</code></a>. Note: currently, the oc-mirror plugin is officially downloadable for amd64 only.</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -1438,6 +1505,815 @@
 <td style="text-align: left;"><strong>disconnected.enabled</strong></td>
 <td style="text-align: left;">True or False, to enable disconnected mode</td>
 <td style="text-align: left;">False</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.registry.url</strong></td>
+<td style="text-align: left;">String containing url of disconnected registry with or without port and without protocol</td>
+<td style="text-align: left;">registry.tt.testing:5000</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.registry.ip</strong></td>
+<td style="text-align: left;">String containing ip of the registry, which will be used for resolving dns</td>
+<td style="text-align: left;"><code>192.168.151.1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.registry.pull_secret</strong></td>
+<td style="text-align: left;">String containing pull secret of the disconnected registry to be applied on the <em>cluster</em>.  Make sure to enclose pull_secret in 'single quotes' and it has appropriate pull access.</td>
+<td style="text-align: left;">'{"auths":{"registry.tt..testing:5000":{"auth":"b3Blb...4yQQ==","email":"test.user@example.com"}}}'</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.registry.mirror_pull_secret</strong></td>
+<td style="text-align: left;">String containing pull secret to use for mirroring. Contains Red Hat secret and registry pull  secret. Make sure to enclose pull_secret in 'single quotes' and must be able to push to mirror registry.</td>
+<td style="text-align: left;">'{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com", "registry.tt..testing:5000":...user@example.com"}}}'</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.registry.ca_trusted</strong></td>
+<td style="text-align: left;">True or False to indicate that mirror registry CA is implicitly trusted or needs to be made trusted on mirror host and cluster.</td>
+<td style="text-align: left;">False</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.registry.ca_cert</strong></td>
+<td style="text-align: left;">Multiline string containing the mirror registry CA bundle</td>
+<td style="text-align: left;">-----BEGIN CERTIFICATE-----MIIDqDCCApCgAwIBAgIULL+d1HTYsiP+8jeWnqBis3N4BskwDQYJKoZIhvcNAQEF...-----END CERTIFICATE-----</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.host.name</strong></td>
+<td style="text-align: left;">String containing the hostname of the host, which will be used for mirroring</td>
+<td style="text-align: left;">mirror-host-1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.host.ip</strong></td>
+<td style="text-align: left;">String containing ip of the host, which will be used for mirroring</td>
+<td style="text-align: left;">192.168.10.99</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.host.user</strong></td>
+<td style="text-align: left;">String containing the username of the host, which will be used for mirroring</td>
+<td style="text-align: left;">mirroruser</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.host.pass</strong></td>
+<td style="text-align: left;">String containing the password of the host, which will be used for mirroring</td>
+<td style="text-align: left;">mirrorpassword</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.file_server.clients_dir</strong></td>
+<td style="text-align: left;">Directory path relative to the HTTP/FTP accessible directory on <strong>env.file_server</strong> where client binary tarballs are kept</td>
+<td style="text-align: left;">clients</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.file_server.oc_mirror_tgz</strong></td>
+<td style="text-align: left;">Name of oc-mirror tarball on <strong>env.file_server</strong> in <strong>disconnected.mirroring.file_server.clients_dir</strong>. This must be placed in your ftp server after downloading it yourself from https://console.redhat.com/openshift/downloads.</td>
+<td style="text-align: left;">oc-mirror.tar.gz</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.client_download.ocp_download_url</strong></td>
+<td style="text-align: left;">url to download the oc client</td>
+<td style="text-align: left;">https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.13.1/amd64/</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.client_download.ocp_client_tgz</strong></td>
+<td style="text-align: left;">Name of oc-client tarball on <strong>env.file_server</strong>. This should match the binary name available in <strong>disconnected.mirroring.client_download.ocp_download_url</strong></td>
+<td style="text-align: left;">openshift-client-linux.tar.gz</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.legacy.platform</strong></td>
+<td style="text-align: left;">True or False if the platform should be mirrored using <code>oc adm release mirror</code>. If <strong>True</strong> then platform is mirrored in the old way and install config will be patched with the imagecontentsourcepolicy</td>
+<td style="text-align: left;">False (default)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.legacy.ocp_quay_release_image_tag</strong></td>
+<td style="text-align: left;">The tag of the release image <em>quay.io/openshift-release-dev/ocp-release</em> to mirror and use</td>
+<td style="text-align: left;">4.13.1-s390x</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.legacy.ocp_org</strong></td>
+<td style="text-align: left;">The org part of the repo on the mirror registry where the release image will be pushed</td>
+<td style="text-align: left;">ocp4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.legacy.ocp_repo</strong></td>
+<td style="text-align: left;">The repo part of the repo on the mirror registry where the release image will be pushed</td>
+<td style="text-align: left;">openshift4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.legacy.ocp_tag</strong></td>
+<td style="text-align: left;">The tag part of the repo on the mirror registry where the release image will be pushed. Full image would be as below.: disconnected.registry.url/disconnected.mirroring.legacy.ocp_org/disconnected...ocp_repo:disconnected..ocp_tag</td>
+<td style="text-align: left;">v4.13.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.oc_mirror_args.continue_on_error</strong></td>
+<td style="text-align: left;">True or False to give <code>--continue-on-error</code> flag to <code>oc-mirror</code></td>
+<td style="text-align: left;">False</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.oc_mirror_args.source_skip_tls</strong></td>
+<td style="text-align: left;">True or False to give <code>--source-skip-tls</code> flag to <code>oc-mirror</code></td>
+<td style="text-align: left;">False</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.enabled</strong></td>
+<td style="text-align: left;">True or False to replace values in <code>mapping.txt</code> generated by oc-mirror.  This also does a manual repush of the images in <code>mapping.txt</code>.</td>
+<td style="text-align: left;">False</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.post_mirror.mapping.replace.list</strong></td>
+<td style="text-align: left;">List of <strong>regexp</strong> and <strong>replace</strong> where every string/regular expression  gets replaced by corresponding <em>replace</em> value.</td>
+<td style="text-align: left;">regexp: interal-url.com replace: external-url.com</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.release_image_tag</strong></td>
+<td style="text-align: left;">The ocp release image tag you want to install the cluster with. Used when legacy platform  mirroring is disabled and <strong>disconnected.mirroring.oc_mirror.image_set</strong> contains platform  entries.</td>
+<td style="text-align: left;">4.13.1-multi</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.release_image_registry</strong></td>
+<td style="text-align: left;">The Release Image registry like Brew Registry which stores the release images as mirror to <strong>registry.redhat.io</strong>. This will be mirror registry for release operator images</td>
+<td style="text-align: left;"><code>brew.registry.redhat.io</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set</strong></td>
+<td style="text-align: left;">YAML fields containing a standard <code>oc-mirror</code> <a href="https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-creating-image-set-config_installing-mirroring-disconnected">image set</a> with some minor changes to schema.  Differences are documented as needed. Used to generate final image set.</td>
+<td style="text-align: left;">see template</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set.apiVersion</strong></td>
+<td style="text-align: left;">The API version of the <code>ImageSetConfiguration</code> content.</td>
+<td style="text-align: left;"><code>mirror.openshift.io/v1alpha2</code>, <code>mirror.openshift.io/v2alpha1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set.storageConfig.enable</strong></td>
+<td style="text-align: left;">True or False. Set to True if the oc-mirror v1 plugin is used (<code>apiVersion</code> is <code>mirror.openshift.io/v1alpha2</code>). The <code>storageConfig</code> section is only rendered into the image set for v1; it is removed for the v2 plugin (<code>v2alpha1</code>).</td>
+<td style="text-align: left;"><code>True</code> or <code>False</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.enabled</strong></td>
+<td style="text-align: left;">True or False to use registry storage backend for pushing mirrored content directly to the registry.  Currently only this backend is supported.</td>
+<td style="text-align: left;">True</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.imageURL.org</strong></td>
+<td style="text-align: left;">The org part of registry imageURL from standard image set.</td>
+<td style="text-align: left;">mirror</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.imageURL.repo</strong></td>
+<td style="text-align: left;">The repo part of registry imageURL from standard image set.  Final imageURL will be as below:  disconnected.registry.url/disconnected.mirroring.oc_mirror.image_set.storageConfig .registry.imageURL.org/disconnected...imageURL.repo</td>
+<td style="text-align: left;">oc-mirror-metadata</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set.storageConfig.registry.skipTLS</strong></td>
+<td style="text-align: left;">True of False same purpose served as in standard image set i.e. skip the tls for the registry   during mirroring.</td>
+<td style="text-align: left;">false</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>disconnected.mirroring.oc_mirror.image_set.mirror</strong></td>
+<td style="text-align: left;">YAML containing a list of what needs to be mirrored. See the oc mirror image set documentation.</td>
+<td style="text-align: left;">see oc-mirror <a href="https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-creating-image-set-config_installing-mirroring-disconnected">image set</a>   documentation</td>
+</tr>
+</tbody>
+</table>
+<h2 id="hosted-control-plane-optional">Hosted Control Plane (Optional)<a class="headerlink" href="#hosted-control-plane-optional" title="Permanent link">#</a></h2>
+<ul>
+<li>These parameters are set in <a href="../inventories/default/group_vars/hcp.yaml.template"><code>inventories/default/group_vars/hcp.yaml</code></a> (copy of <code>hcp.yaml.template</code>).</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>hcp.compute_node_type</strong></td>
+<td style="text-align: left;">Select the compute node type for HCP: kvm, zvm or lpar</td>
+<td style="text-align: left;">zvm</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.mgmt_cluster_nameserver</strong></td>
+<td style="text-align: left;">IP Address of Nameserver of Management Cluster</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.oc_url</strong></td>
+<td style="text-align: left;">URL for OC Client that you want to install on the host</td>
+<td style="text-align: left;">https://... ..openshift-client-linux-4.13.0-ec.4.tar.gz</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.ansible_key_name</strong></td>
+<td style="text-align: left;">ssh key name</td>
+<td style="text-align: left;">ansible-ocpz</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.pkgs.kvm</strong></td>
+<td style="text-align: left;">List of packages installed on the KVM host (<code>hcp.pkgs</code> also contains the lists <code>bastion</code>, <code>hcp</code> and <code>zvm</code>, see below)</td>
+<td style="text-align: left;">[ libguestfs, libvirt-client, libvirt-daemon-config-network, libvirt-daemon-kvm, cockpit-machines, libvirt-devel, virt-top, qemu-kvm, python3-lxml, cockpit, lvm2 ]</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.pkgs.bastion</strong></td>
+<td style="text-align: left;">List of packages installed on the bastion</td>
+<td style="text-align: left;">[ haproxy, httpd, bind, bind-utils, expect, firewalld, mod_ssl, python3-policycoreutils, rsync ]</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.pkgs.hcp</strong></td>
+<td style="text-align: left;">List of packages installed on the host that runs the <code>oc</code>/<code>hcp</code> commands</td>
+<td style="text-align: left;">[ make, jq, git, virt-install ]</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.pkgs.zvm</strong></td>
+<td style="text-align: left;">List of packages installed for zVM/LPAR compute nodes</td>
+<td style="text-align: left;">[ git, python3-pip, python3-devel, openssl-devel, rust, cargo, libffi-devel, wget, tar, jq, gcc, make, x3270, python39 ]</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.mce.version</strong></td>
+<td style="text-align: left;">version for multicluster-engine Operator</td>
+<td style="text-align: left;">2.4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.mce.instance_name</strong></td>
+<td style="text-align: left;">name of the MultiClusterEngine instance</td>
+<td style="text-align: left;">engine</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.mce.catalogsource_image</strong></td>
+<td style="text-align: left;">Image ID for installing MCE. Required only if the CatalogSource for MCE needs to be created; leave empty otherwise</td>
+<td style="text-align: left;">970287</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.mce.delete</strong></td>
+<td style="text-align: left;">true or false - deletes mce and related resources while running deletion playbook</td>
+<td style="text-align: left;">true</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.asc.db_volume_size</strong></td>
+<td style="text-align: left;">DatabaseStorage Volume Size</td>
+<td style="text-align: left;">10Gi</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.asc.fs_volume_size</strong></td>
+<td style="text-align: left;">FileSystem Storage Volume Size</td>
+<td style="text-align: left;">10Gi</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.asc.ocp_version</strong></td>
+<td style="text-align: left;">OCP Version for AgentServiceConfig</td>
+<td style="text-align: left;">4.13.0-ec.4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.asc.iso_url</strong></td>
+<td style="text-align: left;">Give URL for ISO image</td>
+<td style="text-align: left;">https://...  ...s390x-live.s390x.iso</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.asc.mce_namespace</strong></td>
+<td style="text-align: left;">Namespace where your Multicluster Engine Operator is installed.  Recommended Namespace for MCE is 'multicluster-engine'.  Change this only if MCE is installed in other namespace.</td>
+<td style="text-align: left;">multicluster-engine</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.high_availability</strong></td>
+<td style="text-align: left;">Availability for Control Plane</td>
+<td style="text-align: left;">true</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.clusters_namespace</strong></td>
+<td style="text-align: left;">Namespace for Creating Hosted Control Plane</td>
+<td style="text-align: left;">clusters</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.hosted_cluster_name</strong></td>
+<td style="text-align: left;">Name for the Hosted Cluster</td>
+<td style="text-align: left;">hosted0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.basedomain</strong></td>
+<td style="text-align: left;">Base domain for Hosted Cluster</td>
+<td style="text-align: left;">example.com</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.ocp_release_image</strong></td>
+<td style="text-align: left;">OCP Release version for Hosted Control Cluster and Nodepool</td>
+<td style="text-align: left;">4.13.0-rc.4-multi</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.arch</strong></td>
+<td style="text-align: left;">Architecture for InfraEnv and AgentServiceConfig"</td>
+<td style="text-align: left;">s390x</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.additional_flags</strong></td>
+<td style="text-align: left;">Any additional flags for creating hcp ( In hcp create cluster agent command )</td>
+<td style="text-align: left;">--fips</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.control_plane.pull_secret</strong></td>
+<td style="text-align: left;">Pull Secret of Management Cluster  Make sure to enclose pull_secret in 'single quotes'</td>
+<td style="text-align: left;">'{"auths":{"cloud.openshift.com":{"auth":"b3Blb...4yQQ==","email":"redhat.user@gmail.com"}}}'</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.create</strong></td>
+<td style="text-align: left;">true or false - create bastion with the provided IP</td>
+<td style="text-align: left;">true</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.ip</strong></td>
+<td style="text-align: left;">IPv4 address for bastion of Hosted Cluster</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.user</strong></td>
+<td style="text-align: left;">User for bastion of Hosted Cluster</td>
+<td style="text-align: left;">root</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.host</strong></td>
+<td style="text-align: left;">IPv4 address of KVM host  (kvm host where you want to run all oc commands and create VMs)</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.host_user</strong></td>
+<td style="text-align: left;">User for KVM host</td>
+<td style="text-align: left;">root</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.hostname</strong></td>
+<td style="text-align: left;">Hostname for bastion</td>
+<td style="text-align: left;">bastion</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.base_domain</strong></td>
+<td style="text-align: left;">DNS base domain for the bastion.</td>
+<td style="text-align: left;">ihost.com</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.nameserver</strong></td>
+<td style="text-align: left;">Nameserver for creating bastion</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.gateway</strong></td>
+<td style="text-align: left;">Gateway IP for creating the bastion</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.subnet_mask</strong></td>
+<td style="text-align: left;">IPv4 address of subnetmask</td>
+<td style="text-align: left;">255.255.255.0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.interface</strong></td>
+<td style="text-align: left;">Interface for bastion</td>
+<td style="text-align: left;">enc1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.internal_ip</strong></td>
+<td style="text-align: left;">Internal IP address of the bastion. Required for Hipersockets (LPAR compute nodes with <code>hipersockets</code> network mode, or Hipersockets_converged on zVM).</td>
+<td style="text-align: left;">10.13.43.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.hipersockets</strong></td>
+<td style="text-align: left;">Hipersockets card details for the bastion. Required only for Hipersockets_converged on zVM.</td>
+<td style="text-align: left;">0.0.f000,0.0.f001,0.0.f002</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.user_id</strong></td>
+<td style="text-align: left;">z/VM user ID used to attach the Hipersockets interface to the bastion. Required only for Hipersockets_converged on zVM.</td>
+<td style="text-align: left;">m1317008</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.file_server.ip</strong></td>
+<td style="text-align: left;">IPv4 address for the file server that will be used to pass config files and iso to KVM host LPAR(s) and bastion VM during their first boot.</td>
+<td style="text-align: left;">192.168.10.201</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.file_server.protocol</strong></td>
+<td style="text-align: left;">Protocol used to serve the files, either 'ftp' or 'http'</td>
+<td style="text-align: left;">http</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.file_server.iso_mount_dir</strong></td>
+<td style="text-align: left;">Directory path relative to the HTTP/FTP accessible directory where RHEL ISO is mounted. For example, if the FTP root is at /home/user1 and the ISO is mounted at /home/user1/RHEL/8.7 then this variable would be RHEL/8.7 - no slash before or after.</td>
+<td style="text-align: left;">RHEL/8.7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.disk</strong></td>
+<td style="text-align: left;">rhel os variant for creating bastion</td>
+<td style="text-align: left;">8.7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.network_name</strong></td>
+<td style="text-align: left;">Name of the libvirt network that the bastion and guest VMs connect to</td>
+<td style="text-align: left;">macvtap</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.language</strong></td>
+<td style="text-align: left;">What language would you like Red Hat Enterprise Linux to use? In UTF-8 language code. Available languages and their corresponding codes can be found here, in the "Locale" column of Table 2.1.</td>
+<td style="text-align: left;">en_US.UTF-8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.timezone</strong></td>
+<td style="text-align: left;">Which timezone would you like Red Hat Enterprise Linux to use? A list of available timezone options can be found here.</td>
+<td style="text-align: left;">America/New_York</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.bastion_params.keyboard</strong></td>
+<td style="text-align: left;">Which keyboard layout would you like Red Hat Enterprise Linux to use?</td>
+<td style="text-align: left;">us</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.compute_count</strong></td>
+<td style="text-align: left;">Number of agents for the hosted cluster  The same number of compute nodes will be attached to Hosted Cotrol Plane</td>
+<td style="text-align: left;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.vcpus</strong></td>
+<td style="text-align: left;">vCPUs for compute nodes</td>
+<td style="text-align: left;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.memory</strong></td>
+<td style="text-align: left;">RAM for compute nodes</td>
+<td style="text-align: left;">16384</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.boot_method</strong></td>
+<td style="text-align: left;">Boot method for booting agents. Supported methods: pxe, iso</td>
+<td style="text-align: left;">pxe</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.storage.type</strong></td>
+<td style="text-align: left;">Storage type for KVM guests  qcow/dasd</td>
+<td style="text-align: left;">qcow</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.storage.qcow.disk_size</strong></td>
+<td style="text-align: left;">Disk size for kvm guests</td>
+<td style="text-align: left;">100G</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.storage.qcow.pool_path</strong></td>
+<td style="text-align: left;">Storage pool path for creating disks</td>
+<td style="text-align: left;">/home/images/</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.storage.dasd</strong></td>
+<td style="text-align: left;">dasd disks for kvm guests</td>
+<td style="text-align: left;">/disk</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.ip_params.static_ip.enabled</strong></td>
+<td style="text-align: left;">true or false - use static IPs for agents using NMState</td>
+<td style="text-align: left;">true</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.ip_params.static_ip.ip</strong></td>
+<td style="text-align: left;">List of IP addresses for agents</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.ip_params.static_ip.interface</strong></td>
+<td style="text-align: left;">Interface for agents for configuring NMStateConfig</td>
+<td style="text-align: left;">eth0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.kvm.ip_params.mac</strong></td>
+<td style="text-align: left;">List of macaddresses for the agents.  Configure in DHCP if you are using dynamic IPs for Agents.</td>
+<td style="text-align: left;">- 52:54:00:ba:d3:f7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.network_mode</strong></td>
+<td style="text-align: left;">Network mode for zVM nodes. Supported modes: vswitch, osa, RoCE, Hipersockets, Hipersockets_converged</td>
+<td style="text-align: left;">vswitch</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.disk_type</strong></td>
+<td style="text-align: left;">Disk type for zvm nodes  Supported disk types: fcp, dasd</td>
+<td style="text-align: left;">dasd</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.subnetmask</strong></td>
+<td style="text-align: left;">Subnet mask for compute nodes</td>
+<td style="text-align: left;">255.255.255.0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.gateway</strong></td>
+<td style="text-align: left;">Gateway for compute nodes</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes</strong></td>
+<td style="text-align: left;">Set of parameters for zvm nodes  Give the details of each zvm node here</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.name</strong></td>
+<td style="text-align: left;">Name of the zVM guest</td>
+<td style="text-align: left;">m1317002</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.host</strong></td>
+<td style="text-align: left;">Host name of the zVM guests  which we use to login 3270 console</td>
+<td style="text-align: left;">boem1317</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.user</strong></td>
+<td style="text-align: left;">Username for zVM guests to login</td>
+<td style="text-align: left;">m1317002</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.password</strong></td>
+<td style="text-align: left;">password for the zVM guests to login</td>
+<td style="text-align: left;">password</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.interface.ifname</strong></td>
+<td style="text-align: left;">Network interface name for zVM guests</td>
+<td style="text-align: left;">encbdf0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.interface.nettype</strong></td>
+<td style="text-align: left;">Network type for zVM guests for network connectivity</td>
+<td style="text-align: left;">qeth</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.interface.subchannels</strong></td>
+<td style="text-align: left;">subchannels for zVM guests interfaces</td>
+<td style="text-align: left;">0.0.bdf0,0.0.bdf1,0.0.bdf2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.interface.options</strong></td>
+<td style="text-align: left;">Configurations options</td>
+<td style="text-align: left;">layer2=1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.interface.ip</strong></td>
+<td style="text-align: left;">IP address to be used for the zVM node</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.dasd.disk_id</strong></td>
+<td style="text-align: left;">Disk id of the DASD disk to be used for the zVM node. Required if <code>disk_type</code> is dasd.</td>
+<td style="text-align: left;">4404</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.zvm.nodes.lun</strong></td>
+<td style="text-align: left;">List of FCP disk details (<code>id</code> and <code>paths</code> with <code>wwpn</code> and <code>fcp</code>) to be used for the zVM node. Required if <code>disk_type</code> is fcp.</td>
+<td style="text-align: left;">0.0.4404</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.network_mode</strong></td>
+<td style="text-align: left;">Network mode for LPAR nodes. Supported modes: osa, RoCE, Hipersockets</td>
+<td style="text-align: left;">osa</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.disk_type</strong></td>
+<td style="text-align: left;">Disk type for LPAR nodes. Supported disk types: fcp, dasd, NVMe</td>
+<td style="text-align: left;">dasd</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.subnetmask</strong></td>
+<td style="text-align: left;">Subnet mask for compute nodes</td>
+<td style="text-align: left;">255.255.255.0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.gateway</strong></td>
+<td style="text-align: left;">Gateway for compute nodes</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes</strong></td>
+<td style="text-align: left;">Set of parameters for LPAR nodes. Give the details of each LPAR node here</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.name</strong></td>
+<td style="text-align: left;">Name of the LPAR</td>
+<td style="text-align: left;">m1317002</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.hmc_host</strong></td>
+<td style="text-align: left;">Host name of the HMC used to manage the LPAR</td>
+<td style="text-align: left;">boem1317</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.interface.ifname</strong></td>
+<td style="text-align: left;">Network interface name for LPAR</td>
+<td style="text-align: left;">encbdf0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.interface.nettype</strong></td>
+<td style="text-align: left;">Network type for LPAR for network connectivity</td>
+<td style="text-align: left;">qeth</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.interface.subchannels</strong></td>
+<td style="text-align: left;">subchannels for LPAR interfaces</td>
+<td style="text-align: left;">0.0.bdf0,0.0.bdf1,0.0.bdf2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.interface.options</strong></td>
+<td style="text-align: left;">Configurations options</td>
+<td style="text-align: left;">layer2=1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.interface.ip</strong></td>
+<td style="text-align: left;">IP address to be used for the LPAR node</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.hipersockets.internal_ip</strong></td>
+<td style="text-align: left;">Internal IP address for Hipersocket interface</td>
+<td style="text-align: left;">10.13.43.2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.hipersockets.ifname</strong></td>
+<td style="text-align: left;">Hipersockets interface name</td>
+<td style="text-align: left;">encf000</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.hipersockets.subchannels</strong></td>
+<td style="text-align: left;">subchannels for Hipersockets interfaces</td>
+<td style="text-align: left;">0.0.f000,0.0.f001,0.0.f002</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.dasd.disk_id</strong></td>
+<td style="text-align: left;">Disk id of the DASD disk to be used for the LPAR node. Required if <code>disk_type</code> is dasd.</td>
+<td style="text-align: left;">4404</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.lun</strong></td>
+<td style="text-align: left;">List of FCP disk details (<code>id</code> and <code>paths</code> with <code>wwpn</code> and <code>fcp</code>) to be used for the LPAR node. Required if <code>disk_type</code> is fcp.</td>
+<td style="text-align: left;">0.0.4404</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.live_disk.disk_type</strong></td>
+<td style="text-align: left;">Live disk type for booting the LPAR</td>
+<td style="text-align: left;">scsi</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.live_disk.uuid</strong></td>
+<td style="text-align: left;">UUID of the live disk. Required only for DPM LPARs.</td>
+<td style="text-align: left;">600507000000000000xxxx</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.live_disk.devicenr</strong></td>
+<td style="text-align: left;">Device number of the live disk. Required only for classical LPARs.</td>
+<td style="text-align: left;">8001</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.live_disk.lun</strong></td>
+<td style="text-align: left;">LUN id of the live disk. Required only for classical LPARs.</td>
+<td style="text-align: left;">40xxxxxxxxxxxxx</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.live_disk.wwpn</strong></td>
+<td style="text-align: left;">WWPN of the live disk. Required only for classical LPARs.</td>
+<td style="text-align: left;">500507630xxxxxxx</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>hcp.data_plane.lpar.nodes.live_disk.password</strong></td>
+<td style="text-align: left;">password of the live disk</td>
+<td style="text-align: left;">xxxxxx</td>
+</tr>
+</tbody>
+</table>
+<h2 id="zvm-optional">ZVM (Optional)<a class="headerlink" href="#zvm-optional" title="Permanent link">#</a></h2>
+<ul>
+<li>These parameters are set in <a href="../inventories/default/group_vars/zvm.yaml"><code>inventories/default/group_vars/zvm.yaml</code></a>.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>zvm.network_mode</strong></td>
+<td style="text-align: left;">Network mode for zvm nodes  Supported modes: vswitch,osa, RoCE</td>
+<td style="text-align: left;">vswitch</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.disk_type</strong></td>
+<td style="text-align: left;">Disk type for zvm nodes  Supported disk types: fcp, dasd</td>
+<td style="text-align: left;">dasd</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.subnetmask</strong></td>
+<td style="text-align: left;">Subnet mask for compute nodes</td>
+<td style="text-align: left;">255.255.255.0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.gateway</strong></td>
+<td style="text-align: left;">Gateway for compute nodes</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nameserver</strong></td>
+<td style="text-align: left;">Nameserver for the zVM nodes</td>
+<td style="text-align: left;">192.168.10.200</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.vcpus</strong></td>
+<td style="text-align: left;">vCPUs for compute nodes</td>
+<td style="text-align: left;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.memory</strong></td>
+<td style="text-align: left;">RAM for compute nodes</td>
+<td style="text-align: left;">16384</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes</strong></td>
+<td style="text-align: left;">Set of parameters for zvm nodes  Give the details of each zvm node here</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.name</strong></td>
+<td style="text-align: left;">Name of the zVM guest</td>
+<td style="text-align: left;">m1317002</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.host</strong></td>
+<td style="text-align: left;">Host name of the zVM guests  which we use to login 3270 console</td>
+<td style="text-align: left;">boem1317</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.user</strong></td>
+<td style="text-align: left;">Username for zVM guests to login</td>
+<td style="text-align: left;">m1317002</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.password</strong></td>
+<td style="text-align: left;">password for the zVM guests to login</td>
+<td style="text-align: left;">password</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.interface.ifname</strong></td>
+<td style="text-align: left;">Network interface name for zVM guests</td>
+<td style="text-align: left;">encbdf0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.interface.nettype</strong></td>
+<td style="text-align: left;">Network type for zVM guests for network connectivity</td>
+<td style="text-align: left;">qeth</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.interface.subchannels</strong></td>
+<td style="text-align: left;">subchannels for zVM guests interfaces</td>
+<td style="text-align: left;">0.0.bdf0,0.0.bdf1,0.0.bdf2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.interface.options</strong></td>
+<td style="text-align: left;">Configurations options</td>
+<td style="text-align: left;">layer2=1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.interface.ip</strong></td>
+<td style="text-align: left;">IP address to be used for the zVM node</td>
+<td style="text-align: left;">192.168.10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.dasd.disk_id</strong></td>
+<td style="text-align: left;">Disk id of the DASD disk to be used for the zVM node. Required if <code>disk_type</code> is dasd.</td>
+<td style="text-align: left;">4404</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>zvm.nodes.lun</strong></td>
+<td style="text-align: left;">List of FCP disk details (<code>id</code> and <code>paths</code> with <code>wwpn</code> and <code>fcp</code>) to be used for the zVM node. Required if <code>disk_type</code> is fcp.</td>
+<td style="text-align: left;">840a</td>
+</tr>
+</tbody>
+</table>
+<h2 id="additional-parameters-optional">Additional Parameters (optional)<a class="headerlink" href="#additional-parameters-optional" title="Permanent link">#</a></h2>
+<h3 id="download-kubeconfig">Download Kubeconfig<a class="headerlink" href="#download-kubeconfig" title="Permanent link">#</a></h3>
+<p>These parameters control the download of kubeconfig and kubepassw files from the bastion host. See the <a href="../roles/download_kubeconfig/README.md"><code>download_kubeconfig</code></a> role for more details.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Variable Name</strong></th>
+<th style="text-align: left;"><strong>Description</strong></th>
+<th style="text-align: left;"><strong>Example/Default</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>kubeconfig_dest_dir</strong></td>
+<td style="text-align: left;">Destination directory on the local controller where downloaded files will be stored. Files are stored in a <code>kubeconfig/</code> subdirectory within this path.</td>
+<td style="text-align: left;">/tmp</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>kubeconfig_source_dir</strong></td>
+<td style="text-align: left;">Source directory on the bastion host from which files will be downloaded.</td>
+<td style="text-align: left;">~/ocpinst/auth</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>kubeconfig_files</strong></td>
+<td style="text-align: left;">List of files to download from the bastion host.</td>
+<td style="text-align: left;">['kubeconfig', 'kubeadmin-password']</td>
 </tr>
 </tbody>
 </table>

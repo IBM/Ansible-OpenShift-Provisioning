@@ -72,11 +72,25 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#4-optional-ifl-memory">4 - (Optional) IFL &amp; Memory</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#5-optional-networking">5 - (Optional) Networking</a>
+    <li class="toctree-l2"><a class="reference internal" href="#5-networking">5 - Networking</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#6-optional-storage">6 - (Optional) Storage</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#7-optional-livedisk-info">7 - (Optional) Livedisk info</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#8-lpar-abi-vm_name-hostname-and-mac-explained">8 - LPAR ABI: vm_name, hostname, and mac explained</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#vm_name-vs-hostname">vm_name vs hostname</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#mac-is-required-for-lpar-abi">mac is required for LPAR ABI</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#mac-address-determination-by-environment-and-adapter-type">MAC Address Determination by Environment and Adapter Type</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#lpar-load-status-timeout-optional">LPAR Load Status Timeout (Optional)</a>
+    </li>
+        </ul>
     </li>
     </ul>
                   </li>
@@ -137,11 +151,19 @@
                 <h1 id="step-3-set-variables-host_vars">Step 3: Set Variables (host_vars)<a class="headerlink" href="#step-3-set-variables-host_vars" title="Permanent link">#</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
 <ul>
-<li>Similar to the group_vars file, the host_vars files for each LPAR (KVM host) must be filled in. </li>
-<li>For each KVM host to be acted upon with Ansible, you must have a corresponding host_vars file named <code>&lt;kvm-hostname&gt;.yaml</code> (i.e. ocpz1.yaml, ocpz2.yaml, ocpz3.yaml), so you must copy and rename the templates found in the <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/host_vars">host_vars folder</a> accordingly.</li>
+<li>Similar to the group_vars file, the host_vars files for each LPAR (KVM host) must be filled in.</li>
+<li>For each KVM host to be acted upon with Ansible, you must have a corresponding host_vars file named <code>&lt;kvm-hostname&gt;.yaml</code> (i.e. ocpz1.yaml, ocpz2.yaml, ocpz3.yaml), so you must copy and rename the template <a href="../inventories/default/host_vars/lpar.yaml.template"><code>lpar.yaml.template</code></a> found in the <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/host_vars">host_vars folder</a> accordingly.</li>
+<li><strong>Template:</strong> <a href="../inventories/default/host_vars/lpar.yaml.template"><code>lpar.yaml.template</code></a> is the single template for all LPAR use cases. It replaces the deprecated <code>KVMhostname1-here.yaml.template</code>, <code>KVMhostname2-here.yaml.template</code> and <code>KVMhostname3-here.yaml.template</code>, which will be removed in upcoming PRs. It covers:<ul>
+<li><strong>KVM installation:</strong> the LPAR is a KVM host (RHEL + libvirt) that runs the cluster nodes as KVM guests. The file name must match <code>env.z.lpar1.hostname</code>, <code>env.z.lpar2.hostname</code> or <code>env.z.lpar3.hostname</code>. For the second and third KVM host use the secrets <code>vault_lpar2_user_pass</code> / <code>vault_lpar2_root_pass</code> and <code>vault_lpar3_user_pass</code> / <code>vault_lpar3_root_pass</code> instead of the <code>vault_lpar1_*</code> names used in the template.</li>
+<li><strong>LPAR / ABI installation:</strong> the cluster node itself runs in the LPAR. The file name must match the node's <code>vm_name</code> (see Section 8).</li>
+<li><strong>LPAR creation on DPM:</strong> when Ansible creates the LPAR (<code>env.z.lpar1.create: True</code>, role <code>create_lpar</code>), the template defines the DPM partition on the HMC: its IFL and memory (Section 4), NICs (Section 5) and storage groups (Section 6). The CPC must be DPM enabled. For a classic (PR/SM) LPAR that already exists, these items are not required.</li>
+<li>In the template, items needed only for one case are marked <code>[KVM]</code> or <code>[DPM]</code>.</li>
+</ul>
+</li>
 <li>The variables marked with an <code>X</code> are required to be filled in. Many values are pre-filled or are optional. </li>
 <li>Optional values are commented out; in order to use them, remove the <code>#</code> and fill them in.</li>
 <li>Many of the variables in these host_vars files are only required if you are NOT using pre-existing LPARs with RHEL installed. See the <code>Important Note</code> below this first section for more details.</li>
+<li><strong>LPAR ABI deployments:</strong> The filename of each host_vars file (<code>&lt;vm_name&gt;.yaml</code>) must match the corresponding <code>env.cluster.nodes.control.vm_name[n]</code> or <code>env.cluster.nodes.compute.vm_name[n]</code> value in <code>group_vars/all.yaml</code>. This is <strong>not</strong> the same as the OCP node hostname (set via <code>env.cluster.nodes.*.hostname[n]</code>). See Section 8 for a full explanation.</li>
 <li>This is the most important step in the process. Take the time to make sure everything here is correct.</li>
 <li><u>Note on YAML syntax</u>: Only the lowest value in each hierarchicy needs to be filled in. For example, at the top of the variables file networking does not need to be filled in, but the hostname does. There are X's where input is required to help you with this.</li>
 <li>Scroll the table to the right to see examples for each variable.</li>
@@ -218,7 +240,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>networking.device2</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> Another Linux network interface card. Usually enc and then a number that comes from the dev_num of the second network adapter.</td>
+<td style="text-align: left;"><b>(Optional)</b> Another Linux network interface card. Currently not evaluated by the playbooks. When a second NIC (<code>lpar.networking.nic.card2</code>) is defined for a KVM host, the bond is built from <code>card1.name</code> and <code>card2.name</code> and named <code>networking.device1</code>.</td>
 <td style="text-align: left;">enc1</td>
 </tr>
 <tr>
@@ -260,13 +282,13 @@
 <td style="text-align: left;">192.168.10.1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>hmc.user</strong></td>
+<td style="text-align: left;"><strong>hmc.auth.user</strong></td>
 <td style="text-align: left;">The username that the HMC API call will use to connect to the HMC. Must have access to create LPARs, attach storage groups and networking cards.</td>
 <td style="text-align: left;">hmc-user</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>hmc.pass</strong></td>
-<td style="text-align: left;">The password that the HMC API call will use to connect to the HMC. Must have access to create LPARs, attach storage groups and networking cards.</td>
+<td style="text-align: left;"><strong>hmc.auth.pass</strong></td>
+<td style="text-align: left;">The password that the HMC API call will use to connect to the HMC. Must have access to create LPARs, attach storage groups and networking cards. Reference it from the vault: <code>"{{ vault_hmc_pass }}"</code>.</td>
 <td style="text-align: left;">hmcPas$w0rd!</td>
 </tr>
 </tbody>
@@ -288,7 +310,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>lpar.description</strong></td>
-<td style="text-align: left;">A short description of what this LPAR will be used for, will only be displayed in the HMC next to the LPAR name for identification purposes.</td>
+<td style="text-align: left;"><b>(DPM creation only)</b> A short description of what this LPAR will be used for, will only be displayed in the HMC next to the LPAR name for identification purposes. Read by the <code>create_lpar</code> role.</td>
 <td style="text-align: left;">KVM host LPAR for RHOCP cluster.</td>
 </tr>
 <tr>
@@ -298,17 +320,18 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>lpar.access.pass</strong></td>
-<td style="text-align: left;">The password for the user that will be created in RHEL when it is installed on the LPAR (the KVM host).</td>
+<td style="text-align: left;">The password for the user that will be created in RHEL when it is installed on the LPAR (the KVM host). Reference it from the vault, e.g. <code>"{{ vault_lpar1_user_pass }}"</code>.</td>
 <td style="text-align: left;">ch4ngeMe!</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>lpar.root_pass</strong></td>
-<td style="text-align: left;">The root password for RHEL installed on the LPAR (the KVM host).</td>
+<td style="text-align: left;"><strong>lpar.access.root_pass</strong></td>
+<td style="text-align: left;">The root password for RHEL installed on the LPAR (the KVM host). Reference it from the vault, e.g. <code>"{{ vault_lpar1_root_pass }}"</code>.</td>
 <td style="text-align: left;">$ecureP4ass!</td>
 </tr>
 </tbody>
 </table>
 <h2 id="4-optional-ifl-memory">4 - (Optional) IFL &amp; Memory<a class="headerlink" href="#4-optional-ifl-memory" title="Permanent link">#</a></h2>
+<p>Used only when Ansible creates the LPAR on the HMC (DPM partition, <code>env.z.lpar1.create</code>). All six values are read by the <code>create_lpar</code> role.</p>
 <table>
 <thead>
 <tr>
@@ -324,7 +347,7 @@
 <td style="text-align: left;">6</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>lpar.ifl.initial memory</strong></td>
+<td style="text-align: left;"><strong>lpar.ifl.initial_memory</strong></td>
 <td style="text-align: left;">Initial memory allocation for LPAR to have at start-up (in megabytes).</td>
 <td style="text-align: left;">55000</td>
 </tr>
@@ -350,7 +373,8 @@
 </tr>
 </tbody>
 </table>
-<h2 id="5-optional-networking">5 - (Optional) Networking<a class="headerlink" href="#5-optional-networking" title="Permanent link">#</a></h2>
+<h2 id="5-networking">5 - Networking<a class="headerlink" href="#5-networking" title="Permanent link">#</a></h2>
+<p>The network of the LPAR is activated at boot with the kernel parameter <code>rd.znet=qeth,&lt;read&gt;,&lt;write&gt;,&lt;data&gt;,layer2=1,portno=&lt;port&gt;</code>, which is built from <code>card1</code>. Therefore <strong><code>card1.dev_num</code> and <code>card1.port</code> are required for every LPAR installation</strong> (KVM host or LPAR / ABI node). <code>card1.name</code> and <code>card1.adapter</code> are only needed to create the NIC in the HMC partition when Ansible creates the LPAR (DPM).</p>
 <table>
 <thead>
 <tr>
@@ -362,33 +386,33 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>lpar.networking.subnet_cidr</strong></td>
-<td style="text-align: left;">The same value as the above variable but in Classless Inter-Domain Routing (CIDR) notation.</td>
+<td style="text-align: left;">The same value as the above variable but in Classless Inter-Domain Routing (CIDR) notation. Used in the <code>ip=</code> boot parameter of the KVM host.</td>
 <td style="text-align: left;">23</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>lpar.networking.nic.osa_card.dev_num</strong></td>
-<td style="text-align: left;"><b>(Optional) Required only when network mode is HIPERSOCKET</b>The logical device number for the OSA Network Interface Card (NIC). In hex format.</td>
-<td style="text-align: left;"></td>
+<td style="text-align: left;"><b>(Optional) Required only when network mode is HIPERSOCKET</b> The device numbers of the OSA Network Interface Card (NIC) as a comma separated string. When defined, it is passed as the network device to the HMC load.</td>
+<td style="text-align: left;">0.0.1100,0.0.1101,0.0.1102</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>lpar.networking.nic.card1.name</strong></td>
-<td style="text-align: left;">The logical name of the Network Interface Card (NIC) within the HMC. An arbitrary value that is human-readable that points to the NIC.</td>
+<td style="text-align: left;"><b>(DPM creation only)</b> The logical name of the Network Interface Card (NIC) within the HMC. An arbitrary value that is human-readable that points to the NIC. For a KVM host with two NICs it is also used as bond slave interface name.</td>
 <td style="text-align: left;">SYS-NIC-01</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>lpar.networking.nic.card1.adapter</strong></td>
-<td style="text-align: left;">The physical adapter name reference to the logical adapter for the LPAR.</td>
+<td style="text-align: left;"><b>(DPM creation only)</b> The physical adapter name reference to the logical adapter for the LPAR.</td>
 <td style="text-align: left;">10Gb-A</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>lpar.networking.nic.card1.port</strong></td>
-<td style="text-align: left;">The port number for the NIC.</td>
+<td style="text-align: left;"><b>(Required)</b> The port number for the NIC. Used as <code>portno=</code> in <code>rd.znet</code>.</td>
 <td style="text-align: left;">0</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>lpar.networking.nic.card1.dev_num</strong></td>
-<td style="text-align: left;">The logical device number for the NIC. In hex format.</td>
-<td style="text-align: left;">0x0100</td>
+<td style="text-align: left;"><b>(Required)</b> The device number of the NIC. The format depends on the use case, see the note below the table.</td>
+<td style="text-align: left;">0x0100 or 0.0.1100,0.0.1101,0.0.1102</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>lpar.networking.nic.card2.name</strong></td>
@@ -407,11 +431,14 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>lpar.networking.nic.card2.dev_num</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> The logical device number for a second NIC. In hex format.</td>
+<td style="text-align: left;"><b>(Optional)</b> The logical device number for a second NIC. Same format rules as <code>card1.dev_num</code> for a KVM host / LPAR creation (hex integer).</td>
 <td style="text-align: left;">0x0001</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Format of <code>card1.dev_num</code>:</strong>
+* <strong>LPAR / ABI node</strong> (<code>boot_LPAR</code>, <code>boot_LPAR_abi</code>) and network mode <code>hipersocket</code>: the three CCW devices (read, write, data) as one comma separated string, e.g. <code>0.0.1100,0.0.1101,0.0.1102</code>.
+* <strong>KVM host installation</strong> (<code>update_cfgs</code>) and <strong>LPAR creation</strong> (<code>create_lpar</code>): only the first device number is given. The write and data devices are derived as +1 and +2. The value is evaluated as an integer and converted to 4 hex digits, so use unquoted YAML hex notation, e.g. <code>0x1100</code> (becomes <code>1100</code>, <code>1101</code>, <code>1102</code>).</p>
 <h2 id="6-optional-storage">6 - (Optional) Storage<a class="headerlink" href="#6-optional-storage" title="Permanent link">#</a></h2>
 <table>
 <thead>
@@ -424,17 +451,17 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>lpar.storage_group_1.name</strong></td>
-<td style="text-align: left;">The name of the storage group that will be attached to the LPAR.</td>
+<td style="text-align: left;"><b>(DPM creation only)</b> The name of the storage group that will be attached to the LPAR.</td>
 <td style="text-align: left;">OCP-storage-01</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>lpar.storage_group_1.type</strong></td>
-<td style="text-align: left;">Storage type. FCP is the only tested type as of now.</td>
+<td style="text-align: left;">Storage type. FCP is the only tested type as of now for KVM hosts. LPAR / ABI nodes also support <code>dasd</code>.</td>
 <td style="text-align: left;">fcp</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>lpar.storage_group_1.storage_wwpn</strong></td>
-<td style="text-align: left;">World-wide port numbers for storage group. Use provided list formatting.</td>
+<td style="text-align: left;">World-wide port numbers for storage group. Use provided list formatting. For a KVM host every entry gets its own <code>rd.zfcp=</code> line in the RHEL kickstart parameter file (the role adds the <code>0x</code> prefix, so give the WWPN without it). For LPAR / ABI only the first entry is used.</td>
 <td style="text-align: left;">500708680235c3f0<br />500708680235c3f1<br />500708680235c3f2<br />500708680235c3f3</td>
 </tr>
 <tr>
@@ -449,7 +476,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>lpar.storage_group_2.name</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> The name of the storage group that will be attached to the LPAR.</td>
+<td style="text-align: left;"><b>(Optional, DPM creation only)</b> The name of the storage group that will be attached to the LPAR.</td>
 <td style="text-align: left;">OCP-storage-01</td>
 </tr>
 <tr>
@@ -463,17 +490,17 @@
 <td style="text-align: left;">fcp</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>lpar.storage_group_2_.storage_wwpn</strong></td>
+<td style="text-align: left;"><strong>lpar.storage_group_2.storage_wwpn</strong></td>
 <td style="text-align: left;"><b>(Optional)</b> World-wide port numbers for storage group. Use provided list formatting.</td>
 <td style="text-align: left;">500708680235c3f0<br />500708680235c3f1<br />500708680235c3f2<br />500708680235c3f3</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>lpar.storage_group_2_.dev_num</strong></td>
+<td style="text-align: left;"><strong>lpar.storage_group_2.dev_num</strong></td>
 <td style="text-align: left;"><b>(Optional)</b> The logical device number of the Host Bus Adapter (HBA) for the storage group.</td>
 <td style="text-align: left;">C001</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>lpar.storage_group_2_.lun_name</strong></td>
+<td style="text-align: left;"><strong>lpar.storage_group_2.lun_name</strong></td>
 <td style="text-align: left;"><b>(Optional)</b> The Logical Unit Numbers (LUN) that points to a specific virtual disk behind the WWPN.</td>
 <td style="text-align: left;">4200569309ahhd240000000000000c001</td>
 </tr>
@@ -510,12 +537,81 @@
 <td style="text-align: left;">c6h1</td>
 </tr>
 <tr>
+<td style="text-align: left;"><strong>lpar.livedisk.livediskuuid</strong></td>
+<td style="text-align: left;"><b>(Required if <code>lpar.dpm_enabled</code> is <code>'True'</code>)</b> UUID of the SCSI live disk device. Used by the HMC load on DPM-enabled CPCs only.</td>
+<td style="text-align: left;">6005076308ffc2200000000000001000</td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>lpar.livedisk.livedisk_root_pass</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> root password for the livedisk</td>
+<td style="text-align: left;"><b>(Optional)</b> root password for the livedisk. Reference it from the vault: <code>"{{ vault_livedisk_root_pass }}"</code>.</td>
 <td style="text-align: left;">p@ssword</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>lpar.dpm_enabled</strong></td>
+<td style="text-align: left;">Type of CPC: <code>'True'</code> if the CPC is DPM enabled, <code>'False'</code> for classic PR/SM. Allowed values <code>'True'</code> and <code>'False'</code> (quoted strings). It controls how the LPAR is loaded (<code>boot_LPAR</code>, <code>boot_LPAR_abi</code>): for DPM the live disk UUID and the install device by-path are used.</td>
+<td style="text-align: left;">'False'</td>
 </tr>
 </tbody>
 </table>
+<h2 id="8-lpar-abi-vm_name-hostname-and-mac-explained">8 - LPAR ABI: vm_name, hostname, and mac explained<a class="headerlink" href="#8-lpar-abi-vm_name-hostname-and-mac-explained" title="Permanent link">#</a></h2>
+<p>This section explains three variables that are <strong>distinct but easily confused</strong> when deploying an Agent-Based Installer (ABI) cluster directly on bare-metal LPARs.</p>
+<h3 id="vm_name-vs-hostname">vm_name vs hostname<a class="headerlink" href="#vm_name-vs-hostname" title="Permanent link">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Variable</th>
+<th style="text-align: left;">Where set</th>
+<th style="text-align: left;">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>env.cluster.nodes.*.vm_name[n]</code></td>
+<td style="text-align: left;"><code>group_vars/all.yaml</code> Sections 8 &amp; 9</td>
+<td style="text-align: left;">Filename stem of <code>host_vars/&lt;vm_name&gt;.yaml</code>. Used by <code>boot_LPAR_abi</code> to load HMC/LPAR credentials and livedisk settings, and by <code>agent-config.yaml.j2</code> to look up FCP <code>rootDeviceHints</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>env.cluster.nodes.*.hostname[n]</code></td>
+<td style="text-align: left;"><code>group_vars/all.yaml</code> Sections 8 &amp; 9</td>
+<td style="text-align: left;">Short OCP node hostname. Combined with <code>metadata_name</code> and <code>base_domain</code> to form the FQDN written as the <code>hostname:</code> field in <code>agent-config.yaml</code> (e.g. <code>control-01.ocpz.example.com</code>). Also used for DNS A/PTR records and HAProxy server lines by the <code>setup_bastion_services</code> role.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>On KVM deployments</strong> <code>vm_name</code> and <code>hostname</code> are typically the same value because the libvirt VM name and the OCP hostname are set identically by convention.</p>
+<p><strong>On LPAR ABI deployments</strong> they are independent:
+- <code>vm_name</code> identifies the LPAR's host_vars file (e.g. <code>lpar-node-1</code> → <code>host_vars/lpar-node-1.yaml</code>). It is the HMC/CPC identity.
+- <code>hostname</code> is the OCP node short name (e.g. <code>control-01</code>). It is combined with <code>metadata_name</code> and <code>base_domain</code> to produce the FQDN written into <code>agent-config.yaml</code> (e.g. <code>control-01.&lt;metadata_name&gt;.&lt;base_domain&gt;</code>). This FQDN is what OpenShift registers as the node name, so it must be DNS-resolvable.</p>
+<p>Example (<code>group_vars/all.yaml</code>):</p>
+<pre class="codehilite"><code class="language-yaml">env:
+  cluster:
+    nodes:
+      control:
+        vm_name:   # host_vars filenames — match your LPAR names in HMC
+          - lpar-cpc1-01
+          - lpar-cpc1-02
+          - lpar-cpc1-03
+        hostname:  # OCP node hostnames — used for DNS and HAProxy
+          - control-01
+          - control-02
+          - control-03
+</code></pre>
+
+<p>With the above, you must have <code>host_vars/lpar-cpc1-01.yaml</code>, <code>host_vars/lpar-cpc1-02.yaml</code>, <code>host_vars/lpar-cpc1-03.yaml</code>. DNS will be configured for <code>control-01.&lt;metadata_name&gt;.&lt;base_domain&gt;</code>, and <code>agent-config.yaml</code> will contain <code>hostname: control-01.&lt;metadata_name&gt;.&lt;base_domain&gt;</code> — the FQDN that OpenShift registers as the node name (visible in <code>oc get nodes</code>).</p>
+<h3 id="mac-is-required-for-lpar-abi">mac is required for LPAR ABI<a class="headerlink" href="#mac-is-required-for-lpar-abi" title="Permanent link">#</a></h3>
+<p>The <code>env.cluster.nodes.*.mac[n]</code> variable is <strong>required</strong> for LPAR ABI deployments. It is used in <code>agent-config.yaml.j2</code> for two purposes:
+1. The <code>interfaces[].macAddress:</code> field — tells the agent which NIC to configure with the static IP.
+2. The <code>networkConfig.interfaces[].mac-address:</code> NMState field — configures the interface for static IP assignment.</p>
+<p>Without this value the agent cannot match the correct network interface and the node will not join the cluster.</p>
+<h4 id="mac-address-determination-by-environment-and-adapter-type">MAC Address Determination by Environment and Adapter Type<a class="headerlink" href="#mac-address-determination-by-environment-and-adapter-type" title="Permanent link">#</a></h4>
+<ul>
+<li><strong>RoCE Adapters:</strong> Use the actual physical MAC address assigned to the RoCE card.</li>
+<li><strong>DPM Mode:</strong> Use the MAC address configured/assigned to the network adapter in DPM.</li>
+<li><strong>Non-DPM Mode with Non-RoCE Adapters (e.g., OSA-Express / HiperSockets):</strong> Non-DPM LPARs using OSA or HiperSockets in Layer 2 mode do not have a fixed permanent MAC address and the Linux kernel generates a random MAC address on every boot by default. For these environments, specify a <strong>randomly generated MAC address</strong> (e.g., <code>52:54:00:xx:yy:zz</code> or <code>02:xx:yy:zz:aa:bb</code> using valid unicast hex bytes) in <code>env.cluster.nodes.*.mac</code> in <code>group_vars/all.yaml</code>. During LPAR boot, the <code>boot_LPAR_abi</code> role writes this MAC into the boot parameter file (<code>genericdvd.prm</code>) via dracut's <code>ip=...::&lt;mac&gt;</code> parameter, which forces the kernel to assign this specified MAC to the LPAR interface so that it matches what <code>agent-config.yaml</code> expects.</li>
+</ul>
+<h3 id="lpar-load-status-timeout-optional">LPAR Load Status Timeout (Optional)<a class="headerlink" href="#lpar-load-status-timeout-optional" title="Permanent link">#</a></h3>
+<p>By default, the HMC status wait timeout when loading DASD or SCSI live disks is set to <strong>300 seconds</strong> (overriding the upstream <code>zhmcclient</code> default of 60 seconds). You can customize this timeout per node or globally:
+- Per node in <code>host_vars/&lt;node&gt;.yaml</code>: <code>lpar.load_status_timeout: 300</code>
+- Globally in <code>group_vars/all.yaml</code>: <code>env.lpar_load_status_timeout: 300</code></p>
               
             </div>
           </div><footer>

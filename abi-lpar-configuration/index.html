@@ -90,6 +90,14 @@
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#3-example-for-multiple-nodes">3. Example for Multiple Nodes</a>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-configure-mac-addresses-in-group-vars">3. Configure MAC Addresses in Group Vars</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#mac-address-rules-by-environment-and-adapter-type">MAC Address Rules by Environment and Adapter Type</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#how-the-parm-file-and-boot-process-handle-the-mac-address">How the Parm File and Boot Process Handle the MAC Address</a>
+    </li>
+        </ul>
+    </li>
         </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#generated-agent-configyaml-example">Generated agent-config.yaml Example</a>
@@ -320,13 +328,30 @@ lpar:
     lun_name: &quot;0x4002000000000000&quot;  # Different LUN
 </code></pre>
 
+<h3 id="3-configure-mac-addresses-in-group-vars">3. Configure MAC Addresses in Group Vars<a class="headerlink" href="#3-configure-mac-addresses-in-group-vars" title="Permanent link">#</a></h3>
+<p>For LPAR ABI deployments, <code>env.cluster.nodes.*.mac</code> is <strong>mandatory</strong> in <code>inventories/default/group_vars/all.yaml</code>.</p>
+<h4 id="mac-address-rules-by-environment-and-adapter-type">MAC Address Rules by Environment and Adapter Type<a class="headerlink" href="#mac-address-rules-by-environment-and-adapter-type" title="Permanent link">#</a></h4>
+<ul>
+<li><strong>RoCE Adapters:</strong> Use the actual physical MAC address assigned to the RoCE card.</li>
+<li><strong>DPM Mode:</strong> Use the MAC address configured/assigned to the network adapter in DPM.</li>
+<li><strong>Non-DPM Mode with Non-RoCE Adapters (e.g., OSA-Express / HiperSockets):</strong> Non-DPM LPARs using OSA or HiperSockets in Layer 2 mode do not have a fixed permanent MAC address; the Linux kernel generates a random MAC address on every boot by default. For these environments, specify a <strong>randomly generated locally administered MAC address</strong> (e.g. <code>52:54:00:xx:yy:zz</code> or <code>02:xx:yy:zz:aa:bb</code>) in <code>env.cluster.nodes.*.mac</code>.</li>
+</ul>
+<h4 id="how-the-parm-file-and-boot-process-handle-the-mac-address">How the Parm File and Boot Process Handle the MAC Address<a class="headerlink" href="#how-the-parm-file-and-boot-process-handle-the-mac-address" title="Permanent link">#</a></h4>
+<p>During LPAR boot, the <code>boot_LPAR_abi</code> role generates the boot parameter file (<code>genericdvd.prm</code>) and appends the specified MAC address as the last field of dracut's <code>ip=</code> parameter:</p>
+<pre class="codehilite"><code class="language-text">ip=&lt;node_ip&gt;::&lt;gateway&gt;:&lt;subnetmask&gt;::&lt;device_name&gt;:none::&lt;node_mac&gt;
+</code></pre>
+
+<p>This forces the Linux kernel / dracut to assign this specific MAC address to the network interface at boot time. Consequently:
+1. The LPAR boots with the exact MAC address specified in <code>all.yaml</code>.
+2. The Agent-Based Installer's <code>agent-config.yaml</code> matches this MAC address under <code>interfaces[].macAddress</code> and NMState <code>mac-address</code>.
+3. The Agent installer correctly identifies the host and assigns the static IP configuration.</p>
 <h2 id="generated-agent-configyaml-example">Generated agent-config.yaml Example<a class="headerlink" href="#generated-agent-configyaml-example" title="Permanent link">#</a></h2>
 <h3 id="for-lpar-installation">For LPAR Installation<a class="headerlink" href="#for-lpar-installation" title="Permanent link">#</a></h3>
 <pre class="codehilite"><code class="language-yaml">apiVersion: v1alpha1
 kind: AgentConfig
 metadata:
   name: ocp-cluster
-rendezvousIP: 
+rendezvousIP: 192.168.1.10
 
 hosts:
   - hostname: &quot;control-1&quot;
@@ -335,7 +360,7 @@ hosts:
       deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4000000000000000
     interfaces:
       - name: eth0
-        macAddress: &quot;&quot;
+        macAddress: &quot;52:54:00:11:22:31&quot;
     networkConfig:
       # ... network configuration ...
 
@@ -345,7 +370,7 @@ hosts:
       deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4001000000000000
     interfaces:
       - name: eth0
-        macAddress: &quot;&quot;
+        macAddress: &quot;52:54:00:11:22:32&quot;
     networkConfig:
       # ... network configuration ...
 
@@ -355,7 +380,7 @@ hosts:
       deviceName: /dev/disk/by-path/ccw-0.0.1a00-fc-0x500507680b2a5f7e-lun-0x4002000000000000
     interfaces:
       - name: eth0
-        macAddress: &quot;&quot;
+        macAddress: &quot;52:54:00:11:22:33&quot;
     networkConfig:
       # ... network configuration ...
 </code></pre>

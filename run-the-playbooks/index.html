@@ -318,28 +318,37 @@
 </ul>
 <h2 id="5-setup-bastion-playbook">5 Setup Bastion Playbook<a class="headerlink" href="#5-setup-bastion-playbook" title="Permanent link">#</a></h2>
 <h3 id="overview_6">Overview<a class="headerlink" href="#overview_6" title="Permanent link">#</a></h3>
-<p>Configuration of the bastion to host essential infrastructure services for the cluster. Can be first-time setup or use an existing server.</p>
+<p>Configuration of the bastion to host essential infrastructure services for the cluster.
+This playbook is <strong>idempotent</strong> — it can be safely run against a freshly created bastion or against an existing one (e.g. when <code>env.bastion.create: false</code> or on a re-run).</p>
+<ul>
+<li><strong>Fresh bastion</strong>: DNS zone files and the HAProxy configuration are templated out from scratch and all node entries are added.</li>
+<li><strong>Existing bastion</strong>:</li>
+<li><strong>DNS</strong>: Only this cluster's zone entries are updated; all other zones and named options are preserved. A dated backup of <code>named.conf</code> is created before any change.</li>
+<li><strong>HAProxy</strong>: <code>haproxy.cfg</code> is always fully re-templated after a dated backup. The cluster's <code>listen</code> blocks are wrapped in <code># BEGIN &lt;cluster&gt;</code> / <code># END &lt;cluster&gt;</code> markers. Because all ports (6443, 22623, 443, 80) bind to <code>*</code>, only <strong>one OCP cluster</strong> can be served per bastion at a time. Multi-cluster port assignment is planned for a future release.</li>
+</ul>
+<p>In both cases the result is a correctly configured, non-duplicated set of DNS and HAProxy entries reflecting the current inventory.</p>
 <h3 id="outcomes_5">Outcomes<a class="headerlink" href="#outcomes_5" title="Permanent link">#</a></h3>
 <ul>
 <li>Ansible SSH key copied to bastion for passwordless authentication.</li>
 <li>Software packages specified in group_vars/all.yaml have been installed.</li>
 <li>An OCP-specific SSH key is generated for passing into the install-config (then passed to the nodes).</li>
 <li>Firewall is configured to permit traffic through the necessary ports.</li>
-<li>Domain Name Server (DNS) configured to resolve cluster's IP addresses and APIs. Only done if env.bastion.options.dns is true.</li>
+<li>Domain Name Server (DNS) configured to resolve cluster's IP addresses and APIs. Only done if <code>env.bastion.options.dns</code> is true. Idempotent — safe to re-run against a bastion with an existing named configuration.</li>
 <li>DNS is checked to make sure all the necessary Fully Qualified Domain Names, including APIs resolve properly. Also ensures outside access is working.</li>
-<li>High Availability Proxy (HAProxy) load balancer is configured. Only done if env.bastion.options.loadbalancer.on_bastion is true.</li>
+<li>High Availability Proxy (HAProxy) load balancer is configured. Only done if <code>env.bastion.options.loadbalancer.on_bastion</code> is true. Idempotent — safe to re-run against a bastion with an existing HAProxy configuration.</li>
 <li>If the the cluster is to be highly available (meaning spread across more than one LPAR), an OpenVPN server is setup on the bastion to allow for the KVM hosts to communicate between eachother. OpenVPN clients are configured on the KVM hosts.</li>
-<li>CoreOS roofts is pulled to the bastion if not already there.</li>
+<li>CoreOS rootfs is pulled to the bastion if not already there.</li>
 <li>OCP client and installer are pulled down if not there already.</li>
 <li>oc, kubectl and openshift-install binaries are installed.</li>
 <li>OCP install-config is templated and backed up. In disconnected mode, if platform is mirrored (currently only legacy), image content source policy and additionalTrustBundle is also patched.</li>
-<li>Manfifests are created.</li>
+<li>Manifests are created.</li>
 <li>OCP install directory found at /root/ocpinst/ is created and populated with necessary files.</li>
 <li>Ignition files for the bootstrap, control, and compute nodes are transferred to HTTP-accessible directory for booting nodes.</li>
 </ul>
 <h3 id="notes_5">Notes<a class="headerlink" href="#notes_5" title="Permanent link">#</a></h3>
 <ul>
 <li>The stickiest part is DNS setup and get_ocp role at the end.</li>
+<li>DNS and HAProxy configuration is handled by the <a href="../roles/setup_bastion_services/"><code>setup_bastion_services</code></a> role. See the README for a full description of the fresh vs. existing bastion logic and available modes.</li>
 </ul>
 <h2 id="6-create-nodes-playbook">6 Create Nodes Playbook<a class="headerlink" href="#6-create-nodes-playbook" title="Permanent link">#</a></h2>
 <h3 id="overview_7">Overview<a class="headerlink" href="#overview_7" title="Permanent link">#</a></h3>

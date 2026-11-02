@@ -144,10 +144,21 @@ abi:
 <ul>
 <li>[ ] Set <code>installation_type: lpar</code> in all.yaml</li>
 <li>[ ] Set <code>abi.flag: True</code> in all.yaml</li>
+<li>[ ] Configure <code>env.cluster.nodes.control.mac</code> (and compute <code>.mac</code>) in all.yaml</li>
+<li><strong>RoCE / DPM:</strong> Use physical or DPM assigned MAC address</li>
+<li><strong>Non-DPM with OSA/HiperSockets:</strong> Use a <strong>randomly generated MAC address</strong> (e.g., <code>52:54:00:xx:yy:zz</code>)</li>
 <li>[ ] Configure <code>lpar.storage_group_1</code> in each node's host_vars</li>
-<li>[ ] Verify <code>storage_group_1.type: fcp</code></li>
-<li>[ ] Ensure dev_num, storage_wwpn, and lun_name are set</li>
+<li><strong>FCP</strong>: set <code>type: fcp</code>, <code>dev_num</code>, <code>storage_wwpn</code>, <code>lun_name</code></li>
+<li><strong>DASD</strong>: set <code>type: dasd</code>, <code>dev_num</code> (bare hex, e.g. <code>"4401"</code> — no <code>0.0.</code> prefix)</li>
+<li>[ ] Configure <code>lpar.livedisk</code> in each node's host_vars</li>
+<li><code>livedisktype: dasd</code> or <code>scsi</code></li>
+<li><code>devicenr</code>: DASD address of the Ubuntu live disk (e.g. <code>"4400"</code>)</li>
+<li><code>livedisk_root_pass: "{{ vault_livedisk_root_pass }}"</code> — verify this value is correct</li>
+<li>[ ] Set <code>vault_livedisk_root_pass</code> in <code>secrets.yaml</code> (case-sensitive)</li>
+<li>[ ] Set <code>vault_hmc_pass</code> in <code>secrets.yaml</code></li>
+<li>[ ] Set <code>env.bastion.networking.hmc_domain</code> in all.yaml if HMC hostname is in a subdomain</li>
 <li>[ ] Node names in all.yaml match host_vars filenames</li>
+<li>[ ] <code>env.cluster.nodes.control.hostname</code> values are short names (domain appended automatically)</li>
 </ul>
 <hr />
 <h2 id="storage-configuration-format">🔧 Storage Configuration Format<a class="headerlink" href="#storage-configuration-format" title="Permanent link">#</a></h2>
@@ -238,13 +249,29 @@ abi:
 <h3 id="issue-no-rootdevicehints-in-agent-configyaml">Issue: No rootDeviceHints in agent-config.yaml<a class="headerlink" href="#issue-no-rootdevicehints-in-agent-configyaml" title="Permanent link">#</a></h3>
 <p><strong>Solution</strong>:
 - ✅ Verify <code>installation_type: lpar</code>
-- ✅ Check <code>lpar.storage_group_1.type: fcp</code>
+- ✅ Check <code>lpar.storage_group_1.type: fcp</code> or <code>dasd</code>
 - ✅ Ensure host_vars file exists for each node</p>
 <h3 id="issue-wrong-device-path">Issue: Wrong device path<a class="headerlink" href="#issue-wrong-device-path" title="Permanent link">#</a></h3>
 <p><strong>Solution</strong>:
-- ✅ dev_num: Use "1a00" NOT "0.0.1a00"
-- ✅ wwpn: Include "0x" prefix
-- ✅ lun_name: Include "0x" prefix</p>
+- ✅ FCP dev_num: Use <code>"1a00"</code> NOT <code>"0.0.1a00"</code>
+- ✅ DASD dev_num: Use <code>"4401"</code> NOT <code>"0.0.4401"</code> — template adds <code>0.0.</code> prefix
+- ✅ wwpn (FCP): Include <code>"0x"</code> prefix
+- ✅ lun_name (FCP): Include <code>"0x"</code> prefix</p>
+<h3 id="issue-login-incorrect-on-live-disk">Issue: Login incorrect on live disk<a class="headerlink" href="#issue-login-incorrect-on-live-disk" title="Permanent link">#</a></h3>
+<p><strong>Solution</strong>:
+- ✅ Verify <code>vault_livedisk_root_pass</code> exactly — it is <strong>case-sensitive</strong>
+- ✅ Test manually via HMC REST <code>list-os-messages</code> / <code>send-os-command</code>
+- ✅ See <code>docs/troubleshooting-lpar-abi-boot.md</code> §6</p>
+<h3 id="issue-boot_lpar_abipy-hangs-at-hmc-login">Issue: boot_lpar_abi.py hangs at HMC login<a class="headerlink" href="#issue-boot_lpar_abipy-hangs-at-hmc-login" title="Permanent link">#</a></h3>
+<p><strong>Solution</strong>:
+- ✅ Previous failed runs may have exhausted HMC session slots
+- ✅ Log into HMC GUI → User Management → user → Active Sessions → delete all
+- ✅ See <code>docs/troubleshooting-lpar-abi-boot.md</code> §5</p>
+<h3 id="issue-stompexceptionconnectfailedexception">Issue: stomp.exception.ConnectFailedException<a class="headerlink" href="#issue-stompexceptionconnectfailedexception" title="Permanent link">#</a></h3>
+<p><strong>Solution</strong>:
+- ✅ This is fixed automatically by <code>patch_tessia_baselib</code> (patch <code>rest_os_messages</code>)
+- ✅ If it recurs, run <code>5_setup_bastion.yaml</code> to re-apply all patches
+- ✅ See <code>docs/troubleshooting-lpar-abi-boot.md</code> §1</p>
 <h3 id="issue-template-error-loading-host_vars">Issue: Template error loading host_vars<a class="headerlink" href="#issue-template-error-loading-host_vars" title="Permanent link">#</a></h3>
 <p><strong>Solution</strong>:
 - ✅ Node name in <code>env.cluster.nodes.control.vm_name</code> must match host_vars filename
@@ -287,6 +314,7 @@ abi:
 <ul>
 <li><strong>Full Guide</strong>: <code>docs/abi-lpar-configuration.md</code></li>
 <li><strong>Implementation Details</strong>: <code>docs/IMPLEMENTATION_SUMMARY_ABI_LPAR.md</code></li>
+<li><strong>Boot Troubleshooting</strong>: <code>docs/troubleshooting-lpar-abi-boot.md</code></li>
 <li><strong>Main Docs</strong>: https://ibm.github.io/Ansible-OpenShift-Provisioning/</li>
 </ul>
 <hr />

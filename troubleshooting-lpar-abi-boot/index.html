@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/troubleshooting-lpar-abi-boot/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Troubleshooting: ABI LPAR Boot via HMC / tessia-baselib - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../stylesheets/extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Troubleshooting: ABI LPAR Boot via HMC / tessia-baselib";
+        var mkdocs_page_input_path = "troubleshooting-lpar-abi-boot.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/troubleshooting-lpar-abi-boot/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/ansible-logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Read Me</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../before-you-begin/">Before You Begin</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../prerequisites/">Prerequisites</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation Instructions</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-abi/">Run the Playbooks (Agent-Based Installer)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hcp/">Run the Playbooks (HostedControlPlane)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../abi-lpar-configuration/">ABI LPAR Configuration</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Operators (Day-2)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#verify-ocp-virtualization-prerequisites-playbooksoperatorsverify_ocp_virt_prereqsyaml">Verify OCP Virt Prerequisites</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#install-openshift-virtualization-playbooksoperatorsinstall_ocp_virtyaml">Install OpenShift Virtualization</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#create-ocp-virt-test-vm-playbooksoperatorscreate_test_vmyaml">Create Test VM</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#uninstall-openshift-virtualization-playbooksoperatorsuninstall_ocp_virtyaml">Uninstall OpenShift Virtualization</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Misc</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgements/">Acknowledgements</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Troubleshooting: ABI LPAR Boot via HMC / tessia-baselib</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/troubleshooting-lpar-abi-boot.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="troubleshooting-abi-lpar-boot-via-hmc-tessia-baselib">Troubleshooting: ABI LPAR Boot via HMC / tessia-baselib<a class="headerlink" href="#troubleshooting-abi-lpar-boot-via-hmc-tessia-baselib" title="Permanent link">#</a></h1>
+<p>This document covers issues specific to the Agent-Based Installer (ABI) LPAR boot path,
+where <code>boot_lpar_abi.py</code> uses <code>tessia-baselib</code> to load a live disk (Ubuntu debirf-rescue),
+set up networking, and <code>kexec</code> into the RHCOS agent image.</p>
+<hr />
+<h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">#</a></h2>
+<pre class="codehilite"><code>Ansible controller
+  └─ boot_LPAR_abi role
+       └─ boot_lpar_abi.py (on bastion)
+            ├─ zhmcclient  → HMC REST API  (deactivate, DASD load)
+            └─ tessia-baselib HypervisorHmc
+                 ├─ DASD load  → Ubuntu debirf-rescue boots on LPAR
+                 ├─ HMC REST list-os-messages  → read console output
+                 ├─ HMC REST send-os-command   → type login/password/cmds
+                 └─ kexec  → RHCOS agent boots on LPAR
+</code></pre>
+
+<p>The playbook runs <code>patch_tessia_baselib</code> <strong>before</strong> <code>boot_LPAR_abi</code> on every run,
+ensuring all patches are applied even after a fresh <code>pip install tessia-baselib</code>.</p>
+<hr />
+<h2 id="known-issues-and-fixes">Known Issues and Fixes<a class="headerlink" href="#known-issues-and-fixes" title="Permanent link">#</a></h2>
+<h3 id="1-stomp-notification-channel-broken-hmc-2160-ubuntu-debirf-rescue">1. STOMP notification channel broken (HMC 2.16.0 + Ubuntu debirf-rescue)<a class="headerlink" href="#1-stomp-notification-channel-broken-hmc-2160-ubuntu-debirf-rescue" title="Permanent link">#</a></h3>
+<p><strong>Symptom</strong>: <code>stomp.exception.ConnectFailedException</code> in boot log.</p>
+<pre class="codehilite"><code>File &quot;.../tessia/baselib/hypervisors/hmc/hmc.py&quot;, line 246, in _do_netsetup
+    with Messages.connect(...) as receiver:
+...
+stomp.exception.ConnectFailedException
+</code></pre>
+
+<p><strong>Cause</strong>: The HMC STOMP notification broker (port 61612) accepts the TCP/TLS connection
+but never responds to the STOMP CONNECT frame on this HMC version + live disk combination.</p>
+<p><strong>Fix (patch 8 — <code>rest_os_messages</code>)</strong>: The entire <code>with Messages.connect(...)</code> block
+is replaced with HMC REST polling via the <code>list-os-messages</code> endpoint. Applied automatically
+by <code>roles/patch_tessia_baselib/files/apply_patch.py</code>.</p>
+<hr />
+<h3 id="2-login-fails-password-sent-as-username-blank-reprompt">2. Login fails — password sent as username (blank reprompt)<a class="headerlink" href="#2-login-fails-password-sent-as-username-blank-reprompt" title="Permanent link">#</a></h3>
+<p><strong>Symptom</strong> on HMC console:</p>
+<pre class="codehilite"><code>debirf-rescue login:
+
+Password:
+&lt;your-password&gt;         ← password echoed as plain text
+Login incorrect
+</code></pre>
+
+<p><strong>Cause</strong>: An empty <code>send_os_command('')</code> was sent before the login sequence to
+"reprompt" the login. Ubuntu interprets the blank as an empty username, immediately
+asks for <code>Password:</code>, and then the real username <code>root</code> is sent as the password
+(rejected), followed by the actual password sent as a shell command (echoed).</p>
+<p><strong>Fix</strong>: The reprompt <code>send_os_command('')</code> call was removed from <code>hmc.py</code>.
+The <code>_send_commands</code> sequence now waits directly for <code>login:\s*$</code> without sending
+anything first.</p>
+<hr />
+<h3 id="3-dasd-load-job-timeout-not-a-real-error">3. DASD load job timeout (not a real error)<a class="headerlink" href="#3-dasd-load-job-timeout-not-a-real-error" title="Permanent link">#</a></h3>
+<p><strong>Symptom</strong> in boot log:</p>
+<pre class="codehilite"><code>WARNING - DASD load job timed out (operation_timeout=300 s) - LPAR may still have booted. Proceeding with netsetup.
+</code></pre>
+
+<p><strong>Cause</strong>: The HMC async job for DASD load completes asynchronously. The LPAR boots
+successfully but the HMC job object reports timeout before the LPAR reaches <code>operating</code>
+status within <code>operation_timeout</code> seconds.</p>
+<p><strong>Fix (patch 3 — <code>dasd_load_timeout</code>)</strong>: <code>operation_timeout=_status_timeout</code> is passed
+to <code>guest_obj.load()</code> and the resulting <code>zhmcclient.OperationTimeout</code> exception is
+caught and converted to a warning. Boot continues normally.</p>
+<hr />
+<h3 id="4-deactivate-fails-with-http-500263">4. Deactivate fails with HTTP 500,263<a class="headerlink" href="#4-deactivate-fails-with-http-500263" title="Permanent link">#</a></h3>
+<p><strong>Symptom</strong> in boot log:</p>
+<pre class="codehilite"><code>zhmcclient._exceptions.HTTPError: 500,263: The deactivate did not take place because
+the target is currently in the operating state and the force flag was not set.
+</code></pre>
+
+<p><strong>Cause</strong>: <code>lpar.deactivate()</code> requires <code>force=True</code> when the LPAR is in <code>operating</code>
+state (e.g., running RHCOS from a previous install).</p>
+<p><strong>Fix</strong>: <code>boot_lpar_abi.py</code> now calls <code>_lpar.deactivate(wait_for_completion=True, force=True)</code>.</p>
+<hr />
+<h3 id="5-hmc-session-pool-exhaustion">5. HMC session pool exhaustion<a class="headerlink" href="#5-hmc-session-pool-exhaustion" title="Permanent link">#</a></h3>
+<p><strong>Symptom</strong>: <code>zhmcclient.Session.logon()</code> hangs indefinitely (no timeout, no error).
+Standalone <code>logon()</code> test works fine initially but after several failed/killed runs
+all new logons also block.</p>
+<p><strong>Cause</strong>: Each killed or crashed <code>boot_lpar_abi.py</code> process leaves an orphaned
+<code>zhmcclient.Session</code> open on the HMC. After multiple attempts the HMC session limit
+for the configured HMC user is reached.</p>
+<p><strong>Fix</strong>:
+1. The <code>--deactivate_first</code> block in <code>boot_lpar_abi.py</code> now uses <code>try/finally</code> to
+   guarantee <code>_session.logoff()</code> even if an exception occurs.
+2. To recover immediately: log into the HMC GUI → <strong>User Management</strong> → your HMC user
+   → <strong>Active Sessions</strong> → delete all sessions.
+3. Alternatively wait 10–30 minutes for the HMC to expire idle sessions automatically.</p>
+<hr />
+<h3 id="6-live-disk-password-case-sensitivity">6. Live disk password case sensitivity<a class="headerlink" href="#6-live-disk-password-case-sensitivity" title="Permanent link">#</a></h3>
+<p><strong>Symptom</strong>: <code>Login incorrect</code> on every attempt despite using the value from
+<code>vault_livedisk_root_pass</code>.</p>
+<p><strong>Cause</strong>: The password is case-sensitive. A single character case difference
+(e.g., lowercase <code>i</code> vs uppercase <code>I</code>) causes all logins to fail.</p>
+<p><strong>Fix</strong>: Verify the exact password character-by-character. The correct value for the
+Ubuntu debirf-rescue image used in this environment is stored in <code>secrets.yaml</code> as
+<code>vault_livedisk_root_pass</code>. Use the HMC REST API to test manually:</p>
+<pre class="codehilite"><code class="language-python"># Quick manual login test via HMC REST
+import zhmcclient, urllib3, warnings, time
+warnings.filterwarnings('ignore'); urllib3.disable_warnings()
+s = zhmcclient.Session('hmc.example.com', 'HMC_USER', 'HMC_PASS', verify_cert=False)
+s.logon()
+c = zhmcclient.Client(s)
+lp = c.cpcs.find(name='CPC').lpars.find(name='LPARNAME')
+# Send username
+lp.send_os_command('root')
+time.sleep(3)
+# Send candidate password
+lp.send_os_command('CANDIDATE_PASSWORD')
+time.sleep(6)
+# Check response
+resp = s.get(lp.uri + '/operations/list-os-messages')
+for m in resp.get('os-messages', [])[-5:]:
+    print(m.get('sequence-number'), repr(m.get('message-text', '').strip()))
+s.logoff()
+</code></pre>
+
+<p>A successful login shows <code>Welcome to Ubuntu</code> and <code>debirf-rescue:~#</code>.
+A failed login shows <code>Login incorrect</code>.</p>
+<hr />
+<h3 id="7-node-hostnames-are-short-names-instead-of-fqdns">7. Node hostnames are short names instead of FQDNs<a class="headerlink" href="#7-node-hostnames-are-short-names-instead-of-fqdns" title="Permanent link">#</a></h3>
+<p><strong>Symptom</strong>: <code>oc get nodes</code> shows <code>master-0</code> instead of <code>master-0.mycluster.example.com</code>.</p>
+<p><strong>Cause</strong>: The original <code>agent-config.yaml.j2</code> template emitted only
+<code>env.cluster.nodes.control.hostname[item]</code> without appending the domain.</p>
+<p><strong>Fix</strong>: The template now emits the full FQDN:</p>
+<pre class="codehilite"><code class="language-jinja2">hostname: &quot;{{ env.cluster.nodes.control.hostname[item] }}.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}&quot;
+</code></pre>
+
+<p><strong>Verification</strong>: After running <code>prepare_configs</code>, check:</p>
+<pre class="codehilite"><code class="language-bash">grep hostname ~/ansible_workdir/agent-config-backup.yaml
+# Should show: master-0.mycluster.example.com
+</code></pre>
+
+<hr />
+<h3 id="8-dasd-rootdevicehints-missing-dasd-storage-type">8. DASD rootDeviceHints missing (DASD storage type)<a class="headerlink" href="#8-dasd-rootdevicehints-missing-dasd-storage-type" title="Permanent link">#</a></h3>
+<p><strong>Symptom</strong>: OpenShift installer cannot find the installation disk on DASD-based LPARs.</p>
+<p><strong>Cause</strong>: The original <code>agent-config.yaml.j2</code> only generated <code>rootDeviceHints</code> for FCP
+storage. DASD storage (used in non-DPM environments) was not handled.</p>
+<p><strong>Fix</strong>: The template now generates DASD <code>rootDeviceHints</code>:</p>
+<pre class="codehilite"><code class="language-yaml">rootDeviceHints:
+  deviceName: /dev/disk/by-path/ccw-0.0.{{ dev_num }}
+</code></pre>
+
+<p>Where <code>dev_num</code> is taken from <code>lpar.storage_group_1.dev_num</code> in the node's host_vars
+(format: <code>4401</code>, without <code>0.0.</code> prefix — the template adds it).</p>
+<hr />
+<h3 id="9-rddasd-missing-from-kexec-kernel-command-line">9. <code>rd.dasd=</code> missing from kexec kernel command line<a class="headerlink" href="#9-rddasd-missing-from-kexec-kernel-command-line" title="Permanent link">#</a></h3>
+<p><strong>Symptom</strong>: RHCOS agent boots but cannot find the installation DASD (<code>/dev/dasda</code> absent).</p>
+<p><strong>Cause</strong>: The <code>genericdvd.prm.j2</code> template did not include <code>rd.dasd=</code> for DASD storage.
+Without it, dracut does not activate the DASD channel.</p>
+<p><strong>Fix</strong>: <code>genericdvd.prm.j2</code> now appends <code>rd.dasd=0.0.{{ node.lpar.storage_group_1.dev_num }}</code>
+when <code>storage_group_1.type == 'dasd'</code>.</p>
+<hr />
+<h3 id="10-hmc-hostname-not-resolving-from-bastion">10. HMC hostname not resolving from bastion<a class="headerlink" href="#10-hmc-hostname-not-resolving-from-bastion" title="Permanent link">#</a></h3>
+<p><strong>Symptom</strong>: <code>zhmcclient.Session</code> logon fails with connection timeout or DNS error
+for the HMC hostname (e.g., <code>hmc.example.com</code>).</p>
+<p><strong>Cause</strong>: The bastion's BIND instance does not have a forwarder for the HMC's DNS
+domain (e.g., <code>example.com</code>).</p>
+<p><strong>Fix</strong>: Set <code>env.bastion.networking.hmc_domain: example.com</code> in <code>all.yaml</code>,
+replacing <code>example.com</code> with the actual DNS domain of your HMC hostname.
+The <code>setup_bastion_services</code> role adds a forward-only BIND zone for that domain
+pointing to <code>nameserver2</code> (the site DNS).</p>
+<hr />
+<h3 id="11-stomppy-version-incompatibility">11. stomp.py version incompatibility<a class="headerlink" href="#11-stomppy-version-incompatibility" title="Permanent link">#</a></h3>
+<p><strong>Symptom</strong>: ImportError or AttributeError in <code>zhmcclient/_notification.py</code>.</p>
+<p><strong>Cause</strong>: stomp.py 6.x broke the API used by <code>zhmcclient</code> for the STOMP notification
+channel.</p>
+<p><strong>Fix (patch — <code>install_tessia_baselib</code>)</strong>: stomp.py is pinned to <code>4.1.24</code> in
+<code>roles/install_tessia_baselib/tasks/main.yaml</code>. This is now a moot point since
+STOMP is replaced entirely by REST polling (see issue 1), but the pin remains to
+prevent future accidental upgrades.</p>
+<hr />
+<h2 id="configuration-reference">Configuration Reference<a class="headerlink" href="#configuration-reference" title="Permanent link">#</a></h2>
+<h3 id="secretsyaml-variables-for-lpar-boot"><code>secrets.yaml</code> variables for LPAR boot<a class="headerlink" href="#secretsyaml-variables-for-lpar-boot" title="Permanent link">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>vault_hmc_pass</code></td>
+<td>HMC user password (set in <code>hmc.auth.pass</code>)</td>
+</tr>
+<tr>
+<td><code>vault_livedisk_root_pass</code></td>
+<td>Root password of the Ubuntu debirf-rescue live disk</td>
+</tr>
+</tbody>
+</table>
+<h3 id="host_varsnodeyaml-for-dasd-boot"><code>host_vars/{node}.yaml</code> for DASD boot<a class="headerlink" href="#host_varsnodeyaml-for-dasd-boot" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-yaml">lpar:
+  livedisk:
+    livedisktype: dasd
+    devicenr: &quot;1a00&quot;          # DASD address of the live (Ubuntu) disk
+    livedisk_root_pass: &quot;{{ vault_livedisk_root_pass }}&quot;
+
+  storage_group_1:
+    type: dasd
+    dev_num: &quot;1b00&quot;           # DASD address of the installation disk (NO 0.0. prefix)
+</code></pre>
+
+<h3 id="allyaml-for-dasd-hmc-dns"><code>all.yaml</code> for DASD + HMC DNS<a class="headerlink" href="#allyaml-for-dasd-hmc-dns" title="Permanent link">#</a></h3>
+<pre class="codehilite"><code class="language-yaml">env:
+  bastion:
+    networking:
+      hmc_domain: example.com   # Forward zone for HMC hostname resolution (domain of your HMC hostname)
+</code></pre>
+
+<hr />
+<h2 id="patch-summary">Patch Summary<a class="headerlink" href="#patch-summary" title="Permanent link">#</a></h2>
+<p>All patches are applied by <code>roles/patch_tessia_baselib</code> on every playbook run.</p>
+<table>
+<thead>
+<tr>
+<th>Patch name</th>
+<th>What it fixes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>login_prompt</code></td>
+<td>Waits for <code>login:\s*$</code> instead of literal <code>debirf-rescue login:</code></td>
+</tr>
+<tr>
+<td><code>shell_prompt</code></td>
+<td>Shell prompt pattern <code>[#$]\s*$</code> instead of <code>debirf-rescue:~#\s*$</code></td>
+</tr>
+<tr>
+<td><code>dasd_load_timeout</code></td>
+<td>Passes <code>operation_timeout</code> to <code>guest_obj.load()</code>, catches <code>OperationTimeout</code></td>
+</tr>
+<tr>
+<td><code>send_os_cmd_retry</code></td>
+<td>Retries <code>send_os_command</code> on HTTP 409,332 (LPAR not yet in operating state)</td>
+</tr>
+<tr>
+<td><code>rest_os_messages</code></td>
+<td>Replaces entire STOMP channel with HMC REST <code>list-os-messages</code> polling</td>
+</tr>
+<tr>
+<td><code>operating_wait</code></td>
+<td>Waits for LPAR to reach <code>operating</code> status before sending OS commands</td>
+</tr>
+</tbody>
+</table>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright © 2022 IBM zSystems Washington Systems Center</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -201,7 +201,7 @@
 <li>Navigate to the <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning">root folder of the cloned Git repository</a> in your terminal (<code>ls</code> should show <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/ansible.cfg">ansible.cfg</a>).</li>
 <li>Update variables in Section (1 - 9) and OpenShift Settings with <code>machine_network</code></li>
 <li>Update variables in Section - 14 ( <code>Agent Based Installer</code> ) in <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template">all.yaml</a> before running the playbooks.</li>
-<li>Section 7 - ( <code>Bootstrap Node</code> ) need to be comment or remove while using it for ABI.</li>
+<li>Section 7 - ( <code>Bootstrap Node</code> ) <strong>must be commented out or removed</strong> for ABI installs. The Agent-Based Installer manages the bootstrap process internally — there is no separate bootstrap VM or LPAR. Leaving the section present with <code>#X</code> placeholder values will cause DNS and HAProxy configuration to fail because YAML interprets <code>#X</code> as a literal string value, not a missing value.</li>
 <li>In case of SNO Section 8 - ( <code>Control Nodes</code> )  Virtual CPU should be 8 ( <code>vcpu: 8</code> )</li>
 <li>In case of SNO Section 9 ( <code>Compute Nodes</code> ) need to be comment or remove</li>
 <li>First playbook to be run is <code>0_setup.yaml</code> which will create inventory file for ABI and will add ssh key to the kvm host.</li>
@@ -240,7 +240,12 @@
 </code></pre>
 
 <ul>
-<li>If the process fails in error, go through the steps in the <a href="../troubleshooting/">troubleshooting</a> page.</li>
+<li>
+<p>The monitor playbook (<code>monitor_create_abi_cluster.yaml</code>) waits for the installation to complete for at most <code>abi.install_timeout</code> seconds (default 7200, i.e. 2 hours), checking every <code>abi.install_poll_delay</code> seconds (default 30). On slower environments (limited CPU, memory, disk or network speed, slow registry or mirror access, or many nodes) the installation can take longer. In that case increase <code>abi.install_timeout</code> in the <code>abi</code> block of <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/blob/main/inventories/default/group_vars/all.yaml.template">all.yaml</a> (see Section 14 in <a href="../set-variables-group-vars/">set-variables-group-vars</a>) and run the monitor playbook again.</p>
+</li>
+<li>
+<p>If the process fails in error, go through the steps in the <a href="../troubleshooting/">troubleshooting</a> page.</p>
+</li>
 </ul>
 <h2 id="step-2-setup-playbook-0_setupyaml">Step-2: Setup Playbook (0_setup.yaml)<a class="headerlink" href="#step-2-setup-playbook-0_setupyaml" title="Permanent link">#</a></h2>
 <h3 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h3>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ibm.github.io/Ansible-OpenShift-Provisioning/ISSUE_storage_group_2_not_activated/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Issue: storage_group_2 (and beyond) not activated during boot - Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../stylesheets/extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Issue: storage_group_2 (and beyond) not activated during boot";
+        var mkdocs_page_input_path = "ISSUE_storage_group_2_not_activated.md";
+        var mkdocs_page_url = "/Ansible-OpenShift-Provisioning/ISSUE_storage_group_2_not_activated/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/ansible-logo.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Read Me</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../before-you-begin/">Before You Begin</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../prerequisites/">Prerequisites</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation Instructions</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../get-info/">1 Get Info</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-group-vars/">2 Set Variables (group_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../set-variables-host-vars/">3 Set Variables (host_vars)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks/">4 Run the Playbooks</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-abi/">Run the Playbooks (Agent-Based Installer)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-disconnected/">Run the Playbooks (Disconnected)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../run-the-playbooks-for-hcp/">Run the Playbooks (HostedControlPlane)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../abi-lpar-configuration/">ABI LPAR Configuration</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Operators (Day-2)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#verify-ocp-virtualization-prerequisites-playbooksoperatorsverify_ocp_virt_prereqsyaml">Verify OCP Virt Prerequisites</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#install-openshift-virtualization-playbooksoperatorsinstall_ocp_virtyaml">Install OpenShift Virtualization</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#create-ocp-virt-test-vm-playbooksoperatorscreate_test_vmyaml">Create Test VM</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../run-the-playbooks.md#uninstall-openshift-virtualization-playbooksoperatorsuninstall_ocp_virtyaml">Uninstall OpenShift Virtualization</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Misc</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgements/">Acknowledgements</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Ansible-Automated OpenShift Provisioning on KVM on IBM zSystems / LinuxONE</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Issue: storage_group_2 (and beyond) not activated during boot</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning/edit/main/docs/ISSUE_storage_group_2_not_activated.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="issue-storage_group_2-and-beyond-not-activated-during-boot">Issue: <code>storage_group_2</code> (and beyond) not activated during boot<a class="headerlink" href="#issue-storage_group_2-and-beyond-not-activated-during-boot" title="Permanent link">#</a></h1>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">#</a></h2>
+<p><code>storage_group_2</code> (and any additional storage groups) are attached to the LPAR
+partition via HMC during LPAR creation, but their FCP LUNs are <strong>never activated
+by the kernel</strong> during the live-disk boot or installation phase, and are <strong>not
+referenced</strong> in the ABI <code>rootDeviceHints</code>. This means the disks are physically
+presented to the LPAR but not visible as block devices during RHCOS installation.</p>
+<h2 id="affected-files">Affected files<a class="headerlink" href="#affected-files" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">File</th>
+<th style="text-align: left;">Problem</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>roles/boot_LPAR_abi/templates/genericdvd.prm.j2</code></td>
+<td style="text-align: left;">Only emits <code>rd.zfcp=</code> for <code>storage_group_1</code>; <code>storage_group_2</code>/<code>3</code> never activated</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>roles/boot_LPAR/templates/genericdvd.prm.j2</code></td>
+<td style="text-align: left;">Same — only <code>storage_group_1</code> activated</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>roles/prepare_configs/templates/agent-config.yaml.j2</code></td>
+<td style="text-align: left;"><code>rootDeviceHints</code> hardcoded to <code>storage_group_1</code> only</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>roles/create_lpar/tasks/main.yaml</code></td>
+<td style="text-align: left;">Correctly attaches <code>storage_group_2</code> at HMC level (good), but that is insufficient on its own</td>
+</tr>
+</tbody>
+</table>
+<h2 id="missing-role">Missing role<a class="headerlink" href="#missing-role" title="Permanent link">#</a></h2>
+<p>The documentation in <code>docs/run-the-playbooks.md</code> and <code>docs/run-the-playbooks-for-abi.md</code>
+references a <code>roles/configure_storage</code> role that was supposed to use
+<code>lpar.storage_group_2.auto_config: True</code> to extend the OS logical volume with
+the second storage group after installation. <strong>This role does not exist in the
+repository.</strong> It was either never implemented or was removed.</p>
+<h2 id="required-fix">Required fix<a class="headerlink" href="#required-fix" title="Permanent link">#</a></h2>
+<h3 id="1-activate-additional-fcp-luns-in-the-parm-file-templates">1. Activate additional FCP LUNs in the parm file templates<a class="headerlink" href="#1-activate-additional-fcp-luns-in-the-parm-file-templates" title="Permanent link">#</a></h3>
+<p>Both <code>roles/boot_LPAR_abi/templates/genericdvd.prm.j2</code> and
+<code>roles/boot_LPAR/templates/genericdvd.prm.j2</code> should loop over all defined
+storage groups (not just <code>storage_group_1</code>) and emit an <code>rd.zfcp=</code> entry for
+each FCP-type group. Example approach:</p>
+<pre class="codehilite"><code class="language-jinja2">{%- set sg_keys = ['storage_group_1', 'storage_group_2', 'storage_group_3'] -%}
+{%- for sg_key in sg_keys -%}
+{%-   if node.lpar[sg_key] is defined and node.lpar[sg_key].type | lower == &quot;fcp&quot; -%}
+ rd.zfcp=0.0.{{ node.lpar[sg_key].dev_num }},{{ node.lpar[sg_key].storage_wwpn[0] }},{{ node.lpar[sg_key].lun_name }}
+{%-   endif -%}
+{%- endfor -%}
+</code></pre>
+
+<p>Or, if the host_vars schema is refactored to use a list instead of numbered keys,
+loop over <code>node.lpar.storage_groups</code>.</p>
+<h3 id="2-optionally-extend-rootdevicehints-selection">2. Optionally extend <code>rootDeviceHints</code> selection<a class="headerlink" href="#2-optionally-extend-rootdevicehints-selection" title="Permanent link">#</a></h3>
+<p><code>agent-config.yaml.j2</code> currently always points <code>rootDeviceHints</code> at
+<code>storage_group_1</code>. This is correct for the OS disk and should remain the default.
+No change needed here unless there is a use case for installing on a non-first
+storage group.</p>
+<h3 id="3-implement-or-remove-configure_storage">3. Implement or remove <code>configure_storage</code><a class="headerlink" href="#3-implement-or-remove-configure_storage" title="Permanent link">#</a></h3>
+<p>Either:
+- Implement <code>roles/configure_storage</code> to extend the LVM logical volume using
+  <code>storage_group_2</code> when <code>auto_config: True</code>, and wire it into the playbooks; or
+- Remove all references to <code>configure_storage</code> and <code>auto_config</code> from the
+  documentation to avoid misleading users.</p>
+<h2 id="impact">Impact<a class="headerlink" href="#impact" title="Permanent link">#</a></h2>
+<ul>
+<li>Users who define <code>storage_group_2</code> (e.g. for ODF/Ceph data disks) on a
+  non-DPM LPAR will find those LUNs not visible during installation. Post-install
+  they will typically become available once the OS activates the FCP subsystem,
+  but this is not guaranteed and depends on the system's zfcp configuration.</li>
+<li>The <code>auto_config: True</code> flag documented in <code>set-variables-host-vars.md</code> has
+  no effect because the backing role does not exist.</li>
+</ul>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">#</a></h2>
+<ul>
+<li><code>inventories/default/host_vars/KVMhostname1-here.yaml.template</code> — shows
+  <code>storage_group_2</code> commented out as optional</li>
+<li><code>docs/set-variables-host-vars.md</code> lines 89–94 — documents <code>storage_group_2</code>
+  variables including <code>auto_config</code></li>
+<li><code>roles/create_lpar/tasks/main.yaml</code> lines 50–70 — only place <code>storage_group_2</code>
+  is used in roles</li>
+</ul>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright © 2022 IBM zSystems Washington Systems Center</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/IBM/Ansible-OpenShift-Provisioning" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
