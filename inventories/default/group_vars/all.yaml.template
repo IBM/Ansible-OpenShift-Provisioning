@@ -251,6 +251,8 @@ abi:
   ocp_installer_base_url: 'https://mirror.openshift.com/pub/openshift-v4'
   architecture: <multi|s390x>
   boot_method: <pxe|iso>
+  # platform: none        # none (default) | external
+  # platform_name: ibmz    # only used when platform is external
 
 # Openshift Settings  
 # Settings like architecture, hyperthreading, network cidr, etc.

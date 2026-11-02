@@ -285,6 +285,8 @@ If those nodes use new hypervisors that must be prepared first, temporarily add 
 **abi.ocp_installer_base_url** | This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror | 'https://mirror.openshift.com/pub/openshift-v4/'
 **abi.architecture** | The installer binary supports two architecture options: multi and s390x. Users are required to specify the appropriate architecture value based on their deployment environment. | 'multi/s390x'
 **abi.boot_method** | Specifies the boot type for Agent-based Installation (ABI). Users must choose either iso or pxe based on the deployment method. Note: iso boot is supported only on KVM platforms. | 'iso/pxe'
+**abi.platform** | Platform section of the generated install-config.yaml. Either `none` (default, also used when the variable is not set) or `external`. | 'none/external'
+**abi.platform_name** | Value for `platform.external.platformName`. Only used when `abi.platform` is `external`. Defaults to `ibmz`. | ibmz
 
 ## OpenShift Settings
 * The parameters bellow have a hierachical structure and need to be added to all.yaml in given format. For example if you want to change the hyperthreading (disable) than you need to specify the following value in all.yaml file:
