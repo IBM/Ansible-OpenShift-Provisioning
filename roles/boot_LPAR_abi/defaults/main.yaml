@@ -1,3 +1,7 @@
 ---
 # ABI agent images are served from bastion httpd server
 # No specific defaults needed as URLs are constructed dynamically
+
+# Deactivate the LPAR before booting if it is already running.
+# Set to false only if you are certain the LPAR is already powered off.
+deactivate_lpar_before_boot: true

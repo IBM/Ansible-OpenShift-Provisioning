@@ -24,3 +24,11 @@
 - name: Change directory to tessia-baselib and install dependencies using pip3
   shell: cd /root/ansible_workdir/tessia-baselib ; pip3 install -U .
 
+# stomp.py 6.x changed the SSL API (use_ssl="SSL" no longer works) and breaks
+# zhmcclient's NotificationReceiver which is used for HMC OS messages.
+# Pin to the last known-good 4.x release.
+- name: Pin stomp.py to 4.1.24 for zhmcclient HMC OS messages compatibility
+  pip:
+    name: stomp.py==4.1.24
+    executable: pip3
+

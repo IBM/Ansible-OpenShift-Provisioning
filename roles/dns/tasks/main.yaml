@@ -158,7 +158,7 @@
     dest: /etc/resolv.conf
     owner: root
     group: root
-    mode: "644"
+    mode: "0644"
 
 - name: Restart network to update changes made to /etc/resolv.conf
   tags: dns, resolv

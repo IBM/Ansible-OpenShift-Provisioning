@@ -62,7 +62,7 @@ lpar:
       card1:
         name: #X
         adapter: #X
-        port: #X
+        port: #X  # OSA port number for rd.znet portno= (usually 0 or 1)
         dev_num: #X
 #      card2:
 #        name: 
