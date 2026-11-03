@@ -35,16 +35,27 @@
           loop: "{{ range(zvm.nodes | length) | list }}"
 
 # Boot ABI KVM Agents.
+# gather_facts is disabled so that no SSH connection to kvm_host[0] is attempted
+# for non-KVM installations (e.g. lpar, where the host may not be reachable as
+# a KVM host). The common role gathers facts itself, inside the guarded block.
 - name: Boot ABI Agents
   hosts: kvm_host[0]
   become: false
+  gather_facts: false
   vars_files:
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
-  roles:
-    - common
-    - role: boot_abi_agents
+  tasks:
+    - name: Support for KVM ABI
       when: installation_type | lower == 'kvm'
+      block:
+        - name: Load common variables
+          ansible.builtin.include_role:
+            name: common
+
+        - name: Boot ABI agents on the KVM host
+          ansible.builtin.include_role:
+            name: boot_abi_agents
 
 # Boot ABI LPAR Agents.
 - name: Boot ABI LPAR Agents
