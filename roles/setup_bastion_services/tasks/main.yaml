@@ -1,0 +1,44 @@
+---
+# setup_bastion_services/tasks/main.yaml
+#
+# Entry point. Delegates to one of three sub-task files depending on what is
+# being asked:
+#
+#   bastion_services_mode == 'dns'        → configure / update DNS (named)
+#   bastion_services_mode == 'haproxy'    → configure / update haproxy
+#   bastion_services_mode == 'node_dns'   → add/delete a single node DNS entry
+#   bastion_services_mode == 'node_haproxy' → add/delete a single node haproxy entry
+#   bastion_services_mode == 'all'        → configure both DNS and haproxy (default)
+#
+# For 'dns', 'haproxy', and 'all' the role auto-detects whether the bastion is
+# "fresh" (files absent / empty) or "existing" and acts accordingly:
+#   - fresh   : full template-out then lineinfile additions
+#   - existing: remove all cluster-specific entries first, then re-add them
+
+- name: Detect whether named zone files already exist
+  ansible.builtin.stat:
+    path: /var/named/{{ env.cluster.networking.metadata_name }}.db
+  register: _named_db_stat
+  when: bastion_services_mode | default('all') in ['dns', 'all']
+
+- name: Detect whether haproxy config already has cluster entries
+  ansible.builtin.stat:
+    path: /etc/haproxy/haproxy.cfg
+  register: _haproxy_cfg_stat
+  when: bastion_services_mode | default('all') in ['haproxy', 'all']
+
+- name: Configure DNS
+  ansible.builtin.include_tasks: dns.yaml
+  when: bastion_services_mode | default('all') in ['dns', 'all']
+
+- name: Configure haproxy
+  ansible.builtin.include_tasks: haproxy.yaml
+  when: bastion_services_mode | default('all') in ['haproxy', 'all']
+
+- name: Update single node DNS entry
+  ansible.builtin.include_tasks: node_dns.yaml
+  when: bastion_services_mode | default('all') == 'node_dns'
+
+- name: Update single node haproxy entry
+  ansible.builtin.include_tasks: node_haproxy.yaml
+  when: bastion_services_mode | default('all') == 'node_haproxy'

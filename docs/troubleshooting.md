@@ -28,3 +28,22 @@ ansible-playbook playbooks/setup_kvm_host.yaml --tags "section_2,section_3"
     * Sometimes it just takes a while, especially if it's lacking resources. Give it some time and then re-reun the playbook/role with tags.
     * If that doesn't work, SSH into the bastion as root ("ssh root@\<bastion-ip-address-here\>") and then run, "export KUBECONFIG=/root/ocpinst/auth/kubeconfig" and then "oc whoami" and make sure it ouputs "system:admin". Then run the shell command from the role you would like to check on manually: i.e. 'oc get nodes', 'oc get co', etc.
     * Open the .openshift_install.log file for information on what happened and try to debug the issue.
+
+## LPAR ABI Boot Issues
+
+For issues specific to booting LPARs via HMC and `tessia-baselib` (STOMP failures,
+live disk login, HMC session exhaustion, DASD configuration), see:
+
+**[`docs/troubleshooting-lpar-abi-boot.md`](troubleshooting-lpar-abi-boot.md)**
+
+Topics covered:
+
+- STOMP notification channel broken (`ConnectFailedException`)
+- Login fails — password sent as username
+- DASD load job timeout (non-fatal warning)
+- Deactivate fails with HTTP 500,263 (`force=True` required)
+- HMC session pool exhaustion (logon hangs)
+- Live disk password case sensitivity
+- Node hostnames not FQDN
+- DASD `rootDeviceHints` and `rd.dasd=` missing
+- HMC hostname not resolving from bastion
