@@ -23,6 +23,10 @@
 #                      because the LPAR hasn't reached 'operating' yet. Adds a
 #                      polling loop before opening the OS messages channel.
 #   7. SEND CMD 409  — Retries send_os_command on transient HTTP 409,332 errors.
+#   8. OS MESSAGES  — Replaces the STOMP OS-messages channel with HMC REST polling.
+#   9. ACTIVATE WAIT — After activating a "not-activated" LPAR, start() waits for it
+#                      to become active with zhmcclient's 60 s default, which is too
+#                      short on slow HMCs. Uses the configurable status_timeout.
 #
 # Set to false only if patches have been applied by another means and you do
 # not want the role to re-apply them on every bastion setup run.

@@ -182,7 +182,8 @@
 **env.jumphost.pass** | (Optional) The password for user to login to the jumphost. | ch4ngeMe!
 **env.jumphost.path_to_keypair** | (Optional) The absolute path to the public key file on the jumphost to be copied to the bastion. | /home/admin/.ssh/id_rsa.pub
 **env.ipsec_enabled** | (Optional) If IPSEC network configuration has to be enabled, this flag should be set to true | 
-**env.lpar_load_status_timeout** | <b>(Optional)</b> Timeout in seconds to wait for the HMC load status when loading a DASD or SCSI live disk during LPAR boot. Default is 300. Can be overridden per node with `lpar.load_status_timeout` in the node's host_vars file (see [set-variables-host-vars](set-variables-host-vars.md)). | 300
+**env.lpar_deactivate_method** | <b>(Optional)</b> How `boot_LPAR_abi` stops a running LPAR before boot: `deactivate` (default) or `reset_clear` (faster, no OS shutdown). Can be overridden per node with `lpar.livedisk.deactivate_method` in the node's host_vars file (see [set-variables-host-vars](set-variables-host-vars.md)). | deactivate
+**env.lpar_load_status_timeout** | <b>(Optional)</b> Timeout in seconds to wait for the HMC load status when loading a DASD or SCSI live disk during LPAR boot. Default is 300. Can be overridden per node with `lpar.livedisk.load_status_timeout` in the node's host_vars file (see [set-variables-host-vars](set-variables-host-vars.md)). | 300
 
 ## 12 - OCP and RHCOS (CoreOS)
 * These parameters are responsible which version of OCP, RHCOS and os variant AOP is using. The default value is 'latest' for s390x architecture. I you want to install a different version or a different architecture you need to specify specify the following parameters in all.yaml file:

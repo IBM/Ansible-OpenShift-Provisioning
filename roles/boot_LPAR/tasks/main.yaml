@@ -11,6 +11,13 @@
         file: "{{ inventory_dir }}/host_vars/{{ item }}.yaml"
         name: node
 
+    - name: Set HMC status timeout
+      ansible.builtin.set_fact:
+        _lpar_status_timeout: >-
+          {{ node.lpar.livedisk.load_status_timeout
+          | default(node.lpar.load_status_timeout
+          | default(env.lpar_load_status_timeout | default(300))) }}
+
     - name: Getting script for booting
       ansible.builtin.template:
         src: boot_lpar.py
@@ -177,7 +184,7 @@
           --netset_network_device "{{ netset_network_device }}" \
           --netset_password ****** \
           --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
-          --status_timeout {{ node.lpar.load_status_timeout | default(env.lpar_load_status_timeout | default(300)) }} \
+          --status_timeout {{ _lpar_status_timeout }} \
           --log_level DEBUG \
           --cmdline '{{ boot_cmdline }}'
 
@@ -210,6 +217,6 @@
           --netset_network_device "{{ netset_network_device }}" \
           --netset_password '{{ node.lpar.livedisk.livedisk_root_pass }}' \
           --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
-          --status_timeout {{ node.lpar.load_status_timeout | default(env.lpar_load_status_timeout | default(300)) }} \
+          --status_timeout {{ _lpar_status_timeout }} \
           --log_level DEBUG \
           --cmdline '{{ boot_cmdline }}'

@@ -13,13 +13,6 @@ Exit codes:
 """
 import sys
 
-if len(sys.argv) != 3:
-    print(f"Usage: {sys.argv[0]} <hmc.py path> <patch_name>", file=sys.stderr)
-    sys.exit(1)
-
-path = sys.argv[1]
-patch_name = sys.argv[2]
-
 # ---------------------------------------------------------------------------
 # Patch definitions: each entry is (old_string, new_string)
 # The old_string is what the unpatched library contains.
@@ -385,6 +378,73 @@ PATCHES = {
                         elif notify_boot and not notify_boot.is_set() :
                             self._logger.debug("Notify initial boot complete")
                             notify_boot.set()""",
+            # variants when wait_for_operating (Patch 6) was applied before rest_os_messages (Patch 8)
+            """\
+        with Messages.connect(_get_guest_os_channel, self.host_name, self.user, self.passwd) as receiver:
+            self._logger.debug("Waiting for live image login prompt")
+            self._send_commands(
+                guest_obj,
+                [(r'login:\\s*$', 'root'), ('Password:', os_passwd)],
+                receiver)
+
+            self._logger.debug("Setting up network on live image")
+            self._send_commands(guest_obj, net_cmds, receiver)
+
+            if net_boot:
+                self._logger.debug("Performing netboot")
+                self._execute_kexec(guest_obj, receiver,
+                                    net_setup, net_boot)
+
+                kexec_stime = time.monotonic()
+                # wait a little to collect reboot logs and
+                # check whether kexec is successful
+                timeout = time.monotonic() + MSG_POST_LOAD_DURATION
+                while timeout - time.monotonic() > 0:
+                    for msg in receiver.get_messages(
+                            timeout=max(1.0, min(MSG_POST_LOAD_DURATION,
+                                                 timeout-time.monotonic()))):
+                        self._logger.debug("%s: %s", msg['type'], msg['text'])
+                        if time.monotonic() - kexec_stime <= KEXEC_WAIT_TIME :
+                            if re.search(KEXEC_ERROR_PATTERN, msg['text']):
+                                raise RuntimeError(
+                                    "Cannot read /tmp/kernel or /tmp/initrd")
+                        # check if we have a notification event in parameters
+                        elif notify_boot and not notify_boot.is_set() :
+                            self._logger.debug("Notify initial boot complete")
+                            notify_boot.set()""",
+            """\
+        with Messages.connect(_get_guest_os_channel, self.host_name, self.user, self.passwd) as receiver:
+            self._logger.debug("Waiting for live image login prompt")
+            self._send_commands(
+                guest_obj,
+                [('debirf-rescue login:', 'root'), ('Password:', os_passwd)],
+                receiver)
+
+            self._logger.debug("Setting up network on live image")
+            self._send_commands(guest_obj, net_cmds, receiver)
+
+            if net_boot:
+                self._logger.debug("Performing netboot")
+                self._execute_kexec(guest_obj, receiver,
+                                    net_setup, net_boot)
+
+                kexec_stime = time.monotonic()
+                # wait a little to collect reboot logs and
+                # check whether kexec is successful
+                timeout = time.monotonic() + MSG_POST_LOAD_DURATION
+                while timeout - time.monotonic() > 0:
+                    for msg in receiver.get_messages(
+                            timeout=max(1.0, min(MSG_POST_LOAD_DURATION,
+                                                 timeout-time.monotonic()))):
+                        self._logger.debug("%s: %s", msg['type'], msg['text'])
+                        if time.monotonic() - kexec_stime <= KEXEC_WAIT_TIME :
+                            if re.search(KEXEC_ERROR_PATTERN, msg['text']):
+                                raise RuntimeError(
+                                    "Cannot read /tmp/kernel or /tmp/initrd")
+                        # check if we have a notification event in parameters
+                        elif notify_boot and not notify_boot.is_set() :
+                            self._logger.debug("Notify initial boot complete")
+                            notify_boot.set()""",
         ],
         """\
         # Use HMC REST polling for OS messages instead of the STOMP channel.
@@ -458,11 +518,29 @@ PATCHES = {
     # -------------------------------------------------------------------------
     "send_os_cmd_retry": (
         [
-            """\
+            (
+                """\
+            for chunk in _string_to_chunks(cmd):
+                guest_obj.send_os_command(chunk)""",
+                """\
+            _send_deadline = time.monotonic() + int(__import__('os').environ.get('TESSIA_SEND_CMD_TIMEOUT', 180))
+            for chunk in _string_to_chunks(cmd):
+                while True:
+                    try:
+                        guest_obj.send_os_command(chunk)
+                        break
+                    except zhmcclient.HTTPError as exc:
+                        if exc.http_status == 409 and exc.reason == 332 and time.monotonic() < _send_deadline:
+                            self._logger.debug("LPAR not in operating state yet (HTTP 409,332); retrying send_os_command in 3s ...")
+                            time.sleep(3)
+                            continue
+                        raise""",
+            ),
+            (
+                """\
                 for chunk in _string_to_chunks(cmd):
                     guest_obj.send_os_command(chunk)""",
-        ],
-        """\
+                """\
                 _send_deadline = time.monotonic() + int(__import__('os').environ.get('TESSIA_SEND_CMD_TIMEOUT', 180))
                 for chunk in _string_to_chunks(cmd):
                     while True:
@@ -475,43 +553,127 @@ PATCHES = {
                                 time.sleep(3)
                                 continue
                             raise""",
+            ),
+            (
+                """\
+        for chunk in _string_to_chunks(cmd):
+            guest_obj.send_os_command(chunk)""",
+                """\
+        _send_deadline = time.monotonic() + int(__import__('os').environ.get('TESSIA_SEND_CMD_TIMEOUT', 180))
+        for chunk in _string_to_chunks(cmd):
+            while True:
+                try:
+                    guest_obj.send_os_command(chunk)
+                    break
+                except zhmcclient.HTTPError as exc:
+                    if exc.http_status == 409 and exc.reason == 332 and time.monotonic() < _send_deadline:
+                        self._logger.debug("LPAR not in operating state yet (HTTP 409,332); retrying send_os_command in 3s ...")
+                        time.sleep(3)
+                        continue
+                    raise""",
+            ),
+        ],
+        """\
+            _send_deadline = time.monotonic() + int(__import__('os').environ.get('TESSIA_SEND_CMD_TIMEOUT', 180))
+            for chunk in _string_to_chunks(cmd):
+                while True:
+                    try:
+                        guest_obj.send_os_command(chunk)
+                        break
+                    except zhmcclient.HTTPError as exc:
+                        if exc.http_status == 409 and exc.reason == 332 and time.monotonic() < _send_deadline:
+                            self._logger.debug("LPAR not in operating state yet (HTTP 409,332); retrying send_os_command in 3s ...")
+                            time.sleep(3)
+                            continue
+                        raise""",
+    ),
+
+    # -------------------------------------------------------------------------
+    # Patch 9: ACTIVATE WAIT STATUS TIMEOUT
+    # When start() finds the LPAR "not-activated" it calls activate() without
+    # waiting, then wait_for_status(['not-operating', 'operating']) with no
+    # timeout. zhmcclient then uses its 60 s default and raises StatusTimeout
+    # if the HMC takes longer to activate the LPAR. Use the same configurable
+    # status_timeout as the load patches (boot_params['status_timeout'],
+    # fallback env TESSIA_LOAD_STATUS_TIMEOUT, then 300 s).
+    # -------------------------------------------------------------------------
+    "activate_wait_timeout": (
+        """\
+                guest_obj.wait_for_status(['not-operating', 'operating'])""",
+        """\
+                guest_obj.wait_for_status(
+                    ['not-operating', 'operating'],
+                    status_timeout=parameters['boot_params'].get(
+                        'status_timeout',
+                        int(__import__('os').environ.get('TESSIA_LOAD_STATUS_TIMEOUT', 300))))""",
     ),
 }
 
-if patch_name not in PATCHES:
-    print(f"Unknown patch name: {patch_name}", file=sys.stderr)
-    print(f"Available patches: {', '.join(PATCHES)}", file=sys.stderr)
-    sys.exit(1)
 
-old, new = PATCHES[patch_name]
-old_candidates = [old] if isinstance(old, str) else list(old)
+def main():
+    if len(sys.argv) != 3:
+        print(f"Usage: {sys.argv[0]} <hmc.py path> <patch_name>", file=sys.stderr)
+        sys.exit(1)
 
-try:
-    with open(path) as f:
-        content = f.read()
-except OSError as exc:
-    print(f"ERROR: cannot read {path}: {exc}", file=sys.stderr)
-    sys.exit(1)
+    path = sys.argv[1]
+    patch_name = sys.argv[2]
 
-if new in content or (patch_name == "scsi_load_timeout" and PATCHES["scsi_load_500_263"][1] in content):
-    print(f"ALREADY_APPLIED: {patch_name}")
-    sys.exit(0)
+    if patch_name not in PATCHES:
+        print(f"Unknown patch name: {patch_name}", file=sys.stderr)
+        print(f"Available patches: {', '.join(PATCHES)}", file=sys.stderr)
+        sys.exit(1)
 
-matched_old = None
-for candidate in old_candidates:
-    if candidate in content:
-        matched_old = candidate
-        break
+    old, new = PATCHES[patch_name]
+    old_candidates = [old] if isinstance(old, str) else list(old)
 
-if not matched_old:
-    print(f"NOT_FOUND: {patch_name} — old string not present; library may have changed upstream")
-    sys.exit(0)
+    try:
+        with open(path) as f:
+            content = f.read()
+    except OSError as exc:
+        print(f"ERROR: cannot read {path}: {exc}", file=sys.stderr)
+        sys.exit(1)
 
-try:
-    with open(path, "w") as f:
-        f.write(content.replace(matched_old, new, 1))
-except OSError as exc:
-    print(f"ERROR: cannot write {path}: {exc}", file=sys.stderr)
-    sys.exit(1)
+    already_applied = False
+    if isinstance(new, str) and new in content:
+        already_applied = True
+    elif patch_name == "scsi_load_timeout" and PATCHES["scsi_load_500_263"][1] in content:
+        already_applied = True
+    elif patch_name == "send_os_cmd_retry" and "TESSIA_SEND_CMD_TIMEOUT" in content:
+        already_applied = True
+    elif patch_name == "rest_os_messages" and "_RestOsMessages" in content:
+        already_applied = True
+    elif patch_name == "wait_for_operating" and "TESSIA_OPERATING_TIMEOUT" in content:
+        already_applied = True
 
-print(f"PATCHED: {patch_name}")
+    if already_applied:
+        print(f"ALREADY_APPLIED: {patch_name}")
+        sys.exit(0)
+
+    matched_old = None
+    matched_new = new
+    for candidate in old_candidates:
+        if isinstance(candidate, tuple):
+            cand_old, cand_new = candidate
+        else:
+            cand_old, cand_new = candidate, new
+        if cand_old in content:
+            matched_old = cand_old
+            matched_new = cand_new
+            break
+
+    if not matched_old:
+        print(f"NOT_FOUND: {patch_name} — old string not present; library may have changed upstream")
+        sys.exit(0)
+
+    try:
+        with open(path, "w") as f:
+            f.write(content.replace(matched_old, matched_new, 1))
+    except OSError as exc:
+        print(f"ERROR: cannot write {path}: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"PATCHED: {patch_name}")
+
+
+if __name__ == "__main__":
+    main()
