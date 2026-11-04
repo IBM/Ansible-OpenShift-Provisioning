@@ -129,7 +129,7 @@
         - env.cluster.nodes.compute.ip is defined
         - (env.cluster.nodes.compute.hostname | length) > 0
         - env.cluster.nodes.compute.ip[0] is not none
-        - env.cluster.nodes.compute.ip[0] | string | regex_search('^[0-9]')
+        - env.cluster.nodes.compute.ip[0] is match('^[0-9]')
 
     - name: Remove infrastructure node PTR entries from DNS reverse lookup file
       ansible.builtin.lineinfile:
@@ -209,7 +209,7 @@
     - env.cluster.nodes.compute.ip is defined
     - (env.cluster.nodes.compute.hostname | length) > 0
     - env.cluster.nodes.compute.ip[0] is not none
-    - env.cluster.nodes.compute.ip[0] | string | regex_search('^[0-9]')
+    - env.cluster.nodes.compute.ip[0] is match('^[0-9]')
 
 - name: Add infrastructure nodes to DNS forwarding file
   tags: dns
@@ -255,7 +255,7 @@
     - env.cluster.nodes.compute.ip is defined
     - (env.cluster.nodes.compute.hostname | length) > 0
     - env.cluster.nodes.compute.ip[0] is not none
-    - env.cluster.nodes.compute.ip[0] | string | regex_search('^[0-9]')
+    - env.cluster.nodes.compute.ip[0] is match('^[0-9]')
 
 - name: Add infrastructure nodes to DNS reverse lookup file
   tags: dns
