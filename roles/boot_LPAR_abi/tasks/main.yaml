@@ -9,6 +9,25 @@
     file: "{{ inventory_dir }}/host_vars/{{ item }}.yaml"
     name: node
 
+- name: Set HMC status timeout for ABI
+  ansible.builtin.set_fact:
+    _lpar_status_timeout: >-
+      {{ node.lpar.livedisk.load_status_timeout
+      | default(node.lpar.load_status_timeout
+      | default(env.lpar_load_status_timeout | default(300))) }}
+
+- name: Set method used to stop a running LPAR before boot
+  ansible.builtin.set_fact:
+    _lpar_deactivate_method: >-
+      {{ node.lpar.livedisk.deactivate_method
+      | default(env.lpar_deactivate_method | default('deactivate')) }}
+
+- name: Validate LPAR stop method
+  ansible.builtin.assert:
+    that: _lpar_deactivate_method in ['deactivate', 'reset_clear']
+    fail_msg: "deactivate_method must be 'deactivate' or 'reset_clear', got '{{ _lpar_deactivate_method }}'"
+    quiet: true
+
 # Non-DPM LPARs get a new random layer2 MAC on every boot. The MAC from all.yaml
 # (env.cluster.nodes.*.mac, matched by vm_name) is therefore forced on the interface
 # via the last field of the dracut ip= parameter, so it matches agent-config.yaml.
@@ -94,9 +113,9 @@
       --netset_network_device "{{ node.lpar.networking.nic.card1.dev_num }}"
       --netset_password ******
       --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}"
-      --status_timeout {{ node.lpar.load_status_timeout | default(env.lpar_load_status_timeout | default(300)) }}
+      --status_timeout {{ _lpar_status_timeout }}
       --log_level DEBUG
-      {% if deactivate_lpar_before_boot | default(true) | bool %}--deactivate_first{% endif %}
+      {% if deactivate_lpar_before_boot | default(true) | bool %}--deactivate_first --deactivate_method {{ _lpar_deactivate_method }}{% endif %}
       --cmdline "{{ abi_cmdline }}"
 
 - name: Booting LPAR node with ABI agent
@@ -128,9 +147,9 @@
       --netset_network_device "{{ node.lpar.networking.nic.card1.dev_num }}" \
       --netset_password '{{ node.lpar.livedisk.livedisk_root_pass }}' \
       --netset_dns "{{ node.networking.nameserver1 }},{{ node.networking.nameserver2 }}" \
-      --status_timeout {{ node.lpar.load_status_timeout | default(env.lpar_load_status_timeout | default(300)) }} \
+      --status_timeout {{ _lpar_status_timeout }} \
       --log_level DEBUG \
-      {% if deactivate_lpar_before_boot | default(true) | bool %}--deactivate_first \{% endif %}
+      {% if deactivate_lpar_before_boot | default(true) | bool %}--deactivate_first --deactivate_method {{ _lpar_deactivate_method }} \{% endif %}
       --cmdline "{{ abi_cmdline }}"
   register: boot_result
   no_log: true

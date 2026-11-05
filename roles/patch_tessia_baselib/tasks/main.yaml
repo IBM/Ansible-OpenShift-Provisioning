@@ -17,53 +17,59 @@
       register: hmc_py_path
       changed_when: false
 
-    - name: "Patch 1/7 — fix login prompt (debirf → generic 'login:')"
+    - name: "Patch 1/9 — fix login prompt (debirf → generic 'login:')"
       ansible.builtin.script:
         cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} login_prompt"
       register: patch1
       changed_when: "'PATCHED' in patch1.stdout"
 
-    - name: "Patch 2/7 — fix shell prompt pattern (debirf-rescue:~# → generic [#$])"
+    - name: "Patch 2/9 — fix shell prompt pattern (debirf-rescue:~# → generic [#$])"
       ansible.builtin.script:
         cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} shell_prompt"
       register: patch2
       changed_when: "'PATCHED' in patch2.stdout"
 
-    - name: "Patch 3/7 — raise dasd load status_timeout, allow exceptions status, and catch 500,263"
+    - name: "Patch 3/9 — raise dasd load status_timeout, allow exceptions status, and catch 500,263"
       ansible.builtin.script:
         cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} dasd_load_timeout"
       register: patch3
       changed_when: "'PATCHED' in patch3.stdout"
 
-    - name: "Patch 4/7 — raise scsi_load status_timeout and allow exceptions status"
+    - name: "Patch 4/9 — raise scsi_load status_timeout and allow exceptions status"
       ansible.builtin.script:
         cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} scsi_load_timeout"
       register: patch4
       changed_when: "'PATCHED' in patch4.stdout"
 
-    - name: "Patch 5/7 — catch HMC 500,263 race condition on scsi_load and support configurable timeout"
+    - name: "Patch 5/9 — catch HMC 500,263 race condition on scsi_load and support configurable timeout"
       ansible.builtin.script:
         cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} scsi_load_500_263"
       register: patch5
       changed_when: "'PATCHED' in patch5.stdout"
 
-    - name: "Patch 6/7 — wait for LPAR operating/exceptions status before sending OS commands"
+    - name: "Patch 6/9 — wait for LPAR operating/exceptions status before sending OS commands"
       ansible.builtin.script:
         cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} wait_for_operating"
       register: patch6
       changed_when: "'PATCHED' in patch6.stdout"
 
-    - name: "Patch 7/8 — retry send_os_command on HTTP 409,332"
+    - name: "Patch 7/9 — retry send_os_command on HTTP 409,332"
       ansible.builtin.script:
         cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} send_os_cmd_retry"
       register: patch7
       changed_when: "'PATCHED' in patch7.stdout"
 
-    - name: "Patch 8/8 — replace STOMP OS-messages channel with HMC REST polling"
+    - name: "Patch 8/9 — replace STOMP OS-messages channel with HMC REST polling"
       ansible.builtin.script:
         cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} rest_os_messages"
       register: patch8
       changed_when: "'PATCHED' in patch8.stdout"
+
+    - name: "Patch 9/9 — raise status_timeout for the wait after LPAR activation"
+      ansible.builtin.script:
+        cmd: "{{ role_path }}/files/apply_patch.py {{ hmc_py_path.stdout | quote }} activate_wait_timeout"
+      register: patch9
+      changed_when: "'PATCHED' in patch9.stdout"
 
     - name: Report patch status
       ansible.builtin.debug:
@@ -76,4 +82,5 @@
           scsi_load_500_263={{ 'applied' if 'PATCHED' in patch5.stdout else 'already present or skipped' }},
           wait_for_operating={{ 'applied' if 'PATCHED' in patch6.stdout else 'already present or skipped' }},
           send_os_cmd_retry={{ 'applied' if 'PATCHED' in patch7.stdout else 'already present or skipped' }},
-          rest_os_messages={{ 'applied' if 'PATCHED' in patch8.stdout else 'already present or skipped' }}
+          rest_os_messages={{ 'applied' if 'PATCHED' in patch8.stdout else 'already present or skipped' }},
+          activate_wait_timeout={{ 'applied' if 'PATCHED' in patch9.stdout else 'already present or skipped' }}

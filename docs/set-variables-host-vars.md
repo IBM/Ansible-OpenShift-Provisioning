@@ -115,6 +115,8 @@ The network of the LPAR is activated at boot with the kernel parameter `rd.znet=
 **lpar.livedisk.devicenr** | <b>(Optional)</b> the device no of the live disk | c6h1
 **lpar.livedisk.livediskuuid** | <b>(Required if `lpar.dpm_enabled` is `'True'`)</b> UUID of the SCSI live disk device. Used by the HMC load on DPM-enabled CPCs only. | 6005076308ffc2200000000000001000
 **lpar.livedisk.livedisk_root_pass** | <b>(Optional)</b> root password for the livedisk. Reference it from the vault: `"{{ vault_livedisk_root_pass }}"`. | p@ssword
+**lpar.livedisk.deactivate_method** | <b>(Optional)</b> How `boot_LPAR_abi` stops a running LPAR before boot: `deactivate` (default, HMC Deactivate Logical Partition) or `reset_clear` (HMC Reset Clear, faster, no OS shutdown). See [LPAR Stop Method](#lpar-stop-method-optional). | reset_clear
+**lpar.livedisk.load_status_timeout** | <b>(Optional)</b> Timeout in seconds to wait for the HMC to deactivate the LPAR and to load the live disk during LPAR boot. Default is 300. See [LPAR Load Status Timeout](#lpar-load-status-timeout-optional). | 300
 **lpar.dpm_enabled** | Type of CPC: `'True'` if the CPC is DPM enabled, `'False'` for classic PR/SM. Allowed values `'True'` and `'False'` (quoted strings). It controls how the LPAR is loaded (`boot_LPAR`, `boot_LPAR_abi`): for DPM the live disk UUID and the install device by-path are used. | 'False'
 
 ## 8 - LPAR ABI: vm_name, hostname, and mac explained
@@ -168,6 +170,16 @@ Without this value the agent cannot match the correct network interface and the 
 
 ### LPAR Load Status Timeout (Optional)
 
-By default, the HMC status wait timeout when loading DASD or SCSI live disks is set to **300 seconds** (overriding the upstream `zhmcclient` default of 60 seconds). You can customize this timeout per node or globally:
-- Per node in `host_vars/<node>.yaml`: `lpar.load_status_timeout: 300`
+By default, the HMC status wait timeout is set to **300 seconds** (overriding the upstream `zhmcclient` default of 60 seconds). It applies when the LPAR is deactivated before an ABI boot (`boot_LPAR_abi`) and when DASD or SCSI live disks are loaded. You can customize this timeout per node or globally:
+- Per node in `host_vars/<node>.yaml`: `lpar.livedisk.load_status_timeout: 300`
 - Globally in `group_vars/all.yaml`: `env.lpar_load_status_timeout: 300`
+
+Precedence: `lpar.livedisk.load_status_timeout`, then `lpar.load_status_timeout` (older name, still honoured), then `env.lpar_load_status_timeout`, then 300.
+
+### LPAR Stop Method (Optional)
+
+Before an ABI boot, `boot_LPAR_abi` stops an LPAR that is still running (status `operating` or `exceptions`) when `deactivate_lpar_before_boot` is `true` (default). By default it uses the HMC *Deactivate Logical Partition* operation (`deactivate`), which can take several minutes on a node that was running OpenShift. If you are reinstalling and do not need the node to shut down cleanly, set the method to `reset_clear` (HMC *Reset Clear*, which resets the LPAR without waiting for the OS) to save that time:
+- Per node in `host_vars/<node>.yaml`: `lpar.livedisk.deactivate_method: reset_clear`
+- Globally in `group_vars/all.yaml`: `env.lpar_deactivate_method: reset_clear`
+
+Precedence: `lpar.livedisk.deactivate_method`, then `env.lpar_deactivate_method`, then `deactivate`. Allowed values are `deactivate` and `reset_clear`; anything else fails the play. Memory and processors are reset, so use `reset_clear` only when the contents of the LPAR may be discarded. The LPAR is then activated and loaded as usual.
