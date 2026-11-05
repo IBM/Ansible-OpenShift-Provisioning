@@ -970,8 +970,13 @@
 <td style="text-align: left;"></td>
 </tr>
 <tr>
+<td style="text-align: left;"><strong>env.lpar_deactivate_method</strong></td>
+<td style="text-align: left;"><b>(Optional)</b> How <code>boot_LPAR_abi</code> stops a running LPAR before boot: <code>deactivate</code> (default) or <code>reset_clear</code> (faster, no OS shutdown). Can be overridden per node with <code>lpar.livedisk.deactivate_method</code> in the node's host_vars file (see <a href="../set-variables-host-vars/">set-variables-host-vars</a>).</td>
+<td style="text-align: left;">deactivate</td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>env.lpar_load_status_timeout</strong></td>
-<td style="text-align: left;"><b>(Optional)</b> Timeout in seconds to wait for the HMC load status when loading a DASD or SCSI live disk during LPAR boot. Default is 300. Can be overridden per node with <code>lpar.load_status_timeout</code> in the node's host_vars file (see <a href="../set-variables-host-vars/">set-variables-host-vars</a>).</td>
+<td style="text-align: left;"><b>(Optional)</b> Timeout in seconds to wait for the HMC load status when loading a DASD or SCSI live disk during LPAR boot. Default is 300. Can be overridden per node with <code>lpar.livedisk.load_status_timeout</code> in the node's host_vars file (see <a href="../set-variables-host-vars/">set-variables-host-vars</a>).</td>
 <td style="text-align: left;">300</td>
 </tr>
 </tbody>
