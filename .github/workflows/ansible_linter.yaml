@@ -20,7 +20,7 @@ jobs:
         with:
           # Pinned: '3.x' resolved to 3.15, which ansible-core/ansible-lint do not
           # support yet (ansible-lint crashes with "dataclasses has no attribute _is_type").
-          python-version: '3.12'
+          python-version: '3.15'
 
       - name: Install Ansible and ansible-lint
         run: |
