@@ -187,13 +187,15 @@
 
 ## 12 - OCP and RHCOS (CoreOS)
 * These parameters are responsible which version of OCP, RHCOS and os variant AOP is using. The default value is 'latest' for s390x architecture. I you want to install a different version or a different architecture you need to specify specify the following parameters in all.yaml file:
+* `ocp_download_url` is used by **both** installation methods (UPI and Agent Based Installer). `rhcos_download_url` is used by UPI only; it is accepted but ignored for ABI, because `openshift-install agent create` uses the RHCOS image of the release payload.
+* Both URLs are directory URLs and should end with `/`. For `ocp_download_url` a missing trailing `/` is added automatically in the ABI flow.
 
 **Variable Name** | **Description** | **Example/Default**
 :--- | :--- | :---
-**ocp_download_url** | Link to the mirror for the OpenShift client and installer from Red Hat. | https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/latest/s390x/
+**ocp_download_url** | Link to the mirror directory for the OpenShift client and installer from Red Hat. Used for UPI **and** ABI. Examples: `https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/4.18.8/`, `https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.18.8/s390x/`, `https://mirror.openshift.com/pub/openshift-v5/s390x/clients/ocp/5.0.1/`, `https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp-dev-preview/candidate-5.0/` | https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/latest/s390x/
 **ocp_client_tgz** | OpenShift client filename (tar.gz). | openshift-client-linux.tar.gz
 **ocp_install_tgz** | OpenShift installer filename (tar.gz). | openshift-install-linux.tar.gz
-**rhcos_download_url** | Link to the CoreOS files to be used for the bootstrap, control and compute nodes. Feel free to change to a different version. | https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/
+**rhcos_download_url** | Link to the CoreOS files to be used for the bootstrap, control and compute nodes. Feel free to change to a different version. **UPI only**, ignored by ABI. | https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/
 **rhcos_os_variant** | CoreOS base OS. Use the OS string as defined in 'osinfo-query os -f short-id' | rhl9
 **rhcos_live_kernel** | CoreOS kernel filename to be used for the bootstrap, control and compute nodes. | rhcos-live-kernel.s390x
 **rhcos_live_initrd** | CoreOS initramfs to be used for the bootstrap, control and compute nodes. | rhcos-live-initramfs.s390x.img
@@ -285,14 +287,24 @@ If those nodes use new hypervisors that must be prepared first, temporarily add 
 :--- | :--- | :---
 **abi.flag** | This is the flag, Will be used to identify during execution. Few checks in the playbook will be depend on this (default value will be False)  | True
 **abi.ansible_workdir** | This will be work directory name, it will keep required data that need to be present during or after execution | ansible_workdir
-**abi.ocp_installer_version** | Version will contain value of openshift-installer binary version user desired to be used | '4.15.8'
-**abi.ocp_installer_base_url** | This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror | 'https://mirror.openshift.com/pub/openshift-v4/'
-**abi.architecture** | The installer binary supports two architecture options: multi and s390x. Users are required to specify the appropriate architecture value based on their deployment environment. | 'multi/s390x'
+**abi.ocp_installer_version** | <b>(Deprecated, use `ocp_download_url`)</b> Version of the openshift-installer binary. Ignored if `ocp_download_url` is set. Will be removed in a later release. | '4.15.8'
+**abi.ocp_installer_base_url** | <b>(Deprecated, use `ocp_download_url`)</b> Base url of the openshift mirror. Ignored if `ocp_download_url` is set. Will be removed in a later release. | 'https://mirror.openshift.com/pub/openshift-v4'
+**abi.architecture** | <b>(Deprecated, use `ocp_download_url`)</b> Architecture directory on the mirror: `multi` or `s390x`. Ignored if `ocp_download_url` is set. Will be removed in a later release. | 'multi/s390x'
 **abi.boot_method** | Specifies the boot type for Agent-based Installation (ABI). Users must choose either iso or pxe based on the deployment method. Note: iso boot is supported only on KVM platforms. | 'iso/pxe'
 **abi.install_timeout** | <b>(Optional)</b> Maximum number of seconds the monitor playbook (`monitor_create_abi_cluster.yaml`) waits for the installation to complete. Default is 7200 (2 hours). Increase it on slower environments. | 7200
 **abi.install_poll_delay** | <b>(Optional)</b> Number of seconds between two installation status checks. Default is 30. | 30
 **abi.platform** | Platform section of the generated install-config.yaml. Either `none` (default, also used when the variable is not set) or `external`. | 'none/external'
 **abi.platform_name** | Value for `platform.external.platformName`. Only used when `abi.platform` is `external`. Defaults to `ibmz`. | ibmz
+
+### Migration from `abi.ocp_installer_*` to `ocp_download_url`
+The OpenShift location for ABI is now configured with the same `ocp_download_url` variable as for UPI (see section 12). If `ocp_download_url` is set, the deprecated `abi.ocp_installer_version`, `abi.ocp_installer_base_url` and `abi.architecture` are ignored. If it is not set and all three deprecated variables are set, the URL is built as before and a deprecation warning with the equivalent `ocp_download_url` is printed. If neither is set, the default `https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/latest/s390x/` is used.
+
+**Deprecated ABI settings** | **Replace by**
+:--- | :---
+`ocp_installer_base_url: .../openshift-v4`, `ocp_installer_version: 4.18.8`, `architecture: s390x` | `ocp_download_url: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/4.18.8/`
+same with `architecture: multi` | `ocp_download_url: https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.18.8/s390x/`
+`ocp_installer_base_url: .../openshift-v5`, `ocp_installer_version: 5.0.1`, `architecture: s390x` | `ocp_download_url: https://mirror.openshift.com/pub/openshift-v5/s390x/clients/ocp/5.0.1/`
+`ocp_installer_version` containing `-ec` | `ocp_download_url: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp-dev-preview/<version or candidate-X.Y>/`
 
 ## 15 - (Optional) CEX based LUKS encryption
 **Variable Name** | **Description** | **Example/Default**
