@@ -37,6 +37,9 @@ parser.add_argument("--status_timeout", type=int, help="Timeout in seconds waiti
 parser.add_argument("--log_level", type=str, help="can be of type INFO or DEBUG")
 parser.add_argument("--deactivate_first", action="store_true", default=False,
                     help="Deactivate the LPAR if it is currently active before loading")
+parser.add_argument("--deactivate_method", type=str, choices=["deactivate", "reset_clear"], default="deactivate",
+                    help="How --deactivate_first stops a running LPAR: 'deactivate' (HMC Deactivate Logical Partition, "
+                         "default) or 'reset_clear' (HMC Reset Clear, does not wait for the OS to shut down)")
 args = parser.parse_args()
 
 # Example usage:
@@ -118,9 +121,14 @@ if args.deactivate_first:
         _status = _lpar.get_property('status')
         print(f"[deactivate_first] LPAR {lpar_name} current status: {_status}", file=_sys.stderr)
         if _status not in ('not-activated', 'not-operating'):
-            print(f"[deactivate_first] Deactivating LPAR {lpar_name} (status={_status}) ...", file=_sys.stderr)
-            _lpar.deactivate(wait_for_completion=True, force=True)
-            print(f"[deactivate_first] LPAR {lpar_name} deactivated.", file=_sys.stderr)
+            if args.deactivate_method == "reset_clear":
+                print(f"[deactivate_first] Reset-clearing LPAR {lpar_name} (status={_status}) ...", file=_sys.stderr)
+                _lpar.reset_clear(force=True, wait_for_completion=True)
+                print(f"[deactivate_first] LPAR {lpar_name} reset.", file=_sys.stderr)
+            else:
+                print(f"[deactivate_first] Deactivating LPAR {lpar_name} (status={_status}) ...", file=_sys.stderr)
+                _lpar.deactivate(wait_for_completion=True, force=True, status_timeout=args.status_timeout)
+                print(f"[deactivate_first] LPAR {lpar_name} deactivated.", file=_sys.stderr)
         else:
             print(f"[deactivate_first] LPAR {lpar_name} already inactive (status={_status}), skipping.", file=_sys.stderr)
     finally:

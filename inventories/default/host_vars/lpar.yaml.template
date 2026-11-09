@@ -92,11 +92,6 @@ lpar:
     pass: "{{ vault_lpar1_user_pass }}"       # LPAR user password (secret)
     root_pass: "{{ vault_lpar1_root_pass }}"  # LPAR root password (secret). [KVM] Set as root password by the kickstart
 
-# (Optional) Timeout in seconds to wait for the HMC load status when loading
-# the live disk. Default is 300. Can also be set globally with
-# env.lpar_load_status_timeout in group_vars/all.yaml.
-#  load_status_timeout: 300
-
 # Section 4 - IFL & Memory (LPAR profile resources)
 # [DPM] Used only when Ansible creates the LPAR (DPM partition) on the HMC (env.z.lpar1.create).
   ifl:
@@ -191,6 +186,11 @@ lpar:
     devicenr: #X              # Live disk device number
     livediskuuid: #X          # Required only when 'dpm_enabled' is 'True'
     livedisk_root_pass: "{{ vault_livedisk_root_pass }}"  # Live disk root password (secret)
+#    load_status_timeout: 300  # (Optional) Seconds to wait for the HMC to deactivate/load the LPAR. Default 300.
+                              # Can also be set globally with env.lpar_load_status_timeout in group_vars/all.yaml.
+#    deactivate_method: deactivate  # (Optional, boot_LPAR_abi only) How a running LPAR is stopped before boot. Default 'deactivate'.
+                                    # 'reset_clear' skips the OS shutdown and is faster. Can also be set globally with
+                                    # env.lpar_deactivate_method in group_vars/all.yaml.
 
 # Type of LPAR: 'True' for DPM, 'False' for classic PR/SM. Allowed values ['True', 'False']
   dpm_enabled: 'False'
