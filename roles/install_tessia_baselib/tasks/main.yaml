@@ -259,3 +259,12 @@
 - name: Show resolved tessia_python
   ansible.builtin.debug:
     msg: "tessia-baselib ready — interpreter: {{ tessia_python }}"
+    
+# stomp.py 6.x changed the SSL API (use_ssl="SSL" no longer works) and breaks
+# zhmcclient's NotificationReceiver which is used for HMC OS messages.
+# Pin to the last known-good 4.x release.
+- name: Pin stomp.py to 4.1.24 for zhmcclient HMC OS messages compatibility
+  pip:
+    name: stomp.py==4.1.24
+    executable: pip3
+

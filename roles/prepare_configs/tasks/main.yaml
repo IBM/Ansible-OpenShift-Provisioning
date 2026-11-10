@@ -1,12 +1,12 @@
 ---
 - name: Delete OCP Work Directory For Idempotency.
   ansible.builtin.file:
-    path: ~/ansible_workdir
+    path: "~/{{ abi.ansible_workdir | default('ansible_workdir') }}"
     state: absent
 
 - name: Create Work Directory
   ansible.builtin.file:
-    path: ~/ansible_workdir
+    path: "~/{{ abi.ansible_workdir | default('ansible_workdir') }}"
     state: directory
     mode: '0755'
 
@@ -19,8 +19,8 @@
     mode: "0755"
     backup: true
   loop:
-    - ~/ansible_workdir/agent-config.yaml
-    - ~/ansible_workdir/agent-config-backup.yaml
+    - "~/{{ abi.ansible_workdir | default('ansible_workdir') }}/agent-config.yaml"
+    - "~/{{ abi.ansible_workdir | default('ansible_workdir') }}/agent-config-backup.yaml"
 
 - name: Check if bastion SSH key exists
   ansible.builtin.stat:
@@ -48,5 +48,5 @@
     mode: "0755"
     backup: true
   loop:
-    - ~/ansible_workdir/install-config.yaml
-    - ~/ansible_workdir/install-config-backup.yaml
+    - "~/{{ abi.ansible_workdir | default('ansible_workdir') }}/install-config.yaml"
+    - "~/{{ abi.ansible_workdir | default('ansible_workdir') }}/install-config-backup.yaml"

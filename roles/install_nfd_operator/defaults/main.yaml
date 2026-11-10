@@ -1,0 +1,9 @@
+---
+# Default values for the Node Feature Discovery operator installation.
+
+nfd_namespace: openshift-nfd
+nfd_channel: stable
+# GA clusters: redhat-operators
+# RC / pre-release clusters: set to your pre-release CatalogSource name
+nfd_catalog_source: redhat-operators
+nfd_csv_timeout: 300   # Seconds to wait for the NFD CSV to reach Succeeded

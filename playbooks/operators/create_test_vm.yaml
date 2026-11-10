@@ -1,0 +1,78 @@
+---
+# playbooks/operators/create_test_vm.yaml
+#
+# Creates a test VirtualMachine on an already-running OCP Virt cluster.
+# Use this when the install playbook was run with test_vm.create: false
+# and you want to create the test VM separately afterwards.
+#
+# The VM proves the full stack end-to-end:
+#   HyperConverged Available → CDI imports image → VM boots
+#
+# Optionally (ocp_virt.test_vm.data_disk.create: true) a blank data disk is
+# created as a second DataVolume and attached to the VM as a virtio disk.
+#
+# Optionally (ocp_virt.test_vm.migration.enabled: true) the VM is live-migrated
+# to another node once it is Ready, and the playbook verifies the move.
+# This use case verifies the functionality of OCP Virt and the underlying
+# storage provider (live migration requires ReadWriteMany/shared storage).
+#
+# Requirements:
+#   - OCP Virt (kubevirt-hyperconverged) already installed and Available
+#   - ocp_virt.test_vm.image_url set to an s390x qcow2 image URL
+#   - Default StorageClass present (for the DataVolume)
+#
+# Usage:
+#   ansible-playbook playbooks/operators/create_test_vm.yaml --ask-vault-pass
+#
+# To keep the VM running after verification:
+#   Set ocp_virt.test_vm.keep: true in operators.yaml
+#   (default: false — VM and namespace are deleted after it reaches Ready)
+
+- name: Create OCP Virt test VM
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+    - "{{ inventory_dir }}/group_vars/operators.yaml"
+  pre_tasks:
+    - name: Get the home directory of the bastion user
+      ansible.builtin.command: printenv HOME
+      changed_when: false
+      register: _bastion_home
+
+    - name: Set ocp_virt_kubeconfig to absolute path
+      ansible.builtin.set_fact:
+        ocp_virt_kubeconfig: "{{ ocp_virt_kubeconfig | regex_replace('^~', _bastion_home.stdout | trim) }}"
+
+    - name: Read bastion SSH public key (used when test_vm.ssh_public_key is empty)
+      ansible.builtin.shell: |
+        for f in ~/.ssh/id_ed25519.pub ~/.ssh/id_ecdsa.pub ~/.ssh/id_rsa.pub; do
+          [ -f "$f" ] && cat "$f" && break
+        done
+      changed_when: false
+      register: _bastion_pubkey
+      when: ocp_virt.test_vm.ssh_public_key | default('') | length == 0
+
+    - name: Inject bastion SSH public key into test_vm config
+      ansible.builtin.set_fact:
+        ocp_virt: >-
+          {{ ocp_virt | combine({'test_vm': ocp_virt.test_vm |
+             combine({'ssh_public_key': _bastion_pubkey.stdout | trim})},
+             recursive=true) }}
+      when:
+        - ocp_virt.test_vm.ssh_public_key | default('') | length == 0
+        - _bastion_pubkey.stdout | default('') | trim | length > 0
+
+    - name: Verify HyperConverged is Available before creating the VM
+      ansible.builtin.command: >-
+        oc get hyperconverged {{ ocp_virt.hyperconverged.name }}
+        -n {{ ocp_virt.hyperconverged.namespace }}
+        -o jsonpath='{.status.conditions[?(@.type=="Available")].status}'
+      register: _hco_status
+      changed_when: false
+      failed_when: _hco_status.stdout | trim != 'True'
+  environment:
+    KUBECONFIG: "{{ ocp_virt_kubeconfig }}"
+  roles:
+    - role: create_ocp_virt_test_vm

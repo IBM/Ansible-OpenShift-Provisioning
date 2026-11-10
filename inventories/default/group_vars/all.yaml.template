@@ -10,6 +10,8 @@ schema_version: 2
 # Section 1 - Ansible Controller
 installation_type: kvm
 controller_sudo_pass: "{{ vault_ctl_host_sudo_pass }}"
+disconnected_enabled: false                      # [MANDATORY] Set to 'true' if installing in a disconnected / restricted network.
+timeout_node_creation: 960                       # [OPTIONAL] Timeout in seconds for node provisioning tasks.
 
 # Section 5 - Bastion nodes
 # List the host_vars file names (without .yaml extension) for each bastion to create/configure.
@@ -200,18 +202,10 @@ env:
 # ocp download_url and rhcos download url
 
 # Section 13 - (Optional) Create additional compute node in a day-2 operation
-day2_compute_node:
-  vm_name:
-  vm_hostname:
-  vm_ip:
-  vm_ipv6:
-  vm_mac:
-  vm_interface:
-  hostname:
-  host_user:
-  host_arch:
-  disk_pool:
-  install_dev: # (Optional) Installation device, defaults to 'vda' if not specified
+# Provide one or more host_vars entry names for day-2 compute nodes.
+# Each entry must match a file in inventories/default/host_vars/.
+#day2_compute_node:
+#  - <host_vars_entry_name>
 
 
 # Section 14 - Agent Based Installer ( Optional )
@@ -233,6 +227,10 @@ abi:
   ocp_installer_base_url: 'https://mirror.openshift.com/pub/openshift-v4'
   architecture: <multi|s390x>
   boot_method: <pxe|iso>
+  install_timeout: 7200     # (Optional) max seconds to wait for the installation to complete
+  install_poll_delay: 30    # (Optional) seconds between two status checks
+# platform: none            # none (default) | external
+# platform_name: ibmz       # only used when platform is external
 
 # Openshift Settings  
 # Settings like architecture, hyperthreading, network cidr, etc.

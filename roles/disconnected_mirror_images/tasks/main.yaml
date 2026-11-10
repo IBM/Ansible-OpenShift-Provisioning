@@ -9,7 +9,7 @@
         dest: /etc/resolv.conf
         owner: root
         group: root
-        mode: "644"
+        mode: "0644"
     - name: Get user home directory
       tags: mirror_artifacts
       ansible.builtin.shell: |

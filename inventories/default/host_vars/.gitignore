@@ -3,3 +3,4 @@
 !KVMhostname*-here.yaml.template
 !bastion-kvm-example.yaml.template
 !bastion-zvm-example.yaml.template
+!lpar.yaml.template

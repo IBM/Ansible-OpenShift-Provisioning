@@ -20,6 +20,44 @@
     - (env.network_mode | upper == 'NAT')
     - (env.jumphost.name is none or env.jumphost.ip is none or env.jumphost.user is none or env.jumphost.pass is none or env.jumphost.path_to_keypair is none)
 
+- name: Initialize day-2 inventory host list
+  tags: set_inventory
+  ansible.builtin.set_fact:
+    day2_inventory_hosts: []
+
+- name: Load day-2 compute node host_vars for inventory generation
+  tags: set_inventory
+  ansible.builtin.include_vars:
+    file: "{{ inventory_dir }}/host_vars/{{ item }}.yaml"
+    name: current_day2_inventory_node
+  loop: "{{ day2_compute_node | default([]) }}"
+  register: day2_inventory_host_vars_results
+
+- name: Build day-2 inventory host list
+  tags: set_inventory
+  ansible.builtin.set_fact:
+    day2_inventory_hosts: >-
+      {{ day2_inventory_hosts + [{
+        'name': item.ansible_facts.current_day2_inventory_node.hypervisor_name,
+        'ip': item.ansible_facts.current_day2_inventory_node.hypervisor_host_ip,
+        'user': item.ansible_facts.current_day2_inventory_node.hypervisor_user,
+        'password': item.ansible_facts.current_day2_inventory_node.hypervisor_user_pwd,
+        'python_interpreter': item.ansible_facts.current_day2_inventory_node.ansible_python_interpreter | default('/usr/bin/python3')
+      }] }}
+  loop: "{{ day2_inventory_host_vars_results.results | default([]) }}"
+  when:
+    - item.ansible_facts.current_day2_inventory_node is defined
+    - item.ansible_facts.current_day2_inventory_node.setup_host | default(false) | bool
+    - item.ansible_facts.current_day2_inventory_node.hypervisor_name is defined
+    - item.ansible_facts.current_day2_inventory_node.hypervisor_host_ip is defined
+    - item.ansible_facts.current_day2_inventory_node.hypervisor_user is defined
+    - item.ansible_facts.current_day2_inventory_node.hypervisor_user_pwd is defined
+
+- name: Remove duplicate day-2 inventory hosts
+  tags: set_inventory
+  ansible.builtin.set_fact:
+    day2_inventory_hosts: "{{ day2_inventory_hosts | unique(attribute='name') }}"
+
 - name: Template out inventory with localhost, file server, KVM host, jumphost(optional) and bastion information
   tags: set_inventory
   ansible.builtin.template:

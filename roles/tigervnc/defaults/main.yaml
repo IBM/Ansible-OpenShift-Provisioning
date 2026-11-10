@@ -1,6 +1,6 @@
 ---
 # Default variables for TigerVNC role
-tigervnc_enabled: "{{ (env.z.tigervnc.enabled if (env.z is defined and env.z.tigervnc is defined and env.z.tigervnc.enabled is defined) else true) | bool }}"
+tigervnc_enabled: "{{ (env.z.tigervnc.enabled if (env.z is defined and env.z.tigervnc is defined and env.z.tigervnc.enabled is defined) else false) | bool }}"
 tigervnc_display: "{{ (env.z.tigervnc.display if (env.z is defined and env.z.tigervnc is defined and env.z.tigervnc.display is defined) else 1) | int }}"
 tigervnc_port: "{{ 5900 + (tigervnc_display | int) }}"
 tigervnc_user: "{{ ansible_user }}"

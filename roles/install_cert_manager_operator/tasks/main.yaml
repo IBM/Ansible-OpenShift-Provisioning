@@ -1,0 +1,68 @@
+---
+# Install the cert-manager Operator for Red Hat OpenShift.
+# cert-manager handles internal TLS certificate management for OCP Virtualization
+# and is required for IBM Secure Execution (SE) VM deployments on s390x.
+
+- name: cert-manager | Create Namespace manifest
+  ansible.builtin.template:
+    src: Namespace.yaml.j2
+    dest: /root/ansible_workdir/cert-manager-Namespace.yaml
+    mode: '0644'
+
+- name: cert-manager | Apply Namespace
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/cert-manager-Namespace.yaml
+  register: _cert_manager_apply_namespace
+  changed_when: "'unchanged' not in _cert_manager_apply_namespace.stdout"
+
+- name: cert-manager | Create OperatorGroup manifest
+  ansible.builtin.template:
+    src: OperatorGroup.yaml.j2
+    dest: /root/ansible_workdir/cert-manager-OperatorGroup.yaml
+    mode: '0644'
+
+- name: cert-manager | Apply OperatorGroup
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/cert-manager-OperatorGroup.yaml
+  register: _cert_manager_apply_operatorgroup
+  changed_when: "'unchanged' not in _cert_manager_apply_operatorgroup.stdout"
+
+- name: cert-manager | Create Subscription manifest
+  ansible.builtin.template:
+    src: Subscription.yaml.j2
+    dest: /root/ansible_workdir/cert-manager-Subscription.yaml
+    mode: '0644'
+
+- name: cert-manager | Apply Subscription
+  ansible.builtin.command: oc apply -f /root/ansible_workdir/cert-manager-Subscription.yaml
+  register: _cert_manager_apply_subscription
+  changed_when: "'unchanged' not in _cert_manager_apply_subscription.stdout"
+
+# Check the CSV that this Subscription installed (status.installedCSV), not any
+# CSV in the namespace, so stale CSVs from earlier installs cannot satisfy it.
+- name: cert-manager | Wait for the Subscription's CSV to reach Succeeded
+  ansible.builtin.shell: |
+    csv=$(oc get subscription openshift-cert-manager-operator \
+      -n "{{ cert_manager_namespace }}" \
+      -o jsonpath='{.status.installedCSV}' 2>/dev/null)
+    [ -n "$csv" ] || exit 0
+    oc get csv "$csv" -n "{{ cert_manager_namespace }}" \
+      -o jsonpath='{.status.phase}' 2>/dev/null
+  args:
+    executable: /bin/bash
+  register: _cert_manager_csv_phase
+  until: _cert_manager_csv_phase.stdout | trim == 'Succeeded'
+  retries: "{{ [((cert_manager_csv_timeout | int) / 10) | round(0, 'ceil') | int, 1] | max }}"
+  delay: 10
+  changed_when: false
+
+- name: cert-manager | Wait for cert-manager pods to be Running
+  ansible.builtin.shell: |
+    set -o pipefail
+    oc get pods -n "{{ cert_manager_operand_namespace }}" --no-headers 2>/dev/null \
+      | awk '$3=="Running"' | wc -l
+  args:
+    executable: /bin/bash
+  register: _cert_manager_pods_running
+  until: _cert_manager_pods_running.stdout | int >= 3
+  retries: "{{ [((cert_manager_pod_timeout | int) / 10) | round(0, 'ceil') | int, 1] | max }}"
+  delay: 10
+  changed_when: false

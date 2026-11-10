@@ -1,0 +1,175 @@
+---
+# Day-2 operator variables for OpenShift Virtualization.
+#
+# Usage:
+#   cp inventories/default/group_vars/operators.yaml.template \
+#      inventories/default/group_vars/operators.yaml
+#   # Edit operators.yaml and fill in your values.
+#   ansible-playbook playbooks/operators/install_ocp_virt.yaml --ask-vault-pass
+#
+# operators.yaml is gitignored; this template is tracked by git.
+
+# Path to the cluster kubeconfig on the bastion.
+# Common locations:
+#   /root/ocpinst/auth/kubeconfig   — default after UPI/ABI install
+#   ~/.kube/config                  — after 5_setup_bastion.yaml symlinks it
+#   /home/<user>/.kube/config       — non-root bastion user
+ocp_virt_kubeconfig: ~/ocpinst/auth/kubeconfig
+
+# ---------------------------------------------------------------------------
+# Optional component toggles
+# ---------------------------------------------------------------------------
+# NFD labels nodes with CPU model capabilities (gen15b, gen16a, etc.).
+# Required only if you want VM scheduling to respect CPU model affinity.
+# On homogeneous clusters (all nodes the same hardware generation) it adds
+# no practical value. Set to false to skip NFD installation.
+nfd_install: true
+
+# cert-manager is required only for IBM Secure Execution (SE) encrypted VMs.
+# For plain VM workloads it is not needed. Set to false to skip.
+cert_manager_install: true
+
+# ---------------------------------------------------------------------------
+# Catalog source overrides — for RC / pre-release clusters
+# ---------------------------------------------------------------------------
+# On GA clusters all three operators are in 'redhat-operators'. On release
+# candidate clusters that catalog may not yet contain these packages. In that
+# case:
+#   1. Add a pre-release CatalogSource to openshift-marketplace, e.g.:
+#        oc apply -f - <<EOF
+#        apiVersion: operators.coreos.com/v1alpha1
+#        kind: CatalogSource
+#        metadata:
+#          name: redhat-operators-prerelease
+#          namespace: openshift-marketplace
+#        spec:
+#          sourceType: grpc
+#          image: <your-prerelease-index-image>
+#          displayName: "Red Hat Operators (pre-release)"
+#          publisher: Red Hat
+#        EOF
+#   2. Set the three variables below to 'redhat-operators-prerelease'.
+#      (or to whatever name you gave your CatalogSource)
+# On GA clusters leave all three as 'redhat-operators'.
+nfd_catalog_source: redhat-operators
+cert_manager_catalog_source: redhat-operators
+
+ocp_virt:
+  # OLM CatalogSource that contains the kubevirt-hyperconverged package.
+  catalog_source: redhat-operators
+
+  # Subscription channel for the kubevirt-hyperconverged operator.
+  # 'stable' always resolves to the version matching the cluster (recommended).
+  # Pin to a specific release with e.g. 'stable-4.22'.
+  channel: stable
+
+  # Automatic: the cluster applies InstallPlans without manual approval.
+  # Manual: an administrator must approve each InstallPlan before upgrades proceed.
+  install_plan_approval: Automatic
+
+  hyperconverged:
+    # Name and namespace of the HyperConverged CR. These values must not be changed
+    # once the operator is installed — OLM hard-codes them.
+    name: kubevirt-hyperconverged
+    namespace: openshift-cnv
+
+    # CPU model exposed to VMs.
+    # IBM Z / LinuxONE values (QEMU cpu_models.c name → hardware):
+    #   gen15a  — z15 T01 / LinuxONE III (model 8561)
+    #   gen15b  — z15 T02 / LinuxONE III (model 8562)   ← OCP 4.22 documented default
+    #   gen16a  — z16 (model 3931)
+    #   gen16b  — z16 / LinuxONE 4 (model 3932)
+    #   gen17a  — z17 (model 9175)
+    #   gen17b  — z17 / LinuxONE 5 (model 9176)          ← requires QEMU >= 9.2 on nodes
+    # x86 clusters: set to '' (empty string) to use the cluster default.
+    default_cpu_model: gen15b
+
+    # Extra feature gates (map of gate-name: true/false).
+    # Leave empty ({}) to use HCO defaults.
+    feature_gates: {}
+
+    # Uncomment and configure to pin virt infrastructure pods (virt-controller,
+    # virt-api, CDI pods) to specific nodes.
+    # infra_node_placement:
+    #   nodeSelector:
+    #     node-role.kubernetes.io/infra: ""
+    #   tolerations:
+    #   - key: node-role.kubernetes.io/infra
+    #     effect: NoSchedule
+
+    # Uncomment and configure to pin VM workload pods (virt-launcher) to
+    # specific nodes.
+    # workloads_node_placement:
+    #   nodeSelector:
+    #     node-role.kubernetes.io/worker: ""
+
+  # Timeout values (seconds). Increase on slow networks or large clusters.
+  csv_timeout: 600    # Wait for each CSV to reach Succeeded
+  hco_timeout: 900    # Wait for HyperConverged CR to reach Available
+  pod_timeout: 300    # Wait for the kubevirt-hyperconverged operator pod
+
+  # virtctl CLI: after the HyperConverged CR is Available, download virtctl from the
+  # cluster (ConsoleCLIDownload) and install it on the bastion. Skipped if already present.
+  virtctl:
+    install: true
+    install_dir: /usr/local/bin
+    validate_certs: false   # The download route is served with the cluster's own CA
+
+  test_vm:
+    # Set create: true to deploy a test VM after the operator is installed.
+    # The VM proves the full stack end-to-end: HyperConverged → CDI import →
+    # default StorageClass → VM boot.
+    create: false
+
+    # keep: true  — leave the VM, its PVC, and namespace in place after verification.
+    # keep: false — delete all test resources after the VM is verified Running (smoke test).
+    keep: false
+
+    # Unique name (used for the VirtualMachine, DataVolume, and test namespace).
+    name: ocp-virt-test
+    namespace: ocp-virt-test
+
+    # Required when create: true.
+    # An s390x qcow2 guest image reachable over HTTP(S) from the cluster nodes.
+    # Example: http://<file_server_ip>:<port>/pub/rhel-9-s390x-kvm.qcow2
+    image_url: ""
+
+    disk_size: 20Gi
+
+    # Storage class for the root disk PVC.
+    # Leave empty to use the cluster's default StorageClass.
+    storage_class: ""
+
+    cpu_cores: 2
+    memory: 4Gi
+
+    # SSH public key injected via cloud-init for user 'cloud-user'.
+    # Leave empty ("") to automatically use the bastion's first available key
+    # (~/.ssh/id_ed25519.pub, id_ecdsa.pub, or id_rsa.pub).
+    # Set explicitly to use a specific key, or set to a literal key string.
+    # If no key is found and this is empty, the VM boots but is only
+    # accessible via 'virtctl console'.
+    ssh_public_key: ""
+
+    # Optional blank data disk attached to the test VM as a second virtio disk
+    # (serial "datadisk", appears in the guest as /dev/disk/by-id/virtio-datadisk).
+    # The disk is raw/unformatted; partition and mount it inside the guest.
+    data_disk:
+      create: false
+      size: 10Gi
+      # Leave empty to use the same storage class as the root disk.
+      storage_class: ""
+
+    # Live migration test (optional). After the VM is Ready, a
+    # VirtualMachineInstanceMigration is created and the playbook verifies the VM
+    # moved to a different node and is still Running/Ready.
+    # Purpose: verify OCP Virt live migration AND the underlying storage provider
+    # (migration requires ReadWriteMany/shared storage). When enabled, the test VM
+    # PVCs are requested with accessMode ReadWriteMany.
+    # Requires at least two schedulable worker nodes.
+    migration:
+      enabled: false
+      timeout: 600     # Seconds to wait for the migration to finish
+
+    dv_timeout: 1800   # Seconds to wait for the DataVolume (CDI image import) to finish
+    vm_timeout: 600    # Seconds to wait for the VM to become Ready

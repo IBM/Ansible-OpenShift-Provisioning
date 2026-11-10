@@ -1,5 +1,5 @@
 {% if env.cluster.nodes.compute.ip is defined %}
-{% set compute_replicas = env.cluster.nodes.compute.ip | length %}
+{% set compute_replicas = env.cluster.nodes.compute.ip | select('string') | list | length %}
 {% else %}
 {% set compute_replicas = 0 %}
 {% endif %}
@@ -33,7 +33,12 @@ networking:
   serviceNetwork:
   - {{ install_config_vars.service_network }}
 platform:
+{% if (abi.platform | default('none') | lower) == 'external' %}
+  external:
+    platformName: {{ abi.platform_name | default('ibmz') }}
+{% else %}
   none: {}
+{% endif %}
 sshKey: >
   {{ ssh_key.stdout }}
 pullSecret: '{{ env.redhat.pull_secret if not disconnected.enabled else disconnected.registry.pull_secret }}'

@@ -1,0 +1,12 @@
+---
+# Path to the cluster kubeconfig on the bastion.
+# Overridden in operators.yaml by ocp_virt_kubeconfig.
+ocp_virt_kubeconfig: ~/ocpinst/auth/kubeconfig
+
+# Minimum OCP version required for OCP Virt GA on s390x.
+ocp_virt_min_version: "4.19"
+
+# Minimum recommended allocatable resources cluster-wide.
+# Warnings are emitted (not failures) when these are not met.
+ocp_virt_min_vcpu: 16000    # millicores — 16 full vCPUs
+ocp_virt_min_mem_ki: 33554432  # KiB — 32 GiB
