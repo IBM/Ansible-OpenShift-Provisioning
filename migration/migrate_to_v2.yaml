@@ -38,7 +38,6 @@
   gather_facts: false
 
   vars:
-    inventory_dir: "inventories/default"
     all_yaml_path: "{{ inventory_dir }}/group_vars/all.yaml"
     host_vars_dir: "{{ inventory_dir }}/host_vars"
 
