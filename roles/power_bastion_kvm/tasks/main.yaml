@@ -1,0 +1,8 @@
+---
+# power_bastion_kvm/tasks/main.yaml
+#
+# Entry point: delegates to start.yaml, stop.yaml, or restart.yaml
+# based on the bastion_action variable.
+
+- name: "KVM bastion power {{ bastion_action }}: {{ bastion.vm_name }}"
+  ansible.builtin.include_tasks: "{{ bastion_action }}.yaml"

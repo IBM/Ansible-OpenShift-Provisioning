@@ -32,8 +32,8 @@ timezone {{ env.timezone }}
 eula --agreed
 
 # Network information
-network --bootproto=static --device={{ env.bastion.networking.interface }} --ip={{ env.bastion.networking.ip }} --gateway={{ env.bastion.networking.gateway }} --netmask={{ env.bastion.networking.subnetmask }} {{'--ipv6=' + env.bastion.networking.ipv6 if env.use_ipv6 else '--noipv6' }} {{'--ipv6gateway=' + env.bastion.networking.ipv6_gateway if env.use_ipv6 }} --nameserver={{ env.bastion.networking.nameserver1 }}{{ (',' + env.bastion.networking.nameserver2) if env.bastion.networking.nameserver2 is defined }} --activate
-network --hostname={{ env.bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}
+network --bootproto=static --device={{ bastion.networking.interface }} --ip={{ bastion.networking.ip }} --gateway={{ bastion.networking.gateway }} --netmask={{ bastion.networking.subnetmask }} {{'--ipv6=' + bastion.networking.ipv6 if env.use_ipv6 else '--noipv6' }} {{'--ipv6gateway=' + bastion.networking.ipv6_gateway if env.use_ipv6 }} --nameserver={{ bastion.networking.nameserver1 }}{{ (',' + bastion.networking.nameserver2) if bastion.networking.nameserver2 is defined }} --activate
+network --hostname={{ bastion.networking.hostname }}.{{ env.cluster.networking.base_domain }}
 
 # Firewall and SELinux
 firewall --enabled --http --ftp --smtp --ssh --port=443,9090
@@ -63,7 +63,7 @@ autopart
 part /boot --fstype="xfs" --asprimary --ondisk=vda --size=1024
 part pv.01 --fstype="lvmpv" --grow --size=1 --ondisk=vda
 volgroup vgsystem --pesize=4096 pv.01
-logvol swap --fstype=swap --name=swap --vgname=vgsystem --size={{ env.bastion.resources.swap }}
+logvol swap --fstype=swap --name=swap --vgname=vgsystem --size={{ bastion.resources.swap }}
 logvol / --fstype=xfs --name=root --vgname=vgsystem --size=1 --grow
 {% endif %}
 
@@ -98,8 +98,13 @@ pkg-config
 %post --log=/root/post.log
 #!/usr/bin/env bash
 
-# Allow root login, required change for RHEL9
+# Allow root login (required for RHEL 9).
+# RHEL 9 sshd uses drop-in files in /etc/ssh/sshd_config.d/ that override
+# the main sshd_config.  50-redhat.conf sets PermitRootLogin prohibit-password.
+# We patch both places and add a drop-in that takes highest precedence.
 sed -i -e '/PermitRootLogin/ c\PermitRootLogin yes' /etc/ssh/sshd_config
+sed -i -e 's/^PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config.d/50-redhat.conf 2>/dev/null || true
+echo "PermitRootLogin yes" > /etc/ssh/sshd_config.d/01-permitroot.conf
 
 # Pre-authorize the Ansible controller's SSH public key so Ansible can connect directly via ProxyJump
 echo "{{ lookup('file', path_to_key_pair) }}" >> /root/.ssh/authorized_keys

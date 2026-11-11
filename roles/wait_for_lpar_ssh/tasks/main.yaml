@@ -5,12 +5,10 @@
     name: node
 
 - name: Wait for LPAR node SSH to become available
-  wait_for:
+  ansible.builtin.wait_for:
     host: "{{ node.networking.ip }}"
     port: 22
     delay: 60
     timeout: 3600
     sleep: 30
     state: started
-
-# Made with Bob

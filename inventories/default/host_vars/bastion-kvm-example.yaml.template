@@ -1,0 +1,55 @@
+# Bastion node host_vars — KVM type
+# Copy this file to inventories/default/host_vars/<your-bastion-hostname>.yaml
+# and fill in the values marked #X.
+#
+# This file defines a bastion that will be created as a KVM virtual machine
+# on the designated KVM hypervisor host.
+
+# Ansible connection variables — evaluated with vault, so must live here
+# (not in the static hosts file where Jinja2 is not supported).
+ansible_become_password: "{{ vault_bastion_pass }}"
+ansible_password: "{{ vault_bastion_pass }}"
+
+bastion:
+  type: kvm                        # Dispatcher key: 'kvm' or 'zvm'
+  create: true
+
+  # Which KVM host to create this bastion on.
+  # Must match a hostname defined in the [kvm_host] inventory group.
+  hypervisor_host: #X              # e.g. a311lp59
+
+  vm_name: #X                      # e.g. bastion-lp59
+  resources:
+    disk_size: 80                 # GB
+    ram: 4096                      # MB
+    swap: 4096                     # MB
+    vcpu: 4
+    vcpu_model_option: "--cpu host"
+
+  networking:
+    ip: #X                         # e.g. 192.168.122.2
+    internal_ip:                   # Required only when creating LPAR cluster with HiperSocket
+    ipv6:
+    mac:
+    hostname: #X                   # e.g. bastion-lp59
+    base_domain: #X                # e.g. example.com
+    subnetmask: #X                 # e.g. 255.255.255.0
+    gateway: #X                    # e.g. 192.168.122.1
+    ipv6_gateway:
+    ipv6_prefix:
+    nameserver1: #X
+#   nameserver2:
+    forwarder: 1.1.1.1
+    interface: #X                  # e.g. enc1  (simple string for KVM)
+
+  access:
+    user: #X                       # e.g. root
+    pass: "{{ vault_bastion_pass }}"
+    root_pass: "{{ vault_bastion_root_pass }}"
+
+  options:
+    dns: true
+    loadbalancer:
+      on_bastion: true
+#     public_ip:
+#     private_ip:

@@ -1,0 +1,67 @@
+---
+# power_bastion.yaml
+#
+# Start, stop, or restart bastion nodes listed in bastion_nodes (all.yaml).
+# The bastion's host_vars file (bastion.type) determines which role is executed.
+#
+# Usage:
+#   ansible-playbook playbooks/power_bastion.yaml --ask-vault-pass \
+#     --extra-vars "bastion_action=stop"
+#
+# bastion_action values: start | stop | restart
+# Default: start
+
+# ---------------------------------------------------------------------------
+# KVM pass: run on every kvm_host; only act when a bastion targets this host
+# ---------------------------------------------------------------------------
+- name: Power bastion on KVM hypervisor
+  hosts: kvm_host
+  become: false
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  vars:
+    bastion_action: "{{ bastion_action | default('start') }}"
+  tasks:
+    - name: Validate bastion_action value
+      ansible.builtin.fail:
+        msg: "Invalid bastion_action '{{ bastion_action }}'. Must be one of: start, stop, restart"
+      when: bastion_action not in ['start', 'stop', 'restart']
+
+    - name: Gather facts on KVM host
+      ansible.builtin.gather_facts:
+
+    - name: Dispatch power action for each bastion node (KVM)
+      ansible.builtin.include_tasks: ../roles/bastion_dispatch/tasks/power_bastion_dispatch.yaml
+      vars:
+        _bastion_name: "{{ item }}"
+        _dispatch_type: kvm
+      loop: "{{ bastion_nodes }}"
+
+# ---------------------------------------------------------------------------
+# zVM pass: always runs on localhost (the Ansible controller).
+# tessia-baselib connects to z/VM over the network using credentials in
+# each bastion's host_vars file. No SSH to the z/VM host is required.
+# ---------------------------------------------------------------------------
+- name: Power bastion on zVM hypervisor
+  hosts: localhost
+  become: false
+  gather_facts: false
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.yaml"
+    - "{{ inventory_dir }}/group_vars/secrets.yaml"
+  vars:
+    bastion_action: "{{ bastion_action | default('start') }}"
+  tasks:
+    - name: Validate bastion_action value
+      ansible.builtin.fail:
+        msg: "Invalid bastion_action '{{ bastion_action }}'. Must be one of: start, stop, restart"
+      when: bastion_action not in ['start', 'stop', 'restart']
+
+    - name: Dispatch power action for each bastion node (zVM)
+      ansible.builtin.include_tasks: ../roles/bastion_dispatch/tasks/power_bastion_dispatch.yaml
+      vars:
+        _bastion_name: "{{ item }}"
+        _dispatch_type: zvm
+      loop: "{{ bastion_nodes }}"
