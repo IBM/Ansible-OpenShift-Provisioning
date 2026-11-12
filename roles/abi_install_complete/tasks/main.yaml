@@ -1,5 +1,6 @@
 ---
 - name: wait-for install-complete
+  when: not install_config_vars.fips
   block:
     - name: Start openshift-installer with 'wait-for install-complete' (async task)
       ansible.builtin.command: openshift-install agent wait-for install-complete --dir=.
@@ -18,9 +19,9 @@
       # Total wait time is abi.install_timeout, polled every abi.install_poll_delay seconds
       retries: "{{ ((abi.install_timeout | default(7200) | int) / (abi.install_poll_delay | default(30) | int)) | round(0, 'ceil') | int }}"
       delay: "{{ abi.install_poll_delay | default(30) | int }}"
-  when: not install_config_vars.fips
 
 - name: FIPS wait-for install-complete
+  when: install_config_vars.fips
   block:
     - name: Start openshift-installer with 'wait-for install-complete' (async task)
       ansible.builtin.command: openshift-install-fips agent wait-for install-complete --dir=.
@@ -39,7 +40,6 @@
       # Total wait time is abi.install_timeout, polled every abi.install_poll_delay seconds
       retries: "{{ ((abi.install_timeout | default(7200) | int) / (abi.install_poll_delay | default(30) | int)) | round(0, 'ceil') | int }}"
       delay: "{{ abi.install_poll_delay | default(30) | int }}"
-  when: install_config_vars.fips
 
 - name: Create ~/.kube directory if it does not exist
   tags: kubeconfig
@@ -54,9 +54,9 @@
     src: "{{ ocpinst_dir }}/auth/kubeconfig"
     dest: ~/.kube/config
     owner: "{{ ansible_user_id }}"
-    group: "{{ ansible_user_gid }}" 
+    group: "{{ ansible_user_gid }}"
     mode: '0600'
-    remote_src: yes
+    remote_src: true
 
 - name: Check if kubeconfig was copied
   tags: kubeconfig
@@ -74,6 +74,11 @@
   ansible.builtin.debug:
     msg:
       - Installation completed!
-      - Access the OpenShift web-console here --> https://console-openshift-console.apps.{{env.cluster.networking.metadata_name}}.{{env.cluster.networking.base_domain}}
+      - >-
+        Access the OpenShift web-console here -->
+        https://console-openshift-console.apps.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}
       - kubeadmin password of cluster is stored in {{ ocpinst_dir }}/auth/kubeadmin-password on bastion.
-      - Login command --> oc login https://api.{{env.cluster.networking.metadata_name}}.{{env.cluster.networking.base_domain}}:6443 -u kubeadmin -p $( cat {{ ocpinst_dir }}/auth/kubeadmin-password )
+      - >-
+        Login command -->
+        oc login https://api.{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}:6443
+        -u kubeadmin -p $( cat {{ ocpinst_dir }}/auth/kubeadmin-password )

@@ -37,9 +37,14 @@
   connection: local
   gather_facts: false
 
+  # secrets.yaml is not loaded automatically (it is not a group name). It is needed because
+  # the inventory entry for localhost sets ansible_become_password from a vault_* variable.
+  vars_files:
+    - "{{ inventory_dir | realpath }}/group_vars/secrets.yaml"
+
   vars:
-    all_yaml_path: "{{ inventory_dir }}/group_vars/all.yaml"
-    host_vars_dir: "{{ inventory_dir }}/host_vars"
+    all_yaml_path: "{{ inventory_dir | realpath }}/group_vars/all.yaml"
+    host_vars_dir: "{{ inventory_dir | realpath }}/host_vars"
 
   tasks:
 
