@@ -43,14 +43,14 @@
 
 - name: Create ~/.kube directory if it does not exist
   tags: kubeconfig
-  file:
+  ansible.builtin.file:
     path: ~/.kube
     state: directory
     mode: '0755'
 
 - name: Copy kubeconfig to ~/.kube/config
   tags: kubeconfig
-  copy:
+  ansible.builtin.copy:
     src: "{{ ocpinst_dir }}/auth/kubeconfig"
     dest: ~/.kube/config
     owner: "{{ ansible_user_id }}"
@@ -60,18 +60,18 @@
 
 - name: Check if kubeconfig was copied
   tags: kubeconfig
-  stat:
+  ansible.builtin.stat:
     path: ~/.kube/config
   register: kubeconfig_status
 
 - name: Display kubeconfig message
   tags: kubeconfig
-  debug:
+  ansible.builtin.debug:
     msg: "Kubeconfig is set at ~/.kube/config. No need to export KUBECONFIG unless you want to use a different one."
   when: kubeconfig_status.stat.exists
 
 - name: Display cluster details post-install
-  debug:
+  ansible.builtin.debug:
     msg:
       - Installation completed!
       - Access the OpenShift web-console here --> https://console-openshift-console.apps.{{env.cluster.networking.metadata_name}}.{{env.cluster.networking.base_domain}}
