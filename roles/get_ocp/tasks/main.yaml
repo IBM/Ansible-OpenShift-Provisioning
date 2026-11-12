@@ -19,13 +19,13 @@
   tags: get_ocp
   become: true
   ansible.builtin.file:
-    path: /root/ocpinst
+    path: "{{ ocpinst_dir }}"
     state: absent
 
 - name: Create OCP download directory
   tags: get_ocp
   ansible.builtin.file:
-    path: /root/ocpinst
+    path: "{{ ocpinst_dir }}"
     state: directory
 
 - name: Get Red Hat CoreOS rootfs file if it's not there already or content was changed.
@@ -40,7 +40,7 @@
   tags: get_ocp
   ansible.builtin.unarchive:
     src: "{{ item }}"
-    dest: /root/ocpinst/
+    dest: "{{ ocpinst_dir }}/"
     remote_src: true
   loop:
     - "{{ ocp_download_url }}{{ ocp_client_tgz }}"
@@ -50,7 +50,7 @@
   tags: get_ocp
   become: true
   ansible.builtin.copy:
-    src: /root/ocpinst/{{ item }}
+    src: "{{ ocpinst_dir }}/{{ item }}"
     dest: /usr/sbin/{{ item }}
     owner: root
     group: root
@@ -69,8 +69,8 @@
     force: true
     mode: '0644'
   loop:
-    - /root/ocpinst/install-config.yaml
-    - /root/ocpinst/install-config-backup.yaml
+    - "{{ ocpinst_dir }}/install-config.yaml"
+    - "{{ ocpinst_dir }}/install-config-backup.yaml"
 
 - name: Capture OCP public key
   tags: get_ocp
@@ -83,15 +83,16 @@
     line: "sshKey: '{{ ocp_pub_key.stdout }}'"
     path: "{{ item }}"
   loop:
-    - /root/ocpinst/install-config.yaml
-    - /root/ocpinst/install-config-backup.yaml
+    - "{{ ocpinst_dir }}/install-config.yaml"
+    - "{{ ocpinst_dir }}/install-config-backup.yaml"
 
 - name: Create manifests
   tags: get_ocp
   ansible.builtin.shell: |
     set -o pipefail
     {{ 'export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE=quay.io/openshift-release-dev/ocp-release:' if disconnected.enabled }}{{ disconnected.mirroring.oc_mirror.release_image_tag if disconnected.enabled and not disconnected.mirroring.legacy.platform }}{{ disconnected.mirroring.legacy.ocp_quay_release_image_tag if disconnected.enabled and disconnected.mirroring.legacy.platform }}
-    /root/ocpinst/openshift-install create manifests --dir=/root/ocpinst/
+    cd {{ ocpinst_dir }}
+    ./openshift-install create manifests --dir=.
   become: true
 
 - name: Copy the file when ipsec flag is enabled
@@ -99,13 +100,15 @@
   become: true
   ansible.builtin.copy:
     src: cluster-network-03-config.yml
-    dest: /root/ocpinst/manifests/cluster-network-03-config.yml
+    dest: "{{ ocpinst_dir }}/manifests/cluster-network-03-config.yml"
   when: env.ipsec_enabled is defined and env.ipsec_enabled != None and env.ipsec_enabled
 
 - name: List the files in the manifests directory
   tags: get_ocp
   become: true
-  ansible.builtin.command: "ls -lrt /root/ocpinst/manifests/"
+  ansible.builtin.command: "ls -lrt manifests/"
+  args:
+    chdir: "{{ ocpinst_dir }}"
   register: manifests_list
 
 - name: Debug manifests list
@@ -117,7 +120,7 @@
   tags: get_ocp
   become: true
   ansible.builtin.replace:
-    path: /root/ocpinst/manifests/cluster-scheduler-02-config.yml
+    path: "{{ ocpinst_dir }}/manifests/cluster-scheduler-02-config.yml"
     regexp: ": true"
     replace: ": false"
   when: (env.cluster.nodes.compute.hostname | default('') | length) != 0
@@ -125,7 +128,9 @@
 - name: Set permissions for ocpinst directory contents to root
   tags: get_ocp
   become: true
-  ansible.builtin.command: chmod 0755 /root/ocpinst/{{ item }}
+  ansible.builtin.command: chmod 0755 {{ item }}
+  args:
+    chdir: "{{ ocpinst_dir }}"
   loop:
     - manifests
     - openshift
@@ -169,7 +174,7 @@
     - name: Copy generated ignition files to final directory
       ansible.builtin.copy:
         src: "{{ output_dir }}/99-{{ item }}-s390x-cex-luks-config.yaml"
-        dest: "/root/ocpinst/openshift/99-{{ item }}-s390x-cex-luks-config.yaml"
+        dest: "{{ ocpinst_dir }}/openshift/99-{{ item }}-s390x-cex-luks-config.yaml"
         remote_src: true
         mode: '0644'
       loop:
@@ -179,7 +184,9 @@
 - name: Set ownership of ocpinst directory contents to root
   tags: get_ocp
   become: true
-  ansible.builtin.command: chown root:root /root/ocpinst/{{ item }}
+  ansible.builtin.command: chown root:root {{ item }}
+  args:
+    chdir: "{{ ocpinst_dir }}"
   loop:
     - manifests
     - openshift
@@ -192,13 +199,14 @@
   ansible.builtin.shell: |
     set -o pipefail
     {{ 'export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE=quay.io/openshift-release-dev/ocp-release:' if disconnected.enabled }}{{ disconnected.mirroring.oc_mirror.release_image_tag if disconnected.enabled and not disconnected.mirroring.legacy.platform }}{{ disconnected.mirroring.legacy.ocp_quay_release_image_tag if disconnected.enabled and disconnected.mirroring.legacy.platform }}
-    /root/ocpinst/openshift-install create ignition-configs  --dir=/root/ocpinst/
+    cd {{ ocpinst_dir }}
+    ./openshift-install create ignition-configs --dir=.
 
 - name: Set ownership to root and permissions of ignitions and related files.
   tags: get_ocp
   ansible.builtin.file:
     state: "{{ item.state }}"
-    path: /root/ocpinst/{{ item.path }}
+    path: "{{ ocpinst_dir }}/{{ item.path }}"
     owner: root
     group: root
     mode: "{{ item.mode }}"
@@ -228,7 +236,7 @@
 - name: Make kubeconfig admin user's default (for non-root user).
   tags: get_ocp, config
   ansible.builtin.copy:
-    src: /root/ocpinst/auth/kubeconfig
+    src: "{{ ocpinst_dir }}/auth/kubeconfig"
     dest: /home/{{ env.bastion.access.user }}/.kube/config
     owner: "{{ env.bastion.access.user }}"
     group: "{{ env.bastion.access.user }}"
@@ -238,7 +246,7 @@
 - name: Make kubeconfig admin user's default (for root user).
   tags: get_ocp, config
   ansible.builtin.copy:
-    src: /root/ocpinst/auth/kubeconfig
+    src: "{{ ocpinst_dir }}/auth/kubeconfig"
     dest: /{{ env.bastion.access.user }}/.kube/config
     owner: "{{ env.bastion.access.user }}"
     group: "{{ env.bastion.access.user }}"
@@ -248,7 +256,7 @@
 - name: Make kubeconfig root user's default.
   tags: get_ocp, config
   ansible.builtin.copy:
-    src: /root/ocpinst/auth/kubeconfig
+    src: "{{ ocpinst_dir }}/auth/kubeconfig"
     dest: /root/.kube/config
     owner: root
     group: root
@@ -265,7 +273,7 @@
   tags: get_ocp
   become: true
   ansible.builtin.copy:
-    src: /root/ocpinst/{{ item }}.ign
+    src: "{{ ocpinst_dir }}/{{ item }}.ign"
     dest: /var/www/html/ignition
     remote_src: true
     mode: "775"

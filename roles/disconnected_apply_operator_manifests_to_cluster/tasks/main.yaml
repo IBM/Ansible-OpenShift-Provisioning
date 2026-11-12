@@ -7,10 +7,12 @@
       become: true
       ansible.posix.synchronize:
         src: "../.oc-mirror-results"
-        dest: /root/ocpinst
+        dest: "{{ ocpinst_dir }}"
     - name: apply the manifests on the cluster
       tags: disconnected_apply_operator_manifests
-      ansible.builtin.command: oc apply -f /root/ocpinst/.oc-mirror-results
+      ansible.builtin.command: oc apply -f .oc-mirror-results
+      args:
+        chdir: "{{ ocpinst_dir }}"
     - name: disable default content sources
       tags: disconnected_apply_operator_manifests
       ansible.builtin.command: "oc patch OperatorHub cluster --type json -p '[{\"op\": \"add\", \"path\": \"/spec/disableAllDefaultSources\", \"value\": true}]'"

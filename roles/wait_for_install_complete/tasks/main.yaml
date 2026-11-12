@@ -22,7 +22,9 @@
 
 - name: Get OCP temporary password
   tags: wait_for_install_complete
-  command: "cat /root/ocpinst/auth/kubeadmin-password"
+  command: "cat auth/kubeadmin-password"
+  args:
+    chdir: "{{ ocpinst_dir }}"
   register: ocp_passwd
   changed_when: false
 

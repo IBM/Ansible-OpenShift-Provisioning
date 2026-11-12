@@ -31,7 +31,6 @@ installation_type: lpar  # Critical: Must be 'lpar' not 'kvm'
 
 abi:
   flag: True
-  ansible_workdir: 'ansible_workdir'
   ocp_installer_version: '4.18.8'
   ocp_installer_base_url: 'https://mirror.openshift.com/pub/openshift-v4'
   architecture: multi  # or s390x based on your environment
@@ -118,7 +117,7 @@ ansible-playbook -i inventories/default playbooks/create_abi_cluster.yaml --tags
 
 ```bash
 ssh <bastion-user>@<bastion-ip>
-cat ~/ansible_workdir/agent-config.yaml
+cat ~/ocpinst/agent-config.yaml
 ```
 
 ### Expected Output for LPAR
@@ -160,7 +159,7 @@ Check that images were created successfully:
 
 ```bash
 # On bastion
-ls -lh ~/ansible_workdir/boot-artifacts/
+ls -lh ~/ocpinst/boot-artifacts/
 ```
 
 **Expected files for PXE**:
@@ -190,7 +189,7 @@ ls -lh /var/www/html/
 
 ### ✅ Generated agent-config.yaml Validation
 
-- [ ] File exists at `~/ansible_workdir/agent-config.yaml` on bastion
+- [ ] File exists at `~/ocpinst/agent-config.yaml` on bastion
 - [ ] Each host entry has `rootDeviceHints` section
 - [ ] `deviceName` follows format: `/dev/disk/by-path/ccw-0.0.{dev_num}-fc-{wwpn}-lun-{lun}`
 - [ ] Device paths are unique for each node (different LUNs)
@@ -199,7 +198,7 @@ ls -lh /var/www/html/
 
 ### ✅ Image Generation Validation
 
-- [ ] Images created in `~/ansible_workdir/boot-artifacts/`
+- [ ] Images created in `~/ocpinst/boot-artifacts/`
 - [ ] Images copied to `/var/www/html/`
 - [ ] No errors in playbook output
 - [ ] File sizes are reasonable (initrd ~100MB, rootfs ~1GB+)
@@ -316,7 +315,7 @@ ansible-playbook playbooks/create_abi_cluster.yaml -vvv | grep -A 10 "installati
 1. OpenShift installer binary is downloaded
 2. Pull secret is valid
 3. Network connectivity from bastion
-4. Sufficient disk space in ~/ansible_workdir
+4. Sufficient disk space in ~/ocpinst
 
 **Debug**:
 ```bash
@@ -324,7 +323,7 @@ ansible-playbook playbooks/create_abi_cluster.yaml -vvv | grep -A 10 "installati
 which openshift-install
 
 # Check disk space
-df -h ~/ansible_workdir
+df -h ~/ocpinst
 
 # Check pull secret
 cat ~/.docker/config.json

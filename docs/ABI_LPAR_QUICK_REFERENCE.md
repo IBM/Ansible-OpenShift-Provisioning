@@ -109,7 +109,7 @@ lpar:
 ## 🔍 Verification
 
 ### Check Generated agent-config.yaml
-**Location**: `~/ansible_workdir/agent-config.yaml` on bastion
+**Location**: `~/ocpinst/agent-config.yaml` on bastion
 
 **Expected for LPAR**:
 ```yaml
