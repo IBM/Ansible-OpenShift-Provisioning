@@ -82,7 +82,6 @@ ocp_download_url: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/oc
 
 abi:
   flag: True
-  ansible_workdir: 'ansible_workdir'
   boot_method: pxe
 ```
 

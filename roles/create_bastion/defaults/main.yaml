@@ -1,4 +1,18 @@
-# Openshift Settings
+---
+# Provide an empty bastion dict as a safety net so the role fails clearly
+# if the caller forgets to pass the 'bastion' variable.
+bastion: {}
+
+# Default OS variant for virt-install --osinfo.
+# Use 'rhel9-unknown' as the safe fallback: it matches any RHEL 9.x release
+# including 9.6+, which is not yet in older osinfo-db versions.
+# Run 'osinfo-query os -f short-id | grep rhel9' on the KVM host to find the
+# exact short-id if you want to pin to a specific minor version.
+rhcos_os_variant: rhel9-unknown
+
+# OpenShift install-config defaults — kept here so the role is self-contained
+# and does not depend on another role (prepare_configs, get_ocp, etc.) having
+# run first in the same play.
 install_config_defaults:
   api_version: v1
   compute:
@@ -14,8 +28,3 @@ install_config_defaults:
   service_network: 172.30.0.0/16
   machine_network: 192.168.122.0/24
   fips: false
-
-rhcos_os_variant: rhl9
-
-# Timeout in seconds for node creation via virt-install
-timeout_node_creation: 620

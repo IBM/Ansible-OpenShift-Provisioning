@@ -172,7 +172,7 @@ hostname: "{{ env.cluster.nodes.control.hostname[item] }}.{{ env.cluster.network
 
 **Verification**: After running `prepare_configs`, check:
 ```bash
-grep hostname ~/ansible_workdir/agent-config-backup.yaml
+grep hostname ~/ocpinst/agent-config-backup.yaml
 # Should show: master-0.mycluster.example.com
 ```
 

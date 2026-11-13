@@ -20,6 +20,9 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   pre_tasks:
+    - name: Merge bastion host_vars into env.bastion for backward compatibility
+      ansible.builtin.include_tasks: ../roles/bastion_dispatch/tasks/set_bastion_env_compat.yaml
+
     - name: Check required variables
       when: (day2_compute_node is not defined) or (day2_compute_node | length == 0)
       block:

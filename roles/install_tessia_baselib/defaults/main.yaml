@@ -1,2 +1,15 @@
-# Packages
-pkgs_zvm: [ git, python3-pip, python3-devel, openssl-devel, rust, cargo, libffi-devel, wget, tar, jq, gcc, make, x3270, python39 ]
+# Packages required on RHEL/CentOS remote hosts before pip-installing tessia-baselib.
+# These are skipped automatically when running on the Ansible controller (localhost / macOS).
+#
+# Note: 'python39' is intentionally absent — on RHEL 9+ Python 3.9 is the
+# default and the package does not exist under that name.  On RHEL 8 the
+# default Python is 3.6/3.8 so the explicit python39 package is needed.
+# The install task uses ansible.builtin.package (yum/dnf-agnostic) so it
+# works on RHEL 8 (yum), RHEL 9 (dnf), and RHEL 10 (dnf5).
+pkgs_zvm_common: [ git, python3-pip, python3-devel, openssl-devel, rust, cargo, libffi-devel, wget, tar, jq, gcc, make, x3270 ]
+pkgs_zvm_rhel8_extra: [ python39 ]
+
+# Working directory for the tessia-baselib git clone.
+# Defaults to a location under the running user's home so it works for both
+# root (on a bastion) and unprivileged users (on the macOS controller).
+tessia_baselib_workdir: "{{ ansible_env.HOME | default('/tmp') }}/ansible_workdir/tessia-baselib"

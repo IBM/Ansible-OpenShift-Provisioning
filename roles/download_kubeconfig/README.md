@@ -4,7 +4,7 @@ This role downloads the kubeconfig and kubepassw files from the bastion host.
 
 ## Description
 
-The `download_kubeconfig` role enables downloading OpenShift authentication files from the bastion host to the local controller. The files are downloaded from the `~/ocpinst/auth/` directory on the bastion host and stored in a configurable destination directory.
+The `download_kubeconfig` role enables downloading OpenShift authentication files from the bastion host to the local controller. The files are downloaded from the `auth/` subdirectory of the installation directory (`ocpinst_dir`, default `~/ocpinst`; use an absolute path such as `/home/<user>/ocpinst` if the bastion user is not root) on the bastion host and stored in a configurable destination directory.
 
 ## Requirements
 
@@ -19,7 +19,7 @@ The `download_kubeconfig` role enables downloading OpenShift authentication file
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
 | `kubeconfig_dest_dir` | `/tmp` | Destination directory on the local controller where downloaded files will be stored |
-| `kubeconfig_source_dir` | `~/ocpinst/auth` | Source directory on the bastion host from which files will be downloaded |
+| `kubeconfig_source_dir` | `<ocpinst_dir>/auth` (`~/ocpinst/auth`) | Source directory on the bastion host from which files will be downloaded |
 | `kubeconfig_files` | `['kubeconfig', 'kubepassw']` | List of files to download |
 
 ### Overriding Variables

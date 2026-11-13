@@ -3,7 +3,7 @@
 kubeconfig_dest_dir: /tmp
 
 # Source paths on bastion host
-kubeconfig_source_dir: ~/ocpinst/auth
+kubeconfig_source_dir: "{{ ocpinst_dir | default('~/ocpinst') }}/auth"
 kubeconfig_files:
   - kubeconfig
   - kubeadmin-password

@@ -1,18 +1,19 @@
 ---
-- name: Creating agents 
+- name: Creating agents
   block:
     - name: Getting script for booting
-      template:
-        src: ../templates/boot_nodes.py
-        dest: /root/ansible_workdir/boot_nodes.py
+      ansible.builtin.template:
+        src: boot_nodes.py
+        dest: "{{ ocpinst_dir | default('~/ocpinst') }}/boot_nodes.py"
+        mode: "0755"
 
-    - name: Debug 
-      debug: 
+    - name: Debug
+      ansible.builtin.debug:
         msg: "Booting {{ env.cluster.networking.metadata_name }}-{{ item }}"
 
     - name: Booting zvm node
-      shell: |
-        python3 /root/ansible_workdir/boot_nodes.py \
+      ansible.builtin.shell: |
+        python3 {{ ocpinst_dir | default('~/ocpinst') }}/boot_nodes.py \
         --zvmname "{{ zvm.nodes[item].name }}" \
         --zvmhost "{{ zvm.nodes[item].host }}" \
         --zvmuser "{{ zvm.nodes[item].user }}" \
@@ -21,13 +22,13 @@
         --memory "{{ zvm.memory }}" \
         --kernel 'file:///var/lib/libvirt/images/pxeboot/kernel.img'  \
         --initrd 'file:///var/lib/libvirt/images/pxeboot/initrd.img' \
-        --cmdline "$(cat /root/ansible_workdir/{{ env.cluster.networking.metadata_name }}-{{ item }}.param)" \
+        --cmdline "$(cat {{ ocpinst_dir | default('~/ocpinst') }}/{{ env.cluster.networking.metadata_name }}-{{ item }}.param)" \
         --network "{{ zvm.network_mode }}"
 
-    - name:  Attaching dasd disk
-      shell: vmcp attach {{ zvm.nodes[item].dasd.disk_id }} to {{ zvm.nodes[item].name }} 
+    - name: Attaching dasd disk
+      ansible.builtin.command: "vmcp attach {{ zvm.nodes[item].dasd.disk_id }} to {{ zvm.nodes[item].name }}"
       when: zvm.disk_type | lower == 'dasd'
-    
+
     - name: Attaching fcp disks
-      shell: vmcp attach {{ zvm.nodes[item].lun[0].paths[0].fcp.split('.')[-1] }} to {{ zvm.nodes[item].name }}
+      ansible.builtin.command: "vmcp attach {{ zvm.nodes[item].lun[0].paths[0].fcp.split('.')[-1] }} to {{ zvm.nodes[item].name }}"
       when: zvm.disk_type | lower == 'fcp'

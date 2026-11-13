@@ -1,0 +1,9 @@
+---
+# power_bastion_zvm/tasks/main.yaml
+#
+# Entry point: delegates to start.yaml, stop.yaml, or restart.yaml
+# based on the bastion_action variable.
+# Also handles LPAR-type bastions (bastion.type: lpar).
+
+- name: "zVM/LPAR bastion power {{ bastion_action }}: {{ bastion.zvm_name }}"
+  ansible.builtin.include_tasks: "{{ bastion_action }}.yaml"

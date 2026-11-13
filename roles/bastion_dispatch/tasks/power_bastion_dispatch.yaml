@@ -1,0 +1,45 @@
+---
+# roles/bastion_dispatch/tasks/power_bastion_dispatch.yaml
+#
+# Dispatches a power action (start/stop/restart) to the correct role
+# based on the bastion's type declared in its host_vars file.
+#
+# Variables expected from caller:
+#   _bastion_name   - host_vars filename (without .yaml), e.g. 'bastion-lp59'
+#   _dispatch_type  - 'kvm' or 'zvm' — which play pass is currently running
+#   bastion_action  - 'start' | 'stop' | 'restart'
+#
+# KVM bastions:  play runs on kvm_host; guard on hypervisor_host == inventory_hostname
+#                ensures we only act on the correct KVM host.
+# zVM bastions:  play runs on localhost; no inventory_hostname guard needed —
+#                tessia-baselib addresses the z/VM hypervisor by network directly.
+
+- name: "Load host_vars for bastion '{{ _bastion_name }}'"
+  ansible.builtin.include_vars:
+    file: "{{ inventory_dir }}/host_vars/{{ _bastion_name }}.yaml"
+    name: _bvars
+
+# KVM: only act on the KVM host that this bastion belongs to
+- name: "Execute '{{ bastion_action }}' on KVM bastion '{{ _bastion_name }}'"
+  when:
+    - _bvars.bastion.type | lower == 'kvm'
+    - _dispatch_type == 'kvm'
+    - _bvars.bastion.hypervisor_host == inventory_hostname
+  block:
+    - name: "Power {{ bastion_action }} KVM bastion '{{ _bastion_name }}'"
+      ansible.builtin.include_role:
+        name: power_bastion_kvm
+      vars:
+        bastion: "{{ _bvars.bastion }}"
+
+# zVM: runs on localhost — no inventory_hostname guard (tessia-baselib uses network)
+- name: "Execute '{{ bastion_action }}' on zVM bastion '{{ _bastion_name }}'"
+  when:
+    - _bvars.bastion.type | lower in ['zvm', 'lpar']
+    - _dispatch_type == 'zvm'
+  block:
+    - name: "Power {{ bastion_action }} zVM bastion '{{ _bastion_name }}'"
+      ansible.builtin.include_role:
+        name: power_bastion_zvm
+      vars:
+        bastion: "{{ _bvars.bastion }}"

@@ -1,0 +1,15 @@
+---
+# Provide an empty bastion dict as a safety net.
+bastion: {}
+
+# Seconds to wait for port 22 to open after the guest IPLs (Stage 1 & 3).
+zvm_boot_timeout: 1800
+
+# Total seconds to keep polling for SSH after kickstart starts (Stage 2).
+# Covers the full installation time: package download + install + post script.
+zvm_install_timeout: 2700
+
+# How often (seconds) Stage 2 probes port 22 while waiting for the installed OS.
+# Each attempt calls wait_for with this as both its timeout and the inter-retry delay,
+# so the loop wakes up at most every zvm_poll_interval seconds.
+zvm_poll_interval: 30

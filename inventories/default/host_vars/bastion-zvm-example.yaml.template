@@ -1,0 +1,95 @@
+# Bastion node host_vars — zVM type
+# Copy this file to inventories/default/host_vars/<your-bastion-hostname>.yaml
+# and fill in the values marked #X.
+# The filename should match the z/VM guest name in lowercase, e.g. a3e06001.yaml
+#
+# This file defines a bastion that will be created as a z/VM guest
+# on the designated z/VM hypervisor host, and installed via kickstart
+# using tessia-baselib.
+
+# Ansible connection variables — evaluated with vault, so must live here
+# (not in the static hosts file where Jinja2 is not supported).
+ansible_become_password: "{{ vault_bastion_pass }}"
+ansible_password: "{{ vault_bastion_pass }}"
+
+bastion:
+  type: zvm                        # Dispatcher key: 'kvm' or 'zvm'
+  create: true
+
+  # Informational label identifying the z/VM LPAR that hosts this guest.
+  # Not used as an Ansible target — tessia-baselib connects directly via zvm_host.
+  hypervisor_host: #X              # e.g. boea3e17
+
+  # z/VM guest identity
+  # tessia-baselib requires: zvm_name == zvm_user  (it logs in AS the guest user ID)
+  zvm_name: #X                     # z/VM guest user ID, uppercase, e.g. A3E06001
+  zvm_host: #X                     # hostname or IP of the z/VM LPAR, e.g. boea3e17
+  zvm_user: #X                     # same value as zvm_name — the guest's own z/VM user ID
+  zvm_pass: "{{ vault_zvm_pass }}" # password for that z/VM user ID
+
+  resources:
+    vcpu: 4
+    ram: 8192                      # MB
+    swap: 4096                     # MB
+
+  networking:
+    ip: #X                         # e.g. 10.10.10.201
+    subnetmask: #X                 # e.g. 255.255.255.0
+    gateway: #X                    # e.g. 10.10.10.1
+    nameserver1: #X
+#   nameserver2:
+    forwarder: 1.1.1.1
+    hostname: #X                   # e.g. bastion-zvm
+    base_domain: #X                # e.g. example.com
+    # Network interface definition (object, not a simple string like KVM)
+    interface:
+      ifname: #X                   # e.g. enc1000
+      nettype: qeth                # Linux kernel network type: qeth, roce (used in rd.znet= cmdline)
+      network_mode: osa            # tessia-baselib ifaces type: osa, vswitch, hipersockets, or roce
+      subchannels: #X              # e.g. 0.0.1000,0.0.1001,0.0.1002  (used in rd.znet= and for --znet_id)
+      options: layer2=1
+    ipv6:
+    ipv6_gateway:
+    ipv6_prefix:
+    mac:
+    internal_ip:                   # Required only for HiperSocket LPAR cluster
+
+  # Disk — choose one of dasd or fcp and set disk_type accordingly
+  disk_type: dasd                  # 'dasd' or 'fcp'
+
+  # Required when disk_type is dasd
+  dasd:
+    disk_id: #X                    # DASD device number, e.g. 0B00
+
+  # Uncomment and fill in when disk_type is fcp
+  # Store hex values WITHOUT the 0x prefix — the code adds 0.0. for rd.zfcp
+  # and passes the raw hex string to tessia-baselib (which expects no prefix).
+  # Values must still be quoted strings so YAML treats them as strings, not integers.
+# fcp:
+#   install_disk: mpatha              # disk device name seen by the installer:
+#                                     #   mpatha  — multipath enabled (typical for dual-path FCP)
+#                                     #   sda     — single-path FCP (default if key is omitted)
+#   lun:
+#     - id: "4000000000000000"      # 16 hex chars, no 0x prefix
+#       paths:
+#         - wwpn: "500507680b2a5f7e"  # 16 hex chars, no 0x prefix
+#           fcp: "1a00"               # 4 hex chars, no 0x prefix — code adds 0.0. for rd.zfcp
+#         - wwpn: "500507680b2a5f7f"  # each path must have its own unique WWPN
+#           fcp: "1b00"
+
+  access:
+    user: #X                       # e.g. root
+    pass: "{{ vault_bastion_pass }}"
+    root_pass: "{{ vault_bastion_root_pass }}"
+
+  options:
+    dns: true
+    loadbalancer:
+      on_bastion: true
+#     public_ip:
+#     private_ip:
+
+  # Additional kernel parameters appended at the end of the boot cmdline.
+  # Optional — omit the key or leave it empty to add nothing.
+  # Example: "rd.neednet=1 rd.luks.options=discard cio_ignore=all,!condev"
+# additional_params: ""

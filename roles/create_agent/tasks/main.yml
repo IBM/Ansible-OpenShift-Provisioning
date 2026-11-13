@@ -3,25 +3,25 @@
 - name: Create Agent Using PXE Boot (fips = false)
   ansible.builtin.command: openshift-install agent create pxe-files --log-level=debug
   args:
-    chdir: ~/{{ abi.ansible_workdir }}
+    chdir: "{{ ocpinst_dir }}"
   when: abi.boot_method | lower == "pxe" and not install_config_vars.fips
 
 - name: Create Agent Using ISO Image (fips = false)
   ansible.builtin.command: openshift-install agent create image --log-level=debug
   args:
-    chdir: ~/{{ abi.ansible_workdir }}
+    chdir: "{{ ocpinst_dir }}"
   when: abi.boot_method | lower == "iso" and not install_config_vars.fips
 
 - name: Create Agent Using PXE Boot (fips = true)
   ansible.builtin.command: openshift-install-fips agent create pxe-files --log-level=debug
   args:
-    chdir: ~/{{ abi.ansible_workdir }}
+    chdir: "{{ ocpinst_dir }}"
   when: abi.boot_method | lower == "pxe" and install_config_vars.fips
 
 - name: Create Agent Using ISO Image (fips = true)
   ansible.builtin.command: openshift-install-fips agent create image --log-level=debug
   args:
-    chdir: ~/{{ abi.ansible_workdir }}
+    chdir: "{{ ocpinst_dir }}"
   when: abi.boot_method | lower == "iso" and install_config_vars.fips
 
 - name: Clean up previous boot artifacts in /var/www/html for idempotency
@@ -37,7 +37,7 @@
 
 - name: Copy initrd.img, vmlinuz, and rootfs.img for PXE
   ansible.builtin.copy:
-    src: "~/{{ abi.ansible_workdir }}/boot-artifacts/"
+    src: "{{ ocpinst_dir }}/boot-artifacts/"
     dest: /var/www/html/
     mode: '645'
     remote_src: true
@@ -59,7 +59,7 @@
 
 - name: Copy ISO image to the server
   ansible.builtin.copy:
-    src: "~/{{ abi.ansible_workdir }}/"
+    src: "{{ ocpinst_dir }}/"
     dest: /var/www/html/
     mode: '645'
     remote_src: true

@@ -1,3 +1,8 @@
+# Installation directory on the bastion (UPI and ABI). Override with ocpinst_dir in all.yaml.
+# "~" resolves to the home of the user running the task (root when "become: true" is used);
+# set an absolute path when the bastion user is not root.
+ocpinst_dir: ~/ocpinst
+
 # ocp_download_url with '/' at the end !
 ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/latest/s390x/"
 # ocp client and installer filenames

@@ -144,7 +144,6 @@ ocp_download_url: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/oc
 # Section 14 - Agent Based Installer (ABI)
 abi:
   flag: true                                     # [MANDATORY] Must be 'true' to execute Agent-Based Installer flow.
-  ansible_workdir: 'ansible_workdir'             # [OPTIONAL] Work directory on bastion (default: ansible_workdir).
   boot_method: pxe                               # [MANDATORY] Boot method ('pxe' for LPAR / genericdvd boot).
   install_timeout: 7200                          # [OPTIONAL] Max timeout in seconds to wait for install-complete (default: 7200).
   install_poll_delay: 30                         # [OPTIONAL] Polling interval in seconds (default: 30).
