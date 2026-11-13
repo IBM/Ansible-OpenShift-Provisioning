@@ -77,13 +77,18 @@ In `inventories/default/group_vars/all.yaml`:
 ```yaml
 installation_type: lpar
 
+# Same variable as for UPI: directory URL (ending with '/') of the OpenShift client and installer
+ocp_download_url: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/4.18.8/
+
 abi:
   flag: True
-  ocp_installer_version: '4.18.8'
-  ocp_installer_base_url: 'https://mirror.openshift.com/pub/openshift-v4'
-  architecture: multi  # or s390x
   boot_method: pxe
 ```
+
+!!! note
+    `abi.ocp_installer_version`, `abi.ocp_installer_base_url` and `abi.architecture` are **deprecated**.
+    If `ocp_download_url` is set, it takes precedence. See
+    [Section 14](set-variables-group-vars.md#14-optional-agent-based-installer) for the migration table.
 
 ### 2. Configure LPAR Storage in Host Vars
 

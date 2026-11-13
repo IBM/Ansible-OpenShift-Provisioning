@@ -200,6 +200,20 @@ env:
 
 # Section 12 - OCP and RHCOS (CoreOS)
 # ocp download_url and rhcos download url
+# Both settings are optional. If not set, the role defaults are used (latest, s390x).
+#
+# ocp_download_url: directory URL (ending with '/') that contains openshift-client-linux.tar.gz and
+#   openshift-install-linux.tar.gz. Used by BOTH the UPI and the Agent Based Installer (ABI).
+#   Examples:
+#     https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/4.18.8/
+#     https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/4.18.8/s390x/
+#     https://mirror.openshift.com/pub/openshift-v5/s390x/clients/ocp/5.0.1/
+#     https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp-dev-preview/candidate-5.0/
+# ocp_download_url: https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/latest/s390x/
+#
+# rhcos_download_url: directory URL (ending with '/') that contains the RHCOS live kernel, initramfs and
+#   rootfs. Used by UPI only; it is ignored by ABI (the agent installer uses the RHCOS image of the release).
+# rhcos_download_url: https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/
 
 # Section 13 - (Optional) Create additional compute node in a day-2 operation
 # Provide one or more host_vars entry names for day-2 compute nodes.
@@ -220,23 +234,19 @@ env:
 #   - The template will automatically add rootDeviceHints for FCP storage
 #
 # For KVM installations, rootDeviceHints are not needed and will not be added.
-#
-# (Optional) Installation directory on the bastion, used by UPI and ABI (install configs,
-# ignition files / boot artifacts, auth/kubeconfig). Default: ~/ocpinst
-# "~" is the home directory of the user that runs the task: /root when the bastion user is root
-# (UPI tasks run with become). If the bastion user is NOT root, set an absolute path that this
-# user can write to, e.g. /home/<user>/ocpinst, so that all tasks use the same directory.
-# ocpinst_dir: ~/ocpinst
+# The OpenShift version/location for ABI is selected with 'ocp_download_url' (see Section 12).
 abi:
   flag: False
-  ocp_installer_version: '4.18.8'
-  ocp_installer_base_url: 'https://mirror.openshift.com/pub/openshift-v4'
-  architecture: <multi|s390x>
   boot_method: <pxe|iso>
   install_timeout: 7200     # (Optional) max seconds to wait for the installation to complete
   install_poll_delay: 30    # (Optional) seconds between two status checks
 # platform: none            # none (default) | external
 # platform_name: ibmz       # only used when platform is external
+# DEPRECATED, use 'ocp_download_url' instead; they will be removed in a later release.
+# If 'ocp_download_url' is set it takes precedence. All three must be set together:
+#   ocp_installer_version: '4.18.8'
+#   ocp_installer_base_url: 'https://mirror.openshift.com/pub/openshift-v4'
+#   architecture: s390x       # multi | s390x
 
 # Openshift Settings  
 # Settings like architecture, hyperthreading, network cidr, etc.
