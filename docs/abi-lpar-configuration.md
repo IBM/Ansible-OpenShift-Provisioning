@@ -79,7 +79,6 @@ installation_type: lpar
 
 abi:
   flag: True
-  ansible_workdir: 'ansible_workdir'
   ocp_installer_version: '4.18.8'
   ocp_installer_base_url: 'https://mirror.openshift.com/pub/openshift-v4'
   architecture: multi  # or s390x

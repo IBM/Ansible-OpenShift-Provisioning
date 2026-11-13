@@ -275,8 +275,8 @@ If those nodes use new hypervisors that must be prepared first, temporarily add 
 ## 14 - (Optional) Agent Based Installer
 **Variable Name** | **Description** | **Example**
 :--- | :--- | :---
+**ocpinst_dir** | (Optional, top-level variable, not under `abi`) Installation directory on the bastion used by UPI and ABI: install configs, ignition files / boot artifacts and `auth/kubeconfig`. Defaults to `~/ocpinst`. `~` is the home of the user running the task, i.e. `/root` when the bastion user is root. **If the bastion user is not root, set an absolute path that this user can write to (for example `/home/<user>/ocpinst`)**, because some UPI tasks run with `become` and would otherwise resolve `~` to `/root`. `download_kubeconfig` and the OpenShift Virtualization roles read `auth/kubeconfig` from this directory. | ~/ocpinst
 **abi.flag** | This is the flag, Will be used to identify during execution. Few checks in the playbook will be depend on this (default value will be False)  | True
-**abi.ansible_workdir** | This will be work directory name, it will keep required data that need to be present during or after execution | ansible_workdir
 **abi.ocp_installer_version** | Version will contain value of openshift-installer binary version user desired to be used | '4.15.8'
 **abi.ocp_installer_base_url** | This is the base url of openshift installer binary it will remain same as static value, User Do not need to give value until user wants to change the mirror | 'https://mirror.openshift.com/pub/openshift-v4/'
 **abi.architecture** | The installer binary supports two architecture options: multi and s390x. Users are required to specify the appropriate architecture value based on their deployment environment. | 'multi/s390x'

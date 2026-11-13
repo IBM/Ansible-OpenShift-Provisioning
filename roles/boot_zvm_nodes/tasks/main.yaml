@@ -4,7 +4,7 @@
     - name: Getting script for booting
       ansible.builtin.template:
         src: boot_nodes.py
-        dest: /root/ansible_workdir/boot_nodes.py
+        dest: "{{ ocpinst_dir | default('~/ocpinst') }}/boot_nodes.py"
         mode: "0755"
 
     - name: Debug
@@ -13,7 +13,7 @@
 
     - name: Booting zvm node
       ansible.builtin.shell: |
-        python3 /root/ansible_workdir/boot_nodes.py \
+        python3 {{ ocpinst_dir | default('~/ocpinst') }}/boot_nodes.py \
         --zvmname "{{ zvm.nodes[item].name }}" \
         --zvmhost "{{ zvm.nodes[item].host }}" \
         --zvmuser "{{ zvm.nodes[item].user }}" \
@@ -22,7 +22,7 @@
         --memory "{{ zvm.memory }}" \
         --kernel 'file:///var/lib/libvirt/images/pxeboot/kernel.img'  \
         --initrd 'file:///var/lib/libvirt/images/pxeboot/initrd.img' \
-        --cmdline "$(cat /root/ansible_workdir/{{ env.cluster.networking.metadata_name }}-{{ item }}.param)" \
+        --cmdline "$(cat {{ ocpinst_dir | default('~/ocpinst') }}/{{ env.cluster.networking.metadata_name }}-{{ item }}.param)" \
         --network "{{ zvm.network_mode }}"
 
     - name: Attaching dasd disk

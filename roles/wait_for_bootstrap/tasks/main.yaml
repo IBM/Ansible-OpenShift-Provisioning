@@ -18,7 +18,9 @@ SSH to root@bastion, SSH to core@bootstrap-ip and run 'journalctl -b -f -u relea
 
 - name: Start openshift-installer with 'wait-for bootstrap-complete' (async task)
   tags: wait_for_bootstrap
-  ansible.builtin.command: openshift-install wait-for bootstrap-complete --dir=/root/ocpinst
+  ansible.builtin.command: openshift-install wait-for bootstrap-complete --dir=.
+  args:
+    chdir: "{{ ocpinst_dir }}"
   # Installer will wait up to 60 min
   async: 3600
   poll: 0

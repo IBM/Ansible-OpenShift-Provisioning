@@ -220,9 +220,15 @@ env:
 #   - The template will automatically add rootDeviceHints for FCP storage
 #
 # For KVM installations, rootDeviceHints are not needed and will not be added.
+#
+# (Optional) Installation directory on the bastion, used by UPI and ABI (install configs,
+# ignition files / boot artifacts, auth/kubeconfig). Default: ~/ocpinst
+# "~" is the home directory of the user that runs the task: /root when the bastion user is root
+# (UPI tasks run with become). If the bastion user is NOT root, set an absolute path that this
+# user can write to, e.g. /home/<user>/ocpinst, so that all tasks use the same directory.
+# ocpinst_dir: ~/ocpinst
 abi:
   flag: False
-  ansible_workdir: 'ansible_workdir'
   ocp_installer_version: '4.18.8'
   ocp_installer_base_url: 'https://mirror.openshift.com/pub/openshift-v4'
   architecture: <multi|s390x>

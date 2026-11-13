@@ -140,7 +140,7 @@ In both cases the result is a correctly configured, non-duplicated set of DNS an
 * oc, kubectl and openshift-install binaries are installed.
 * OCP install-config is templated and backed up. In disconnected mode, if platform is mirrored (currently only legacy), image content source policy and additionalTrustBundle is also patched.
 * Manifests are created.
-* OCP install directory found at /root/ocpinst/ is created and populated with necessary files.
+* OCP install directory found at `ocpinst_dir` (default ~/ocpinst, i.e. /root/ocpinst for root) is created and populated with necessary files.
 * Ignition files for the bootstrap, control, and compute nodes are transferred to HTTP-accessible directory for booting nodes.
 ### Notes
 * The stickiest part is DNS setup and get_ocp role at the end.
@@ -386,7 +386,7 @@ In case the cluster needs to be completely reinstalled, run this playbook. It wi
     * oc, kubectl and openshift-install binaries are installed.
     * OCP install-config is created from scratch, templated and backed up.
     * Manfifests are created.
-    * OCP install directory found at /root/ocpinst/ is deleted, re-created and populated with necessary files.
+    * OCP install directory found at `ocpinst_dir` (default ~/ocpinst, i.e. /root/ocpinst for root) is deleted, re-created and populated with necessary files.
     * Ignition files for the bootstrap, control, and compute nodes are transferred to HTTP-accessible directory for booting nodes.
 * 6 Create Nodes playbook runs, tearing down and recreating cluster nodes.
 * 7 OCP Verification playbook runs, verifying new deployment.

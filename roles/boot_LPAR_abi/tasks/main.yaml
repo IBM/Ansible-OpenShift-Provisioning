@@ -45,23 +45,23 @@
 - name: Getting boot script for ABI
   ansible.builtin.template:
     src: boot_lpar.py
-    dest: /root/ansible_workdir/boot_lpar_abi.py
+    dest: "{{ ocpinst_dir }}/boot_lpar_abi.py"
     mode: '0755'
 
 - name: Generate genericdvd.prm file for ABI
   ansible.builtin.template:
     src: genericdvd.prm.j2
-    dest: /root/ansible_workdir/genericdvd.prm
+    dest: "{{ ocpinst_dir }}/genericdvd.prm"
     mode: '0644'
 
 - name: Read genericdvd.prm content
-  ansible.builtin.slurp:
-    src: /root/ansible_workdir/genericdvd.prm
+  ansible.builtin.shell: cat {{ ocpinst_dir }}/genericdvd.prm
   register: prm_content
+  changed_when: false
 
 - name: Set cmdline from genericdvd.prm
   ansible.builtin.set_fact:
-    abi_cmdline: "{{ prm_content['content'] | b64decode | trim }}"
+    abi_cmdline: "{{ prm_content.stdout | trim }}"
 
 - name: Set live disk lun for ABI
   ansible.builtin.set_fact:
@@ -87,7 +87,7 @@
 - name: Debug ABI boot command (password redacted)
   ansible.builtin.debug:
     msg:
-      python3 /root/ansible_workdir/boot_lpar_abi.py
+      python3 {{ ocpinst_dir }}/boot_lpar_abi.py
       --cpcname {{ node.cpc_name | upper }}
       --lparname {{ node.lpar.name | upper }}
       --hmchost {{ node.hmc.host }}
@@ -121,7 +121,7 @@
 - name: Booting LPAR node with ABI agent
   ansible.builtin.shell: |
       set -o pipefail
-      python3 /root/ansible_workdir/boot_lpar_abi.py \
+      python3 {{ ocpinst_dir }}/boot_lpar_abi.py \
       --cpcname {{ node.cpc_name | upper }} \
       --lparname {{ node.lpar.name | upper }} \
       --hmchost {{ node.hmc.host }} \

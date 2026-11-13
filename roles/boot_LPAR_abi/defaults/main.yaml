@@ -1,4 +1,9 @@
 ---
+# Installation directory on the bastion (UPI and ABI). Override with ocpinst_dir in all.yaml.
+# "~" resolves to the home of the user running the task (root when "become: true" is used);
+# set an absolute path when the bastion user is not root.
+ocpinst_dir: ~/ocpinst
+
 # ABI agent images are served from bastion httpd server
 # No specific defaults needed as URLs are constructed dynamically
 
