@@ -137,12 +137,13 @@ env:
   use_dhcp: false                                # [MANDATORY] Set 'false' for static IP configuration.
   setup_openvpn: false                           # [MANDATORY] Set 'false' for LPAR installs on the same flat network.
 
+# Section 12 - OCP and RHCOS (CoreOS)
+# Directory URL (ending with '/') of the OpenShift client and installer. Used by UPI and ABI.
+ocp_download_url: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/4.22.8/  # [MANDATORY] OpenShift release to download.
+
 # Section 14 - Agent Based Installer (ABI)
 abi:
   flag: true                                     # [MANDATORY] Must be 'true' to execute Agent-Based Installer flow.
-  ocp_installer_version: '4.22.8'                # [MANDATORY] OpenShift release version to download.
-  ocp_installer_base_url: 'https://mirror.openshift.com/pub/openshift-v4' # [MANDATORY] OpenShift mirror base URL.
-  architecture: s390x                            # [MANDATORY] Target architecture ('s390x').
   boot_method: pxe                               # [MANDATORY] Boot method ('pxe' for LPAR / genericdvd boot).
   install_timeout: 7200                          # [OPTIONAL] Max timeout in seconds to wait for install-complete (default: 7200).
   install_poll_delay: 30                         # [OPTIONAL] Polling interval in seconds (default: 30).

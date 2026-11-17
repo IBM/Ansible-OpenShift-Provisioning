@@ -1,0 +1,105 @@
+---
+# Resolves the directory URL of the OpenShift client/installer into the fact
+# '_abi_ocp_download_url' (always ends with exactly one '/').
+#
+# Precedence:
+#   1. ocp_download_url                      (same variable as for UPI)
+#   2. DEPRECATED abi.ocp_installer_version + abi.ocp_installer_base_url + abi.architecture
+#   3. role default (_ocp_download_url_default)
+
+- name: Collect download url settings
+  ansible.builtin.set_fact:
+    _abi_user_url: "{{ ocp_download_url | default('', true) | string | trim }}"
+    _abi_legacy_version: "{{ abi.ocp_installer_version | default('', true) | string | trim }}"
+    _abi_legacy_base_url: "{{ abi.ocp_installer_base_url | default('', true) | string | trim }}"
+    _abi_legacy_arch: "{{ abi.architecture | default('', true) | string | trim | lower }}"
+
+- name: Determine which settings are present
+  ansible.builtin.set_fact:
+    _abi_legacy_count: >-
+      {{ [_abi_legacy_version, _abi_legacy_base_url, _abi_legacy_arch]
+         | reject('equalto', '') | list | length }}
+
+- name: Fail on partially configured deprecated abi.* variables
+  ansible.builtin.fail:
+    msg: >-
+      abi.ocp_installer_version, abi.ocp_installer_base_url and abi.architecture are deprecated and
+      must be set together. Please set 'ocp_download_url' instead
+      (e.g. ocp_download_url: https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/4.18.8/).
+  when:
+    - _abi_user_url | length == 0
+    - _abi_legacy_count | int not in [0, 3]
+
+- name: Fail on unsupported abi.architecture
+  ansible.builtin.fail:
+    msg: "abi.architecture '{{ _abi_legacy_arch }}' is not supported. Use 'multi' or 's390x', or set 'ocp_download_url'."
+  when:
+    - _abi_user_url | length == 0
+    - _abi_legacy_count | int == 3
+    - _abi_legacy_arch not in ['multi', 's390x']
+
+# 1. ocp_download_url wins
+- name: Use ocp_download_url
+  ansible.builtin.set_fact:
+    _abi_ocp_download_url: "{{ (_abi_user_url | regex_replace('/+$', '')) ~ '/' }}"
+  when: _abi_user_url | length > 0
+
+- name: Inform that deprecated abi.* variables are ignored
+  ansible.builtin.debug:
+    msg: >-
+      abi.ocp_installer_version, abi.ocp_installer_base_url and abi.architecture are DEPRECATED
+      and are ignored because 'ocp_download_url' is set. Using {{ _abi_ocp_download_url }}.
+      Please remove the deprecated variables from your inventory; they will be removed in a later release.
+  when:
+    - _abi_user_url | length > 0
+    - _abi_legacy_count | int > 0
+
+# 2. Deprecated way, build the URL as before
+- name: Build download url from deprecated abi.* variables
+  ansible.builtin.set_fact:
+    _abi_ocp_download_url: >-
+      {{ ((_abi_legacy_base_url | regex_replace('/+$', '')) ~ '/' ~ _abi_legacy_arch ~ '/clients/' ~
+      ('ocp-dev-preview' if '-ec' in _abi_legacy_version else 'ocp') ~ '/' ~
+      _abi_legacy_version ~ '/' ~
+      ('s390x/' if _abi_legacy_arch == 'multi' else '')) | replace(' ', '') }}
+  when:
+    - _abi_user_url | length == 0
+    - _abi_legacy_count | int == 3
+
+- name: Print deprecation warning for abi.* variables
+  ansible.builtin.debug:
+    msg: >-
+      DEPRECATION WARNING: abi.ocp_installer_version, abi.ocp_installer_base_url and abi.architecture
+      are deprecated and will be removed in a later release. Please replace them by the variable
+      used for UPI as well:  ocp_download_url: {{ _abi_ocp_download_url }}
+  when:
+    - _abi_user_url | length == 0
+    - _abi_legacy_count | int == 3
+
+# 3. Fallback
+- name: Use default download url
+  ansible.builtin.set_fact:
+    _abi_ocp_download_url: "{{ (_ocp_download_url_default | regex_replace('/+$', '')) ~ '/' }}"
+  when:
+    - _abi_user_url | length == 0
+    - _abi_legacy_count | int == 0
+
+- name: Inform that the default download url is used
+  ansible.builtin.debug:
+    msg: >-
+      Neither 'ocp_download_url' nor the deprecated abi.ocp_installer_* variables are set.
+      Using the default {{ _abi_ocp_download_url }}. Set 'ocp_download_url' to select another version.
+  when:
+    - _abi_user_url | length == 0
+    - _abi_legacy_count | int == 0
+
+- name: Inform that rhcos_download_url is not used by ABI
+  ansible.builtin.debug:
+    msg: >-
+      'rhcos_download_url' is set but ignored for the Agent Based Installer, because
+      openshift-install uses the RHCOS image of the release payload. It is only used for UPI.
+  when: rhcos_download_url | default('', true) | string | trim | length > 0
+
+- name: Show OpenShift download url used for ABI
+  ansible.builtin.debug:
+    msg: "OpenShift client/installer are downloaded from {{ _abi_ocp_download_url }}"

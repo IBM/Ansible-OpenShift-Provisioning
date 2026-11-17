@@ -1,14 +1,13 @@
 ---
+# Section: Resolve the download url (ocp_download_url, or deprecated abi.* variables)
+- name: Resolve OpenShift download url
+  ansible.builtin.include_tasks: resolve_download_url.yaml
+
 # Section: Download OpenShift Installer (fips=false)
 - name: Download OpenShift Installer (fips=false)
   ansible.builtin.get_url:
-    url: >-
-      {{ (abi.ocp_installer_base_url ~ '/' ~ (abi.architecture | lower) ~ '/clients/' ~
-      ('ocp-dev-preview' if '-ec' in abi.ocp_installer_version else 'ocp') ~ '/' ~
-      abi.ocp_installer_version ~ '/' ~
-      ('s390x/' if abi.architecture | lower == 'multi' else '') ~
-      ocp_install_tgz) | replace(' ', '') }}
-    dest: "/tmp/openshift-install-{{ abi.ocp_installer_version }}-{{ abi.architecture }}.tar.gz"
+    url: "{{ _abi_ocp_download_url }}{{ ocp_install_tgz }}"
+    dest: /tmp/openshift-install.tar.gz
     mode: '0640'
     force: true
     validate_certs: false
@@ -17,14 +16,8 @@
 # Section: Download OpenShift Installer (fips=true)
 - name: Download OpenShift Installer (fips=true)
   ansible.builtin.get_url:
-    url: >-
-      {{ (abi.ocp_installer_base_url ~ '/' ~ (abi.architecture | lower) ~ '/clients/' ~
-      ('ocp-dev-preview' if '-ec' in abi.ocp_installer_version else 'ocp') ~ '/' ~
-      abi.ocp_installer_version ~ '/' ~
-      ('s390x/' if abi.architecture | lower == 'multi' else '') ~
-      ocp_install_fips_tgz ~ '-' ~ (install_config_vars.control.architecture | lower) ~ '.tar.gz')
-      | replace(' ', '') }}
-    dest: "/tmp/openshift-install-fips-{{ abi.ocp_installer_version }}-{{ install_config_vars.control.architecture | lower }}.tar.gz"
+    url: "{{ _abi_ocp_download_url }}{{ ocp_install_fips_tgz }}-{{ install_config_vars.control.architecture | lower }}.tar.gz"
+    dest: /tmp/openshift-install-fips.tar.gz
     mode: '0640'
     force: true
     validate_certs: false
@@ -33,7 +26,7 @@
 # Section: Extract OpenShift Installer (fips=false)
 - name: Extract OpenShift Installer (fips=false)
   ansible.builtin.unarchive:
-    src: "/tmp/openshift-install-{{ abi.ocp_installer_version }}-{{ abi.architecture }}.tar.gz"
+    src: /tmp/openshift-install.tar.gz
     dest: /usr/local/bin
     remote_src: true
   when: not install_config_vars.fips
@@ -41,7 +34,7 @@
 # Section: Extract OpenShift Installer (fips=true)
 - name: Extract OpenShift Installer (fips=true)
   ansible.builtin.unarchive:
-    src: "/tmp/openshift-install-fips-{{ abi.ocp_installer_version }}-{{ install_config_vars.control.architecture | lower }}.tar.gz"
+    src: /tmp/openshift-install-fips.tar.gz
     dest: /usr/local/bin
     remote_src: true
   when: install_config_vars.fips
@@ -49,13 +42,8 @@
 # Section: Download OpenShift Client
 - name: Download OpenShift Client
   ansible.builtin.get_url:
-    url: >-
-      {{ (abi.ocp_installer_base_url ~ '/' ~ (abi.architecture | lower) ~ '/clients/' ~
-      ('ocp-dev-preview' if '-ec' in abi.ocp_installer_version else 'ocp') ~ '/' ~
-      abi.ocp_installer_version ~ '/' ~
-      ('s390x/' if abi.architecture | lower == 'multi' else '') ~
-      ocp_client_tgz) | replace(' ', '') }}
-    dest: "/tmp/openshift-client-{{ abi.ocp_installer_version }}-{{ abi.architecture }}.tar.gz"
+    url: "{{ _abi_ocp_download_url }}{{ ocp_client_tgz }}"
+    dest: /tmp/openshift-client.tar.gz
     mode: '0755'
     force: true
     validate_certs: false
@@ -63,7 +51,7 @@
 # Section: Extract OpenShift Client
 - name: Extract OpenShift Client
   ansible.builtin.unarchive:
-    src: "/tmp/openshift-client-{{ abi.ocp_installer_version }}-{{ abi.architecture }}.tar.gz"
+    src: /tmp/openshift-client.tar.gz
     dest: /usr/local/bin
     remote_src: true
 
@@ -105,4 +93,3 @@
     name: nmstate
     state: latest
     skip_broken: true
-
