@@ -143,6 +143,73 @@
         index_var: i
       when: env.cluster.nodes.infra.hostname is defined
 
+# ---- Existing bastion: refresh the bastion's own records ----
+# The bastion / name server / api / apps records are only written by the fresh
+# template-out below. Without this block a changed bastion hostname or IP would
+# leave stale records in an existing zone file and the DNS check would fail.
+# Relative names (no dot) are used to find the bastion's own A record, so a
+# renamed bastion replaces the old record instead of adding a second one.
+
+- name: Refresh bastion and load balancer records in existing zone files
+  tags: dns
+  when: _named_db_stat.stat.exists
+  vars:
+    _zone: "{{ env.cluster.networking.metadata_name }}.{{ env.cluster.networking.base_domain }}"
+    _ns_ip: >-
+      {{ env.bastion.networking.internal_ip
+         if env.bastion.networking.internal_ip is defined and env.bastion.networking.internal_ip != None
+         else env.bastion.networking.ip }}
+  block:
+    - name: Refresh name server record in DNS forwarding file
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ env.cluster.networking.metadata_name }}.db
+        regexp: '^{{ _zone | regex_escape }}\.\s+IN\s+NS\s'
+        insertafter: ";Name Server / Bastion Information"
+        line: "{{ _zone }}. IN NS {{ env.bastion.networking.hostname }}.{{ env.bastion.networking.base_domain }}."
+        state: present
+
+    - name: Refresh bastion A record in DNS forwarding file
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ env.cluster.networking.metadata_name }}.db
+        regexp: '^[^\s.;]+\s+IN\s+A\s'
+        insertafter: ";IP Address for Name Server"
+        line: "{{ env.bastion.networking.hostname }} IN A {{ _ns_ip }}"
+        state: present
+
+    - name: Refresh api, api-int and apps records in DNS forwarding file
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ env.cluster.networking.metadata_name }}.db
+        regexp: '^{{ item | regex_escape }}\.{{ _zone | regex_escape }}\.\s+IN\s+A\s'
+        insertafter: ";The api identifies the IP of your load balancer."
+        line: "{{ item }}.{{ _zone }}. IN A {{ env.bastion.networking.ip }}"
+        state: present
+      loop:
+        - api
+        - api-int
+        - apps
+        - "*.apps"
+
+    - name: Refresh bastion A record in DNS reverse lookup file
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ env.cluster.networking.metadata_name }}.rev
+        regexp: '^[^\s.;]+\s+IN\s+A\s'
+        insertafter: ";Name Server Information"
+        line: "{{ env.bastion.networking.hostname }}     IN      A       {{ env.bastion.networking.ip }}"
+        state: present
+
+    - name: Refresh bastion, api and api-int PTR records in DNS reverse lookup file
+      ansible.builtin.lineinfile:
+        path: /var/named/{{ env.cluster.networking.metadata_name }}.rev
+        regexp: '^\S+\s+IN\s+PTR\s+{{ item | regex_escape }}\.'
+        insertafter: ";PTR Record IP address to Hostname"
+        line: "{{ bastion_split_ip.3 }}     IN      PTR     {{ item }}.{{ _zone }}."
+        state: present
+      loop:
+        - "{{ env.bastion.networking.hostname }}"
+        - api-int
+        - api
+
+
 # ---- Fresh bastion: full template-out ----
 
 - name: Template DNS forwarding file to bastion
