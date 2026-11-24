@@ -2,7 +2,11 @@
 
 - name: Find inventory directory from ansible.cfg
   tags: set_inventory
-  ansible.builtin.shell: cat {{ ansible_config_file }} | grep 'inventory=' | cut -f2 -d"="
+  ansible.builtin.shell: |
+    set -o pipefail
+    cat {{ ansible_config_file }} | grep 'inventory=' | cut -f2 -d"="
+  args:
+    executable: /bin/bash
   register: find_inventory
 
 - name: Find absolute path to project.
@@ -70,8 +74,10 @@
     src: hosts.j2
     dest: "{{ find_project.stdout }}{{ find_inventory.stdout }}/hosts"
     force: true
+    mode: '0644'
 
-- ansible.builtin.meta: refresh_inventory
+- name: Refresh inventory after templating hosts file
+  ansible.builtin.meta: refresh_inventory
 
 - name: Add path to Ansible private key in ansible.cfg
   tags: set_inventory
