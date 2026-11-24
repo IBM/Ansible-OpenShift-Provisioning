@@ -11,7 +11,13 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   vars:
-    ssh_target: ["{{ hostvars[bastion_nodes[0]]['bastion']['networking']['ip'] }}", "{{ hostvars[bastion_nodes[0]]['bastion']['access']['user'] }}", "{{ hostvars[bastion_nodes[0]]['bastion']['access']['pass'] }}", "{{ path_to_key_pair }}"]
+    ssh_target: ["{{ _bastion_hv.bastion['networking']['ip'] }}", "{{ _bastion_hv.bastion['access']['user'] }}", "{{ _bastion_hv.bastion['access']['pass'] }}", "{{ path_to_key_pair }}"]
+  pre_tasks:
+    - name: Load bastion host_vars into _bastion_hv (so that vault variables resolve in this play)
+      ansible.builtin.include_vars:
+        file: "{{ inventory_dir }}/host_vars/{{ bastion_nodes[0] }}.yaml"
+        name: _bastion_hv
+      when: bastion_nodes is defined and bastion_nodes | length > 0
   roles:
     - ssh_copy_id
 

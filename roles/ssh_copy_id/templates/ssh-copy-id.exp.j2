@@ -20,9 +20,12 @@ expect {
 		send -- "{{ ssh_target[2] }}\r"
 		exp_continue
 	}
-	"password: " {
-		send -- "{{ ssh_target[2] }}\r"
-		expect eof
-	}	
-	"Number of key(s) added:" {}
+	timeout {
+		puts "ssh-copy-id: timed out waiting for output"
+		exit 1
+	}
+	eof
 }
+# Return the exit status of ssh-copy-id so that Ansible fails if the key could not be copied.
+catch wait result
+exit [lindex $result 3]

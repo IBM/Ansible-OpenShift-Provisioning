@@ -44,9 +44,15 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   pre_tasks:
+    - name: Load bastion host_vars into _bastion_hv (so that vault variables resolve in this play)
+      ansible.builtin.include_vars:
+        file: "{{ inventory_dir }}/host_vars/{{ bastion_nodes[0] }}.yaml"
+        name: _bastion_hv
+      when: bastion_nodes is defined and bastion_nodes | length > 0
+
     - name: Set env.bastion from bastion host_vars (backward compatibility for roles)
       ansible.builtin.set_fact:
-        env: "{{ env | combine({'bastion': hostvars[bastion_nodes[0]]['bastion']}, recursive=True) }}"
+        env: "{{ env | combine({'bastion': _bastion_hv.bastion}, recursive=True) }}"
       when: bastion_nodes is defined and bastion_nodes | length > 0
   roles:
     - { role: common,  when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
@@ -114,9 +120,15 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   pre_tasks:
+    - name: Load bastion host_vars into _bastion_hv (so that vault variables resolve in this play)
+      ansible.builtin.include_vars:
+        file: "{{ inventory_dir }}/host_vars/{{ bastion_nodes[0] }}.yaml"
+        name: _bastion_hv
+      when: bastion_nodes is defined and bastion_nodes | length > 0
+
     - name: Set env.bastion from bastion host_vars (backward compatibility for roles)
       ansible.builtin.set_fact:
-        env: "{{ env | combine({'bastion': hostvars[bastion_nodes[0]]['bastion']}, recursive=True) }}"
+        env: "{{ env | combine({'bastion': _bastion_hv.bastion}, recursive=True) }}"
       when: bastion_nodes is defined and bastion_nodes | length > 0
   roles:
     - common
@@ -166,9 +178,15 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   pre_tasks:
+    - name: Load bastion host_vars into _bastion_hv (so that vault variables resolve in this play)
+      ansible.builtin.include_vars:
+        file: "{{ inventory_dir }}/host_vars/{{ bastion_nodes[0] }}.yaml"
+        name: _bastion_hv
+      when: bastion_nodes is defined and bastion_nodes | length > 0
+
     - name: Set env.bastion from bastion host_vars (backward compatibility for roles)
       ansible.builtin.set_fact:
-        env: "{{ env | combine({'bastion': hostvars[bastion_nodes[0]]['bastion']}, recursive=True) }}"
+        env: "{{ env | combine({'bastion': _bastion_hv.bastion}, recursive=True) }}"
       when: bastion_nodes is defined and bastion_nodes | length > 0
   roles:
     - { role: common, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
