@@ -12,10 +12,16 @@
     ssh_target: ["{{ env.jumphost.ip }}", "{{ env.jumphost.user }}", "{{ env.jumphost.pass }}", "{{ path_to_key_pair | default('~/.ssh/ansible-ocpz.pub') }}"]
   pre_tasks:
     # ssh_add_config role uses env.bastion.networking.ip and env.bastion.access.user.
-    # On localhost the bastion host_vars are not auto-loaded, so we inject them from hostvars.
+    # On localhost the bastion host_vars are not auto-loaded, so we load them from the host_vars file.
+    - name: Load bastion host_vars into _bastion_hv (so that vault variables resolve in this play)
+      ansible.builtin.include_vars:
+        file: "{{ inventory_dir }}/host_vars/{{ bastion_nodes[0] }}.yaml"
+        name: _bastion_hv
+      when: bastion_nodes is defined and bastion_nodes | length > 0
+
     - name: Set env.bastion from bastion host_vars for ssh_add_config role
       ansible.builtin.set_fact:
-        env: "{{ env | combine({'bastion': hostvars[bastion_nodes[0]]['bastion']}, recursive=True) }}"
+        env: "{{ env | combine({'bastion': _bastion_hv.bastion}, recursive=True) }}"
       when: bastion_nodes is defined and bastion_nodes | length > 0
   roles:
     - { role: ssh_copy_id, tags: ssh_copy_id, ssh, when: (env.network_mode | upper == "NAT") and ( env.jumphost.ip is not none ) }
@@ -31,8 +37,18 @@
   vars:
     # bastion.* is loaded from the first bastion's host_vars; for multi-bastion setups
     # this play runs once per bastion when targeted via --limit or via the [bastion] group.
-    ssh_target: ["{{ hostvars[bastion_nodes[0]]['bastion']['networking']['ip'] }}", "{{ hostvars[bastion_nodes[0]]['bastion']['access']['user'] }}", "{{ hostvars[bastion_nodes[0]]['bastion']['access']['pass'] }}", "{{ env.jumphost.path_to_keypair }}"]
+    ssh_target:
+      - "{{ _bastion_hv.bastion['networking']['ip'] }}"
+      - "{{ _bastion_hv.bastion['access']['user'] }}"
+      - "{{ _bastion_hv.bastion['access']['pass'] }}"
+      - "{{ env.jumphost.path_to_keypair }}"
   pre_tasks:
+    - name: Load bastion host_vars into _bastion_hv (so that vault variables resolve in this play)
+      ansible.builtin.include_vars:
+        file: "{{ inventory_dir }}/host_vars/{{ bastion_nodes[0] }}.yaml"
+        name: _bastion_hv
+      when: bastion_nodes is defined and bastion_nodes | length > 0
+
     - name: Generate an OpenSSH keypair with the default values (4096 bits, RSA), if using jumphost for NAT.
       tags: ssh_key_gen, ssh, section_1
       community.crypto.openssh_keypair:
@@ -81,11 +97,17 @@
     jumphost_proxy: "{{ is_nat | bool | ternary(env.jumphost.user ~ '@' ~ env.jumphost.ip, '') }}"
     # bastion.* comes from the bastion host_vars loaded via bastion_nodes
     ssh_target:
-      - "{{ hostvars[bastion_nodes[0]]['bastion']['networking']['ip'] }}"
-      - "{{ hostvars[bastion_nodes[0]]['bastion']['access']['user'] }}"
-      - "{{ hostvars[bastion_nodes[0]]['bastion']['access']['pass'] }}"
+      - "{{ _bastion_hv.bastion['networking']['ip'] }}"
+      - "{{ _bastion_hv.bastion['access']['user'] }}"
+      - "{{ _bastion_hv.bastion['access']['pass'] }}"
       - "{{ path_to_key_pair }}"
       - "{{ jumphost_proxy }}"
+  pre_tasks:
+    - name: Load bastion host_vars into _bastion_hv (so that vault variables resolve in this play)
+      ansible.builtin.include_vars:
+        file: "{{ inventory_dir }}/host_vars/{{ bastion_nodes[0] }}.yaml"
+        name: _bastion_hv
+      when: bastion_nodes is defined and bastion_nodes | length > 0
   roles:
     - { role: ssh_copy_id }
 
@@ -97,7 +119,17 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   vars:
-    ssh_target: ["{{ hostvars[bastion_nodes[0]]['bastion']['networking']['ip'] }}", "{{ hostvars[bastion_nodes[0]]['bastion']['access']['user'] }}", "{{ hostvars[bastion_nodes[0]]['bastion']['access']['pass'] }}", "{{ env.jumphost.path_to_keypair }}"]
+    ssh_target:
+      - "{{ _bastion_hv.bastion['networking']['ip'] }}"
+      - "{{ _bastion_hv.bastion['access']['user'] }}"
+      - "{{ _bastion_hv.bastion['access']['pass'] }}"
+      - "{{ env.jumphost.path_to_keypair }}"
+  pre_tasks:
+    - name: Load bastion host_vars into _bastion_hv (so that vault variables resolve in this play)
+      ansible.builtin.include_vars:
+        file: "{{ inventory_dir }}/host_vars/{{ bastion_nodes[0] }}.yaml"
+        name: _bastion_hv
+      when: bastion_nodes is defined and bastion_nodes | length > 0
   roles:
     - { role: ssh_copy_id, when: (env.network_mode | upper == 'NAT') and (env.jumphost.ip is not none) }
 
@@ -178,7 +210,10 @@
     - { role: setup_bastion_services, bastion_services_mode: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
     - httpd
     - { role: install_tessia_baselib, when: ( installation_type|lower == "lpar" ) or ( installation_type|lower == "zvm" ) }
-    - { role: patch_tessia_baselib, when: ( ( installation_type|lower == "lpar" ) or ( installation_type|lower == "zvm" ) ) and ( patch_tessia_baselib | default(true) | bool ) }
+    - role: patch_tessia_baselib
+      when:
+        - ( installation_type | lower == "lpar" ) or ( installation_type | lower == "zvm" )
+        - patch_tessia_baselib | default(true) | bool
 
 - name: Setup OpenVPN on bastion
   hosts: bastion
