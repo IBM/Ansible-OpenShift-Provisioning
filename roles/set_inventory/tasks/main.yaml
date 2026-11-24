@@ -58,6 +58,12 @@
   ansible.builtin.set_fact:
     day2_inventory_hosts: "{{ day2_inventory_hosts | unique(attribute='name') }}"
 
+- name: Decide which SSH key Ansible has to use
+  tags: always
+  ansible.builtin.include_role:
+    name: ssh_key_gen
+    tasks_from: resolve_key
+
 - name: Template out inventory with localhost, file server, KVM host, jumphost(optional) and bastion information
   tags: set_inventory
   ansible.builtin.template:
@@ -70,7 +76,7 @@
 - name: Add path to Ansible private key in ansible.cfg
   tags: set_inventory
   ansible.builtin.lineinfile:
-    line: "private_key_file=~/.ssh/{{ env.ansible_key_name }}"
+    line: "private_key_file={{ ssh_private_key_path }}"
     path: "{{ ansible_config_file }}"
     regexp: "private_key_file"
     state: present

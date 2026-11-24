@@ -15,14 +15,31 @@
   register: ssh_directory_creation
   when: not ssh_directory_exists_check.stat.exists
 
+- name: Decide whether to use the existing SSH key or to generate a new one
+  tags: always
+  ansible.builtin.include_tasks: resolve_key.yaml
+
+- name: Use existing SSH key
+  tags: ssh_key_gen, ssh
+  ansible.builtin.debug:
+    msg: "Using existing SSH key '{{ ssh_private_key_path }}'. No new key is generated."
+  when: ssh_use_configured_key | bool
+
+- name: Warn that a new SSH key is generated
+  tags: ssh_key_gen, ssh
+  ansible.builtin.debug:
+    msg: "WARNING: No usable existing SSH key ({{ ssh_key_fallback_reason }}). A new key is generated as '{{ ssh_private_key_path }}'."
+  when: not (ssh_use_configured_key | bool)
+
 - name: Generate an OpenSSH keypair with the default values (4096 bits, RSA)
   tags: ssh_key_gen, ssh
   community.crypto.openssh_keypair:
-    path: "~/.ssh/{{ env.ansible_key_name }}"
+    path: "{{ ssh_private_key_path }}"
     passphrase: ""
     comment: "Ansible-OpenShift-Provisioning SSH key"
     regenerate: "{{ regenerate_private_key }}"
   register: ssh_key_creation
+  when: not (ssh_use_configured_key | bool)
 
 - name: Print results of ssh key pair creation
   tags: ssh_key_gen, ssh
@@ -30,6 +47,7 @@
     msg:
       - "SSH key generated: {{ ssh_key_creation }};"
       - "Regenerate private key: {{ regenerate_private_key }};"
+  when: not (ssh_use_configured_key | bool)
 
 - name: Save path to key pair for use in ssh-copy-id role
   tags: ssh_key_gen, ssh
@@ -37,3 +55,4 @@
     search_string: "path_to_key_pair:"
     line: "path_to_key_pair: {{ ssh_key_creation.filename }}.pub"
     path: "{{ inventory_dir }}/group_vars/all.yaml"
+  when: not (ssh_use_configured_key | bool)

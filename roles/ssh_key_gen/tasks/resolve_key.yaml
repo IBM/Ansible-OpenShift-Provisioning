@@ -1,0 +1,57 @@
+---
+# Decide which SSH key Ansible has to use.
+#
+# An already existing key is used (and no new key is generated) only if
+#   - regenerate_private_key is 'never' AND
+#   - path_to_key_pair is set AND
+#   - the public key and its matching private key exist on the controller.
+# In every other case a new key is generated as ~/.ssh/<env.ansible_key_name>.
+#
+# Facts set by this file:
+#   ssh_use_configured_key  - true if the existing key is used
+#   ssh_private_key_path    - path of the private key Ansible has to use
+#   ssh_key_fallback_reason - why a new key is generated (empty if existing key is used)
+
+- name: Check if an existing SSH key pair is configured
+  tags: always
+  ansible.builtin.set_fact:
+    _ssh_key_configured: >-
+      {{ regenerate_private_key | default('full_idempotence') == 'never'
+         and path_to_key_pair is defined
+         and path_to_key_pair | default('', true) | length > 0 }}
+
+- name: Check if the configured public key exists
+  tags: always
+  ansible.builtin.stat:
+    path: "{{ path_to_key_pair }}"
+  register: _ssh_pub_key_stat
+  when: _ssh_key_configured | bool
+
+- name: Check if the matching private key exists
+  tags: always
+  ansible.builtin.stat:
+    path: "{{ path_to_key_pair | regex_replace('[.]pub$', '') }}"
+  register: _ssh_priv_key_stat
+  when: _ssh_key_configured | bool
+
+- name: Set the SSH key to be used
+  tags: always
+  ansible.builtin.set_fact:
+    ssh_use_configured_key: >-
+      {{ (_ssh_key_configured | bool)
+         and (_ssh_pub_key_stat.stat.exists | default(false))
+         and (_ssh_priv_key_stat.stat.exists | default(false)) }}
+    ssh_private_key_path: >-
+      {{ (path_to_key_pair | regex_replace('[.]pub$', ''))
+         if ((_ssh_key_configured | bool)
+             and (_ssh_pub_key_stat.stat.exists | default(false))
+             and (_ssh_priv_key_stat.stat.exists | default(false)))
+         else '~/.ssh/' ~ env.ansible_key_name }}
+    ssh_key_fallback_reason: >-
+      {% if not (_ssh_key_configured | bool) -%}
+      {%- if regenerate_private_key | default('full_idempotence') != 'never' -%}
+      regenerate_private_key is '{{ regenerate_private_key | default('full_idempotence') }}', not 'never'{%- else -%}
+      path_to_key_pair is not set{%- endif -%}
+      {%- elif not (_ssh_pub_key_stat.stat.exists | default(false)) -%}
+      public key '{{ path_to_key_pair }}' does not exist{%- elif not (_ssh_priv_key_stat.stat.exists | default(false)) -%}
+      private key '{{ path_to_key_pair | regex_replace('[.]pub$', '') }}' does not exist{%- endif %}
