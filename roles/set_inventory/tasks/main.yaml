@@ -2,7 +2,11 @@
 
 - name: Find inventory directory from ansible.cfg
   tags: set_inventory
-  ansible.builtin.shell: cat {{ ansible_config_file }} | grep 'inventory=' | cut -f2 -d"="
+  ansible.builtin.shell: |
+    set -o pipefail
+    cat {{ ansible_config_file }} | grep 'inventory=' | cut -f2 -d"="
+  args:
+    executable: /bin/bash
   register: find_inventory
 
 - name: Find absolute path to project.
@@ -58,19 +62,27 @@
   ansible.builtin.set_fact:
     day2_inventory_hosts: "{{ day2_inventory_hosts | unique(attribute='name') }}"
 
+- name: Decide which SSH key Ansible has to use
+  tags: always
+  ansible.builtin.include_role:
+    name: ssh_key_gen
+    tasks_from: resolve_key
+
 - name: Template out inventory with localhost, file server, KVM host, jumphost(optional) and bastion information
   tags: set_inventory
   ansible.builtin.template:
     src: hosts.j2
     dest: "{{ find_project.stdout }}{{ find_inventory.stdout }}/hosts"
     force: true
+    mode: '0644'
 
-- ansible.builtin.meta: refresh_inventory
+- name: Refresh inventory after templating hosts file
+  ansible.builtin.meta: refresh_inventory
 
 - name: Add path to Ansible private key in ansible.cfg
   tags: set_inventory
   ansible.builtin.lineinfile:
-    line: "private_key_file=~/.ssh/{{ env.ansible_key_name }}"
+    line: "private_key_file={{ ssh_private_key_path }}"
     path: "{{ ansible_config_file }}"
     regexp: "private_key_file"
     state: present

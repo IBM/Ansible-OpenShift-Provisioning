@@ -6,10 +6,16 @@
     mode: '0644'
   become: false
 
+- name: Decide which SSH key Ansible has to use
+  tags: always
+  ansible.builtin.include_role:
+    name: ssh_key_gen
+    tasks_from: resolve_key
+
 - name: Add ansible SSH key to ssh-agent
   tags: ssh_agent, ssh
   ansible.builtin.lineinfile:
-    line: "eval $(ssh-agent) && ssh-add ~/.ssh/{{ env.ansible_key_name }}"
+    line: "eval $(ssh-agent) && ssh-add {{ ssh_private_key_path }}"
     path: ~/.bash_profile
   become: false
   register: ssh_agent_setup
