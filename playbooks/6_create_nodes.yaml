@@ -6,21 +6,23 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   tasks:
-    - block:
-      - name: Loop over node types and include role
-        ansible.builtin.include_role:
-          name: check_for_lpar_nodes
-        loop:
-          - bootstrap
-          - control
-          - compute
-        loop_control:
-          loop_var: node_type
-        register: result
-      ignore_errors: true
+    - name: Check for lpar nodes of all node types
+      ignore_errors: true  # noqa: ignore-errors
+      block:
+        - name: Loop over node types and include role
+          ansible.builtin.include_role:
+            name: check_for_lpar_nodes
+          loop:
+            - bootstrap
+            - control
+            - compute
+          loop_control:
+            loop_var: node_type
+          register: result
 
     - name: fail the play if the previous command did not succeed
-      ansible.builtin.fail: msg="Check for lpar nodes failed for bootstrap or control node"
+      ansible.builtin.fail:
+        msg: "Check for lpar nodes failed for bootstrap or control node"
       when:
         - "'bootstrap' in result.msg"
         - "'control' in result.msg"
@@ -55,7 +57,7 @@
         env: "{{ env | combine({'bastion': _bastion_hv.bastion}, recursive=True) }}"
       when: bastion_nodes is defined and bastion_nodes | length > 0
   roles:
-    - { role: common,  when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
+    - { role: common, when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
     - { role: create_bootstrap, when: (hosts_with_host_vars|length == 0) or env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars }
 
 - name: 6 create nodes - bootstrap and control ( if in lpar )
@@ -73,10 +75,10 @@
         node_type: "bootstrap"
         node_name: "{{ item }}"
         ignition: "bootstrap"
-        node_mac: "{% if env.use_dhcp and env.cluster.nodes[node_type].mac is defined and env.cluster.nodes[node_type].mac != None %}{{ env.cluster.nodes[node_type].mac }}{% else %}null{% endif %}"
+        node_mac: "{% if env.use_dhcp and env.cluster.nodes[node_type].mac is defined and env.cluster.nodes[node_type].mac != None %}{{ env.cluster.nodes[node_type].mac }}{% else %}null{% endif %}"  # noqa: yaml[line-length]
       ansible.builtin.include_tasks:
         file: ../roles/boot_LPAR/tasks/main.yaml
-      loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
+      loop: "{{ q('list', env.cluster.nodes[node_type].vm_name) | flatten }}"
       when: item in hosts_with_host_vars
 
     - name: boot control nodes
@@ -84,10 +86,10 @@
         node_type: "control"
         node_name: "{{ item }}"
         ignition: "master"
-        node_mac: "{% if env.use_dhcp and env.cluster.nodes[node_type].mac is defined and env.cluster.nodes[node_type].mac != None %}{{ env.cluster.nodes[node_type].mac[env.cluster.nodes[node_type].vm_name.index(item)] }}{% else %}null{% endif %}"
+        node_mac: "{% if env.use_dhcp and env.cluster.nodes[node_type].mac is defined and env.cluster.nodes[node_type].mac != None %}{{ env.cluster.nodes[node_type].mac[env.cluster.nodes[node_type].vm_name.index(item)] }}{% else %}null{% endif %}"  # noqa: yaml[line-length]
       ansible.builtin.include_tasks:
         file: ../roles/boot_LPAR/tasks/main.yaml
-      loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
+      loop: "{{ q('list', env.cluster.nodes[node_type].vm_name) | flatten }}"
       when: item in hosts_with_host_vars
 
 - name: 6 create nodes - wait for CoreOS installation on LPARs
@@ -159,7 +161,7 @@
       community.libvirt.virt:
         name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
         command: destroy
-      ignore_errors: true
+      ignore_errors: true  # noqa: ignore-errors
       when: env.cluster.nodes.bootstrap.vm_name not in hosts_with_host_vars
 
     - name: Undefine bootstrap. Expect ignored errors if bootstrap is already undefined.
@@ -168,7 +170,7 @@
         name: "{{ env.cluster.nodes.bootstrap.vm_name }}"
         command: undefine
         force: true
-      ignore_errors: true
+      ignore_errors: true  # noqa: ignore-errors
 
 - name: 6 create nodes - once bootstrapping is complete, create compute nodes.
   hosts: kvm_host
@@ -201,10 +203,10 @@
         node_type: "compute"
         node_name: "{{ item }}"
         ignition: "worker"
-        node_mac: "{% if env.use_dhcp and env.cluster.nodes[node_type].mac is defined and env.cluster.nodes[node_type].mac != None %}{{ env.cluster.nodes[node_type].mac[env.cluster.nodes[node_type].vm_name.index(item)] }}{% else %}null{% endif %}"
+        node_mac: "{% if env.use_dhcp and env.cluster.nodes[node_type].mac is defined and env.cluster.nodes[node_type].mac != None %}{{ env.cluster.nodes[node_type].mac[env.cluster.nodes[node_type].vm_name.index(item)] }}{% else %}null{% endif %}"  # noqa: yaml[line-length]
       ansible.builtin.include_tasks:
         file: ../roles/boot_LPAR/tasks/main.yaml
-      loop: "{{ q('list',env.cluster.nodes[node_type].vm_name) | flatten }}"
+      loop: "{{ q('list', env.cluster.nodes[node_type].vm_name) | flatten }}"
       when:
         - env.cluster.nodes[node_type].vm_name is defined
         - env.cluster.nodes[node_type].vm_name | length > 0

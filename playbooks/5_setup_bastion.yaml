@@ -37,7 +37,11 @@
   vars:
     # bastion.* is loaded from the first bastion's host_vars; for multi-bastion setups
     # this play runs once per bastion when targeted via --limit or via the [bastion] group.
-    ssh_target: ["{{ _bastion_hv.bastion['networking']['ip'] }}", "{{ _bastion_hv.bastion['access']['user'] }}", "{{ _bastion_hv.bastion['access']['pass'] }}", "{{ env.jumphost.path_to_keypair }}"]
+    ssh_target:
+      - "{{ _bastion_hv.bastion['networking']['ip'] }}"
+      - "{{ _bastion_hv.bastion['access']['user'] }}"
+      - "{{ _bastion_hv.bastion['access']['pass'] }}"
+      - "{{ env.jumphost.path_to_keypair }}"
   pre_tasks:
     - name: Load bastion host_vars into _bastion_hv (so that vault variables resolve in this play)
       ansible.builtin.include_vars:
@@ -115,7 +119,11 @@
     - "{{ inventory_dir }}/group_vars/all.yaml"
     - "{{ inventory_dir }}/group_vars/secrets.yaml"
   vars:
-    ssh_target: ["{{ _bastion_hv.bastion['networking']['ip'] }}", "{{ _bastion_hv.bastion['access']['user'] }}", "{{ _bastion_hv.bastion['access']['pass'] }}", "{{ env.jumphost.path_to_keypair }}"]
+    ssh_target:
+      - "{{ _bastion_hv.bastion['networking']['ip'] }}"
+      - "{{ _bastion_hv.bastion['access']['user'] }}"
+      - "{{ _bastion_hv.bastion['access']['pass'] }}"
+      - "{{ env.jumphost.path_to_keypair }}"
   pre_tasks:
     - name: Load bastion host_vars into _bastion_hv (so that vault variables resolve in this play)
       ansible.builtin.include_vars:
@@ -202,7 +210,10 @@
     - { role: setup_bastion_services, bastion_services_mode: haproxy, when: env.bastion.options.loadbalancer.on_bastion }
     - httpd
     - { role: install_tessia_baselib, when: ( installation_type|lower == "lpar" ) or ( installation_type|lower == "zvm" ) }
-    - { role: patch_tessia_baselib, when: ( ( installation_type|lower == "lpar" ) or ( installation_type|lower == "zvm" ) ) and ( patch_tessia_baselib | default(true) | bool ) }
+    - role: patch_tessia_baselib
+      when:
+        - ( installation_type | lower == "lpar" ) or ( installation_type | lower == "zvm" )
+        - patch_tessia_baselib | default(true) | bool
 
 - name: Setup OpenVPN on bastion
   hosts: bastion
