@@ -181,6 +181,13 @@
         - master
         - worker
 
+- name: Create chrony MachineConfig manifests when env.ntp_servers is set
+  tags: get_ocp
+  ansible.builtin.include_role:
+    name: create_ntp_manifests
+    apply:
+      tags: get_ocp
+
 - name: Set ownership of ocpinst directory contents to root
   tags: get_ocp
   become: true

@@ -190,6 +190,15 @@ env:
 # Uncomment the line below to enable IPSec network configuration.
 # ipsec_enabled: true
 
+# (Optional) Alternative NTP servers for the cluster nodes (list of hostnames or IPs).
+# Default (commented): no alternative servers, the nodes keep the chrony defaults of the RHCOS image.
+# Set this if the nodes end up "Not synchronised" (e.g. RHCOS 10.x on s390x ships a chrony config
+# that only uses the PTP clock /dev/ptp_s390_stcke and has no NTP server or pool).
+# UPI: a chrony MachineConfig (master + worker) is added to the install manifests.
+# ABI: set as additionalNTPSources in agent-config.yaml and as chrony MachineConfig (master + worker).
+#  ntp_servers:
+#    - 2.rhel.pool.ntp.org
+
 #jumphost if network mode is NAT
   jumphost:
     name:

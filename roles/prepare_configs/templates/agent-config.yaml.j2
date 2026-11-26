@@ -3,6 +3,12 @@ kind: AgentConfig
 metadata:
   name: {{ env.cluster.networking.metadata_name }}
 rendezvousIP: {{ env.cluster.nodes.control.ip[0] }}
+{% if (env.ntp_servers | default([], true) | length) > 0 %}
+additionalNTPSources:
+{% for ntp_server in env.ntp_servers %}
+  - {{ ntp_server }}
+{% endfor %}
+{% endif %}
 
 {% if installation_type | lower != 'zvm' %}
 hosts:
