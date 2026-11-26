@@ -7,8 +7,15 @@
   retries: 60
   delay: 20
 
+- name: Get OCP version of the management cluster
+  command: oc get clusterversion version -o jsonpath='{.status.desired.version}'
+  register: mgmt_ocp_version
+  changed_when: false
+
 - name: Wait for Hosted Control Plane to Complete
-  shell: oc get hc -n {{ hcp.control_plane.clusters_namespace }} --no-headers | awk  '{print $5}'
+  shell: oc get hc -n {{ hcp.control_plane.clusters_namespace }} --no-headers | awk '{print ${{ hc_status_col }}}'
+  vars:
+    hc_status_col: "{{ 4 if (mgmt_ocp_version.stdout.split('-')[0] is version('4.22', '<')) else 5 }}"
   register: hc_status
   until: hc_status.stdout == "Completed"
   retries: 40
