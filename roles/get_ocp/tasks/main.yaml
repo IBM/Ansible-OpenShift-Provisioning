@@ -27,6 +27,7 @@
   ansible.builtin.file:
     path: "{{ ocpinst_dir }}"
     state: directory
+    mode: "0755"
 
 - name: Get Red Hat CoreOS rootfs file if it's not there already or content was changed.
   tags: get_ocp
@@ -101,6 +102,7 @@
   ansible.builtin.copy:
     src: cluster-network-03-config.yml
     dest: "{{ ocpinst_dir }}/manifests/cluster-network-03-config.yml"
+    mode: "0644"
   when: env.ipsec_enabled is defined and env.ipsec_enabled != None and env.ipsec_enabled
 
 - name: List the files in the manifests directory
@@ -232,6 +234,7 @@
   ansible.builtin.file:
     state: directory
     path: ~/.kube
+    mode: "0755"
 
 - name: Create directory in root's home for default kubeconfig.
   tags: get_ocp, config
@@ -239,6 +242,7 @@
   ansible.builtin.file:
     state: directory
     path: ~/.kube
+    mode: "0755"
 
 - name: Make kubeconfig admin user's default (for non-root user).
   tags: get_ocp, config
@@ -248,6 +252,7 @@
     owner: "{{ env.bastion.access.user }}"
     group: "{{ env.bastion.access.user }}"
     remote_src: true
+    mode: "0600"
   when: env.bastion.access.user != "root"
 
 - name: Make kubeconfig admin user's default (for root user).
@@ -258,6 +263,7 @@
     owner: "{{ env.bastion.access.user }}"
     group: "{{ env.bastion.access.user }}"
     remote_src: true
+    mode: "0600"
   when: env.bastion.access.user == "root"
 
 - name: Make kubeconfig root user's default.
@@ -268,6 +274,7 @@
     owner: root
     group: root
     remote_src: true
+    mode: "0600"
 
 - name: Create ignition directory in HTTP-accessible directory.
   tags: get_ocp
@@ -275,6 +282,7 @@
   ansible.builtin.file:
     path: /var/www/html/ignition
     state: directory
+    mode: "0755"
 
 - name: Copy ignition files to HTTP-accessible directory.
   tags: get_ocp
