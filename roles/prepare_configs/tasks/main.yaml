@@ -50,3 +50,7 @@
   loop:
     - "{{ ocpinst_dir }}/install-config.yaml"
     - "{{ ocpinst_dir }}/install-config-backup.yaml"
+
+- name: Create chrony MachineConfig manifests when env.ntp_servers is set
+  ansible.builtin.include_role:
+    name: create_ntp_manifests

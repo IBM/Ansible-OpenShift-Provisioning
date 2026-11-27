@@ -1,0 +1,24 @@
+---
+# Creates chrony MachineConfig manifests so that the installed nodes use the NTP servers
+# defined in env.ntp_servers. Does nothing when env.ntp_servers is not set (default).
+# The manifests are picked up from "{{ ocpinst_dir }}/openshift" by
+# "openshift-install create ignition-configs" (UPI) and "openshift-install agent create ..." (ABI).
+- name: Create chrony MachineConfig manifests for env.ntp_servers
+  when: (env.ntp_servers | default([], true) | length) > 0
+  block:
+    - name: Ensure the openshift manifests directory exists
+      ansible.builtin.file:
+        path: "{{ ocpinst_dir }}/openshift"
+        state: directory
+        mode: '0755'
+
+    - name: Template chrony MachineConfig for each node role
+      ansible.builtin.template:
+        src: chrony-machineconfig.yaml.j2
+        dest: "{{ ocpinst_dir }}/openshift/99-{{ node_role }}-chrony.yaml"
+        mode: '0644'
+      loop:
+        - master
+        - worker
+      loop_control:
+        loop_var: node_role

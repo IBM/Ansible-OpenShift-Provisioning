@@ -1,0 +1,2 @@
+# Installation directory on the bastion (UPI and ABI). Override with ocpinst_dir in all.yaml.
+ocpinst_dir: ~/ocpinst
